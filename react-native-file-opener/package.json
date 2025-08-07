@@ -1,0 +1,37 @@
+{
+  "name": "react-native-file-opener",
+  "version": "1.0.0",
+  "description": "React Native module for opening files with external applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "file-opener",
+    "external-app",
+    "android",
+    "ios",
+    "expo"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "react-native": ">=0.60.0"
+  },
+  "devDependencies": {
+    "react-native": "^0.72.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/react-native-file-opener.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/react-native-file-opener/issues"
+  },
+  "homepage": "https://github.com/yourusername/react-native-file-opener#readme",
+  "expo": {
+    "name": "react-native-file-opener",
+    "platforms": ["android", "ios"]
+  }
+} 

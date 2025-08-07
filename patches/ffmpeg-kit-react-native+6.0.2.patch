@@ -1,0 +1,44 @@
+diff --git a/node_modules/ffmpeg-kit-react-native/android/build.gradle b/node_modules/ffmpeg-kit-react-native/android/build.gradle
+index 2909280..9cd78ab 100644
+--- a/node_modules/ffmpeg-kit-react-native/android/build.gradle
++++ b/node_modules/ffmpeg-kit-react-native/android/build.gradle
+@@ -33,7 +33,7 @@ android {
+   compileSdkVersion 33
+ 
+   defaultConfig {
+-    minSdkVersion safeExtGet('ffmpegKitPackage', 'https').contains("-lts") ? 16 : 24
++    minSdkVersion 24
+     targetSdkVersion 33
+     versionCode 602
+     versionName "6.0.2"
+@@ -56,6 +56,9 @@ android {
+ repositories {
+   mavenCentral()
+   google()
++  flatDir {
++    dirs "$rootProject.projectDir/libs"
++  }
+ 
+   def found = false
+   def defaultDir = null
+@@ -125,5 +128,6 @@ repositories {
+ 
+ dependencies {
+   api 'com.facebook.react:react-native:+'
+-  implementation 'com.arthenica:ffmpeg-kit-' + safePackageName(safeExtGet('ffmpegKitPackage', 'https')) + ':' + safePackageVersion(safeExtGet('ffmpegKitPackage', 'https'))
++  implementation(name: 'ffmpeg-kit-full-gpl', ext: 'aar')
++  implementation 'com.arthenica:smart-exception-java:0.2.1'
+ }
+diff --git a/node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec b/node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec
+index 889d3e8..a265d7a 100644
+--- a/node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec
++++ b/node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec
+@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
+ 
+   s.source       = { :git => "https://github.com/arthenica/ffmpeg-kit.git", :tag => "react.native.v#{s.version}" }
+ 
+-  s.default_subspec   = 'https'
++  s.default_subspec   = 'full-gpl'
+ 
+   s.dependency "React-Core"
+ 

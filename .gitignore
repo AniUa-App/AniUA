@@ -1,0 +1,91 @@
+# Learn more: https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# Dependencies
+node_modules/
+
+# Expo / EAS
+.expo/
+.expo-shared/
+dist/
+web-build/
+build/
+expo-env.d.ts
+
+# React Native / Metro
+.metro-health-check*
+.metro-cache/
+.cache/
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/**/.cxx/
+android/**/captures/
+*.apk
+*.aab
+
+# Keystores / certificates
+*.keystore
+**/debug.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Kotlin/Gradle misc
+.kotlin/
+*.orig.*
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.*
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors/IDE
+.vscode/
+.idea/
+*.iml
+
+# Local env files
+.env
+.env.*
+.env*.local
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests/coverage
+coverage/
+
+# Temp files
+.tmp/
+tmp/
+temp/
+
+# Android
+*.aar
+*.apk
+*.aab
+*.jar
+*.war
+*.ear
+*.zip
+*.tar
+*.gz
+*.7z
+
+react-native-file-opener/node_modules/
+
+
+test.*
