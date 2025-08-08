@@ -1,5 +1,6 @@
-import React, {useState, useEffect, useRef} from 'react';
-import {View, StatusBar, StyleSheet, Animated, Image, Text} from 'react-native';
+import React, { useState, useEffect, useRef } from "react";
+import { View, StyleSheet, Animated, Image, Text } from "react-native";
+import { StatusBar } from "react-native";
 import {
   AppColor,
   appColor,
@@ -7,11 +8,11 @@ import {
   Black_1,
   loaderColor,
   White,
-} from '../Styles/Colors';
-import {H2, H3, H4, H5} from '../Styles/Fonts';
-import FastImage from 'react-native-fast-image';
-import MainConfig from '../cfgs/MainConfig';
-import Config from 'react-native-config';
+} from "../Styles/Colors";
+import { H2, H3, H4, H5 } from "../Styles/Fonts";
+import FastImage from "react-native-fast-image";
+import MainConfig from "../cfgs/MainConfig";
+import Config from "react-native-config";
 
 export default function Loader() {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -19,8 +20,8 @@ export default function Loader() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Отримуємо версію додатку з безпечною перевіркою
-  const appVersion = MainConfig.devInfo.version || '1.0.0';
-  const gitHash = MainConfig.devInfo.gitShortHash || 'unknown';
+  const appVersion = MainConfig.devInfo.version || "1.0.0";
+  const gitHash = MainConfig.devInfo.gitShortHash || "unknown";
 
   useEffect(() => {
     setTimeout(() => {
@@ -40,16 +41,20 @@ export default function Loader() {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {!imageLoaded && <View style={[styles.logo]} />}
 
       <FastImage
-        source={require('../../assets/AniUA-Logo.png')}
+        source={require("../../assets/AniUA-Logo.png")}
         style={[
           styles.logo,
-          !imageLoaded && {position: 'absolute'},
-          {marginTop: 30},
+          !imageLoaded && { position: "absolute" },
+          { marginTop: 30 },
         ]}
         onLoadEnd={() => setImageLoaded(true)}
       />
@@ -59,11 +64,12 @@ export default function Loader() {
           styles.versionContainer,
           {
             opacity: fadeAnim,
-            transform: [{translateY: translateYAnim}],
+            transform: [{ translateY: translateYAnim }],
           },
-        ]}>
-        <Text style={[H4, {color: White(1)}]}>
-          {`${appVersion || '1.0.0'}-${gitHash || 'unknown'}`}
+        ]}
+      >
+        <Text style={[H4, { color: White(1) }]}>
+          {`${appVersion || "1.0.0"}-${gitHash || "unknown"}`}
         </Text>
       </Animated.View>
     </View>
@@ -74,20 +80,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: black,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   logo: {
     width: 300,
     height: 300,
   },
   versionContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   versionText: {
     color: appColor,

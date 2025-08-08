@@ -1,17 +1,17 @@
+import { View, Text, Dimensions, StyleSheet, FlatList } from "react-native";
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Dimensions } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Button";
 import { Black, white, appColor, Gray } from "../../Styles/Colors";
 import { H3, H4 } from "../../Styles/Fonts";
 import Icons from "../../Styles/Icons";
 
-export default function SpeedBottomSheet({
+export default function QualityWidget({
   sheetRef,
-  currentRate,
-  onRateChange,
+  currentQuality,
+  onQualityChange,
+  qualities = [],
 }) {
-  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0];
   const [orientation, setOrientation] = React.useState(
     getOrientation(
       Dimensions.get("window").width,
@@ -19,8 +19,8 @@ export default function SpeedBottomSheet({
     )
   );
 
-  const handleRateChange = (rate) => {
-    onRateChange(rate);
+  const handleQualityChange = (quality) => {
+    onQualityChange(quality);
     sheetRef.current?.close();
   };
 
@@ -65,40 +65,40 @@ export default function SpeedBottomSheet({
           <Text
             style={[H3, { color: white, textAlign: "left", marginBottom: 12 }]}
           >
-            Швидкість відтворення
+            Якість відтворення
           </Text>
         </View>
 
         <View style={styles.flatListContainer}>
           <FlatList
-            data={speedOptions}
+            data={qualities}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.speedOptionsContainer}
             keyExtractor={(item) => item.toString()}
             decelerationRate="fast"
             snapToAlignment="center"
-            renderItem={({ item: speed, index }) => (
+            renderItem={({ item: quality, index }) => (
               <TouchableOpacity
                 style={[
                   styles.speedOption,
-                  currentRate === speed && styles.speedOptionActive,
-                  index !== speedOptions.length - 1 && { marginRight: 12 },
+                  currentQuality === quality && styles.speedOptionActive,
+                  index !== qualities.length - 1 && { marginRight: 12 },
                 ]}
-                onPress={() => handleRateChange(speed)}
+                onPress={() => handleQualityChange(quality)}
               >
                 <Text
                   style={[
                     H4,
                     {
-                      color: currentRate === speed ? appColor : white,
+                      color: currentQuality === quality ? appColor : white,
                       textAlign: "center",
                     },
                   ]}
                 >
-                  {speed}x
+                  {quality}
                 </Text>
-                {currentRate === speed && (
+                {currentQuality === quality && (
                   <View style={styles.checkIcon}>
                     <Icons.Check size={16} color={appColor} />
                   </View>

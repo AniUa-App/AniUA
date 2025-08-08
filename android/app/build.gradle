@@ -93,7 +93,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "a0.0.1"
     }
     signingConfigs {
         debug {
@@ -173,6 +173,7 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    implementation project(':react-native-file-opener')
     }
 }
 
@@ -182,27 +183,12 @@ task downloadAar {
     doLast {
         def aarUrl = 'https://github.com/NooruddinLakhani/ffmpeg-kit-full-gpl/releases/download/v1.0.0/ffmpeg-kit-full-gpl.aar'
         def aarFile = new File(rootProject.projectDir, 'libs/ffmpeg-kit-full-gpl.aar')
-        
         if (!aarFile.exists()) {
-            println "FFmpeg AAR file not found. Downloading from ${aarUrl}..."
-            
-            // Create libs directory if it doesn't exist
             aarFile.parentFile.mkdirs()
-            
-            try {
-                // Download the file
-                new URL(aarUrl).withInputStream { inputStream ->
-                    aarFile.withOutputStream { outputStream ->
-                        outputStream << inputStream
-                    }
-                }
-                println "Successfully downloaded ffmpeg-kit-full-gpl.aar to ${aarFile.absolutePath}"
-            } catch (Exception e) {
-                println "Failed to download ffmpeg-kit-full-gpl.aar: ${e.message}"
-                throw new GradleException("Failed to download ffmpeg-kit-full-gpl.aar. Please download it manually from ${aarUrl} and place it in android/libs/", e)
+            println "Downloading ${aarUrl} to ${aarFile}"
+            new URL(aarUrl).withInputStream { i ->
+                aarFile.withOutputStream { it << i }
             }
-        } else {
-            println "FFmpeg AAR file already exists at ${aarFile.absolutePath}"
         }
     }
 }

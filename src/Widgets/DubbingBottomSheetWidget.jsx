@@ -1,48 +1,57 @@
-import {View, Text, StyleSheet, FlatList} from 'react-native';
-import React, {useState, useEffect} from 'react';
-import {BottomSheetModal, BottomSheetView} from '@gorhom/bottom-sheet';
-import {AppColor, Black, appColor, black, Gray, white, yellow} from '../Styles/Colors';
-import {TouchableOpacity} from './Button';
-import Icon, {MoonIcon, AshdiIcon, AppIcon} from '../Styles/Icons';
-import {GetScreenHeight} from '../Global/Functions';
-import {H2, H3, H4} from '../Styles/Fonts';
+import { View, Text, StyleSheet, FlatList } from "react-native";
+import React, { useState, useEffect } from "react";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import {
+  AppColor,
+  Black,
+  appColor,
+  black,
+  Gray,
+  white,
+  yellow,
+} from "../Styles/Colors";
+import { TouchableOpacity } from "./Button";
+import Icon, { MoonIcon, AshdiIcon, AppIcon } from "../Styles/Icons";
+import { GetScreenHeight } from "../Global/Functions";
+import { H2, H3, H4 } from "../Styles/Fonts";
 
 export const playersIcons = {
   "Вбудований плеєр": <Icon.MonitorPlay color={appColor} size={40} />,
-  moon: <MoonIcon styles={{width: 40, height: 40}} />,
+  moon: <MoonIcon styles={{ width: 40, height: 40 }} />,
   ashdi: <AshdiIcon styles={{ width: 40, height: 40 }} />,
 };
 
-function MoonPlayerContent({dubbings, data, changeDubbing}) {
+function MoonPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
 
   return (
     <>
       <Text style={H2}>Плеєр Moon</Text>
-            <Text
+      <Text
         style={[
           H4,
           {
             fontSize: 13,
             color: Gray(0.8),
           },
-        ]}>
+        ]}
+      >
         може містити рекламу казино
       </Text>
       <FlatList
         showsVerticalScrollIndicator={false}
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
-        contentContainerStyle={{paddingVertical: 10}}
-        style={{maxHeight: GetScreenHeight() * 0.5}}
-        renderItem={({item}) => (
+        contentContainerStyle={{ paddingVertical: 10 }}
+        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        renderItem={({ item }) => (
           <TouchableOpacity
             style={{
               padding: 11,
-              flexDirection: 'row',
-              width: '100%',
+              flexDirection: "row",
+              width: "100%",
               backgroundColor:
-                selectedDubbing === item ? Black(0.4) : 'transparent',
+                selectedDubbing === item ? Black(0.4) : "transparent",
               borderRadius: 8,
               marginVertical: 4,
               borderLeftColor: AppColor(),
@@ -52,18 +61,20 @@ function MoonPlayerContent({dubbings, data, changeDubbing}) {
               setSelectedDubbing(item);
               changeDubbing({
                 ...data,
-                watched: {...data.watched, dubbing: item},
+                watched: { ...data.watched, dubbing: item },
               });
-            }}>
+            }}
+          >
             <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
-                {color: selectedDubbing === item ? AppColor() : Gray()},
-                {marginLeft: 10, maxWidth: '60%'},
+                { color: selectedDubbing === item ? AppColor() : Gray() },
+                { marginLeft: 10, maxWidth: "60%" },
               ]}
               numberOfLines={1}
-              ellipsizeMode="tail">
+              ellipsizeMode="tail"
+            >
               {item}
             </Text>
           </TouchableOpacity>
@@ -73,7 +84,7 @@ function MoonPlayerContent({dubbings, data, changeDubbing}) {
   );
 }
 
-function AshdiPlayerContent({dubbings, data, changeDubbing}) {
+function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
 
   return (
@@ -86,23 +97,24 @@ function AshdiPlayerContent({dubbings, data, changeDubbing}) {
             fontSize: 13,
             color: Gray(0.8),
           },
-        ]}>
+        ]}
+      >
         може містити рекламу казино
       </Text>
       <FlatList
         showsVerticalScrollIndicator={false}
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
-        contentContainerStyle={{paddingVertical: 10}}
-        style={{maxHeight: GetScreenHeight() * 0.5}}
-        renderItem={({item}) => (
+        contentContainerStyle={{ paddingVertical: 10 }}
+        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        renderItem={({ item }) => (
           <TouchableOpacity
             style={{
               padding: 11,
-              flexDirection: 'row',
-              width: '100%',
+              flexDirection: "row",
+              width: "100%",
               backgroundColor:
-                selectedDubbing === item ? Black(0.4) : 'transparent',
+                selectedDubbing === item ? Black(0.4) : "transparent",
               borderRadius: 8,
               marginVertical: 4,
               borderLeftColor: AppColor(),
@@ -112,18 +124,20 @@ function AshdiPlayerContent({dubbings, data, changeDubbing}) {
               setSelectedDubbing(item);
               changeDubbing({
                 ...data,
-                watched: {...data.watched, dubbing: item},
+                watched: { ...data.watched, dubbing: item },
               });
-            }}>
+            }}
+          >
             <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
-                {color: selectedDubbing === item ? AppColor() : Gray()},
-                {marginLeft: 10, maxWidth: '60%'},
+                { color: selectedDubbing === item ? AppColor() : Gray() },
+                { marginLeft: 10, maxWidth: "60%" },
               ]}
               numberOfLines={1}
-              ellipsizeMode="tail">
+              ellipsizeMode="tail"
+            >
               {item}
             </Text>
           </TouchableOpacity>
@@ -133,11 +147,7 @@ function AshdiPlayerContent({dubbings, data, changeDubbing}) {
   );
 }
 
-
-
-
-
-function DefaultPlayerContent({dubbings, data, changeDubbing}) {
+function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
 
   return (
@@ -147,16 +157,16 @@ function DefaultPlayerContent({dubbings, data, changeDubbing}) {
         showsVerticalScrollIndicator={false}
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
-        contentContainerStyle={{paddingVertical: 10}}
-        style={{maxHeight: GetScreenHeight() * 0.5}}
-        renderItem={({item}) => (
+        contentContainerStyle={{ paddingVertical: 10 }}
+        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        renderItem={({ item }) => (
           <TouchableOpacity
             style={{
               padding: 11,
-              flexDirection: 'row',
-              width: '100%',
+              flexDirection: "row",
+              width: "100%",
               backgroundColor:
-                selectedDubbing === item ? Black(0.4) : 'transparent',
+                selectedDubbing === item ? Black(0.4) : "transparent",
               borderRadius: 8,
               marginVertical: 4,
               borderLeftColor: AppColor(),
@@ -166,18 +176,20 @@ function DefaultPlayerContent({dubbings, data, changeDubbing}) {
               setSelectedDubbing(item);
               changeDubbing({
                 ...data,
-                watched: {...data.watched, dubbing: item},
+                watched: { ...data.watched, dubbing: item },
               });
-            }}>
+            }}
+          >
             <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
-                {color: selectedDubbing === item ? AppColor() : Gray()},
-                {marginLeft: 10, maxWidth: '60%'},
+                { color: selectedDubbing === item ? AppColor() : Gray() },
+                { marginLeft: 10, maxWidth: "60%" },
               ]}
               numberOfLines={1}
-              ellipsizeMode="tail">
+              ellipsizeMode="tail"
+            >
               {item}
             </Text>
           </TouchableOpacity>
@@ -187,34 +199,33 @@ function DefaultPlayerContent({dubbings, data, changeDubbing}) {
   );
 }
 
-
-
-
-
 export function getFullDubbersListOfQueues(episodesList) {
-  if (!episodesList || typeof episodesList !== 'object') {
-    console.log('episodesList is not valid:', episodesList);
+  if (!episodesList || typeof episodesList !== "object") {
+    console.log("episodesList is not valid:", episodesList);
     return {};
   }
-  
+
   var players = Object.keys(episodesList);
   var dubbersList = {}; // Змінюємо на об'єкт замість масиву
 
   for (const player of players) {
     const playerEpisodes = episodesList[player];
-    if (!playerEpisodes || typeof playerEpisodes !== 'object') {
+    if (!playerEpisodes || typeof playerEpisodes !== "object") {
       console.log(`Player ${player} episodes is not valid:`, playerEpisodes);
       continue;
     }
-    
+
     var dubbers = Object.keys(playerEpisodes);
     for (const dubber of dubbers) {
       const dubberEpisodes = playerEpisodes[dubber];
       if (!Array.isArray(dubberEpisodes)) {
-        console.log(`Dubber ${dubber} episodes is not an array:`, dubberEpisodes);
+        console.log(
+          `Dubber ${dubber} episodes is not an array:`,
+          dubberEpisodes
+        );
         continue;
       }
-      
+
       if (dubbersList.hasOwnProperty(dubber)) {
         // Якщо дублер вже існує, перевіряємо чи новий список епізодів довший
         if (dubbersList[dubber].length < dubberEpisodes.length) {
@@ -229,7 +240,6 @@ export function getFullDubbersListOfQueues(episodesList) {
   return dubbersList;
 }
 
-
 export default function DubbingBottomSheet({
   sheetRef,
   episodesList,
@@ -241,8 +251,12 @@ export default function DubbingBottomSheet({
 
   // Потім встановлюємо плеєр на основі інформаціїі
   useEffect(() => {
-    if (episodesList && typeof episodesList === 'object' && Object.keys(episodesList).length > 0 && info) {
-
+    if (
+      episodesList &&
+      typeof episodesList === "object" &&
+      Object.keys(episodesList).length > 0 &&
+      info
+    ) {
       // Визначаємо, яку вкладку встановити за замовчуванням
       let defaultTab;
 
@@ -256,7 +270,7 @@ export default function DubbingBottomSheet({
     }
   }, [episodesList]); // Прибираємо info з залежностей, щоб уникнути циклів
 
-  const changeDubbing = newInfo => {
+  const changeDubbing = (newInfo) => {
     setInfo(newInfo);
     if (isChanges) {
       isChanges(newInfo);
@@ -265,12 +279,12 @@ export default function DubbingBottomSheet({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={['60%']}
+      snapPoints={["60%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{backgroundColor: Black(0.8)}}
-      handleIndicatorStyle={{backgroundColor: Black(1)}}
-      backdropComponent={props => (
+      backgroundStyle={{ backgroundColor: Black(0.8) }}
+      handleIndicatorStyle={{ backgroundColor: Black(1) }}
+      backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
           activeOpacity={1}
@@ -278,11 +292,12 @@ export default function DubbingBottomSheet({
         />
       )}
       animationDuration={300}
-      enableContentPanningGesture={false}>
+      enableContentPanningGesture={false}
+    >
       <BottomSheetView style={[styles.container]}>
         <View style={styles.contentContainer}>
           {(() => {
-            if (activeTab === 'moon') {
+            if (activeTab === "moon") {
               return (
                 <MoonPlayerContent
                   dubbings={episodesList.moon}
@@ -290,7 +305,7 @@ export default function DubbingBottomSheet({
                   changeDubbing={changeDubbing}
                 />
               );
-            } else if (activeTab === 'ashdi') {
+            } else if (activeTab === "ashdi") {
               return (
                 <AshdiPlayerContent
                   dubbings={episodesList.ashdi}
@@ -298,7 +313,7 @@ export default function DubbingBottomSheet({
                   changeDubbing={changeDubbing}
                 />
               );
-            } else if (activeTab === 'Вбудований плеєр') {
+            } else if (activeTab === "Вбудований плеєр") {
               return (
                 <DefaultPlayerContent
                   dubbings={episodesList["Вбудований плеєр"]}
@@ -311,7 +326,7 @@ export default function DubbingBottomSheet({
             }
           })()}
         </View>
-        <Text style={[H3, {paddingBottom: 16, paddingLeft: 16}]}>Плеєр:</Text>
+        <Text style={[H3, { paddingBottom: 16, paddingLeft: 16 }]}>Плеєр:</Text>
         <View style={styles.tabsContainer}>
           {Object.entries(playersIcons).map(([name, icon]) => {
             if (name in episodesList) {
@@ -321,14 +336,15 @@ export default function DubbingBottomSheet({
                   onPress={() => {
                     changeDubbing({
                       ...info,
-                      watched: {...info.watched, player: name},
+                      watched: { ...info.watched, player: name },
                     });
                     setActiveTab(name);
                   }}
                   style={[
                     styles.tabButton,
                     activeTab === name && styles.activeTabButton,
-                  ]}>
+                  ]}
+                >
                   {icon}
                 </TouchableOpacity>
               );
@@ -345,25 +361,25 @@ const styles = StyleSheet.create({
   container: {
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    alignSelf: 'center',
-    width: '100%',
-    height: '100%',
+    alignSelf: "center",
+    width: "100%",
+    height: "100%",
   },
   tabsContainer: {
     flex: 0.3,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 20,
     paddingLeft: 26,
   },
   tabButton: {
     padding: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderColor: Gray(0.5),
     borderWidth: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     width: 45,
     height: 45,
   },
@@ -372,15 +388,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tabText: {
-    color: 'white',
+    color: "white",
     marginLeft: 8,
   },
   activeTabText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   contentContainer: {
     paddingHorizontal: 10,
-    width: '100%',
-    height: '80%',
+    width: "100%",
+    height: "80%",
   },
 });

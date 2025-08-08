@@ -1,45 +1,56 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Text,
-  StatusBar,
-} from 'react-native';
-import {WebView} from 'react-native-webview';
-import {H3} from '../Styles/Fonts';
-import {Black} from '../Styles/Colors';
-import {useNavigation} from '@react-navigation/native';
-import {AdBlockScript} from '../WebScripts/AdBlock';
-import {useEffect} from 'react';
-import Orientation from 'react-native-orientation-locker';
-import {BackHandler} from 'react-native';
+  // StatusBar,
+} from "react-native";
+import { StatusBar } from "react-native";
+import SystemNavigationBar from "react-native-system-navigation-bar";
+import { WebView } from "react-native-webview";
+import { H3 } from "../Styles/Fonts";
+import { Black } from "../Styles/Colors";
+import { useNavigation } from "@react-navigation/native";
+import { AdBlockScript } from "../WebScripts/AdBlock";
+import { useEffect } from "react";
+// import Orientation from "react-native-orientation-locker";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { BackHandler } from "react-native";
 
-export default function VideoPlayerScreen({route}) {
-  const {videoUrl, title} = route.params;
+export default function VideoPlayerScreen({ route }) {
+  const { videoUrl, title } = route.params;
   const navigation = useNavigation();
 
   useEffect(() => {
     const onBackPress = () => {
-      console.log('onBackPress');
+      console.log("onBackPress");
       navigation.goBack();
-      StatusBar.setHidden(false);
-      Orientation.lockToPortrait();
+      StatusBar.setHidden(false, "slide");
+      // Orientation.lockToPortrait();
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP
+      );
       return true;
     };
 
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-    StatusBar.setHidden(true);
-    Orientation.unlockAllOrientations();
+    StatusBar.setHidden(true, "slide");
+    // Orientation.unlockAllOrientations();
+    ScreenOrientation.unlockAsync();
   }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       <WebView
-        source={{uri: videoUrl}}
+        source={{ uri: videoUrl }}
         style={styles.video}
         injectedJavaScript={AdBlockScript}
       />
@@ -56,19 +67,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 40,
     left: 20,
     backgroundColor: Black(0.7),
     borderRadius: 8,
     padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     zIndex: 999,
   },
   title: {
-    color: 'white',
+    color: "white",
     marginLeft: 10,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
 });

@@ -10,10 +10,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
+// import SystemNavigationBar from "react-native-system-navigation-bar";
+import { BackHandler, StatusBar } from "react-native";
 import SystemNavigationBar from "react-native-system-navigation-bar";
-import { BackHandler } from "react-native";
-import { StatusBar } from "react-native";
-import Orientation from "react-native-orientation-locker";
+// import Orientation from "react-native-orientation-locker";
+import * as ScreenOrientation from "expo-screen-orientation";
 import LinearGradient from "react-native-linear-gradient";
 import Icons from "../Styles/Icons";
 import { black, Black, Gray, white, appColor } from "../Styles/Colors";
@@ -215,28 +216,27 @@ export default function LocalVideoPlayerScreen({ route }) {
     const onBackPress = () => {
       console.log("onBackPress");
       navigation.goBack();
-      StatusBar.setHidden(false);
+      StatusBar.setHidden(false, "slide");
       SystemNavigationBar.navigationShow();
-      SystemNavigationBar.fullScreen(false);
-      Orientation.lockToPortrait();
+      // SystemNavigationBar.fullScreen(false);
+      // Orientation.lockToPortrait();
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP
+      );
       return true;
     };
 
-    const onOrientationChange = (orientation) => {
-      console.log("Orientation changed:", orientation);
-      if (
-        orientation === "LANDSCAPE-LEFT" ||
-        orientation === "LANDSCAPE-RIGHT"
-      ) {
-        // Горизонтальна орієнтація - включаємо fullscreen
-        SystemNavigationBar.fullScreen(true);
-        SystemNavigationBar.navigationHide();
-      } else {
-        // Вертикальна орієнтація - вимикаємо fullscreen
-        SystemNavigationBar.fullScreen(false);
-        SystemNavigationBar.navigationShow();
-      }
-    };
+    // const onOrientationChange = (orientation) => {
+    //   console.log("Orientation changed:", orientation);
+    //   if (
+    //     orientation === "LANDSCAPE-LEFT" ||
+    //     orientation === "LANDSCAPE-RIGHT"
+    //   ) {
+    //     SystemNavigationBar.navigationHide();
+    //   } else {
+    //     SystemNavigationBar.navigationShow();
+    //   }
+    // };
 
     const backHandlerSubscription = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -244,24 +244,37 @@ export default function LocalVideoPlayerScreen({ route }) {
     );
 
     // Додаємо слухач зміни орієнтації
-    Orientation.addOrientationListener(onOrientationChange);
+    const orientationSubscription =
+      ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+        const current = orientationInfo.orientation;
+        if (
+          current === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+          current === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
+        ) {
+          SystemNavigationBar.navigationHide();
+        } else {
+          SystemNavigationBar.navigationShow();
+        }
+      });
 
-    StatusBar.setHidden(true);
+    StatusBar.setHidden(true, "slide");
     SystemNavigationBar.navigationHide();
 
     // Перевіряємо поточну орієнтацію
-    Orientation.getOrientation((orientation) => {
+    // Orientation.getOrientation((orientation) => { ... });
+    ScreenOrientation.getOrientationAsync().then((orientation) => {
       if (
-        orientation === "LANDSCAPE-LEFT" ||
-        orientation === "LANDSCAPE-RIGHT"
+        orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+        orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
       ) {
-        SystemNavigationBar.fullScreen(true);
+        SystemNavigationBar.navigationHide();
       } else {
-        SystemNavigationBar.fullScreen(false);
+        SystemNavigationBar.navigationShow();
       }
     });
 
-    Orientation.unlockAllOrientations();
+    // Orientation.unlockAllOrientations();
+    ScreenOrientation.unlockAsync();
 
     // Initial show animation
     showControlsWithAnimation();
@@ -274,11 +287,17 @@ export default function LocalVideoPlayerScreen({ route }) {
       if (seekTimeout.current) {
         clearTimeout(seekTimeout.current);
       }
-      Orientation.removeOrientationListener(onOrientationChange);
-      StatusBar.setHidden(false);
+      // Orientation.removeOrientationListener(onOrientationChange);
+      ScreenOrientation.removeOrientationChangeListener(
+        orientationSubscription
+      );
+      StatusBar.setHidden(false, "slide");
       SystemNavigationBar.navigationShow();
-      SystemNavigationBar.fullScreen(false);
-      Orientation.lockToPortrait();
+      // SystemNavigationBar.fullScreen(false);
+      // Orientation.lockToPortrait();
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP
+      );
     };
   }, []);
 
@@ -420,11 +439,19 @@ export default function LocalVideoPlayerScreen({ route }) {
 
   const toggleOrientation = () => {
     animateButton("rotate");
-    Orientation.getOrientation((orientation) => {
-      if (orientation === "PORTRAIT") {
-        Orientation.lockToLandscape();
+    // Orientation.getOrientation((orientation) => { ... });
+    ScreenOrientation.getOrientationAsync().then((orientation) => {
+      if (
+        orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+        orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
+      ) {
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE
+        );
       } else {
-        Orientation.lockToPortrait();
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP
+        );
       }
     });
     // Reset hide timer when user interacts with controls
@@ -587,7 +614,7 @@ export default function LocalVideoPlayerScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar style="dark" />
 
       {/* Video Background */}
       <TouchableOpacity
@@ -679,11 +706,15 @@ export default function LocalVideoPlayerScreen({ route }) {
                   style={styles.headerButton}
                   onPress={() => {
                     animateButton("back");
-                    StatusBar.setHidden(false);
-                    SystemNavigationBar.navigationShow();
+                    StatusBar.setHidden(false, "slide");
+                    NavigationBar.setVisibilityAsync("visible");
+                    // SystemNavigationBar.navigationShow();
                     setTimeout(() => {
                       navigation.goBack();
-                      Orientation.lockToPortrait();
+                      // Orientation.lockToPortrait();
+                      ScreenOrientation.lockAsync(
+                        ScreenOrientation.OrientationLock.PORTRAIT_UP
+                      );
                     }, 100);
                   }}
                 >

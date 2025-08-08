@@ -8,12 +8,12 @@ import { TouchableOpacity } from "./Button";
 import AnimeStorage from "../Storage/AnimeStorage";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 
-function goToPlayer(navigation, player, item, episodesList, anime) {
+function goToPlayer(navigation, player, item, episodesList, anime, dubbing) {
   if (player === "Вбудований плеєр") {
     navigation.navigate("HiddenStack", {
       screen: "LocalVideoPlayer",
       params: {
-        _episodes: episodesList,
+        _episodes: episodesList[player][dubbing],
         _currentEpisode: item,
         _anime: anime,
       },
@@ -118,7 +118,14 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
             //     title: `${anime?.title_ua} - ${last_episode?.episode} серія`,
             //   },
             // }),
-            goToPlayer(navigation, player, last_episode, episodesList, anime);
+            goToPlayer(
+              navigation,
+              player,
+              last_episode,
+              episodesList,
+              anime,
+              dubbing
+            );
             SystemNavigationBar.navigationHide();
           },
         };
@@ -155,7 +162,14 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
           watched: { ...info.watched, episodes: viewed_episodes },
         },
         function: () => {
-          goToPlayer(navigation, player, last_episode, episodesList, anime);
+          goToPlayer(
+            navigation,
+            player,
+            last_episode,
+            episodesList,
+            anime,
+            dubbing
+          );
           SystemNavigationBar.navigationHide();
         },
       };
@@ -202,7 +216,14 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
         watched: { ...info.watched, episodes: viewed_episodes },
       },
       function: () => {
-        goToPlayer(navigation, player, episodes[0], episodesList, anime);
+        goToPlayer(
+          navigation,
+          player,
+          episodes[0],
+          episodesList,
+          anime,
+          dubbing
+        );
         SystemNavigationBar.navigationHide();
       },
     };

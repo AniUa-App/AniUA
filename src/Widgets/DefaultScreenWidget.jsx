@@ -1,8 +1,9 @@
-import {SafeAreaView, StatusBar} from 'react-native';
-import React, {useCallback, useState, useEffect} from 'react';
-import Styles from '../Styles/Styles';
-import NetInfo from '@react-native-community/netinfo';
-import {InternetError} from './ErrorsWidgets';
+import { SafeAreaView } from "react-native";
+import React, { useCallback, useState, useEffect } from "react";
+import Styles from "../Styles/Styles";
+import NetInfo from "@react-native-community/netinfo";
+import { InternetError } from "./ErrorsWidgets";
+import { StatusBar } from "react-native";
 
 export default function DefaultScreenWidget({
   children,
@@ -11,7 +12,7 @@ export default function DefaultScreenWidget({
 }) {
   const [isConnected, setIsConnected_] = useState(true);
 
-  const setIsConnected = isConnected => {
+  const setIsConnected = (isConnected) => {
     setIsConnected_(isConnected);
     if (isConnection) {
       isConnection(isConnected);
@@ -28,7 +29,7 @@ export default function DefaultScreenWidget({
   }, []);
 
   useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected);
     });
 
@@ -38,7 +39,11 @@ export default function DefaultScreenWidget({
 
   return (
     <SafeAreaView style={[Styles.defaultScreenWidget]}>
-      <StatusBar />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
       {isCheckInternet && !isConnected && (
         <InternetError onPress={checkConnection} />
       )}

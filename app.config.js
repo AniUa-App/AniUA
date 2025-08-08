@@ -3,7 +3,7 @@ export default {
     name: "AniUA",
     slug: "AniUA",
     version: "a0.0.1",
-    orientation: "portrait",
+    orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
@@ -42,6 +42,8 @@ export default {
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
       // Використовуємо requestLegacyExternalStorage для сумісності зі старими версіями
       requestLegacyExternalStorage: true,

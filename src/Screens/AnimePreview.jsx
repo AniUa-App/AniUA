@@ -519,19 +519,23 @@ export default function AnimePreviewScreen({ route }) {
                 >
                   <Text
                     numberOfLines={1}
+                    ellipsizeMode="tail"
                     style={[
                       H3,
-                      { color: appColor, paddingRight: 3, maxWidth: "70%" },
+                      {
+                        color: appColor,
+                        paddingRight: 3,
+                      },
                     ]}
                   >
-                    {info?.watched?.dubbing || "Вибрати дубляж"}
+                    {(info?.watched?.dubbing || "Вибрати дубляж").slice(0, 15)}
                   </Text>
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      width: 30,
-                      height: 30,
+                      width: info?.watched?.player ? 30 : 0,
+                      height: info?.watched?.player ? 30 : 0,
                     }}
                   >
                     {playersIcons[info?.watched?.player]}
@@ -816,6 +820,7 @@ export default function AnimePreviewScreen({ route }) {
                 ...info,
                 watched: { ...info.watched, episodes: watched_episodes },
               });
+              // SystemNavigationBar.navigationHide();
               SystemNavigationBar.navigationHide();
               episodesSheetRef.current?.close();
 

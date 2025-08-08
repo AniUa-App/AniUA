@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "setup-file-opener": "node scripts/setup-file-opener-v3.js",
     "setup-ffmpeg": "cd android && ./gradlew downloadAar && cd ..",
-    "eas-build-pre-install": "npm config set legacy-peer-deps true"
+    "eas-build-pre-install": "npm config set legacy-peer-deps true",
+    "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg "
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.1.8",
@@ -81,7 +82,8 @@
     "reactotron-apisauce": "^3.0.6",
     "reactotron-react-native": "^5.1.14",
     "reactotron-react-native-mmkv": "^0.2.8",
-    "expo-video": "~2.2.2"
+    "expo-video": "~2.2.2",
+    "expo-navigation-bar": "~4.2.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

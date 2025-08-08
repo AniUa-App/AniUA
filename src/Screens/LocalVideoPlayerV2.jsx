@@ -10,20 +10,30 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
-import SystemNavigationBar from "react-native-system-navigation-bar";
+// import SystemNavigationBar from "react-native-system-navigation-bar";
 import { BackHandler } from "react-native";
+// import { StatusBar } from "react-native";
 import { StatusBar } from "react-native";
-import Orientation from "react-native-orientation-locker";
+import { AppState } from "react-native";
+import SystemNavigationBar from "react-native-system-navigation-bar";
+// import Orientation from "react-native-orientation-locker";
+import * as EOrientation from "expo-screen-orientation";
 import LinearGradient from "react-native-linear-gradient";
 import Icons from "../Styles/Icons";
 import { black, Black, Gray, white, appColor } from "../Styles/Colors";
 import { H3, H4, H5, H6 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity as CustomTouchableOpacity } from "../Widgets/Button";
-import { useVideoPlayer, VideoView } from "expo-video";
+import {
+  useVideoPlayer,
+  VideoView,
+  isPictureInPictureSupported,
+} from "expo-video";
 import axios from "axios";
 import M3U8FileParser from "m3u8-file-parser";
 import SpeedBottomSheet from "../Widgets/VideoPlayer/SpeedBottomSheetWidget";
+import VolumeWidget from "../Widgets/VideoPlayer/VolumeWidget";
+import QualityWidget from "../Widgets/VideoPlayer/QualityWidget";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,22 +42,40 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const { _episodes, _currentEpisode, _anime } = route.params;
   const title = _anime?.title_ua || _anime?.title_en || "Назва аніме";
-  const episodes = _episodes || [];
+  // const episodes = _episodes || [];
 
   const [episodeInfo, setEpisodeInfo] = useState(null);
+  const [episodes, setEpisodes] = useState(_episodes || []);
   const [showEpisodes, setShowEpisodes] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentEpisode, setCurrentEpisode] = useState(_currentEpisode);
   const [isLoading, setIsLoading] = useState(true);
   const [volume, setVolume] = useState(1.0);
   const [rate, setRate] = useState(1.0);
   const [currentUrl, setCurrentUrl] = useState(null);
   const [subtitles, setSubtitles] = useState([]);
-
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [quality, setQuality] = useState(null);
+  const qualitiesList = React.useMemo(() => {
+    if (!episodeInfo?.qualitys) return [];
+    return Object.keys(episodeInfo.qualitys).sort(
+      (a, b) => parseInt(a) - parseInt(b)
+    );
+  }, [episodeInfo]);
+  const [isLocked, setIsLocked] = useState(false);
   const seekTimeout = useRef(null);
+  const videoViewRef = useRef(null);
+  const qualitySheetRef = useRef(null);
+
+  const [volumeTooltipVisible, setVolumeTooltipVisible] = useState(false);
+  const isLoadingRef = useRef(isLoading);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   // Функція для отримання повної тривалості відео
   const getDuration = () => {
@@ -79,6 +107,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     skipForward: new Animated.Value(1),
     download: new Animated.Value(1),
     rotate: new Animated.Value(1),
+    fit: new Animated.Value(1),
   }).current;
 
   // Посилання на bottom sheet швидкості
@@ -95,33 +124,51 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  // Оновлення відео при зміні епізоду
+  // Оновлюємо список епізодів, коли змінюються пропси
   useEffect(() => {
+    setEpisodes(_episodes || []);
+  }, [_episodes]);
+
+  // Оновлення відео при зміні поточного епізоду
+  useEffect(() => {
+    if (!currentEpisode?.video_url) return;
     const updateEpisode = async () => {
-      setCurrentEpisode(_currentEpisode);
-      console.log("currentEpisode", currentEpisode);
-      const episodeInfo = await getEpisodeInfo(currentEpisode?.video_url);
-      setEpisodeInfo(episodeInfo);
-      setCurrentUrl(
-        episodeInfo?.qualitys[Object.keys(episodeInfo?.qualitys)[0]]
-      );
+      try {
+        setIsLoading(true);
+        const episodeInfo = await getEpisodeInfo(currentEpisode.video_url);
+        setEpisodeInfo(episodeInfo);
+        const available = Object.keys(episodeInfo?.qualitys || {});
+        const defaultQ = episodeInfo?.defaultQuality;
+        const chosenKey =
+          defaultQ && episodeInfo.qualitys[defaultQ] ? defaultQ : available[0];
+        setQuality(chosenKey || null);
+        setCurrentUrl(chosenKey ? episodeInfo.qualitys[chosenKey] : null);
+      } catch (e) {
+        console.error("Не вдалося отримати дані епізоду:", e);
+        setIsLoading(false);
+      }
     };
     updateEpisode();
   }, [currentEpisode]);
 
   const player = useVideoPlayer(currentUrl, (player) => {
+    player.play();
     player.timeUpdateEventInterval = 1;
+    player.startsPictureInPictureAutomatically = true;
     // Колбек плеєра
     if (player) {
       player.addListener("statusChange", ({ status }) => {
         if (status === "readyToPlay") {
           setDuration(player.duration);
+          setIsLoading(false);
         }
       });
 
       player.addListener("timeUpdate", (event) => {
-        setIsLoading(false);
         setCurrentTime(player.currentTime);
+        if (isLoadingRef.current && event.currentTime >= 0) {
+          setIsLoading(false);
+        }
 
         // Оновлення анімації прогрес-бару
         const progress = event.currentTime / (player.duration || 1);
@@ -133,14 +180,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       });
 
       player.addListener("ended", () => {
-        setIsPlaying(false);
         // Автоматичне відтворення наступного епізоду
         const currentIndex = episodes.findIndex(
           (ep) => ep.episode === currentEpisode.episode
         );
         if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
           setCurrentEpisode(episodes[currentIndex + 1]);
-          setIsPlaying(true);
         }
       });
 
@@ -158,12 +203,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   // Функції керування
   const togglePlayPause = () => {
     if (player) {
-      if (isPlaying) {
+      if (player.playing) {
         player.pause();
       } else {
         player.play();
       }
-      setIsPlaying(!isPlaying);
       animatePlayButton();
       if (showControls) {
         startHideControlsTimer();
@@ -197,14 +241,22 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const toggleVolume = () => {
+    // залишаємо як mute/unmute якщо знадобиться викликати десь ще
     animateButton("volume");
     const newVolume = volume > 0 ? 0 : 1.0;
     setVolume(newVolume);
     if (player) {
-      player.setVolume(newVolume);
+      player.volume = newVolume;
     }
     if (showControls) {
       startHideControlsTimer();
+    }
+  };
+
+  const handleVolumeChange = (newValue) => {
+    setVolume(newValue);
+    if (player) {
+      player.volume = newValue;
     }
   };
 
@@ -230,10 +282,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     const onBackPress = () => {
       console.log("onBackPress");
       navigation.goBack();
-      StatusBar.setHidden(false);
+      // StatusBar.setHidden(false);
+      StatusBar.setHidden(false, "slide");
       SystemNavigationBar.navigationShow();
-      SystemNavigationBar.fullScreen(false);
-      Orientation.lockToPortrait();
+      // SystemNavigationBar.fullScreen(false);
+      // Orientation.lockToPortrait();
+      EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
       return true;
     };
 
@@ -243,12 +297,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         orientation === "LANDSCAPE-LEFT" ||
         orientation === "LANDSCAPE-RIGHT"
       ) {
-        SystemNavigationBar.fullScreen(true);
+        // SystemNavigationBar.fullScreen(true);
         SystemNavigationBar.navigationHide();
+        setIsLandscape(true);
       } else {
-        SystemNavigationBar.fullScreen(false);
+        // SystemNavigationBar.fullScreen(false);
         SystemNavigationBar.navigationShow();
+        setIsLandscape(false);
       }
+      console.log("isLandscape: ", isLandscape);
     };
 
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -256,23 +313,35 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       onBackPress
     );
 
-    Orientation.addOrientationListener(onOrientationChange);
+    // Спершу розблокуємо орієнтацію, щоб події надходили
+    // Orientation.unlockAllOrientations();
+    EOrientation.unlockAsync();
+    const orientationSubscription = EOrientation.addOrientationChangeListener(
+      ({ orientationInfo }) => {
+        if (
+          orientationInfo.orientation ===
+            EOrientation.Orientation.LANDSCAPE_LEFT ||
+          orientationInfo.orientation ===
+            EOrientation.Orientation.LANDSCAPE_RIGHT
+        ) {
+          SystemNavigationBar.fullScreen(true);
+          SystemNavigationBar.navigationHide();
+          setIsLandscape(true);
+        } else {
+          SystemNavigationBar.fullScreen(false);
+          SystemNavigationBar.navigationShow();
+          setIsLandscape(false);
+        }
+      }
+    );
 
-    StatusBar.setHidden(true);
+    // StatusBar.setHidden(true);
+    StatusBar.setHidden(true, "slide");
     SystemNavigationBar.navigationHide();
 
-    Orientation.getOrientation((orientation) => {
-      if (
-        orientation === "LANDSCAPE-LEFT" ||
-        orientation === "LANDSCAPE-RIGHT"
-      ) {
-        SystemNavigationBar.fullScreen(true);
-      } else {
-        SystemNavigationBar.fullScreen(false);
-      }
-    });
+    // Orientation.getOrientation(onOrientationChange);
 
-    Orientation.unlockAllOrientations();
+    // Вже розблоковано вище
 
     showControlsWithAnimation();
 
@@ -284,13 +353,43 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       if (seekTimeout.current) {
         clearTimeout(seekTimeout.current);
       }
-      Orientation.removeOrientationListener(onOrientationChange);
-      StatusBar.setHidden(false);
+      // Orientation.removeOrientationListener(onOrientationChange);
+      EOrientation.removeOrientationChangeListener(orientationSubscription);
+      StatusBar.setHidden(false, "slide");
       SystemNavigationBar.navigationShow();
-      SystemNavigationBar.fullScreen(false);
-      Orientation.lockToPortrait();
+      // SystemNavigationBar.fullScreen(false);
+      // Orientation.lockToPortrait();
+      EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, []);
+
+  // Автовхід у PiP при згортанні застосунку
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      async (nextState) => {
+        if (nextState === "background" || nextState === "inactive") {
+          try {
+            const isPlaying =
+              !!player && (player.playing || player.currentTime > 0);
+            if (
+              isPlaying &&
+              isPictureInPictureSupported() &&
+              videoViewRef.current
+            ) {
+              await videoViewRef.current.startPictureInPicture();
+            }
+          } catch (error) {
+            console.warn("Не вдалося запустити PiP автоматично:", error);
+          }
+        }
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [player]);
 
   const showControlsWithAnimation = () => {
     setShowControls(true);
@@ -419,11 +518,21 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const toggleOrientation = () => {
     animateButton("rotate");
-    Orientation.getOrientation((orientation) => {
-      if (orientation === "PORTRAIT") {
-        Orientation.lockToLandscape();
+    // Orientation.getOrientation((orientation) => { ... });
+    EOrientation.getOrientationAsync().then((orientation) => {
+      if (
+        orientation === EOrientation.Orientation.PORTRAIT_UP ||
+        orientation === EOrientation.Orientation.PORTRAIT_DOWN
+      ) {
+        EOrientation.lockAsync(EOrientation.OrientationLock.LANDSCAPE);
+        SystemNavigationBar.fullScreen(true);
+        SystemNavigationBar.navigationHide();
+        setIsLandscape(true);
       } else {
-        Orientation.lockToPortrait();
+        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
+        SystemNavigationBar.fullScreen(false);
+        SystemNavigationBar.navigationShow();
+        setIsLandscape(false);
       }
     });
     if (showControls) {
@@ -516,7 +625,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const onEpisodeSelect = (episode) => {
     setCurrentEpisode(episode);
-    setIsPlaying(true);
     setCurrentTime(0);
     setDuration(0);
     setIsLoading(true);
@@ -546,7 +654,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar style="dark" />
 
       {/* Фон відео */}
       <TouchableOpacity
@@ -559,10 +667,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         >
           <VideoView
             style={{ flex: 1, width: "100%" }}
+            ref={videoViewRef}
             player={player}
             allowsFullscreen
             allowsPictureInPicture
             nativeControls={false}
+            contentFit={isLandscape && isZoomed ? "cover" : "contain"}
             onFirstFrameRender={() => {
               setIsLoading(false);
             }}
@@ -570,316 +680,437 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         </View>
 
         {/* Оверлей завантаження */}
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
+        {isLoading ? (
+          <View
+            style={styles.loadingOverlay}
+            onLayout={() => {
+              console.log("isLoading1", isLoading);
+            }}
+          >
             <ActivityIndicator size="large" color={appColor} />
           </View>
-        )}
+        ) : null}
       </TouchableOpacity>
 
       {/* Заголовок */}
       {showControls && (
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              opacity: controlsOpacity,
-              transform: [{ translateY: headerTranslateY }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={[Black(0.8), Black(0.4), "transparent"]}
-            style={styles.headerGradient}
-          >
-            <View style={styles.headerContent}>
-              <Animated.View
-                style={{ transform: [{ scale: buttonScales.back }] }}
+        <>
+          {!isLocked ? (
+            <Animated.View
+              style={[
+                styles.header,
+                {
+                  opacity: controlsOpacity,
+                  transform: [{ translateY: headerTranslateY }],
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={[Black(0.8), Black(0.4), "transparent"]}
+                style={styles.headerGradient}
               >
-                <CustomTouchableOpacity
-                  style={styles.headerButton}
-                  onPress={() => {
-                    animateButton("back");
-                    StatusBar.setHidden(false);
-                    SystemNavigationBar.navigationShow();
-                    setTimeout(() => {
-                      navigation.goBack();
-                      Orientation.lockToPortrait();
-                    }, 100);
-                  }}
-                >
-                  <Icons.ArrowLeft size={24} color={white} />
-                </CustomTouchableOpacity>
-              </Animated.View>
-
-              <View style={styles.titleContainer}>
-                <Text style={[H4, { color: white }]} numberOfLines={1}>
-                  {title || "Відео"}
-                </Text>
-                <Text style={[H6, { color: Gray(0.7) }]}>
-                  Епізод {currentEpisode?.episode || "1"}
-                </Text>
-              </View>
-
-              <View style={styles.headerButtons}>
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.speed }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.headerButton}
-                    onPress={openSpeedBottomSheet}
-                  >
-                    <Icons.Speedometer size={20} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.pip }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.headerButton}
-                    onPress={() => {
-                      animateButton("pip");
-                      if (showControls) {
-                        startHideControlsTimer();
-                      }
+                <View style={styles.headerContent}>
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: buttonScales.back }],
                     }}
                   >
-                    <Icons.PictureInPicture size={20} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
+                    <CustomTouchableOpacity
+                      style={styles.headerButton}
+                      onPress={() => {
+                        animateButton("back");
+                        StatusBar.setHidden(false, "slide");
+                        SystemNavigationBar.navigationShow();
+                        setTimeout(() => {
+                          navigation.goBack();
+                          // Orientation.lockToPortrait();
+                          EOrientation.lockAsync(
+                            EOrientation.OrientationLock.PORTRAIT_UP
+                          );
+                        }, 100);
+                      }}
+                    >
+                      <Icons.ArrowLeft size={32} color={white} />
+                    </CustomTouchableOpacity>
+                  </Animated.View>
 
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.episodes }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.headerButton}
-                    onPress={toggleEpisodes}
-                  >
-                    <Icons.Queue
-                      size={20}
-                      color={showEpisodes ? appColor : white}
-                    />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
+                  <View style={styles.titleContainer}>
+                    <Text style={[H4, { color: white }]} numberOfLines={1}>
+                      {title || "Відео"}
+                    </Text>
+                    <Text style={[H6, { color: Gray(0.7) }]}>
+                      Епізод {currentEpisode?.episode || "1"}
+                    </Text>
+                  </View>
+
+                  <View style={styles.headerButtons}>
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScales.speed }] }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.headerButton}
+                        onPress={openSpeedBottomSheet}
+                      >
+                        <Icons.Speedometer size={20} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScales.pip }] }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => {
+                          animateButton("pip");
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                          videoViewRef.current.startPictureInPicture();
+                        }}
+                      >
+                        <Icons.PictureInPicture size={20} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScales.episodes }] }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.headerButton}
+                        onPress={toggleEpisodes}
+                      >
+                        <Icons.Queue
+                          size={20}
+                          color={showEpisodes ? appColor : white}
+                        />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </Animated.View>
+          ) : (
+            <Animated.View style={styles.header} />
+          )}
+        </>
       )}
 
       {/* Нижні елементи керування */}
       {showControls && (
-        <Animated.View
-          style={[
-            styles.controlsContainer,
-            {
-              opacity: controlsOpacity,
-              transform: [{ translateY: controlsTranslateY }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={["transparent", Black(0.4), Black(0.9)]}
-            style={styles.controlsGradient}
-          >
-            {/* Секція прогресу */}
-            <View style={styles.progressSection}>
-              <View style={styles.progressContainer}>
-                <Text
-                  style={[
-                    H6,
-                    { color: white, minWidth: 50, textAlign: "center" },
-                  ]}
-                >
-                  {formatTime(currentTime)}
-                </Text>
-                <TouchableOpacity
-                  style={styles.progressBarContainer}
-                  onPress={onProgressPress}
-                  onLongPress={onProgressPress}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.progressBarBackground}>
+        <>
+          {!isLocked ? (
+            <Animated.View
+              style={[
+                styles.controlsContainer,
+                {
+                  opacity: controlsOpacity,
+                  transform: [{ translateY: controlsTranslateY }],
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={["transparent", Black(0.4), Black(0.9)]}
+                style={styles.controlsGradient}
+              >
+                {/* Секція прогресу */}
+                <View style={styles.progressSection}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View style={{ flex: 1 }} />
+
                     <Animated.View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: progressAnimation.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ["0%", "100%"],
-                          }),
-                        },
-                      ]}
-                    />
-                    <Animated.View
-                      style={[
-                        styles.progressThumb,
-                        {
-                          left: progressAnimation.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ["0%", "100%"],
-                          }),
-                        },
-                      ]}
-                    />
+                      style={{
+                        transform: [{ scale: buttonScales.lock }],
+                      }}
+                    >
+                      <CustomTouchableOpacity
+                        style={[styles.controlButton]}
+                        onPress={() => {
+                          animateButton("lock");
+                          setIsLocked((prev) => !prev);
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      >
+                        <Icons.Lock type={"enabled"} size={24} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
                   </View>
-                </TouchableOpacity>
-                <Text
-                  style={[
-                    H6,
-                    { color: white, minWidth: 50, textAlign: "center" },
-                  ]}
-                >
-                  {formatTime(duration)}
-                </Text>
-              </View>
-            </View>
+                  <View style={styles.progressContainer}>
+                    <Text
+                      style={[
+                        H6,
+                        { color: white, minWidth: 50, textAlign: "center" },
+                      ]}
+                    >
+                      {formatTime(currentTime)}
+                    </Text>
 
-            {/* Основні елементи керування */}
-            <View style={styles.mainControls}>
-              {/* Ліві елементи керування */}
-              <View style={styles.leftControlGroup}>
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.lock }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.controlButton}
-                    onPress={() => {
-                      animateButton("lock");
-                      if (showControls) {
-                        startHideControlsTimer();
-                      }
-                    }}
-                  >
-                    <Icons.Lock type="enabled" size={20} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
+                    <TouchableOpacity
+                      style={styles.progressBarContainer}
+                      onPress={onProgressPress}
+                      onLongPress={onProgressPress}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.progressBarBackground}>
+                        <Animated.View
+                          style={[
+                            styles.progressBarFill,
+                            {
+                              width: progressAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: ["0%", "100%"],
+                              }),
+                            },
+                          ]}
+                        />
+                        <Animated.View
+                          style={[
+                            styles.progressThumb,
+                            {
+                              left: progressAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: ["0%", "100%"],
+                              }),
+                            },
+                          ]}
+                        />
+                      </View>
+                    </TouchableOpacity>
 
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.volume }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.controlButton}
-                    onPress={toggleVolume}
-                  >
-                    <Icons.Volume
-                      volume={volume * 100}
-                      size={20}
-                      color={white}
-                    />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-              </View>
+                    <Text
+                      style={[
+                        H6,
+                        { color: white, minWidth: 50, textAlign: "center" },
+                      ]}
+                    >
+                      {formatTime(duration)}
+                    </Text>
+                  </View>
+                </View>
 
-              {/* Центральні елементи керування відтворенням */}
-              <View style={styles.playControlGroup}>
-                <CustomTouchableOpacity
-                  style={styles.seekButton}
-                  onPress={() => seekTo(-10)}
-                  onLongPress={() => seekTo(-30)}
-                >
-                  <Icons.ArrowCounterClockwise size={20} color={white} />
-                </CustomTouchableOpacity>
+                {/* Основні елементи керування */}
+                <View style={styles.mainControls}>
+                  {/* Ліві елементи керування */}
+                  <View style={styles.leftControlGroup}>
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScales.volume }] }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.controlButton}
+                        onPress={() => {
+                          setVolumeTooltipVisible((v) => !v);
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      >
+                        <Icons.Volume
+                          volume={volume * 100}
+                          size={20}
+                          color={white}
+                        />
+                        <VolumeWidget
+                          visible={volumeTooltipVisible}
+                          value={volume}
+                          onChange={handleVolumeChange}
+                          onClose={() => setVolumeTooltipVisible(false)}
+                        />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+                  </View>
 
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.skipBack }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.skipButton}
-                    onPress={() => {
-                      animateButton("skipBack");
-                      if (showControls) {
-                        startHideControlsTimer();
-                      }
-                    }}
-                  >
-                    <Icons.SkipBack size={24} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-
-                <CustomTouchableOpacity
-                  style={styles.playButtonContainer}
-                  onPress={handlePlayPress}
-                >
-                  <Animated.View
-                    style={[
-                      styles.playButton,
-                      { transform: [{ scale: playButtonScale }] },
-                    ]}
-                  >
-                    {isPlaying ? (
-                      <Icons.Pause size={32} color={white} />
-                    ) : (
-                      <Icons.Play size={32} color={white} />
+                  {/* Центральні елементи керування відтворенням */}
+                  <View style={styles.playControlGroup}>
+                    {isLandscape && (
+                      <CustomTouchableOpacity
+                        style={styles.seekButton}
+                        onPress={() => seekTo(-10)}
+                        onLongPress={() => seekTo(-30)}
+                      >
+                        <Icons.ArrowCounterClockwise size={20} color={white} />
+                      </CustomTouchableOpacity>
                     )}
-                  </Animated.View>
-                </CustomTouchableOpacity>
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScales.skipBack }] }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.skipButton}
+                        onPress={() => {
+                          animateButton("skipBack");
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      >
+                        <Icons.SkipBack size={24} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
 
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.skipForward }] }}
-                >
+                    <CustomTouchableOpacity
+                      style={styles.playButtonContainer}
+                      onPress={handlePlayPress}
+                    >
+                      <Animated.View
+                        style={[
+                          styles.playButton,
+                          { transform: [{ scale: playButtonScale }] },
+                        ]}
+                      >
+                        {player.playing ? (
+                          <Icons.Pause size={32} color={white} />
+                        ) : (
+                          <Icons.Play size={32} color={white} />
+                        )}
+                      </Animated.View>
+                    </CustomTouchableOpacity>
+
+                    <Animated.View
+                      style={{
+                        transform: [{ scale: buttonScales.skipForward }],
+                      }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.skipButton}
+                        onPress={() => {
+                          animateButton("skipForward");
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      >
+                        <Icons.SkipForward size={24} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+
+                    {isLandscape && (
+                      <CustomTouchableOpacity
+                        style={styles.seekButton}
+                        onPress={() => seekTo(10)}
+                        onLongPress={() => seekTo(30)}
+                      >
+                        <Icons.ArrowClockwise size={20} color={white} />
+                      </CustomTouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Праві елементи керування */}
+                  <View style={styles.rightControlGroup}>
+                    {isLandscape && (
+                      <>
+                        <Animated.View
+                          style={{
+                            transform: [{ scale: buttonScales.fit }],
+                          }}
+                        >
+                          <CustomTouchableOpacity
+                            style={styles.controlButton}
+                            onPress={() => {
+                              animateButton("fit");
+                              setIsZoomed((prev) => !prev);
+                              if (showControls) {
+                                startHideControlsTimer();
+                              }
+                            }}
+                          >
+                            <Icons.FrameCorners
+                              size={20}
+                              color={isZoomed ? appColor : white}
+                            />
+                          </CustomTouchableOpacity>
+                        </Animated.View>
+
+                        <Animated.View
+                          style={{
+                            transform: [{ scale: buttonScales.download }],
+                          }}
+                        >
+                          <CustomTouchableOpacity
+                            style={styles.controlButton}
+                            onPress={() => {
+                              animateButton("download");
+                              if (showControls) {
+                                startHideControlsTimer();
+                              }
+                            }}
+                          >
+                            <Icons.DownloadSimple size={20} color={white} />
+                          </CustomTouchableOpacity>
+                        </Animated.View>
+                      </>
+                    )}
+
+                    <Animated.View
+                      style={{
+                        transform: [{ scale: buttonScales.rotate }],
+                      }}
+                    >
+                      <CustomTouchableOpacity
+                        style={styles.controlButton}
+                        onPress={toggleOrientation}
+                      >
+                        <Icons.DeviceRotate size={20} color={white} />
+                      </CustomTouchableOpacity>
+                    </Animated.View>
+                  </View>
+                </View>
+
+                {/* Додаткові елементи керування */}
+                <View style={styles.secondaryControls}>
                   <CustomTouchableOpacity
-                    style={styles.skipButton}
+                    style={styles.controlButton}
                     onPress={() => {
-                      animateButton("skipForward");
-                      if (showControls) {
-                        startHideControlsTimer();
-                      }
+                      qualitySheetRef.current?.present();
                     }}
                   >
-                    <Icons.SkipForward size={24} color={white} />
+                    <View style={styles.centerInfo}>
+                      <Text style={styles.qualityText}>{quality || "x_x"}</Text>
+                    </View>
                   </CustomTouchableOpacity>
-                </Animated.View>
-
+                </View>
+              </LinearGradient>
+            </Animated.View>
+          ) : (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: "flex-end",
+                justifyContent: "flex-end",
+                paddingBottom: 180,
+                paddingRight: 24,
+              }}
+            >
+              <Animated.View
+                style={{
+                  transform: [{ scale: buttonScales.lock }],
+                }}
+              >
                 <CustomTouchableOpacity
-                  style={styles.seekButton}
-                  onPress={() => seekTo(10)}
-                  onLongPress={() => seekTo(30)}
+                  style={[styles.controlButton]}
+                  onPress={() => {
+                    animateButton("lock");
+                    setIsLocked((prev) => !prev);
+                    if (showControls) {
+                      startHideControlsTimer();
+                    }
+                  }}
                 >
-                  <Icons.ArrowClockwise size={20} color={white} />
+                  <Icons.Lock type={"disabled"} size={24} color={appColor} />
                 </CustomTouchableOpacity>
-              </View>
-
-              {/* Праві елементи керування */}
-              <View style={styles.rightControlGroup}>
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.download }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.controlButton}
-                    onPress={() => {
-                      animateButton("download");
-                      if (showControls) {
-                        startHideControlsTimer();
-                      }
-                    }}
-                  >
-                    <Icons.DownloadSimple size={20} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-
-                <Animated.View
-                  style={{ transform: [{ scale: buttonScales.rotate }] }}
-                >
-                  <CustomTouchableOpacity
-                    style={styles.controlButton}
-                    onPress={toggleOrientation}
-                  >
-                    <Icons.DeviceRotate size={20} color={white} />
-                  </CustomTouchableOpacity>
-                </Animated.View>
-              </View>
+              </Animated.View>
             </View>
-
-            {/* Додаткові елементи керування */}
-            <View style={styles.secondaryControls}>
-              <View style={styles.centerInfo}>
-                <Text style={styles.qualityText}>HD</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
+          )}
+        </>
       )}
 
       {/* Панель епізодів */}
@@ -988,11 +1219,23 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         </Animated.View>
       )}
 
-      {/* Bottom Sheet швидкості */}
+      {/* Bottom Sheet */}
       <SpeedBottomSheet
         sheetRef={speedSheetRef}
         currentRate={rate}
         onRateChange={changePlaybackRate}
+      />
+      <QualityWidget
+        sheetRef={qualitySheetRef}
+        currentQuality={quality}
+        qualities={qualitiesList}
+        onQualityChange={(nextQuality) => {
+          if (!episodeInfo?.qualitys) return;
+          setQuality(nextQuality);
+          const nextUrl = episodeInfo.qualitys[nextQuality];
+          if (nextUrl) setCurrentUrl(nextUrl);
+          qualitySheetRef.current?.close();
+        }}
       />
     </View>
   );
@@ -1113,19 +1356,21 @@ const styles = StyleSheet.create({
   // Основні елементи керування
   mainControls: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   leftControlGroup: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
+    flex: 1,
   },
   rightControlGroup: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
+    flex: 1,
   },
   controlButton: {
     padding: 12,
@@ -1167,6 +1412,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 16,
   },
   centerInfo: {
     flex: 1,
@@ -1351,5 +1597,6 @@ async function getEpisodeInfo(episodeUrl) {
   let data = episodeUrl.includes("moon")
     ? await ___getPlayerDataFrom_MOON_Player(episodeUrl)
     : await ___getPlayerDataFrom_ASHDI_Player(episodeUrl);
+  console.log("data:", data);
   return data;
 }
