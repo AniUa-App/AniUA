@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 // import SystemNavigationBar from "react-native-system-navigation-bar";
@@ -34,6 +35,7 @@ import M3U8FileParser from "m3u8-file-parser";
 import SpeedBottomSheet from "../Widgets/VideoPlayer/SpeedBottomSheetWidget";
 import VolumeWidget from "../Widgets/VideoPlayer/VolumeWidget";
 import QualityWidget from "../Widgets/VideoPlayer/QualityWidget";
+import AnimeStorage from "../Storage/AnimeStorage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -51,7 +53,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentEpisode, setCurrentEpisode] = useState(_currentEpisode);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [volume, setVolume] = useState(1.0);
   const [rate, setRate] = useState(1.0);
   const [currentUrl, setCurrentUrl] = useState(null);
@@ -69,13 +71,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const seekTimeout = useRef(null);
   const videoViewRef = useRef(null);
   const qualitySheetRef = useRef(null);
+  const latestPlayerRef = useRef(null);
+  const volumeApplyTimeoutRef = useRef(null);
+  const pendingVolumeRef = useRef(null);
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] = useState(false);
-  const isLoadingRef = useRef(isLoading);
-
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
 
   // Функція для отримання повної тривалості відео
   const getDuration = () => {
@@ -166,7 +166,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
       player.addListener("timeUpdate", (event) => {
         setCurrentTime(player.currentTime);
-        if (isLoadingRef.current && event.currentTime >= 0) {
+        if (isLoading && event.currentTime >= 0) {
           setIsLoading(false);
         }
 
@@ -189,16 +189,17 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         }
       });
 
-      player.addListener("waiting", () => {
-        setIsLoading(true);
-      });
-
       player.addListener("error", (error) => {
         console.error("Video error:", error);
-        setIsLoading(false);
+        setIsLoading(true);
       });
     }
   });
+
+  // Тримати актуальне посилання на плеєр для простого доступу в таймаутах
+  useEffect(() => {
+    latestPlayerRef.current = player;
+  }, [player]);
 
   // Функції керування
   const togglePlayPause = () => {
@@ -254,9 +255,16 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const handleVolumeChange = (newValue) => {
-    setVolume(newValue);
-    if (player) {
-      player.volume = newValue;
+    pendingVolumeRef.current = newValue;
+    if (!volumeApplyTimeoutRef.current) {
+      volumeApplyTimeoutRef.current = setTimeout(() => {
+        const valueToApply = pendingVolumeRef.current ?? newValue;
+        setVolume(valueToApply);
+        if (player) {
+          player.volume = valueToApply;
+        }
+        volumeApplyTimeoutRef.current = null;
+      }, 60);
     }
   };
 
@@ -271,11 +279,17 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const changePlaybackRate = (newRate) => {
     setRate(newRate);
     if (player) {
-      player.setPlaybackRate(newRate);
+      player.playbackRate = newRate;
     }
     if (showControls) {
       startHideControlsTimer();
     }
+  };
+
+  const setWatchedEpisode = (slug, episode) => {
+    const info = AnimeStorage.getInfoBySlug(slug);
+    info.watched.episodes = [...info.watched.episodes, episode.episode];
+    AnimeStorage.setInfoBySlug(slug, info);
   };
 
   useEffect(() => {
@@ -353,6 +367,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       if (seekTimeout.current) {
         clearTimeout(seekTimeout.current);
       }
+      if (volumeApplyTimeoutRef.current) {
+        clearTimeout(volumeApplyTimeoutRef.current);
+      }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
       StatusBar.setHidden(false, "slide");
@@ -362,6 +379,14 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, []);
+
+  // Автовхід у PiP при згортанні застосунку
+  useEffect(() => {
+    // Показувати контролли при зміні орієнтації для landscape
+    if (isLandscape) {
+      showControlsWithAnimation();
+    }
+  }, [isLandscape]);
 
   // Автовхід у PiP при згортанні застосунку
   useEffect(() => {
@@ -623,12 +648,46 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     }
   };
 
+  // Перехід між епізодами
+  const goToPreviousEpisode = () => {
+    const currentIndex = episodes.findIndex(
+      (ep) => ep.episode === currentEpisode?.episode
+    );
+    if (currentIndex > 0) {
+      setIsLoading(true);
+      setCurrentTime(0);
+      setDuration(0);
+      setCurrentEpisode(episodes[currentIndex - 1]);
+      setWatchedEpisode(_anime.slug, episodes[currentIndex - 1]);
+      setIsLoading(false);
+    } else if (player) {
+      // якщо попереднього немає — перемотати на початок
+      player.currentTime = 0;
+      setCurrentTime(0);
+    }
+  };
+
+  const goToNextEpisode = () => {
+    const currentIndex = episodes.findIndex(
+      (ep) => ep.episode === currentEpisode?.episode
+    );
+    if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
+      setIsLoading(true);
+      setCurrentTime(0);
+      setDuration(0);
+      setCurrentEpisode(episodes[currentIndex + 1]);
+      setWatchedEpisode(_anime.slug, episodes[currentIndex + 1]);
+      setIsLoading(false);
+    }
+  };
+
   const onEpisodeSelect = (episode) => {
     setCurrentEpisode(episode);
     setCurrentTime(0);
     setDuration(0);
     setIsLoading(true);
     player.currentTime = 0;
+    setWatchedEpisode(_anime.slug, episode);
 
     Animated.sequence([
       Animated.timing(episodesPanelOpacity, {
@@ -657,11 +716,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       <StatusBar style="dark" />
 
       {/* Фон відео */}
-      <TouchableOpacity
-        style={{ flex: 1, width: "100%" }}
-        onPress={toggleControls}
-        activeOpacity={1}
-      >
+      <View style={{ flex: 1, width: "100%" }}>
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
@@ -672,6 +727,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             allowsFullscreen
             allowsPictureInPicture
             nativeControls={false}
+            pointerEvents="none"
             contentFit={isLandscape && isZoomed ? "cover" : "contain"}
             onFirstFrameRender={() => {
               setIsLoading(false);
@@ -679,18 +735,21 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           />
         </View>
 
+        {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
+        <Pressable
+          onPress={toggleControls}
+          style={StyleSheet.absoluteFill}
+          android_disableSound
+          hitSlop={10}
+        />
+
         {/* Оверлей завантаження */}
         {isLoading ? (
-          <View
-            style={styles.loadingOverlay}
-            onLayout={() => {
-              console.log("isLoading1", isLoading);
-            }}
-          >
+          <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={appColor} />
           </View>
         ) : null}
-      </TouchableOpacity>
+      </View>
 
       {/* Заголовок */}
       {showControls && (
@@ -730,7 +789,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         }, 100);
                       }}
                     >
-                      <Icons.ArrowLeft size={32} color={white} />
+                      <Icons.ArrowLeft size={32} color={appColor} />
                     </CustomTouchableOpacity>
                   </Animated.View>
 
@@ -944,6 +1003,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         style={styles.skipButton}
                         onPress={() => {
                           animateButton("skipBack");
+                          goToPreviousEpisode();
                           if (showControls) {
                             startHideControlsTimer();
                           }
@@ -980,6 +1040,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         style={styles.skipButton}
                         onPress={() => {
                           animateButton("skipForward");
+                          goToNextEpisode();
                           if (showControls) {
                             startHideControlsTimer();
                           }
@@ -1231,10 +1292,22 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         qualities={qualitiesList}
         onQualityChange={(nextQuality) => {
           if (!episodeInfo?.qualitys) return;
+          const wasPlaying = !!latestPlayerRef.current?.playing;
+          const savedTime = latestPlayerRef.current?.currentTime || 0;
           setQuality(nextQuality);
           const nextUrl = episodeInfo.qualitys[nextQuality];
-          if (nextUrl) setCurrentUrl(nextUrl);
+          if (nextUrl) {
+            setIsLoading(true);
+            setCurrentUrl(nextUrl);
+          }
           qualitySheetRef.current?.close();
+          setTimeout(() => {
+            const p = latestPlayerRef.current;
+            if (!p) return;
+            p.currentTime = savedTime;
+            if (wasPlaying) p.play();
+            else p.pause();
+          }, 300);
         }}
       />
     </View>
@@ -1597,6 +1670,5 @@ async function getEpisodeInfo(episodeUrl) {
   let data = episodeUrl.includes("moon")
     ? await ___getPlayerDataFrom_MOON_Player(episodeUrl)
     : await ___getPlayerDataFrom_ASHDI_Player(episodeUrl);
-  console.log("data:", data);
   return data;
 }

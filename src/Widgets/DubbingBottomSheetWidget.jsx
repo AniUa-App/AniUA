@@ -297,7 +297,15 @@ export default function DubbingBottomSheet({
       <BottomSheetView style={[styles.container]}>
         <View style={styles.contentContainer}>
           {(() => {
-            if (activeTab === "moon") {
+            if (activeTab === "Вбудований плеєр") {
+              return (
+                <DefaultPlayerContent
+                  dubbings={episodesList["Вбудований плеєр"]}
+                  data={info}
+                  changeDubbing={changeDubbing}
+                />
+              );
+            } else if (activeTab === "moon") {
               return (
                 <MoonPlayerContent
                   dubbings={episodesList.moon}
@@ -309,14 +317,6 @@ export default function DubbingBottomSheet({
               return (
                 <AshdiPlayerContent
                   dubbings={episodesList.ashdi}
-                  data={info}
-                  changeDubbing={changeDubbing}
-                />
-              );
-            } else if (activeTab === "Вбудований плеєр") {
-              return (
-                <DefaultPlayerContent
-                  dubbings={episodesList["Вбудований плеєр"]}
                   data={info}
                   changeDubbing={changeDubbing}
                 />
@@ -370,6 +370,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
     paddingLeft: 26,
+    paddingBottom: 10,
   },
   tabButton: {
     padding: 1,

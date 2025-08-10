@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  PanResponder,
   Animated,
   Easing,
+  PanResponder,
 } from "react-native";
-import { appColor, white, Black, Gray } from "../../Styles/Colors";
+import { appColor, white, Black, Gray, black } from "../../Styles/Colors";
 import Icons from "../../Styles/Icons";
 
 // Vertical volume tooltip with auto-hide and icon arrow pointer
@@ -17,6 +17,7 @@ import Icons from "../../Styles/Icons";
 // - onChange: (v:number)=>void
 // - onClose: ()=>void
 // - autoHideMs?: number
+
 export default function VolumeWidget(props) {
   const {
     visible: visibleProp,
@@ -28,15 +29,23 @@ export default function VolumeWidget(props) {
   } = props;
 
   const visible = visibleProp ?? isVisible ?? false;
-
-  const [containerHeight, setContainerHeight] = useState(160);
-  const [internalValue, setInternalValue] = useState(value);
+  const [internalValue, setInternalValue] = useState(
+    Math.max(0, Math.min(100, Math.round((value ?? 0) * 100)))
+  ); // у %
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.95)).current;
   const hideTimerRef = useRef(null);
+  const trackHeightRef = useRef(140);
+  const [trackHeight, setTrackHeight] = useState(140);
+  const isDraggingRef = useRef(false);
+  const startPageYRef = useRef(0);
+  const startValueRef = useRef(0);
 
   useEffect(() => {
-    setInternalValue(value);
+    // Синхронізуємо з пропом value, але не під час перетягування
+    if (isDraggingRef.current) return;
+    const next = Math.max(0, Math.min(100, Math.round((value ?? 0) * 100)));
+    setInternalValue(next);
   }, [value]);
 
   useEffect(() => {
@@ -65,6 +74,7 @@ export default function VolumeWidget(props) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
+
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 0,
@@ -80,80 +90,113 @@ export default function VolumeWidget(props) {
         }),
       ]).start();
     }
+
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
   }, [visible]);
 
-  const valueToY = (v) => {
-    const clamped = Math.max(0, Math.min(1, v));
-    return (1 - clamped) * containerHeight;
+  const rescheduleAutoHide = () => {
+    if (!visible) return;
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      onClose && onClose();
+    }, autoHideMs);
   };
 
-  const yToValue = (y) => {
-    const clampedY = Math.max(0, Math.min(containerHeight, y));
-    const v = 1 - clampedY / containerHeight;
-    return Math.max(0, Math.min(1, v));
+  const applyValue = (percent) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+    setInternalValue(clamped);
+    const normalized = clamped / 100;
+    onChange && onChange(normalized);
   };
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (evt, gesture) => {
-          if (hideTimerRef.current) {
-            clearTimeout(hideTimerRef.current);
-            hideTimerRef.current = null;
-          }
-          const y = evt.nativeEvent.locationY;
-          const next = yToValue(y);
-          setInternalValue(next);
-          onChange && onChange(next);
-        },
-        onPanResponderMove: (evt, gesture) => {
-          const y = evt.nativeEvent.locationY;
-          const next = yToValue(y);
-          setInternalValue(next);
-          onChange && onChange(next);
-        },
-        onPanResponderRelease: () => {
-          // restart auto-hide after interaction
-          if (!hideTimerRef.current) {
-            hideTimerRef.current = setTimeout(() => {
-              onClose && onClose();
-            }, autoHideMs);
-          }
-        },
-      }),
-    [containerHeight, onChange, onClose, autoHideMs]
-  );
+  const handleGestureAt = (locationY) => {
+    const height = trackHeightRef.current || trackHeight || 140;
+    const ratio = 1 - locationY / height; // нижній край = 0, верхній край = 1
+    applyValue(ratio * 100);
+    rescheduleAutoHide();
+  };
+
+  const handleDragMoveByDelta = (pageY) => {
+    const height = trackHeightRef.current || trackHeight || 140;
+    if (height <= 0) return;
+    const deltaPx = startPageYRef.current - pageY; // рух вгору -> +
+    const deltaPercent = (deltaPx / height) * 100;
+    const next = Math.max(
+      0,
+      Math.min(100, Math.round(startValueRef.current + deltaPercent))
+    );
+    applyValue(next);
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponderCapture: () => true,
+      onPanResponderGrant: (evt) => {
+        isDraggingRef.current = true;
+        startPageYRef.current = evt.nativeEvent.pageY;
+        startValueRef.current = internalValue;
+        // Миттєво позиціонувати при першому тапі за локальною Y
+        handleGestureAt(evt.nativeEvent.locationY);
+      },
+      onPanResponderMove: (evt, gesture) => {
+        handleDragMoveByDelta(evt.nativeEvent.pageY);
+      },
+      onPanResponderRelease: () => {
+        isDraggingRef.current = false;
+        rescheduleAutoHide();
+      },
+      onPanResponderTerminate: () => {
+        isDraggingRef.current = false;
+        rescheduleAutoHide();
+      },
+      onPanResponderTerminationRequest: () => false,
+    })
+  ).current;
 
   if (!visible) return null;
-
-  const fillHeight = internalValue * containerHeight;
 
   return (
     <View pointerEvents="box-none" style={styles.overlayContainer}>
       <Animated.View
         style={[styles.tooltip, { opacity, transform: [{ scale }] }]}
       >
-        <Text style={styles.valueLabel}>
-          {Math.round(internalValue * 100)}%
-        </Text>
         <View
-          style={styles.sliderContainer}
-          onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+          style={styles.sliderVerticalContainer}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height || 140;
+            trackHeightRef.current = h;
+            setTrackHeight(h);
+          }}
+          pointerEvents="box-only"
           {...panResponder.panHandlers}
         >
-          <View style={styles.sliderTrack} />
-          <View style={[styles.sliderFill, { height: fillHeight }]} />
+          <View style={[styles.sliderTrack]} pointerEvents="none">
+            <View
+              style={[
+                styles.sliderFill,
+                { height: (internalValue / 100) * (trackHeight || 140) },
+              ]}
+              pointerEvents="none"
+            />
+            <View
+              style={[
+                styles.sliderThumb,
+                { bottom: (internalValue / 100) * (trackHeight || 140) - 8 },
+              ]}
+              pointerEvents="none"
+            />
+          </View>
+        </View>
+
+        <View style={styles.arrowContainer}>
+          <View style={styles.arrow} />
         </View>
       </Animated.View>
-
-      <View style={styles.arrowContainer}>
-        <Icons.CaretDown size={20} color={Black(0.95)} />
-      </View>
     </View>
   );
 }
@@ -170,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tooltip: {
-    width: 64,
+    width: 32,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -189,32 +232,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 10,
   },
-  sliderContainer: {
-    width: 28,
-    height: 160,
-    borderRadius: 16,
-    backgroundColor: "transparent",
+  sliderVerticalContainer: {
     alignItems: "center",
-    justifyContent: "flex-end",
-    overflow: "hidden",
+    justifyContent: "center",
+    height: 140,
+    width: 16,
   },
   sliderTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    top: 0,
-    borderRadius: 16,
-    backgroundColor: Gray(0.25),
+    position: "relative",
+    height: "100%",
+    width: 6,
+    borderRadius: 3,
+    backgroundColor: Gray(0.3),
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
   sliderFill: {
     position: "absolute",
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
     backgroundColor: appColor,
+    borderRadius: 3,
+  },
+  sliderThumb: {
+    position: "absolute",
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: appColor,
+    left: -3,
+    elevation: 3,
   },
   arrowContainer: {
     marginTop: 6,
+  },
+  arrow: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 8,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: Black(0.95),
   },
 });

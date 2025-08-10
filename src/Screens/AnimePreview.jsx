@@ -294,6 +294,10 @@ export default function AnimePreviewScreen({ route }) {
                 setEpisodesList({});
                 return;
               }
+              if (data["vidsrc"]) {
+                delete data["vidsrc"];
+              }
+              data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
 
               let infoNeedsUpdate = false;
               let newInfo = { ...currentInfo };
@@ -307,7 +311,11 @@ export default function AnimePreviewScreen({ route }) {
                   ) {
                     newInfo.watched = {
                       ...newInfo.watched,
-                      player: key,
+                      player: data[
+                        SettingsStorage.getParameter("defaultPlayer")
+                      ]
+                        ? SettingsStorage.getParameter("defaultPlayer")
+                        : key,
                       dubbing: Object.keys(value)[0],
                       episodes: newInfo.watched?.episodes || [],
                     };
@@ -316,10 +324,7 @@ export default function AnimePreviewScreen({ route }) {
                   }
                 }
               }
-              if (data["vidsrc"]) {
-                delete data["vidsrc"];
-              }
-              data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
+
               setEpisodesList(data);
 
               if (infoNeedsUpdate) {
@@ -830,7 +835,8 @@ export default function AnimePreviewScreen({ route }) {
                 navigation.navigate("HiddenStack", {
                   screen: "LocalVideoPlayer",
                   params: {
-                    _episodes: episodesList,
+                    _episodes:
+                      episodesList[info.watched.player][info.watched.dubbing],
                     _currentEpisode: item,
                     _anime: anime,
                   },
