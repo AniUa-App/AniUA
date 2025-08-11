@@ -1,5 +1,6 @@
 import { View, StyleSheet, TouchableOpacity, Linking } from "react-native";
-import React from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { BlurView } from "expo-blur";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
 import HomeScreen from "../Home";
 import AnimeListScreen from "../AnimeList";
@@ -12,7 +13,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from "react-native-reanimated";
-import { black, appColor, white } from "../../Styles/Colors";
+import { black, appColor, white, AppColor } from "../../Styles/Colors";
 import {
   HomeIcon,
   LikeIcon,
@@ -32,6 +33,9 @@ import LinkingConfig from "../../cfgs/LinkingConfig";
 import { useNavigation } from "@react-navigation/native";
 // import LocalVideoPlayerScreen from '../LocalVideoPlayer';
 import LocalVideoPlayerV2Screen from "../LocalVideoPlayerV2";
+import CustomisationScreen from "../Customisation";
+import SettingsStorage from "../../Storage/SettingsStorage";
+import { EventBus } from "../../Global/EventBus";
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
@@ -86,16 +90,59 @@ const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
 // Кастомна панель навігації
-function CustomNavBar({ state, navigation }) {
+export function CustomNavBar({ state, navigation, isPreview = false }) {
+  const [userConfig, setUserConfig] = useState(
+    SettingsStorage.getParameter("userConfig")
+  );
+  const isCustomisation = userConfig?.navbar?.isCustomisation;
+
+  useEffect(() => {
+    EventBus.on("userConfigChanged", (newConfig) => {
+      setUserConfig(newConfig);
+    });
+  }, []);
+
+  const [previewIndex, setPreviewIndex] = useState(
+    state.routes.findIndex(
+      (route) => route.key === state.routes[state.index].key
+    )
+  );
   const visibleRoutes = state.routes.filter(
     (route) => route.name !== "AnimeList"
   );
-  const visibleStateIndex = state.routes.findIndex(
-    (route) => route.key === state.routes[state.index].key
-  );
+  const visibleStateIndex = isPreview
+    ? previewIndex
+    : state.routes.findIndex(
+        (route) => route.key === state.routes[state.index].key
+      );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: isCustomisation
+            ? userConfig?.navbar?.backgroundColor || black
+            : black,
+          borderRadius: isCustomisation
+            ? userConfig?.navbar?.borderRadius || 8
+            : 8,
+          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 25 : 25,
+          width: isCustomisation
+            ? `${userConfig?.navbar?.width || 80}%`
+            : "80%",
+        },
+      ]}
+    >
+      {isCustomisation && userConfig?.navbar?.isBlurBackground && (
+        <BlurView
+          tint="dark"
+          intensity={userConfig?.navbar?.blurIntensity || 80}
+          blurReductionFactor={userConfig?.navbar?.blurReductionFactor || 8}
+          style={[StyleSheet.absoluteFill]}
+          experimentalBlurMethod="dimezisBlurView"
+        />
+      )}
       {visibleRoutes.map((route, index) => {
         const labels = {
           Home: "Головна",
@@ -112,12 +159,16 @@ function CustomNavBar({ state, navigation }) {
             onPress={() => {
               if (!isFocused) {
                 console.log(route.name);
-                if (route.name === "Liked" || route.name === "Download") {
-                  navigation.navigate(route.name, {
-                    title: labels[route.name],
-                  });
+                if (isPreview) {
+                  setPreviewIndex(index);
                 } else {
-                  navigation.navigate(route.name);
+                  if (route.name === "Liked" || route.name === "Download") {
+                    navigation.navigate(route.name, {
+                      title: labels[route.name],
+                    });
+                  } else {
+                    navigation.navigate(route.name);
+                  }
                 }
               }
             }}
@@ -131,14 +182,16 @@ function CustomNavBar({ state, navigation }) {
               },
             ]}
           >
-            {(
-              {
-                Home: HomeIcon,
-                Liked: LikeIcon,
-                Download: DownloadIcon,
-                Settings: SettingsIcon,
-              }[route.name] || (() => null)
-            )({ fill: isFocused ? appColor : white })}
+            <View style={styles.iconShadow} pointerEvents="none">
+              {(
+                {
+                  Home: HomeIcon,
+                  Liked: LikeIcon,
+                  Download: DownloadIcon,
+                  Settings: SettingsIcon,
+                }[route.name] || (() => null)
+              )({ fill: isFocused ? appColor : white })}
+            </View>
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
@@ -201,6 +254,11 @@ function HiddenStack() {
         component={ButtonsScreen}
         options={{ headerShown: true }}
       />
+      <HiddenStackNav.Screen
+        name="CustomisationScreen"
+        component={CustomisationScreen}
+        options={{ headerShown: true }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -236,12 +294,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: black,
-    width: "85%",
+    backgroundColor: Black(0.6),
+    width: "80%",
     alignSelf: "center",
-    bottom: 20,
+    bottom: 25,
     borderRadius: 8,
-    paddingVertical: 15,
+    paddingVertical: 12,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
@@ -252,14 +311,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: 36,
-    paddingHorizontal: 10,
     borderRadius: 30,
   },
   text: {
     fontFamily: "Nunito-SemiBold",
     color: white,
     fontSize: 16,
+    lineHeight: 16,
     marginLeft: 8,
     fontWeight: "500",
+  },
+  iconShadow: {
+    shadowColor: black,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 8,
   },
 });

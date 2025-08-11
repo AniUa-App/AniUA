@@ -10,6 +10,7 @@ import Loader from "./src/Widgets/LoaderWidget";
 import * as ScreenOrientation from "expo-screen-orientation";
 // import SystemNavigationBar from 'react-native-system-navigation-bar';
 import SystemNavigationBar from "react-native-system-navigation-bar";
+import Color from "color";
 import SettingsStorage from "./src/Storage/SettingsStorage";
 import NotificationPermission from "./src/Notifications/NotificationPermission";
 import * as FileSystem from "expo-file-system";
@@ -61,11 +62,13 @@ export default function App() {
         SystemNavigationBar.navigationHide();
       } else if (navBarType === "dark" || !navBarType) {
         SystemNavigationBar.navigationShow();
-        SystemNavigationBar.setNavigationColor(black, "dark", "navigation");
+        const blackHex = Color(black).hex();
+        SystemNavigationBar.setNavigationColor(blackHex, "dark", "navigation");
         SystemNavigationBar.setBarMode("dark", "navigation");
       } else if (navBarType === "light") {
         SystemNavigationBar.navigationShow();
-        SystemNavigationBar.setNavigationColor(white, "light", "navigation");
+        const whiteHex = Color(white).hex();
+        SystemNavigationBar.setNavigationColor(whiteHex, "light", "navigation");
         SystemNavigationBar.setBarMode("light", "navigation");
       }
     }, "Помилка налаштування навігаційної панелі");
@@ -130,6 +133,7 @@ export default function App() {
     initApp();
   }, []);
   console.log("App render:", { isLoading, isErrorBoundary, isActivityReady });
+  console.log(SettingsStorage.getParameter("userConfig"), "userConfig");
 
   // Показуємо завантаження поки не завантажені шрифти або додаток ще ініціалізується
   if (!fontsLoaded || isLoading) {

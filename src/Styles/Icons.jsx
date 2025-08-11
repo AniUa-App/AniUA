@@ -1,27 +1,27 @@
-import FilterIcon from './../../assets/Filter.svg';
-import {Path, Svg, Circle, Line, Rect} from 'react-native-svg';
-import {View, Text, Image} from 'react-native';
-import LoadingIcon from './../../assets/Loading.svg';
-import ArrowRightIcon_ from './../../assets/ArrowRight.svg';
-import ArrowLeftIcon from './../../assets/ArrowLeft.svg';
-import HeartIcon from './../../assets/Heart.svg';
-import StarIcon from './../../assets/Star.svg';
-import DownloadIcon_ from './../../assets/Download.svg';
-import MoreIcon from './../../assets/More.svg';
-import EpisodesIcon from './../../assets/Episodes.svg';
-import BottomArrowIcon from './../../assets/BottomArrow.svg';
-import MoonIcon_ from './../../assets/Moon.png';
-import {H3, H4} from './Fonts';
-import {appColor, Black, white} from './Colors';
-import FastImage from 'react-native-fast-image';
-import TelegramIcon from './../../assets/Telegram.svg';
-import RefreshIcon from './../../assets/Refresh.svg';
-import * as PhosphorIcons from 'phosphor-react-native';
+import FilterIcon from "./../../assets/Filter.svg";
+import { Path, Svg, Circle, Line, Rect, G, Polyline } from "react-native-svg";
+import { View, Text, Image, Animated, Easing } from "react-native";
+import { useRef, useEffect } from "react";
+import LoadingIcon from "./../../assets/Loading.svg";
+import ArrowRightIcon_ from "./../../assets/ArrowRight.svg";
+import ArrowLeftIcon from "./../../assets/ArrowLeft.svg";
+import HeartIcon from "./../../assets/Heart.svg";
+import StarIcon from "./../../assets/Star.svg";
+import DownloadIcon_ from "./../../assets/Download.svg";
+import MoreIcon from "./../../assets/More.svg";
+import EpisodesIcon from "./../../assets/Episodes.svg";
+import BottomArrowIcon from "./../../assets/BottomArrow.svg";
+import MoonIcon_ from "./../../assets/Moon.png";
+import { H3, H4 } from "./Fonts";
+import { appColor, Black, white } from "./Colors";
+import FastImage from "react-native-fast-image";
+import TelegramIcon from "./../../assets/Telegram.svg";
+import RefreshIcon from "./../../assets/Refresh.svg";
+import * as PhosphorIcons from "phosphor-react-native";
 
-export const TYPE = 'regular'
+export const TYPE = "regular";
 
-
-
+const AnimatedSvg = Animated.createAnimatedComponent(G);
 
 export function BookmarkIcon({
   width,
@@ -32,28 +32,28 @@ export function BookmarkIcon({
   type,
   opacity = 0,
 }) {
-  if (type == 'home' || type == 'Home') {
-    color = '#FFFF11';
-    borderColor = '#000000';
-  } else if (type == 'Plans' || type == 'plans') {
-    color = '#5F77B6';
-    borderColor = '#5F77B6';
-  } else if (type == 'Watching' || type == 'watching') {
-    color = '#FFEA4F';
-    borderColor = '#D6AA63';
-  } else if (type == 'Viewed' || type == 'viewed') {
-    color = '#ADD8E6';
-    borderColor = '#00B0E9';
-  } else if (type == 'Dropped' || type == 'dropped') {
-    color = '#FF2511';
-    borderColor = '#E4837A';
+  if (type == "home" || type == "Home") {
+    color = "#FFFF11";
+    borderColor = "#000000";
+  } else if (type == "Plans" || type == "plans") {
+    color = "#5F77B6";
+    borderColor = "#5F77B6";
+  } else if (type == "Watching" || type == "watching") {
+    color = "#FFEA4F";
+    borderColor = "#D6AA63";
+  } else if (type == "Viewed" || type == "viewed") {
+    color = "#ADD8E6";
+    borderColor = "#00B0E9";
+  } else if (type == "Dropped" || type == "dropped") {
+    color = "#FF2511";
+    borderColor = "#E4837A";
   } else {
-    color = '#9E9E9E';
-    borderColor = '#9E9E9E';
+    color = "#9E9E9E";
+    borderColor = "#9E9E9E";
     opacity = 0.5;
   }
   if (opacity != 0) {
-    styles = {...styles};
+    styles = { ...styles };
   }
   return (
     <Svg
@@ -62,7 +62,8 @@ export function BookmarkIcon({
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={styles}>
+      style={styles}
+    >
       <Path
         d="M16 15.9998C16 13.0543 18.3878 10.6665 21.3333 10.6665H42.6667C45.6122 10.6665 48 13.0543 48 15.9998V55.9998L32 39.9998L16 55.9998V15.9998Z"
         fill={color}
@@ -79,14 +80,15 @@ export function BookmarkIcon({
     </Svg>
   );
 }
-export function SearchIcon({fill}) {
+export function SearchIcon({ fill }) {
   return (
     <Svg
       width="28"
       height="28"
       viewBox="0 0 28 28"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M0.498281 25.9983L7.1482 19.3497C5.22079 17.0357 4.25968 14.0677 4.46481 11.0632C4.66995 8.0586 6.02553 5.24879 8.24956 3.21824C10.4736 1.18769 13.3949 0.0927414 16.4056 0.161166C19.4164 0.229591 22.2849 1.45612 24.4144 3.58561C26.5439 5.7151 27.7704 8.5836 27.8388 11.5944C27.9073 14.6051 26.8123 17.5264 24.7818 19.7504C22.7512 21.9745 19.9414 23.3301 16.9368 23.5352C13.9323 23.7403 10.9643 22.7792 8.65031 20.8518L2.00172 27.5017C1.903 27.6004 1.78581 27.6787 1.65683 27.7322C1.52785 27.7856 1.38961 27.8131 1.25 27.8131C1.11039 27.8131 0.972155 27.7856 0.843174 27.7322C0.714193 27.6787 0.596998 27.6004 0.498281 27.5017C0.399565 27.403 0.321259 27.2858 0.267834 27.1568C0.214409 27.0278 0.186909 26.8896 0.186909 26.75C0.186909 26.6104 0.214409 26.4722 0.267834 26.3432C0.321259 26.2142 0.399565 26.097 0.498281 25.9983ZM25.6875 11.875C25.6875 9.98371 25.1267 8.1349 24.0759 6.56236C23.0252 4.98981 21.5317 3.76416 19.7844 3.0404C18.0371 2.31664 16.1144 2.12727 14.2595 2.49624C12.4045 2.86521 10.7006 3.77595 9.36329 5.11329C8.02595 6.45063 7.11521 8.1545 6.74624 10.0094C6.37727 11.8644 6.56664 13.7871 7.2904 15.5344C8.01417 17.2817 9.23982 18.7752 10.8124 19.8259C12.3849 20.8767 14.2337 21.4375 16.125 21.4375C18.6603 21.4347 21.0909 20.4263 22.8836 18.6336C24.6763 16.8409 25.6847 14.4103 25.6875 11.875Z"
         fill={fill}
@@ -95,14 +97,15 @@ export function SearchIcon({fill}) {
   );
 }
 
-export function ArrowRightIcon({width = 30, height = 30, fill = '#3DD8C6'}) {
+export function ArrowRightIcon({ width = 30, height = 30, fill = "#3DD8C6" }) {
   return (
     <Svg
       width={width}
       height={height}
       viewBox="0 0 30 30"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M15 0.375C12.1074 0.375 9.27985 1.23274 6.87478 2.83976C4.46972 4.44677 2.59519 6.73089 1.48826 9.40325C0.381329 12.0756 0.0917054 15.0162 0.656014 17.8532C1.22032 20.6902 2.61322 23.2961 4.65856 25.3414C6.70391 27.3868 9.30983 28.7797 12.1468 29.344C14.9838 29.9083 17.9244 29.6187 20.5967 28.5117C23.2691 27.4048 25.5532 25.5303 27.1602 23.1252C28.7673 20.7201 29.625 17.8926 29.625 15C29.6209 11.1225 28.0787 7.40492 25.3369 4.66309C22.5951 1.92125 18.8775 0.379095 15 0.375ZM15 27.375C12.5525 27.375 10.1599 26.6492 8.12482 25.2894C6.08976 23.9297 4.50362 21.9969 3.56699 19.7357C2.63036 17.4745 2.38529 14.9863 2.86278 12.5858C3.34027 10.1852 4.51888 7.98023 6.24955 6.24955C7.98023 4.51888 10.1852 3.34027 12.5858 2.86278C14.9863 2.38529 17.4745 2.63036 19.7357 3.56699C21.9969 4.50363 23.9297 6.08976 25.2894 8.12482C26.6492 10.1599 27.375 12.5525 27.375 15C27.3713 18.2809 26.0663 21.4264 23.7463 23.7463C21.4264 26.0663 18.2809 27.3713 15 27.375ZM21.4209 14.2041C21.5255 14.3085 21.6085 14.4326 21.6651 14.5692C21.7217 14.7058 21.7509 14.8522 21.7509 15C21.7509 15.1478 21.7217 15.2942 21.6651 15.4308C21.6085 15.5674 21.5255 15.6915 21.4209 15.7959L16.9209 20.2959C16.7098 20.507 16.4235 20.6256 16.125 20.6256C15.8265 20.6256 15.5402 20.507 15.3291 20.2959C15.118 20.0848 14.9994 19.7985 14.9994 19.5C14.9994 19.2015 15.118 18.9152 15.3291 18.7041L17.9095 16.125H9.375C9.07663 16.125 8.79048 16.0065 8.5795 15.7955C8.36853 15.5845 8.25 15.2984 8.25 15C8.25 14.7016 8.36853 14.4155 8.5795 14.2045C8.79048 13.9935 9.07663 13.875 9.375 13.875H17.9095L15.3291 11.2959C15.118 11.0848 14.9994 10.7985 14.9994 10.5C14.9994 10.2015 15.118 9.91516 15.3291 9.70406C15.5402 9.49297 15.8265 9.37437 16.125 9.37437C16.4235 9.37437 16.7098 9.49297 16.9209 9.70406L21.4209 14.2041Z"
         fill={fill}
@@ -111,14 +114,15 @@ export function ArrowRightIcon({width = 30, height = 30, fill = '#3DD8C6'}) {
   );
 }
 
-export function LikeIcon({fill}) {
+export function LikeIcon({ fill }) {
   return (
     <Svg
       width="32"
       height="28"
       viewBox="0 0 32 28"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M23.0312 0.625C20.1273 0.625 17.5848 1.87375 16 3.98453C14.4152 1.87375 11.8727 0.625 8.96875 0.625C6.65719 0.627605 4.44106 1.54702 2.80654 3.18154C1.17202 4.81606 0.252605 7.03219 0.25 9.34375C0.25 19.1875 14.8455 27.1553 15.467 27.4844C15.6309 27.5725 15.814 27.6186 16 27.6186C16.186 27.6186 16.3691 27.5725 16.533 27.4844C17.1545 27.1553 31.75 19.1875 31.75 9.34375C31.7474 7.03219 30.828 4.81606 29.1935 3.18154C27.5589 1.54702 25.3428 0.627605 23.0312 0.625ZM16 25.2063C13.4322 23.71 2.5 16.8939 2.5 9.34375C2.50223 7.62882 3.18448 5.98476 4.39712 4.77212C5.60976 3.55948 7.25382 2.87723 8.96875 2.875C11.7039 2.875 14.0003 4.33188 14.9594 6.67188C15.0441 6.87821 15.1883 7.05469 15.3736 7.1789C15.5589 7.3031 15.7769 7.36941 16 7.36941C16.2231 7.36941 16.4411 7.3031 16.6264 7.1789C16.8117 7.05469 16.9559 6.87821 17.0406 6.67188C17.9997 4.32766 20.2961 2.875 23.0312 2.875C24.7462 2.87723 26.3902 3.55948 27.6029 4.77212C28.8155 5.98476 29.4978 7.62882 29.5 9.34375C29.5 16.8827 18.565 23.7086 16 25.2063Z"
         fill={fill}
@@ -127,14 +131,15 @@ export function LikeIcon({fill}) {
   );
 }
 
-export function HomeIcon({fill}) {
+export function HomeIcon({ fill }) {
   return (
     <Svg
       width="28"
       height="29"
       viewBox="0 0 28 29"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M26.8405 12.2831L15.5905 1.03312C15.1686 0.611484 14.5965 0.374634 14 0.374634C13.4035 0.374634 12.8315 0.611484 12.4095 1.03312L1.15955 12.2831C0.949598 12.4915 0.783174 12.7396 0.66995 13.0128C0.556726 13.2861 0.498961 13.5792 0.500014 13.875V27.375C0.500014 27.6734 0.618541 27.9595 0.829519 28.1705C1.0405 28.3815 1.32665 28.5 1.62501 28.5H10.625C10.9234 28.5 11.2095 28.3815 11.4205 28.1705C11.6315 27.9595 11.75 27.6734 11.75 27.375V19.5H16.25V27.375C16.25 27.6734 16.3685 27.9595 16.5795 28.1705C16.7905 28.3815 17.0766 28.5 17.375 28.5H26.375C26.6734 28.5 26.9595 28.3815 27.1705 28.1705C27.3815 27.9595 27.5 27.6734 27.5 27.375V13.875C27.5011 13.5792 27.4433 13.2861 27.3301 13.0128C27.2169 12.7396 27.0504 12.4915 26.8405 12.2831ZM25.25 26.25H18.5V18.375C18.5 18.0766 18.3815 17.7905 18.1705 17.5795C17.9595 17.3685 17.6734 17.25 17.375 17.25H10.625C10.3266 17.25 10.0405 17.3685 9.82952 17.5795C9.61854 17.7905 9.50001 18.0766 9.50001 18.375V26.25H2.75001V13.875L14 2.625L25.25 13.875V26.25Z"
         fill={fill}
@@ -143,14 +148,15 @@ export function HomeIcon({fill}) {
   );
 }
 
-export function DownloadIcon({fill}) {
+export function DownloadIcon({ fill }) {
   return (
     <Svg
       width="34"
       height="26"
       viewBox="0 0 34 26"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M33.875 13C33.882 15.6791 33.0129 18.2871 31.4 20.4264C31.3112 20.5446 31.1999 20.6441 31.0726 20.7193C30.9453 20.7945 30.8045 20.8439 30.6581 20.8647C30.5117 20.8854 30.3627 20.8772 30.2195 20.8403C30.0763 20.8035 29.9418 20.7388 29.8236 20.65C29.7054 20.5612 29.6059 20.4499 29.5307 20.3226C29.4555 20.1953 29.4061 20.0545 29.3853 19.9081C29.3645 19.7617 29.3728 19.6127 29.4097 19.4695C29.4465 19.3263 29.5112 19.1918 29.6 19.0736C30.9202 17.3246 31.6314 15.1914 31.625 13C31.625 10.3147 30.5583 7.73934 28.6594 5.84054C26.7606 3.94173 24.1853 2.87499 21.5 2.87499C18.8147 2.87499 16.2393 3.94173 14.3405 5.84054C12.4417 7.73934 11.375 10.3147 11.375 13C11.375 13.2984 11.2565 13.5845 11.0455 13.7955C10.8345 14.0065 10.5484 14.125 10.25 14.125C9.95162 14.125 9.66548 14.0065 9.4545 13.7955C9.24352 13.5845 9.12499 13.2984 9.12499 13C9.12444 11.8647 9.28012 10.7347 9.58765 9.64187C9.43437 9.62499 9.27968 9.62499 9.12499 9.62499C7.33478 9.62499 5.61789 10.3362 4.35202 11.602C3.08615 12.8679 2.37499 14.5848 2.37499 16.375C2.37499 18.1652 3.08615 19.8821 4.35202 21.148C5.61789 22.4138 7.33478 23.125 9.12499 23.125H12.5C12.7984 23.125 13.0845 23.2435 13.2955 23.4545C13.5065 23.6655 13.625 23.9516 13.625 24.25C13.625 24.5484 13.5065 24.8345 13.2955 25.0455C13.0845 25.2565 12.7984 25.375 12.5 25.375H9.12499C7.88774 25.3753 6.66371 25.1205 5.52937 24.6264C4.39502 24.1324 3.37471 23.4098 2.53217 22.5038C1.68963 21.5977 1.04296 20.5277 0.632533 19.3605C0.222108 18.1933 0.0567506 16.954 0.146788 15.72C0.236826 14.4861 0.580325 13.2839 1.15583 12.1887C1.73134 11.0934 2.52649 10.1286 3.49163 9.35442C4.45676 8.58027 5.57115 8.01343 6.7652 7.68931C7.95924 7.36519 9.20729 7.29074 10.4314 7.47062C11.6779 4.97756 13.7295 2.97832 16.254 1.79673C18.7785 0.615135 21.6279 0.320396 24.3408 0.960252C27.0537 1.60011 29.4711 3.13708 31.2015 5.32222C32.9319 7.50736 33.8739 10.2127 33.875 13ZM24.0791 18.9541L21.5 21.5345V13C21.5 12.7016 21.3815 12.4155 21.1705 12.2045C20.9595 11.9935 20.6734 11.875 20.375 11.875C20.0766 11.875 19.7905 11.9935 19.5795 12.2045C19.3685 12.4155 19.25 12.7016 19.25 13V21.5345L16.6709 18.9541C16.4598 18.743 16.1735 18.6244 15.875 18.6244C15.5765 18.6244 15.2901 18.743 15.0791 18.9541C14.868 19.1652 14.7494 19.4515 14.7494 19.75C14.7494 20.0485 14.868 20.3348 15.0791 20.5459L19.5791 25.0459C19.6835 25.1505 19.8076 25.2335 19.9442 25.2901C20.0808 25.3467 20.2271 25.3759 20.375 25.3759C20.5228 25.3759 20.6692 25.3467 20.8058 25.2901C20.9424 25.2335 21.0664 25.1505 21.1709 25.0459L25.6709 20.5459C25.882 20.3348 26.0006 20.0485 26.0006 19.75C26.0006 19.4515 25.882 19.1652 25.6709 18.9541C25.4598 18.743 25.1735 18.6244 24.875 18.6244C24.5765 18.6244 24.2902 18.743 24.0791 18.9541Z"
         fill={fill}
@@ -159,14 +165,15 @@ export function DownloadIcon({fill}) {
   );
 }
 
-export function AccountIcon({fill}) {
+export function AccountIcon({ fill }) {
   return (
     <Svg
       width="30"
       height="30"
       viewBox="0 0 30 30"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M15 0.375C12.1074 0.375 9.27985 1.23274 6.87478 2.83976C4.46972 4.44677 2.59519 6.73089 1.48826 9.40325C0.381329 12.0756 0.0917054 15.0162 0.656014 17.8532C1.22032 20.6902 2.61322 23.2961 4.65856 25.3414C6.70391 27.3868 9.30983 28.7797 12.1468 29.344C14.9838 29.9083 17.9244 29.6187 20.5967 28.5117C23.2691 27.4048 25.5532 25.5303 27.1602 23.1252C28.7673 20.7201 29.625 17.8926 29.625 15C29.6209 11.1225 28.0787 7.40492 25.3369 4.66309C22.5951 1.92125 18.8775 0.379095 15 0.375ZM7.4175 24.7734C8.23134 23.5006 9.35251 22.4531 10.6776 21.7276C12.0028 21.002 13.4892 20.6217 15 20.6217C16.5108 20.6217 17.9972 21.002 19.3224 21.7276C20.6475 22.4531 21.7687 23.5006 22.5825 24.7734C20.4145 26.4595 17.7464 27.3749 15 27.3749C12.2536 27.3749 9.58546 26.4595 7.4175 24.7734ZM10.5 13.875C10.5 12.985 10.7639 12.115 11.2584 11.3749C11.7529 10.6349 12.4557 10.0581 13.2779 9.71754C14.1002 9.37695 15.005 9.28783 15.8779 9.46147C16.7508 9.6351 17.5526 10.0637 18.182 10.693C18.8113 11.3224 19.2399 12.1242 19.4135 12.9971C19.5872 13.87 19.4981 14.7748 19.1575 15.5971C18.8169 16.4193 18.2401 17.1221 17.5001 17.6166C16.76 18.1111 15.89 18.375 15 18.375C13.8065 18.375 12.6619 17.9009 11.818 17.057C10.9741 16.2131 10.5 15.0685 10.5 13.875ZM24.2475 23.2139C22.9928 21.3957 21.2285 19.9891 19.1766 19.1709C20.2788 18.3028 21.0831 17.1127 21.4776 15.7663C21.8722 14.4198 21.8373 12.9838 21.3779 11.6581C20.9185 10.3324 20.0574 9.18274 18.9143 8.3691C17.7713 7.55545 16.4031 7.11822 15 7.11822C13.5969 7.11822 12.2287 7.55545 11.0856 8.3691C9.94258 9.18274 9.08147 10.3324 8.62207 11.6581C8.16267 12.9838 8.12782 14.4198 8.52235 15.7663C8.91688 17.1127 9.7212 18.3028 10.8234 19.1709C8.77146 19.9891 7.0072 21.3957 5.7525 23.2139C4.16705 21.431 3.13079 19.2278 2.7685 16.8696C2.40621 14.5114 2.73335 12.0988 3.71051 9.92217C4.68767 7.74558 6.27319 5.89787 8.27616 4.60154C10.2791 3.3052 12.6141 2.6155 15 2.6155C17.3859 2.6155 19.7209 3.3052 21.7238 4.60154C23.7268 5.89787 25.3123 7.74558 26.2895 9.92217C27.2667 12.0988 27.5938 14.5114 27.2315 16.8696C26.8692 19.2278 25.8329 21.431 24.2475 23.2139Z"
         fill={fill}
@@ -175,14 +182,15 @@ export function AccountIcon({fill}) {
   );
 }
 
-export function SettingsIcon({fill}) {
+export function SettingsIcon({ fill }) {
   return (
     <Svg
       width="30"
       height="30"
       viewBox="0 0 30 30"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M15 8.25C13.665 8.25 12.3599 8.64588 11.2499 9.38758C10.1399 10.1293 9.27471 11.1835 8.76382 12.4169C8.25293 13.6503 8.11925 15.0075 8.3797 16.3169C8.64015 17.6262 9.28303 18.829 10.227 19.773C11.171 20.717 12.3738 21.3599 13.6831 21.6203C14.9925 21.8808 16.3497 21.7471 17.5831 21.2362C18.8165 20.7253 19.8707 19.8601 20.6124 18.7501C21.3541 17.6401 21.75 16.335 21.75 15C21.7481 13.2104 21.0364 11.4946 19.7709 10.2291C18.5055 8.96362 16.7896 8.25186 15 8.25ZM15 19.5C14.11 19.5 13.24 19.2361 12.4999 18.7416C11.7599 18.2472 11.1831 17.5443 10.8425 16.7221C10.502 15.8998 10.4128 14.995 10.5865 14.1221C10.7601 13.2492 11.1887 12.4474 11.818 11.818C12.4474 11.1887 13.2492 10.7601 14.1221 10.5865C14.995 10.4128 15.8998 10.502 16.7221 10.8425C17.5443 11.1831 18.2472 11.7599 18.7416 12.4999C19.2361 13.24 19.5 14.11 19.5 15C19.5 16.1935 19.0259 17.3381 18.182 18.182C17.3381 19.0259 16.1935 19.5 15 19.5ZM27.375 15.3038C27.3806 15.1013 27.3806 14.8988 27.375 14.6963L29.4731 12.075C29.5831 11.9374 29.6593 11.7758 29.6954 11.6034C29.7316 11.4309 29.7267 11.2524 29.6813 11.0822C29.3373 9.78929 28.8228 8.54792 28.1513 7.39078C28.0633 7.23936 27.9413 7.11054 27.7948 7.0146C27.6483 6.91865 27.4815 6.85823 27.3075 6.83813L23.9719 6.46688C23.8331 6.32063 23.6925 6.18 23.55 6.045L23.1563 2.70094C23.136 2.52686 23.0754 2.35993 22.9792 2.21344C22.883 2.06695 22.7539 1.94496 22.6022 1.85719C21.4446 1.1869 20.2034 0.672895 18.9108 0.328597C18.7405 0.283311 18.5619 0.27868 18.3894 0.315075C18.217 0.35147 18.0555 0.427874 17.918 0.538128L15.3038 2.625C15.1013 2.625 14.8988 2.625 14.6963 2.625L12.075 0.531097C11.9374 0.421084 11.7758 0.344935 11.6034 0.308785C11.4309 0.272634 11.2524 0.277494 11.0822 0.322972C9.7895 0.667541 8.54821 1.18203 7.39078 1.85297C7.23936 1.9409 7.11054 2.06296 7.0146 2.20944C6.91865 2.35592 6.85823 2.52277 6.83813 2.69672L6.46688 6.03797C6.32063 6.17766 6.18 6.31828 6.045 6.45985L2.70094 6.84375C2.52686 6.86401 2.35993 6.92465 2.21344 7.02084C2.06695 7.11704 1.94496 7.24613 1.85719 7.39782C1.1869 8.55539 0.672895 9.79665 0.328597 11.0892C0.283311 11.2596 0.27868 11.4381 0.315075 11.6106C0.35147 11.783 0.427874 11.9445 0.538128 12.082L2.625 14.6963C2.625 14.8988 2.625 15.1013 2.625 15.3038L0.531097 17.925C0.421084 18.0626 0.344935 18.2242 0.308785 18.3966C0.272634 18.5691 0.277494 18.7476 0.322972 18.9178C0.666926 20.2107 1.18144 21.4521 1.85297 22.6092C1.9409 22.7607 2.06296 22.8895 2.20944 22.9854C2.35592 23.0814 2.52277 23.1418 2.69672 23.1619L6.03235 23.5331C6.17204 23.6794 6.31266 23.82 6.45422 23.955L6.84375 27.2991C6.86401 27.4731 6.92465 27.6401 7.02084 27.7866C7.11704 27.9331 7.24613 28.0551 7.39782 28.1428C8.55539 28.8131 9.79665 29.3271 11.0892 29.6714C11.2596 29.7167 11.4381 29.7213 11.6106 29.6849C11.783 29.6485 11.9445 29.5721 12.082 29.4619L14.6963 27.375C14.8988 27.3806 15.1013 27.3806 15.3038 27.375L17.925 29.4731C18.0626 29.5831 18.2242 29.6593 18.3966 29.6954C18.5691 29.7316 18.7476 29.7267 18.9178 29.6813C20.2107 29.3373 21.4521 28.8228 22.6092 28.1513C22.7607 28.0633 22.8895 27.9413 22.9854 27.7948C23.0814 27.6483 23.1418 27.4815 23.1619 27.3075L23.5331 23.9719C23.6794 23.8331 23.82 23.6925 23.955 23.55L27.2991 23.1563C27.4731 23.136 27.6401 23.0754 27.7866 22.9792C27.9331 22.883 28.0551 22.7539 28.1428 22.6022C28.8131 21.4446 29.3271 20.2034 29.6714 18.9108C29.7167 18.7405 29.7213 18.5619 29.6849 18.3894C29.6485 18.217 29.5721 18.0555 29.4619 17.918L27.375 15.3038ZM25.1109 14.3897C25.1348 14.7962 25.1348 15.2038 25.1109 15.6103C25.0942 15.8886 25.1814 16.1633 25.3556 16.3809L27.3511 18.8742C27.1221 19.6019 26.8289 20.3078 26.475 20.9836L23.2969 21.3436C23.0201 21.3743 22.7646 21.5066 22.5797 21.7148C22.309 22.0193 22.0207 22.3076 21.7163 22.5783C21.508 22.7632 21.3757 23.0187 21.345 23.2955L20.992 26.4708C20.3163 26.8249 19.6104 27.1181 18.8827 27.3469L16.388 25.3514C16.1883 25.1919 15.9404 25.1051 15.6848 25.1053H15.6173C15.2108 25.1292 14.8032 25.1292 14.3967 25.1053C14.1184 25.0886 13.8438 25.1758 13.6261 25.35L11.1258 27.3469C10.3981 27.1179 9.69219 26.8247 9.01641 26.4708L8.65641 23.2969C8.62569 23.0201 8.49341 22.7646 8.28516 22.5797C7.98072 22.309 7.69241 22.0207 7.42172 21.7163C7.23685 21.508 6.98131 21.3757 6.70454 21.345L3.52922 20.9906C3.17512 20.3149 2.88193 19.609 2.65313 18.8813L4.6486 16.3866C4.82284 16.1689 4.91004 15.8943 4.89328 15.6159C4.86938 15.2094 4.86938 14.8018 4.89328 14.3953C4.91004 14.117 4.82284 13.8424 4.6486 13.6247L2.65313 11.1258C2.8821 10.3981 3.17529 9.69219 3.52922 9.01641L6.70313 8.65641C6.9799 8.62569 7.23544 8.49341 7.42032 8.28516C7.69101 7.98072 7.97931 7.69241 8.28375 7.42172C8.49283 7.23673 8.62565 6.9806 8.65641 6.70313L9.00938 3.52922C9.68509 3.17512 10.391 2.88193 11.1188 2.65313L13.6134 4.6486C13.8311 4.82284 14.1057 4.91004 14.3841 4.89328C14.7906 4.86938 15.1982 4.86938 15.6047 4.89328C15.883 4.91004 16.1576 4.82284 16.3753 4.6486L18.8742 2.65313C19.6019 2.8821 20.3078 3.17529 20.9836 3.52922L21.3436 6.70313C21.3743 6.9799 21.5066 7.23544 21.7148 7.42032C22.0193 7.69101 22.3076 7.97931 22.5783 8.28375C22.7632 8.492 23.0187 8.62428 23.2955 8.655L26.4708 9.00797C26.8249 9.68368 27.1181 10.3896 27.3469 11.1173L25.3514 13.612C25.1755 13.8315 25.0882 14.109 25.1067 14.3897H25.1109Z"
         fill={fill}
@@ -191,14 +199,15 @@ export function SettingsIcon({fill}) {
   );
 }
 
-export function PlayIcon({fill}) {
+export function PlayIcon({ fill }) {
   return (
     <Svg
       width="30"
       height="30"
       viewBox="0 0 30 30"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Path
         d="M15 0.375C12.1075 0.375 9.27986 1.23274 6.87479 2.83976C4.46972 4.44677 2.5952 6.73089 1.48827 9.40325C0.381337 12.0756 0.091713 15.0162 0.656022 17.8532C1.22033 20.6902 2.61323 23.2961 4.65857 25.3414C6.70391 27.3868 9.30984 28.7797 12.1468 29.344C14.9838 29.9083 17.9244 29.6187 20.5967 28.5117C23.2691 27.4048 25.5532 25.5303 27.1602 23.1252C28.7673 20.7201 29.625 17.8926 29.625 15C29.6209 11.1225 28.0788 7.40492 25.3369 4.66309C22.5951 1.92125 18.8775 0.379095 15 0.375ZM15 27.375C12.5525 27.375 10.1599 26.6492 8.12482 25.2894C6.08976 23.9297 4.50362 21.9969 3.56699 19.7357C2.63036 17.4745 2.38529 14.9863 2.86278 12.5858C3.34027 10.1852 4.51888 7.98023 6.24955 6.24955C7.98023 4.51888 10.1852 3.34027 12.5858 2.86278C14.9863 2.38529 17.4745 2.63036 19.7357 3.56699C21.9969 4.50363 23.9297 6.08976 25.2894 8.12482C26.6492 10.1599 27.375 12.5525 27.375 15C27.3713 18.2809 26.0663 21.4264 23.7463 23.7463C21.4264 26.0663 18.2809 27.3713 15 27.375ZM21.7838 14.0466L12.7838 8.42156C12.6135 8.31515 12.4179 8.25625 12.2172 8.25095C12.0165 8.24566 11.818 8.29417 11.6424 8.39145C11.4668 8.48873 11.3204 8.63125 11.2184 8.80419C11.1164 8.97714 11.0626 9.17423 11.0625 9.375V20.625C11.0626 20.8258 11.1164 21.0229 11.2184 21.1958C11.3204 21.3688 11.4668 21.5113 11.6424 21.6085C11.818 21.7058 12.0165 21.7543 12.2172 21.7491C12.4179 21.7438 12.6135 21.6848 12.7838 21.5784L21.7838 15.9534C21.9453 15.8523 22.0785 15.7117 22.1708 15.5449C22.2632 15.3781 22.3116 15.1906 22.3116 15C22.3116 14.8094 22.2632 14.6219 22.1708 14.4551C22.0785 14.2883 21.9453 14.1477 21.7838 14.0466ZM13.3125 18.5958V11.4042L19.0655 15L13.3125 18.5958Z"
         fill={fill}
@@ -207,7 +216,7 @@ export function PlayIcon({fill}) {
   );
 }
 
-export function AshdiIcon({styles}) {
+export function AshdiIcon({ styles }) {
   return (
     <View
       style={[
@@ -216,38 +225,40 @@ export function AshdiIcon({styles}) {
           height: 30,
           backgroundColor: Black(),
           borderRadius: 15,
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
         },
         styles,
-      ]}>
-      <Text style={[H3, {color: appColor, fontSize: 30}]}>A</Text>
+      ]}
+    >
+      <Text style={[H3, { color: appColor, fontSize: 30 }]}>A</Text>
     </View>
   );
 }
 
-const AppIcon = ({styles}) => {
+const AppIcon = ({ styles }) => {
   return (
     <FastImage
-      style={[{width: 40, height: 40}, styles]}
-      source={require('../../assets/AniUA-Logo.png')}
+      style={[{ width: 40, height: 40 }, styles]}
+      source={require("../../assets/AniUA-Logo.png")}
       resizeMode={FastImage.resizeMode.cover}
     />
   );
 };
 
-export function MoonIcon({styles}) {
+export function MoonIcon({ styles }) {
   return <Image source={MoonIcon_} style={styles} />;
 }
 
-export function DebugIcon({color = white}) {
+export function DebugIcon({ color = white }) {
   return (
     <Svg
       width="30"
       height="30"
       viewBox="0 0 256 256"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Circle
         cx="108"
         cy="100"
@@ -346,14 +357,15 @@ export function DebugIcon({color = white}) {
   );
 }
 
-export function WiFiIcon({color = white, width = 30, height = 30}) {
+export function WiFiIcon({ color = white, width = 30, height = 30 }) {
   return (
     <Svg
       width={width}
       height={height}
       viewBox="0 0 256 256"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <Rect width="256" height="256" fill="none" />
       <Line
         x1="224"
@@ -406,57 +418,220 @@ export function WiFiIcon({color = white, width = 30, height = 30}) {
   );
 }
 
-
-  export function SpeedometerIcon({color = white, width = 30, height = 30}) {
-  return(
-    <Svg width={width} height={height} viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <Rect width="256" height="256" fill="none"/>
-      <Line x1="120" y1="160" x2="216" y2="64" fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
-      <Path d="M56.44,160a73,73,0,0,1-.44-8,72.06,72.06,0,0,1,95-68.25" fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
-      <Path d="M220.62,104.64a104.38,104.38,0,0,1,5.48,82,8,8,0,0,1-7.57,5.37H37.46a8.05,8.05,0,0,1-7.57-5.41A104.06,104.06,0,0,1,24,151.19C24.44,94,71.73,47.49,129,48a103.68,103.68,0,0,1,46.4,11.38" fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
-      </Svg>
-  )
+export function SpeedometerIcon({ color = white, width = 30, height = 30 }) {
+  return (
+    <Svg
+      width={width}
+      height={height}
+      viewBox="0 0 256 256"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <Rect width="256" height="256" fill="none" />
+      <Line
+        x1="120"
+        y1="160"
+        x2="216"
+        y2="64"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <Path
+        d="M56.44,160a73,73,0,0,1-.44-8,72.06,72.06,0,0,1,95-68.25"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <Path
+        d="M220.62,104.64a104.38,104.38,0,0,1,5.48,82,8,8,0,0,1-7.57,5.37H37.46a8.05,8.05,0,0,1-7.57-5.41A104.06,104.06,0,0,1,24,151.19C24.44,94,71.73,47.49,129,48a103.68,103.68,0,0,1,46.4,11.38"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+    </Svg>
+  );
 }
 
-
-export function SubtitlesIcon({color = white, size = 30, type = 'disabled', weight = TYPE}) {
-  switch(type) {
-    case 'enabled':
-      return <PhosphorIcons.Subtitles size={size} color={color} weight={weight} />
-    case 'disabled':
-      return <PhosphorIcons.SubtitlesSlash size={size} color={color} weight={weight} />
+export function SubtitlesIcon({
+  color = white,
+  size = 30,
+  type = "disabled",
+  weight = TYPE,
+}) {
+  switch (type) {
+    case "enabled":
+      return (
+        <PhosphorIcons.Subtitles size={size} color={color} weight={weight} />
+      );
+    case "disabled":
+      return (
+        <PhosphorIcons.SubtitlesSlash
+          size={size}
+          color={color}
+          weight={weight}
+        />
+      );
     default:
-      return <PhosphorIcons.SubtitlesSlash size={size} color={color} weight={weight} />
+      return (
+        <PhosphorIcons.SubtitlesSlash
+          size={size}
+          color={color}
+          weight={weight}
+        />
+      );
   }
 }
 
-export function LockIcon({color = white, size = 30, weight = TYPE, type = 'disabled'}) {
-  switch(type) {
-    case 'enabled':
-      return <PhosphorIcons.LockSimpleOpen size={size} color={color} weight={weight} />
-    case 'disabled':
-      return <PhosphorIcons.LockSimple size={size} color={color} weight={weight} />
+export function LockIcon({
+  color = white,
+  size = 30,
+  weight = TYPE,
+  type = "disabled",
+}) {
+  switch (type) {
+    case "enabled":
+      return (
+        <PhosphorIcons.LockSimpleOpen
+          size={size}
+          color={color}
+          weight={weight}
+        />
+      );
+    case "disabled":
+      return (
+        <PhosphorIcons.LockSimple size={size} color={color} weight={weight} />
+      );
     default:
-      return <PhosphorIcons.LockSimpleOpen size={size} color={color} weight={weight} />
+      return (
+        <PhosphorIcons.LockSimpleOpen
+          size={size}
+          color={color}
+          weight={weight}
+        />
+      );
   }
 }
 
-
-export function VolumeIcon({color = white, size = 30, weight = TYPE, volume = 0}) {
-  if(volume >= 60 && volume <= 100) {
-      return <PhosphorIcons.SpeakerSimpleHigh size={size} color={color} weight={weight} />
-    } else if(volume >= 30 && volume <= 60) {
-      return <PhosphorIcons.SpeakerSimpleLow size={size} color={color} weight={weight} />
-    } else if(volume >= 1 && volume <= 30) {
-      return <PhosphorIcons.SpeakerSimpleNone size={size} color={color} weight={weight} />
-    } else if(volume === 0) {
-      return <PhosphorIcons.SpeakerSimpleSlash size={size} color={color} weight={weight} />
-    } else {
-      return <PhosphorIcons.SpeakerSimpleSlash size={size} color={color} weight={weight} />
-    }
+export function VolumeIcon({
+  color = white,
+  size = 30,
+  weight = TYPE,
+  volume = 0,
+}) {
+  if (volume >= 60 && volume <= 100) {
+    return (
+      <PhosphorIcons.SpeakerSimpleHigh
+        size={size}
+        color={color}
+        weight={weight}
+      />
+    );
+  } else if (volume >= 30 && volume <= 60) {
+    return (
+      <PhosphorIcons.SpeakerSimpleLow
+        size={size}
+        color={color}
+        weight={weight}
+      />
+    );
+  } else if (volume >= 1 && volume <= 30) {
+    return (
+      <PhosphorIcons.SpeakerSimpleNone
+        size={size}
+        color={color}
+        weight={weight}
+      />
+    );
+  } else if (volume === 0) {
+    return (
+      <PhosphorIcons.SpeakerSimpleSlash
+        size={size}
+        color={color}
+        weight={weight}
+      />
+    );
+  } else {
+    return (
+      <PhosphorIcons.SpeakerSimpleSlash
+        size={size}
+        color={color}
+        weight={weight}
+      />
+    );
   }
+}
 
+function DownloadAnimatedIcon({ color = white, size = 30 }) {
+  const translateY = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    // Бесконечная анимация вверх-вниз
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateY, {
+          toValue: 20,
+          duration: 600,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [translateY]);
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 256 256">
+      {/* Нижняя часть без анимации */}
+      <Polyline
+        points="216 144 216 208 40 208 40 144"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={16}
+      />
+
+      {/* Анимированная стрелка */}
+      <AnimatedSvg
+        style={{
+          transform: [{ translateY }],
+        }}
+      >
+        <Line
+          x1="128"
+          y1="144"
+          x2="128"
+          y2="32"
+          fill="none"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={16}
+        />
+        <Polyline
+          points="168 104 128 144 88 104"
+          fill="none"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={16}
+        />
+      </AnimatedSvg>
+    </Svg>
+  );
+}
 
 export default {
   ...PhosphorIcons,
@@ -465,10 +640,8 @@ export default {
   Subtitles: SubtitlesIcon,
   Lock: LockIcon,
   Volume: VolumeIcon,
-  
-  
-
-}
+  DownloadAnimated: DownloadAnimatedIcon,
+};
 
 export {
   FilterIcon,
@@ -484,8 +657,5 @@ export {
   AppIcon,
   TelegramIcon,
   RefreshIcon,
-  PhosphorIcons
+  PhosphorIcons,
 };
-
-
-

@@ -815,6 +815,7 @@ export default function AnimePreviewScreen({ route }) {
             storage_data={info}
             type="list"
             isChanges={setInfo}
+            customIcon={null}
             onSelectEpisode={(item) => {
               const watched_episodes = !info.watched.episodes.includes(
                 item.episode
@@ -927,18 +928,21 @@ export default function AnimePreviewScreen({ route }) {
                   }
 
                   // Завантажуємо відео
-                  await DownloadVideo(
-                    item,
-                    anime,
-                    info,
-                    (progressCallback) =>
-                      DEBUGCONFIG.isdebug &&
-                      console.log("progressCallback", progressCallback),
-                    (completionCallback) => {
-                      console.log("completionCallback", completionCallback);
-                      setInfo(completionCallback);
-                    }
-                  );
+                  await DownloadVideo({
+                    item: item,
+                    anime: anime,
+                    info: info,
+                    onStartDownloadCallback: () => {
+                      console.log("onStartDownloadCallback");
+                    },
+                    progressCallback: (progress) => {
+                      console.log("progressCallback", progress);
+                    },
+                    completionCallback: (updatedInfo) => {
+                      console.log("completionCallback", updatedInfo);
+                      setInfo(updatedInfo);
+                    },
+                  });
                 }
               } catch (err) {
                 console.error("Помилка при обробці епізоду:", err);
@@ -947,6 +951,7 @@ export default function AnimePreviewScreen({ route }) {
                 console.log("Episode info:", info.downloaded?.episodes);
               }
             }}
+            customIcon={<Icon.DownloadSimple size={34} color={white} />}
           />
         </>
       ) : null}

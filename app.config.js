@@ -7,6 +7,13 @@ export default {
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
+    updates: {
+      url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
+      enabled: true,
+      checkAutomatically: "ON_LOAD",
+      channel: "alpha",
+    },
+    runtimeVersion: "a0.0.1",
     extra: {
       hermes: true,
       eas: {
@@ -66,8 +73,8 @@ export default {
             extraMavenRepos: [
               "../../node_modules/@notifee/react-native/android/libs",
             ],
-            compileSdkVersion: 34,
-            targetSdkVersion: 33,
+            compileSdkVersion: 36,
+            targetSdkVersion: 36,
           },
         },
       ],

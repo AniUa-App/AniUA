@@ -19,6 +19,7 @@ import { AppState } from "react-native";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 // import Orientation from "react-native-orientation-locker";
 import * as EOrientation from "expo-screen-orientation";
+import { useKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
 import LinearGradient from "react-native-linear-gradient";
 import Icons from "../Styles/Icons";
 import { black, Black, Gray, white, appColor } from "../Styles/Colors";
@@ -36,11 +37,15 @@ import SpeedBottomSheet from "../Widgets/VideoPlayer/SpeedBottomSheetWidget";
 import VolumeWidget from "../Widgets/VideoPlayer/VolumeWidget";
 import QualityWidget from "../Widgets/VideoPlayer/QualityWidget";
 import AnimeStorage from "../Storage/AnimeStorage";
+import RNFS from "react-native-fs";
+import FileOpener from "react-native-file-opener";
+import { DownloadVideo } from "../Notifications/VideoDownloader";
 
 const { width, height } = Dimensions.get("window");
 
 export default function LocalVideoPlayerV2Screen({ route }) {
   const navigation = useNavigation();
+  useKeepAwake();
 
   const { _episodes, _currentEpisode, _anime } = route.params;
   const title = _anime?.title_ua || _anime?.title_en || "Назва аніме";
@@ -61,6 +66,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const [isLandscape, setIsLandscape] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [quality, setQuality] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const qualitiesList = React.useMemo(() => {
     if (!episodeInfo?.qualitys) return [];
     return Object.keys(episodeInfo.qualitys).sort(
@@ -68,6 +74,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     );
   }, [episodeInfo]);
   const [isLocked, setIsLocked] = useState(false);
+  const [info, _setInfo] = useState(AnimeStorage.getInfoBySlug(_anime.slug));
   const seekTimeout = useRef(null);
   const videoViewRef = useRef(null);
   const qualitySheetRef = useRef(null);
@@ -83,6 +90,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       return player.duration || duration;
     }
     return duration;
+  };
+
+  const setInfo = (newInfo) => {
+    _setInfo(newInfo);
+    AnimeStorage.setInfoBySlug(_anime.slug, newInfo);
   };
 
   // Анімовані значення
@@ -295,6 +307,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   useEffect(() => {
     const onBackPress = () => {
       console.log("onBackPress");
+      deactivateKeepAwake();
       navigation.goBack();
       // StatusBar.setHidden(false);
       StatusBar.setHidden(false, "slide");
@@ -778,6 +791,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       style={styles.headerButton}
                       onPress={() => {
                         animateButton("back");
+                        deactivateKeepAwake();
                         StatusBar.setHidden(false, "slide");
                         SystemNavigationBar.navigationShow();
                         setTimeout(() => {
@@ -1094,14 +1108,127 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         >
                           <CustomTouchableOpacity
                             style={styles.controlButton}
-                            onPress={() => {
+                            onPress={async function () {
+                              if (isDownloading) return;
                               animateButton("download");
                               if (showControls) {
                                 startHideControlsTimer();
                               }
+                              // Асинхронна функція для обробки вибору епізоду
+                              try {
+                                // Знаходимо епізод у списку завантажених
+                                setInfo(info);
+                                const downloadedEpisodes = Array.isArray(
+                                  info?.downloaded?.episodes
+                                )
+                                  ? info.downloaded.episodes
+                                  : [];
+                                const episode = downloadedEpisodes.find(
+                                  (ep) => ep.episode === currentEpisode?.episode
+                                );
+
+                                // Перевіряємо чи існує episode і чи є валідний video_path
+
+                                if (
+                                  episode &&
+                                  episode.video_path &&
+                                  (await RNFS.exists(episode.video_path))
+                                ) {
+                                  console.log(
+                                    episode.video_path,
+                                    "episode.video_path"
+                                  );
+                                  try {
+                                    await FileOpener.openFile(
+                                      episode.video_path,
+                                      "video/*"
+                                    );
+                                    console.log("Діалог вибору відкрито");
+                                  } catch (error) {
+                                    console.error(
+                                      "Помилка при відкритті файлу:",
+                                      error
+                                    );
+                                  }
+                                } else {
+                                  // Видаляємо запис, якщо файл не існує
+                                  if (episode) {
+                                    const downloadedEpisodesSafe =
+                                      Array.isArray(info?.downloaded?.episodes)
+                                        ? info.downloaded.episodes
+                                        : [];
+                                    setInfo({
+                                      ...info,
+                                      downloaded: {
+                                        ...info.downloaded,
+                                        episodes: downloadedEpisodesSafe.filter(
+                                          (ep) =>
+                                            ep.episode !==
+                                            currentEpisode?.episode
+                                        ),
+                                      },
+                                    });
+                                  }
+
+                                  // Завантажуємо відео
+                                  await DownloadVideo({
+                                    item: currentEpisode,
+                                    anime: _anime,
+                                    info: info,
+                                    onStartDownloadCallback: () => {
+                                      console.log("onStartDownloadCallback");
+                                      setIsDownloading(true);
+                                    },
+                                    progressCallback: (progressCallback) => {
+                                      // console.log(
+                                      //   "progressCallback",
+                                      //   progressCallback
+                                      // );
+                                    },
+                                    completionCallback: (
+                                      completionCallback
+                                    ) => {
+                                      setIsDownloading(false);
+                                      console.log(
+                                        "completionCallback",
+                                        completionCallback
+                                      );
+                                    },
+                                  });
+                                }
+                              } catch (err) {
+                                console.error(
+                                  "Помилка при обробці епізоду:",
+                                  err
+                                );
+                                // Додаткова інформація для дебагу
+                                console.log("Item object:", currentEpisode);
+                                console.log(
+                                  "Episode info:",
+                                  info.downloaded?.episodes
+                                );
+                              }
                             }}
                           >
-                            <Icons.DownloadSimple size={20} color={white} />
+                            {isDownloading ? (
+                              <Icons.DownloadAnimated
+                                size={20}
+                                color={appColor}
+                              />
+                            ) : (
+                              <Icons.DownloadSimple
+                                size={20}
+                                color={
+                                  Array.isArray(info?.downloaded?.episodes) &&
+                                  info.downloaded.episodes.some(
+                                    (ep) =>
+                                      ep.episode === currentEpisode?.episode
+                                  )
+                                    ? appColor
+                                    : white
+                                }
+                              />
+                            )}
                           </CustomTouchableOpacity>
                         </Animated.View>
                       </>
@@ -1356,6 +1483,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
   },
   headerButton: {
+    width: 44,
+    height: 44,
     padding: 8,
     alignItems: "center",
     justifyContent: "center",

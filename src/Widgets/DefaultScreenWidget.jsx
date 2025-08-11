@@ -1,9 +1,11 @@
-import { SafeAreaView } from "react-native";
+import { ImageBackground, SafeAreaView } from "react-native";
 import React, { useCallback, useState, useEffect } from "react";
 import Styles from "../Styles/Styles";
 import NetInfo from "@react-native-community/netinfo";
 import { InternetError } from "./ErrorsWidgets";
 import { StatusBar } from "react-native";
+import SettingsStorage from "../Storage/SettingsStorage";
+import { BlurView } from "expo-blur";
 
 export default function DefaultScreenWidget({
   children,
@@ -11,6 +13,7 @@ export default function DefaultScreenWidget({
   isConnection,
 }) {
   const [isConnected, setIsConnected_] = useState(true);
+  const [userConfig, setUserConfig] = useState(null);
 
   const setIsConnected = (isConnected) => {
     setIsConnected_(isConnected);
@@ -37,8 +40,38 @@ export default function DefaultScreenWidget({
     return () => unsubscribe();
   }, [checkConnection]);
 
+  useEffect(() => {
+    const userConfig = SettingsStorage.getParameter("userConfig");
+    setUserConfig(userConfig);
+  }, []);
+
   return (
     <SafeAreaView style={[Styles.defaultScreenWidget]}>
+      {userConfig && userConfig.backgroundImage && (
+        <ImageBackground
+          source={{ uri: userConfig.backgroundImage }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+      )}
+      {userConfig && userConfig.blurBackground && (
+        <BlurView
+          intensity={userConfig.blurBackground}
+          tint={userConfig.blurBackgroundTint}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+      )}
       <StatusBar
         barStyle="light-content"
         translucent

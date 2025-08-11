@@ -1,12 +1,12 @@
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
-import {TouchableOpacity} from './Button';
-import React from 'react';
-import Icon from '../Styles/Icons';
-import {appColor, black, white} from '../Styles/Colors';
-import {H3} from '../Styles/Fonts';
-import {GetScreenHeight, GetScreenWidth} from '../Global/Functions';
-import {Image} from './LoadersWidgets';
-import {useNavigation} from '@react-navigation/native';
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { TouchableOpacity } from "./Button";
+import React from "react";
+import Icon from "../Styles/Icons";
+import { appColor, black, white } from "../Styles/Colors";
+import { H3 } from "../Styles/Fonts";
+import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
+import { Image } from "./LoadersWidgets";
+import { useNavigation } from "@react-navigation/native";
 
 export default function AnimeListHorizontal({
   animeList,
@@ -16,16 +16,15 @@ export default function AnimeListHorizontal({
   const navigation = useNavigation();
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <TouchableOpacity
         style={styles.header}
         activeOpacity={0.9}
-        onPress={onClickMore}>
+        onPress={onClickMore}
+      >
         <Text style={[styles.title, H3]}>{title}</Text>
         <View style={styles.arrowRightIcon}>
-          {onClickMore && 
-            <Icon.ArrowRight size={34} color={appColor} />
-          }
+          {onClickMore && <Icon.ArrowRight size={34} color={appColor} />}
         </View>
       </TouchableOpacity>
 
@@ -33,15 +32,16 @@ export default function AnimeListHorizontal({
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
-            style={[{marginHorizontal: 8}, styles.image]}
+            style={[{ marginHorizontal: 8 }, styles.image]}
             onPress={() =>
-              navigation.navigate('HiddenStack', {
-                screen: 'AnimePreview',
-                params: {anime},
+              navigation.navigate("HiddenStack", {
+                screen: "AnimePreview",
+                params: { anime },
               })
-            }>
+            }
+          >
             <Image uri={anime.image} style={styles.image} />
-            <Text style={[H3, {color: white}]} numberOfLines={2}>
+            <Text style={[H3, { color: white }]} numberOfLines={2}>
               {anime.title}
             </Text>
           </TouchableOpacity>
@@ -58,20 +58,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   arrowRightIcon: {
-    paddingRight: '5%',
-    paddingTop: '5%',
+    paddingRight: "5%",
+    paddingTop: "5%",
   },
   header: {
     paddingHorizontal: 2,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: black,
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "transparent",
+    width: "100%",
     paddingBottom: 5,
   },
   title: {
-    paddingLeft: '5%',
-    paddingTop: '5%',
-    paddingBottom: '3%',
+    paddingLeft: "5%",
+    paddingTop: "5%",
+    paddingBottom: "3%",
   },
 });

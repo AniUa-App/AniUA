@@ -370,7 +370,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
     paddingLeft: 26,
-    paddingBottom: 10,
   },
   tabButton: {
     padding: 1,
@@ -398,6 +397,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 10,
     width: "100%",
-    height: "80%",
+    height: "75%",
   },
 });

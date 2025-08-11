@@ -1,5 +1,5 @@
-import {StyleSheet} from 'react-native';
-import {black} from './Colors';
+import { StyleSheet } from "react-native";
+import { black } from "./Colors";
 
 export default Styles = StyleSheet.create({
   defaultScreenWidget: {

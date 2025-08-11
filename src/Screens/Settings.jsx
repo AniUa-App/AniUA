@@ -2,7 +2,7 @@ import { View, Text, ScrollView, Linking, StatusBar } from "react-native";
 import React, { useState, useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
-import { AppIcon, TelegramIcon } from "../Styles/Icons";
+import Icons, { AppIcon, TelegramIcon } from "../Styles/Icons";
 import Icon from "../Styles/Icons";
 import { useNavigation } from "@react-navigation/native";
 import { appColor, Black, black, Black_1, white } from "../Styles/Colors";
@@ -51,12 +51,22 @@ export default function SettingsScreen() {
 
       // Очищаємо файли епізодів
       const episodesPath = SettingsStorage.getParameter("pathToSaveEpisodes");
+      const userConfig = SettingsStorage.getParameter("userConfig");
+      const mainScreenConfig = SettingsStorage.getParameter("mainScreenConfig");
 
       if (episodesPath) {
         const pathExists = await FileSystem.getInfoAsync(episodesPath);
         if (pathExists.exists) {
           await FileSystem.deleteAsync(episodesPath, { idempotent: true });
         }
+      }
+
+      if (userConfig) {
+        SettingsStorage.setParameter("userConfig", null);
+      }
+
+      if (mainScreenConfig) {
+        SettingsStorage.setParameter("mainScreenConfig", null);
       }
 
       showNotification("Кеш успішно очищено");
@@ -178,6 +188,21 @@ export default function SettingsScreen() {
       },
       onPress: () => {
         Linking.openURL(MainConfig.urls.telegramChannelUrl);
+      },
+    },
+    {
+      title: "Кастомізація",
+      subtitle: "Налаштування вигляду додатку.",
+      button: {
+        Icon: <Icons.PaintBrushBroad size={44} color={white} />,
+      },
+      onPress: () => {
+        navigation.navigate("HiddenStack", {
+          screen: "CustomisationScreen",
+          params: {
+            title: "Кастомізація",
+          },
+        });
       },
     },
   ];

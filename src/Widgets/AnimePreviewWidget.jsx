@@ -1,22 +1,22 @@
-import {View, Text, StyleSheet} from 'react-native';
-import {TouchableOpacity} from './Button';
-import React, {useRef} from 'react';
-import {GetScreenHeight, GetScreenWidth} from '../Global/Functions';
-import {appColor, black, white} from '../Styles/Colors';
-import Icon from '../Styles/Icons';
-import {H3, H4} from '../Styles/Fonts';
-import {useNavigation} from '@react-navigation/native';
-import {Image} from './LoadersWidgets';
-import SettingsStorage from '../Storage/SettingsStorage';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
-import {HikkaApi} from '../Sources/hikka';
-import {useState, useEffect} from 'react';
-import {DownloadVideo} from '../Notifications/VideoDownloader';
-import {DEBUGCONFIG} from '../cfgs/DebugConfig';
-import EpisodesBottomSheet from './EpisodesBottomSheetWidget';
-import * as FileSystem from 'expo-file-system';
-import FileOpener from '../Global/FileOpener';
+import { View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity } from "./Button";
+import React, { useRef } from "react";
+import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
+import { appColor, black, white } from "../Styles/Colors";
+import Icon from "../Styles/Icons";
+import { H3, H4 } from "../Styles/Fonts";
+import { useNavigation } from "@react-navigation/native";
+import { Image } from "./LoadersWidgets";
+import SettingsStorage from "../Storage/SettingsStorage";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { HikkaApi } from "../Sources/hikka";
+import { useState, useEffect } from "react";
+import { DownloadVideo } from "../Notifications/VideoDownloader";
+import { DEBUGCONFIG } from "../cfgs/DebugConfig";
+import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
+import * as FileSystem from "expo-file-system";
+import FileOpener from "../Global/FileOpener";
 
 const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   anime,
@@ -30,21 +30,21 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
 
   useEffect(() => {
     HikkaApi.getEpisodes(anime.slug)
-      .then(res => {
+      .then((res) => {
         if (res.error) {
           console.log(
-            `Помилка завантаження епізодів для ${anime.slug}: ${res.error}`,
+            `Помилка завантаження епізодів для ${anime.slug}: ${res.error}`
           );
           setEpisodesList({});
         } else {
           setEpisodesList(res.data);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(
           `Помилка завантаження епізодів для ${anime.slug}: ${
             error?.message || error
-          }`,
+          }`
         );
         setEpisodesList({});
       });
@@ -61,7 +61,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       Downloaded: Icon.DownloadSimple,
     },
     onPress: {
-      Liked: () => updateInfo(anime.slug, {isFavorite: !isFavorite}),
+      Liked: () => updateInfo(anime.slug, { isFavorite: !isFavorite }),
       Downloaded: () => {
         if (sheetRef.current) {
           sheetRef.current?.present();
@@ -71,11 +71,11 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   };
 
   const isIconFilled =
-    type === 'Liked'
+    type === "Liked"
       ? isFavorite
-      : type === 'Downloaded'
-      ? hasDownloads
-      : false;
+      : type === "Downloaded"
+        ? hasDownloads
+        : false;
 
   const IconComponent = Component.icon[type];
   const handlePress = Component.onPress[type];
@@ -85,40 +85,42 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       <TouchableOpacity
         style={styles.cardContainer}
         onPress={() =>
-          navigation.navigate('HiddenStack', {
-            screen: 'AnimePreview',
-            params: {anime},
+          navigation.navigate("HiddenStack", {
+            screen: "AnimePreview",
+            params: { anime },
           })
-        }>
+        }
+      >
         <Image uri={anime.image} style={styles.animeImage} />
         <View style={[styles.infoContainer]}>
           <Text
             numberOfLines={4}
             ellipsizeMode="tail"
-            style={[H3, {marginBottom: 20}]}>
+            style={[H3, { marginBottom: 20 }]}
+          >
             {anime.title_ua}
           </Text>
-          <Text style={[H4, {marginBottom: 8}]}>
-            Рейтинг:{' '}
+          <Text style={[H4, { marginBottom: 8 }]}>
+            Рейтинг:{" "}
             <Text style={styles.animeHighlight}>
-              {anime.rating === 'g'
-                ? '0+'
-                : anime.rating === 'pg'
-                ? '6+'
-                : anime.rating === 'pg_13'
-                ? '13+'
-                : anime.rating === 'r'
-                ? '16+'
-                : '18+'}
+              {anime.rating === "g"
+                ? "0+"
+                : anime.rating === "pg"
+                  ? "6+"
+                  : anime.rating === "pg_13"
+                    ? "13+"
+                    : anime.rating === "r"
+                      ? "16+"
+                      : "18+"}
             </Text>
           </Text>
-          <Text style={[H4, {marginBottom: 8}]}>
+          <Text style={[H4, { marginBottom: 8 }]}>
             Дата виходу: <Text style={styles.animeHighlight}>{anime.year}</Text>
           </Text>
           <Text numberOfLines={2} ellipsizeMode="tail" style={H4}>
             Жанри:
             <Text style={styles.animeHighlight}>
-              {anime.genres?.map(genre => genre.name_ua).join(', ') ?? ''}
+              {anime.genres?.map((genre) => genre.name_ua).join(", ") ?? ""}
             </Text>
           </Text>
         </View>
@@ -134,9 +136,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         storage_data={info}
         type="download"
         isChanges={null}
-        checkForStyle={async item => {
+        checkForStyle={async (item) => {
           if (!info.downloaded?.episodes) return false;
-          
+
           for (const ep of info.downloaded.episodes) {
             if (ep.episode === item.episode) {
               try {
@@ -149,38 +151,35 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           }
           return false;
         }}
-        onSelectEpisode={async item => {
+        onSelectEpisode={async (item) => {
           const episode = info.downloaded?.episodes?.find(
-            ep => ep.episode === item.episode,
+            (ep) => ep.episode === item.episode
           );
           if (episode) {
             try {
-              const fileInfo = await FileSystem.getInfoAsync(episode.video_path);
+              const fileInfo = await FileSystem.getInfoAsync(
+                episode.video_path
+              );
               if (fileInfo.exists) {
-                console.log(episode.video_path, 'episode.video_path');
+                console.log(episode.video_path, "episode.video_path");
 
-                FileOpener.openFile(
-                  episode.video_path,
-                  'video/*',
-                )
-                  .then(() => console.log('Діалог вибору відкрито'))
-                  .catch(error =>
-                    console.error('Помилка при відкритті файлу:', error),
+                FileOpener.openFile(episode.video_path, "video/*")
+                  .then(() => console.log("Діалог вибору відкрито"))
+                  .catch((error) =>
+                    console.error("Помилка при відкритті файлу:", error)
                   );
               } else {
-            navigation.navigate('HiddenStack', {
-              screen: 'AnimePreview',
-              params: {anime, downloadEpisode: item},
-            });
+                navigation.navigate("HiddenStack", {
+                  screen: "AnimePreview",
+                  params: { anime, downloadEpisode: item },
+                });
+              }
+            } catch (error) {
+              console.error("Помилка при відкритті файлу:", error);
+            }
           }
-        
-      } catch (error) {
-        console.error('Помилка при відкритті файлу:', error);
-      }
-    }
-  }
-  }
-  />
+        }}
+      />
     </>
   );
 });
@@ -189,14 +188,14 @@ export default AnimePreviewWidget;
 
 const styles = StyleSheet.create({
   cardContainer: {
-    flexDirection: 'row',
-    backgroundColor: black,
+    flexDirection: "row",
+    backgroundColor: "transparent",
     padding: 10,
     borderRadius: 10,
     marginVertical: 5,
     marginHorizontal: 10,
-    alignItems: 'flex-start',
-    position: 'relative',
+    alignItems: "flex-start",
+    position: "relative",
   },
   animeImage: {
     width: GetScreenWidth() * 0.43,
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     color: appColor,
   },
   favoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     bottom: 10,
     padding: 5,
