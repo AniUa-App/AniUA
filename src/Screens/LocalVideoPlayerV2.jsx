@@ -21,6 +21,7 @@ import SystemNavigationBar from "react-native-system-navigation-bar";
 import * as EOrientation from "expo-screen-orientation";
 import { useKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
 import LinearGradient from "react-native-linear-gradient";
+import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
 import { black, Black, Gray, white, appColor } from "../Styles/Colors";
 import { H3, H4, H5, H6 } from "../Styles/Fonts";
@@ -81,6 +82,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const latestPlayerRef = useRef(null);
   const volumeApplyTimeoutRef = useRef(null);
   const pendingVolumeRef = useRef(null);
+  const lastTapRef = useRef(null);
+  const singleTapTimeoutRef = useRef(null);
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] = useState(false);
 
@@ -102,7 +105,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const controlsTranslateY = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
-  const progressAnimation = useRef(new Animated.Value(0)).current;
   const episodesPanelTranslateX = useRef(new Animated.Value(300)).current;
   const episodesPanelOpacity = useRef(new Animated.Value(0)).current;
 
@@ -181,14 +183,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         if (isLoading && event.currentTime >= 0) {
           setIsLoading(false);
         }
-
-        // Оновлення анімації прогрес-бару
-        const progress = event.currentTime / (player.duration || 1);
-        Animated.timing(progressAnimation, {
-          toValue: progress || 0,
-          duration: 1,
-          useNativeDriver: false,
-        }).start();
       });
 
       player.addListener("ended", () => {
@@ -383,6 +377,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       if (volumeApplyTimeoutRef.current) {
         clearTimeout(volumeApplyTimeoutRef.current);
       }
+      if (singleTapTimeoutRef.current) {
+        clearTimeout(singleTapTimeoutRef.current);
+      }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
       StatusBar.setHidden(false, "slide");
@@ -435,20 +432,20 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.parallel([
       Animated.timing(controlsOpacity, {
         toValue: 1,
-        duration: 350,
+        duration: 220,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
       Animated.spring(headerTranslateY, {
         toValue: 0,
-        tension: 80,
-        friction: 6,
+        tension: 110,
+        friction: 5,
         useNativeDriver: true,
       }),
       Animated.spring(controlsTranslateY, {
         toValue: 0,
-        tension: 80,
-        friction: 6,
+        tension: 110,
+        friction: 5,
         useNativeDriver: true,
       }),
     ]).start();
@@ -457,8 +454,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     buttonKeys.forEach((key, index) => {
       Animated.timing(buttonScales[key], {
         toValue: 1,
-        duration: 400,
-        delay: index * 50,
+        duration: 250,
+        delay: index * 35,
         easing: Easing.out(Easing.back(1.2)),
         useNativeDriver: true,
       }).start();
@@ -471,19 +468,19 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.parallel([
       Animated.timing(controlsOpacity, {
         toValue: 0,
-        duration: 250,
+        duration: 160,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
       Animated.timing(headerTranslateY, {
         toValue: -100,
-        duration: 300,
+        duration: 180,
         easing: Easing.in(Easing.back(1.2)),
         useNativeDriver: true,
       }),
       Animated.timing(controlsTranslateY, {
         toValue: 100,
-        duration: 300,
+        duration: 180,
         easing: Easing.in(Easing.back(1.2)),
         useNativeDriver: true,
       }),
@@ -505,6 +502,33 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     }
   };
 
+  const handleVideoAreaPress = (event) => {
+    const now = Date.now();
+    const last = lastTapRef.current || 0;
+    const isDoubleTap = now - last < 280;
+    lastTapRef.current = now;
+
+    if (isDoubleTap) {
+      if (singleTapTimeoutRef.current) {
+        clearTimeout(singleTapTimeoutRef.current);
+        singleTapTimeoutRef.current = null;
+      }
+      const tapX = event?.nativeEvent?.locationX ?? width / 2;
+      const isRightSide = tapX > width / 2;
+      seekTo(isRightSide ? 10 : -10);
+      if (showControls) startHideControlsTimer();
+      return;
+    }
+
+    if (singleTapTimeoutRef.current) {
+      clearTimeout(singleTapTimeoutRef.current);
+    }
+    singleTapTimeoutRef.current = setTimeout(() => {
+      toggleControls();
+      singleTapTimeoutRef.current = null;
+    }, 280);
+  };
+
   const startHideControlsTimer = () => {
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
@@ -520,14 +544,14 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.sequence([
       Animated.spring(scale, {
         toValue: 0.85,
-        tension: 300,
-        friction: 5,
+        tension: 380,
+        friction: 4,
         useNativeDriver: true,
       }),
       Animated.spring(scale, {
         toValue: 1,
-        tension: 300,
-        friction: 5,
+        tension: 380,
+        friction: 4,
         useNativeDriver: true,
       }),
     ]).start();
@@ -537,14 +561,14 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.sequence([
       Animated.spring(playButtonScale, {
         toValue: 0.9,
-        tension: 200,
-        friction: 5,
+        tension: 140,
+        friction: 4,
         useNativeDriver: true,
       }),
       Animated.spring(playButtonScale, {
         toValue: 1,
-        tension: 200,
-        friction: 5,
+        tension: 140,
+        friction: 4,
         useNativeDriver: true,
       }),
     ]).start();
@@ -578,48 +602,19 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     }
   };
 
-  const onProgressPress = (event) => {
-    if (duration > 0) {
-      const { locationX } = event.nativeEvent;
-      const containerPadding = 50;
-      const timeLabelsWidth = 100;
-      const progressBarWidth = width - containerPadding - timeLabelsWidth;
-
-      const clampedLocationX = Math.max(
-        0,
-        Math.min(progressBarWidth, locationX)
-      );
-      const progress = clampedLocationX / progressBarWidth;
-      const seekTime = progress * duration;
-
-      // Анімація прогрес-бару до нової позиції
-      Animated.timing(progressAnimation, {
-        toValue: progress,
-        duration: 100,
-        useNativeDriver: false,
-      }).start();
-
-      seekToTime(seekTime);
-
-      if (showControls) {
-        startHideControlsTimer();
-      }
-    }
-  };
-
   const showEpisodesPanel = () => {
     setShowEpisodes(true);
 
     Animated.parallel([
       Animated.spring(episodesPanelTranslateX, {
         toValue: 0,
-        tension: 80,
-        friction: 8,
+        tension: 120,
+        friction: 6,
         useNativeDriver: true,
       }),
       Animated.timing(episodesPanelOpacity, {
         toValue: 1,
-        duration: 300,
+        duration: 200,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
@@ -634,13 +629,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.parallel([
       Animated.spring(episodesPanelTranslateX, {
         toValue: 300,
-        tension: 100,
-        friction: 8,
+        tension: 140,
+        friction: 6,
         useNativeDriver: true,
       }),
       Animated.timing(episodesPanelOpacity, {
         toValue: 0,
-        duration: 200,
+        duration: 140,
         easing: Easing.in(Easing.ease),
         useNativeDriver: true,
       }),
@@ -705,12 +700,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     Animated.sequence([
       Animated.timing(episodesPanelOpacity, {
         toValue: 0.7,
-        duration: 100,
+        duration: 70,
         useNativeDriver: true,
       }),
       Animated.timing(episodesPanelOpacity, {
         toValue: 1,
-        duration: 100,
+        duration: 70,
         useNativeDriver: true,
       }),
     ]).start();
@@ -750,7 +745,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
         {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
         <Pressable
-          onPress={toggleControls}
+          onPress={handleVideoAreaPress}
           style={StyleSheet.absoluteFill}
           android_disableSound
           hitSlop={10}
@@ -824,7 +819,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         style={styles.headerButton}
                         onPress={openSpeedBottomSheet}
                       >
-                        <Icons.Speedometer size={20} color={white} />
+                        <Icons.Speedometer size={24} color={white} />
                       </CustomTouchableOpacity>
                     </Animated.View>
 
@@ -841,7 +836,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           videoViewRef.current.startPictureInPicture();
                         }}
                       >
-                        <Icons.PictureInPicture size={20} color={white} />
+                        <Icons.PictureInPicture size={24} color={white} />
                       </CustomTouchableOpacity>
                     </Animated.View>
 
@@ -853,7 +848,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         onPress={toggleEpisodes}
                       >
                         <Icons.Queue
-                          size={20}
+                          size={24}
                           color={showEpisodes ? appColor : white}
                         />
                       </CustomTouchableOpacity>
@@ -925,37 +920,45 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       {formatTime(currentTime)}
                     </Text>
 
-                    <TouchableOpacity
-                      style={styles.progressBarContainer}
-                      onPress={onProgressPress}
-                      onLongPress={onProgressPress}
-                      activeOpacity={0.8}
-                    >
-                      <View style={styles.progressBarBackground}>
-                        <Animated.View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              width: progressAnimation.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: ["0%", "100%"],
-                              }),
-                            },
-                          ]}
-                        />
-                        <Animated.View
-                          style={[
-                            styles.progressThumb,
-                            {
-                              left: progressAnimation.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: ["0%", "100%"],
-                              }),
-                            },
-                          ]}
-                        />
-                      </View>
-                    </TouchableOpacity>
+                    <View style={styles.progressBarContainer}>
+                      <Slider
+                        style={{ width: "100%", height: 15 }}
+                        value={Math.min(
+                          Math.max(currentTime, 0),
+                          duration || 0
+                        )}
+                        minimumValue={0}
+                        maximumValue={duration || 0}
+                        step={0.1}
+                        minimumTrackTintColor={appColor}
+                        maximumTrackTintColor={white}
+                        thumbTintColor={appColor}
+                        disabled={!duration || duration <= 0}
+                        onSlidingStart={() => {
+                          if (hideControlsTimerRef.current) {
+                            clearTimeout(hideControlsTimerRef.current);
+                            hideControlsTimerRef.current = null;
+                          }
+                        }}
+                        onValueChange={(val) => {
+                          setCurrentTime(val);
+                        }}
+                        onSlidingComplete={(val) => {
+                          if (player && duration > 0) {
+                            const clamped = Math.max(
+                              0,
+                              Math.min(duration, val)
+                            );
+                            setIsLoading(true);
+                            setCurrentTime(clamped);
+                            player.currentTime = clamped;
+                          }
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      />
+                    </View>
 
                     <Text
                       style={[
@@ -986,7 +989,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.Volume
                           volume={volume * 100}
-                          size={20}
+                          size={24}
                           color={white}
                         />
                         <VolumeWidget
@@ -1007,7 +1010,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         onPress={() => seekTo(-10)}
                         onLongPress={() => seekTo(-30)}
                       >
-                        <Icons.ArrowCounterClockwise size={20} color={white} />
+                        <Icons.ArrowCounterClockwise size={24} color={white} />
                       </CustomTouchableOpacity>
                     )}
                     <Animated.View
@@ -1070,7 +1073,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         onPress={() => seekTo(10)}
                         onLongPress={() => seekTo(30)}
                       >
-                        <Icons.ArrowClockwise size={20} color={white} />
+                        <Icons.ArrowClockwise size={24} color={white} />
                       </CustomTouchableOpacity>
                     )}
                   </View>
@@ -1095,7 +1098,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                             }}
                           >
                             <Icons.FrameCorners
-                              size={20}
+                              size={24}
                               color={isZoomed ? appColor : white}
                             />
                           </CustomTouchableOpacity>
@@ -1212,12 +1215,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           >
                             {isDownloading ? (
                               <Icons.DownloadAnimated
-                                size={20}
+                                size={24}
                                 color={appColor}
                               />
                             ) : (
                               <Icons.DownloadSimple
-                                size={20}
+                                size={24}
                                 color={
                                   Array.isArray(info?.downloaded?.episodes) &&
                                   info.downloaded.episodes.some(
@@ -1243,7 +1246,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         style={styles.controlButton}
                         onPress={toggleOrientation}
                       >
-                        <Icons.DeviceRotate size={20} color={white} />
+                        <Icons.DeviceRotate size={24} color={white} />
                       </CustomTouchableOpacity>
                     </Animated.View>
                   </View>
@@ -1318,7 +1321,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 style={styles.episodesBackButton}
                 onPress={hideEpisodesPanel}
               >
-                <Icons.ArrowLeft size={20} color={white} />
+                <Icons.ArrowLeft size={34} color={appColor} />
               </CustomTouchableOpacity>
               <Text style={[H4, { color: white, flex: 1, marginLeft: 12 }]}>
                 Епізоди
@@ -1670,8 +1673,8 @@ const styles = StyleSheet.create({
   episodeItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     marginVertical: 2,
     borderRadius: 8,
   },

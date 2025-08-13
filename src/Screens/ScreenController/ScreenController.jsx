@@ -14,6 +14,7 @@ import Animated, {
   LinearTransition,
 } from "react-native-reanimated";
 import { black, appColor, white, AppColor } from "../../Styles/Colors";
+import { useThemeColors } from "../../Global/useTheme";
 import {
   HomeIcon,
   LikeIcon,
@@ -36,6 +37,7 @@ import LocalVideoPlayerV2Screen from "../LocalVideoPlayerV2";
 import CustomisationScreen from "../Customisation";
 import SettingsStorage from "../../Storage/SettingsStorage";
 import { EventBus } from "../../Global/EventBus";
+import MainScreenCustomisationScreen from "../MainScreenCustomisation";
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
@@ -51,8 +53,17 @@ function MainTabs() {
         initialParams={{ type: "Liked" }}
         options={{
           headerShown: true,
-          header: ({ navigation, route }) => (
-            <Header navigation={navigation} route={route} isArrow={false} />
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          headerShadowVisible: true,
+          headerTitle: "Обрані",
+          header: ({ navigation, route, options }) => (
+            <Header
+              navigation={navigation}
+              route={route}
+              isArrow={false}
+              title={options?.headerTitle}
+            />
           ),
         }}
       >
@@ -64,8 +75,17 @@ function MainTabs() {
         initialParams={{ type: "Downloaded" }}
         options={{
           headerShown: true,
-          header: ({ navigation, route }) => (
-            <Header navigation={navigation} route={route} isArrow={false} />
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          headerShadowVisible: false,
+          headerTitle: "Завантажені",
+          header: ({ navigation, route, options }) => (
+            <Header
+              navigation={navigation}
+              route={route}
+              isArrow={false}
+              title={options?.headerTitle}
+            />
           ),
         }}
       >
@@ -91,6 +111,7 @@ const AnimatedTouchableOpacity =
 
 // Кастомна панель навігації
 export function CustomNavBar({ state, navigation, isPreview = false }) {
+  const themeColors = useThemeColors();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
@@ -122,8 +143,8 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
         styles.container,
         {
           backgroundColor: isCustomisation
-            ? userConfig?.navbar?.backgroundColor || black
-            : black,
+            ? userConfig?.navbar?.backgroundColor || themeColors.black
+            : themeColors.black,
           borderRadius: isCustomisation
             ? userConfig?.navbar?.borderRadius || 8
             : 8,
@@ -190,13 +211,13 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                   Download: DownloadIcon,
                   Settings: SettingsIcon,
                 }[route.name] || (() => null)
-              )({ fill: isFocused ? appColor : white })}
+              )({ fill: isFocused ? themeColors.appColor : themeColors.white })}
             </View>
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
-                style={styles.text}
+                style={[styles.text, { color: themeColors.white }]}
               >
                 {labels[route.name]}
               </Animated.Text>
@@ -214,8 +235,15 @@ function HiddenStack() {
       screenOptions={{
         animation: "slide_from_right",
         headerShown: true,
-        header: ({ navigation, route }) => (
-          <Header navigation={navigation} route={route} />
+        headerTransparent: true,
+        headerStyle: { backgroundColor: "transparent" },
+        headerShadowVisible: false,
+        header: ({ navigation, route, options }) => (
+          <Header
+            navigation={navigation}
+            route={route}
+            title={options?.headerTitle}
+          />
         ),
         contentStyle: { backgroundColor: black },
       }}
@@ -257,7 +285,18 @@ function HiddenStack() {
       <HiddenStackNav.Screen
         name="CustomisationScreen"
         component={CustomisationScreen}
-        options={{ headerShown: true }}
+        options={{
+          headerShown: true,
+          headerTitle: "Налаштування",
+        }}
+      />
+      <HiddenStackNav.Screen
+        name="MainScreenCustomisation"
+        component={MainScreenCustomisationScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Кастомні рекомендації",
+        }}
       />
     </HiddenStackNav.Navigator>
   );

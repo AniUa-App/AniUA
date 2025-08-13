@@ -12,7 +12,6 @@ import {
 import { H2, H3, H4, H5 } from "../Styles/Fonts";
 import FastImage from "react-native-fast-image";
 import MainConfig from "../cfgs/MainConfig";
-import Config from "react-native-config";
 
 export default function Loader() {
   const [fadeAnim] = useState(new Animated.Value(0));

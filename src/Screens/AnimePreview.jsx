@@ -24,7 +24,9 @@ import {
   White,
   Black_1,
   yellow,
+  red,
 } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { H3, H4, H5 } from "../Styles/Fonts";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
@@ -51,7 +53,7 @@ import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { DownloadVideo } from "../Notifications/VideoDownloader";
+import { DownloadVideo, STATUSES } from "../Notifications/VideoDownloader";
 import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import FileOpener from "../Global/FileOpener";
@@ -86,13 +88,14 @@ function getEpisodeDateOrType(anime) {
   }
 }
 export default function AnimePreviewScreen({ route }) {
+  const themeColors = useThemeColors();
   if (!route || !route.params) {
     return (
       <DefaultScreenWidget>
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: white }]}>
+          <Text style={[H3, { color: themeColors.white }]}>
             Помилка: неправильні параметри навігації
           </Text>
         </View>
@@ -110,7 +113,7 @@ export default function AnimePreviewScreen({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: white }]}>
+          <Text style={[H3, { color: themeColors.white }]}>
             Помилка: відсутні необхідні параметри
           </Text>
         </View>
@@ -137,6 +140,8 @@ export default function AnimePreviewScreen({ route }) {
   const [episodesList, setEpisodesList] = useState([]);
   const [isConnection, setIsConnection] = useState(true);
   const [isVisibleNotification, setIsVisibleNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationColor, setNotificationColor] = useState(appColor);
   // Отримуємо інформацію про аніме з локального сховища
   const [info, setInfo_] = useState(() => {
     if (initialAnime?.slug) {
@@ -274,6 +279,7 @@ export default function AnimePreviewScreen({ route }) {
           ) {
             try {
               let currentInfo = info;
+
               const result = await HikkaApi.getEpisodes(anime.slug);
 
               if (!isMounted) return;
@@ -282,7 +288,7 @@ export default function AnimePreviewScreen({ route }) {
               if (result.error) {
                 console.log("API Error:", result.error);
                 setErrorCode(result.code || 500);
-                setEpisodesList({});
+                setEpisodesList([]);
                 return;
               }
 
@@ -291,12 +297,15 @@ export default function AnimePreviewScreen({ route }) {
               if (code >= 400) {
                 console.log("API Error Code:", code);
                 setErrorCode(code);
-                setEpisodesList({});
+                setEpisodesList([]);
                 return;
               }
               if (data["vidsrc"]) {
                 delete data["vidsrc"];
               }
+
+              console.log(data, "data");
+
               data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
 
               let infoNeedsUpdate = false;
@@ -325,7 +334,7 @@ export default function AnimePreviewScreen({ route }) {
                 }
               }
 
-              setEpisodesList(data);
+              setEpisodesList(data || []);
 
               if (infoNeedsUpdate) {
                 setInfo(newInfo);
@@ -333,12 +342,12 @@ export default function AnimePreviewScreen({ route }) {
             } catch (error) {
               console.error("Помилка завантаження епізодів:", error);
               if (isMounted) {
-                setEpisodesList({});
+                setEpisodesList([]);
                 setErrorCode(500);
               }
             }
           } else {
-            if (isMounted) setEpisodesList({});
+            if (isMounted) setEpisodesList([]);
           }
         };
 
@@ -416,7 +425,7 @@ export default function AnimePreviewScreen({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <ActivityIndicator size="large" color={appColor} />
+          <ActivityIndicator size="large" color={themeColors.appColor} />
         </View>
       </DefaultScreenWidget>
     );
@@ -428,7 +437,9 @@ export default function AnimePreviewScreen({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: white }]}>Аніме не знайдено</Text>
+          <Text style={[H3, { color: themeColors.white }]}>
+            Аніме не знайдено
+          </Text>
         </View>
       </DefaultScreenWidget>
     );
@@ -443,7 +454,11 @@ export default function AnimePreviewScreen({ route }) {
       >
         <ExpandableNotification
           visible={isVisibleNotification}
-          message={"Посилання скопійовано"}
+          message={notificationMessage}
+          style={{
+            paddingTop: 30,
+            backgroundColor: notificationColor || themeColors.appColor,
+          }}
           onHide={() => {
             setIsVisibleNotification(false);
           }}
@@ -452,22 +467,27 @@ export default function AnimePreviewScreen({ route }) {
         <View style={styles.posterContainer}>
           <Image style={styles.posterImage} uri={anime?.image} />
           {/* Напівпрозорий затемнений блок зверху */}
-          <View style={styles.overlay} />
+          <View style={[styles.overlay]} />
 
           {/* Кнопка "Назад" або іконка (за потреби) */}
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            style={[styles.backButton]}
+            onPress={() => {
+              console.log("back");
+              navigation.goBack();
+            }}
           >
-            <Icon.ArrowLeft size={35} color={appColor} />
+            <Icon.ArrowLeft size={35} color={themeColors.appColor} />
           </TouchableOpacity>
 
           {/* Оцінка та зірочка у верхньому правому куті */}
           <View style={styles.ratingContainer}>
-            <Text style={[H3, { color: appColor, marginRight: 10 }]}>
+            <Text
+              style={[H3, { color: themeColors.appColor, marginRight: 10 }]}
+            >
               {anime?.score || 0}
             </Text>
-            <Icon.Star size={30} color={yellow} />
+            <Icon.Star size={30} color={themeColors.yellow} />
           </View>
 
           {/* Кнопка "Дивитися трейлер" посередині */}
@@ -481,7 +501,7 @@ export default function AnimePreviewScreen({ route }) {
               }
             >
               {/* <PlayIcon fill={appColor} /> */}
-              <Icon.PlayCircle size={34} color={appColor} />
+              <Icon.PlayCircle size={34} color={themeColors.appColor} />
               <Text style={[H4, { marginLeft: 10 }]}>Дивитися трейлер</Text>
             </TouchableOpacity>
           )}
@@ -494,7 +514,10 @@ export default function AnimePreviewScreen({ route }) {
             anime={anime}
             errorCode={errorCode}
             episodesList={episodesList}
-            style={[styles.continueWatchingBtn, { marginBottom: 18 }]}
+            style={[
+              styles.continueWatchingBtn,
+              { marginBottom: 18, backgroundColor: themeColors.appColor },
+            ]}
             data={info}
             onDataChange={(newData) => setInfo(newData)}
           />
@@ -509,7 +532,7 @@ export default function AnimePreviewScreen({ route }) {
           >
             {info?.watched && (
               <>
-                <Text style={[H3, { color: white }]}>Дубляж:</Text>
+                <Text style={[H3, { color: themeColors.white }]}>Дубляж:</Text>
                 <TouchableOpacity
                   style={{
                     marginLeft: 10,
@@ -528,7 +551,7 @@ export default function AnimePreviewScreen({ route }) {
                     style={[
                       H3,
                       {
-                        color: appColor,
+                        color: themeColors.appColor,
                         paddingRight: 3,
                       },
                     ]}
@@ -547,7 +570,7 @@ export default function AnimePreviewScreen({ route }) {
                   </View>
                   <Icon.CaretDown
                     size={30}
-                    color={white}
+                    color={themeColors.white}
                     style={{ marginLeft: 10 }}
                   />
                 </TouchableOpacity>
@@ -564,7 +587,7 @@ export default function AnimePreviewScreen({ route }) {
                   style={[styles.actionButton]}
                 >
                   {/* <EpisodesIcon style={{ marginLeft: 2, position: 'relative' }} /> */}
-                  <Icon.Queue size={34} color={white} />
+                  <Icon.Queue size={34} color={themeColors.white} />
                   <View
                     style={{
                       position: "absolute",
@@ -608,7 +631,9 @@ export default function AnimePreviewScreen({ route }) {
               {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
               <Icon.Heart
                 size={34}
-                color={info.isFavorite ? appColor : white}
+                color={
+                  info.isFavorite ? themeColors.appColor : themeColors.white
+                }
               />
             </TouchableOpacity>
 
@@ -622,7 +647,7 @@ export default function AnimePreviewScreen({ route }) {
                   {/* <DownloadIcon_
                     style={{marginLeft: 2, position: 'relative'}}
                   /> */}
-                  <Icon.DownloadSimple size={34} color={white} />
+                  <Icon.DownloadSimple size={34} color={themeColors.white} />
                   <View
                     style={{
                       position: "absolute",
@@ -664,7 +689,7 @@ export default function AnimePreviewScreen({ route }) {
               }}
             >
               {/* <MoreIcon /> */}
-              <Icon.DotsThreeVertical size={34} color={white} />
+              <Icon.DotsThreeVertical size={34} color={themeColors.white} />
             </TouchableOpacity>
             {/* </MenuTrigger>
               <MenuOptions>
@@ -712,7 +737,13 @@ export default function AnimePreviewScreen({ route }) {
                   );
                 }
               })()}
-              <Text style={[H5, styles.yearEpisodes, { color: appColor }]}>
+              <Text
+                style={[
+                  H5,
+                  styles.yearEpisodes,
+                  { color: themeColors.appColor },
+                ]}
+              >
                 {getEpisodeDateOrType(anime)}
               </Text>
             </View>
@@ -726,7 +757,7 @@ export default function AnimePreviewScreen({ route }) {
                 {anime.title_ua}
               </Text>
               {/* Відображення вікового обмеження */}
-              <Text style={[H3, { color: appColor }]}>
+              <Text style={[H3, { color: themeColors.appColor }]}>
                 {anime.rating === "g"
                   ? "0+"
                   : anime.rating === "pg"
@@ -742,7 +773,7 @@ export default function AnimePreviewScreen({ route }) {
 
           {/* Жанри/мітки */}
           <View style={styles.tagsRow}>
-            <Text style={[H4, styles.tagItem]}>
+            <Text style={[H4, styles.tagItem, { color: themeColors.appColor }]}>
               {anime.genres && anime.genres.length > 0
                 ? anime.genres.map((genre) => genre.name_ua).join(", ")
                 : ""}
@@ -778,7 +809,9 @@ export default function AnimePreviewScreen({ route }) {
           {/* Секція схожих аніме */}
           {animeList.length > 0 ? (
             <>
-              <Text style={[H4, { color: appColor, marginBottom: 10 }]}>
+              <Text
+                style={[H4, { color: themeColors.appColor, marginBottom: 10 }]}
+              >
                 Схожі Відтворення
               </Text>
               <FlatList
@@ -812,7 +845,7 @@ export default function AnimePreviewScreen({ route }) {
           <EpisodesBottomSheetMemo
             sheetRef={episodesSheetRef}
             episodesList={episodesList}
-            storage_data={info}
+            storage_data={{ ...info, slug: anime?.slug }}
             type="list"
             isChanges={setInfo}
             customIcon={null}
@@ -866,6 +899,7 @@ export default function AnimePreviewScreen({ route }) {
               episodesSheetRef.current?.close();
               Clipboard.setString(item?.video_url);
               setIsVisibleNotification(true);
+              setNotificationMessage("Посилання скопійовано");
             }}
             checkForStyle={(item) =>
               info.watched.episodes.includes(item.episode)
@@ -875,7 +909,7 @@ export default function AnimePreviewScreen({ route }) {
           <EpisodesBottomSheetMemo
             sheetRef={downloadEpisodeRef}
             episodesList={episodesList}
-            storage_data={info}
+            storage_data={{ ...info, slug: anime?.slug }}
             type="download"
             isChanges={null}
             checkForStyle={(item) => {
@@ -932,15 +966,19 @@ export default function AnimePreviewScreen({ route }) {
                     item: item,
                     anime: anime,
                     info: info,
-                    onStartDownloadCallback: () => {
-                      console.log("onStartDownloadCallback");
-                    },
-                    progressCallback: (progress) => {
-                      console.log("progressCallback", progress);
-                    },
+                    onStartDownloadCallback: () => {},
+                    progressCallback: (progress) => {},
                     completionCallback: (updatedInfo) => {
                       console.log("completionCallback", updatedInfo);
                       setInfo(updatedInfo);
+                    },
+                    errorCallback: (error, item) => {
+                      console.log("errorCallback", error, item);
+                      setIsVisibleNotification(true);
+                      setNotificationMessage(
+                        STATUSES[error] || error.substring(0, 200)
+                      );
+                      setNotificationColor(red);
                     },
                   });
                 }
@@ -951,7 +989,6 @@ export default function AnimePreviewScreen({ route }) {
                 console.log("Episode info:", info.downloaded?.episodes);
               }
             }}
-            customIcon={<Icon.DownloadSimple size={34} color={white} />}
           />
         </>
       ) : null}

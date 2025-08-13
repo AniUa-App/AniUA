@@ -19,6 +19,10 @@ export default {
       eas: {
         projectId: "3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       },
+      // Build-time metadata injected from .env via react-native-config/dotenv.gradle
+      commitHash: process.env.COMMIT_HASH || null,
+      commitHashShort: process.env.COMMIT_HASH_SHORT || null,
+      buildDate: process.env.BUILD_DATE || null,
     },
     splash: {
       image: "./assets/AniUA-Logo.png",
@@ -57,6 +61,7 @@ export default {
     },
     assetBundlePatterns: ["**/*"],
     plugins: [
+      ["./expo-plugin-notification-icon.js"],
       [
         "./ffmpeg-kit-plugin.js",
         {

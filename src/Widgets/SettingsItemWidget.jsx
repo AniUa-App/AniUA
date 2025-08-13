@@ -1,24 +1,32 @@
 import { View, Text, StyleSheet } from "react-native";
 import { H4, H3, H6 } from "../Styles/Fonts";
 import { appColor, white, White } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import React from "react";
 import { TouchableOpacity } from "./Button";
 
 export default function SettingsItem({
-  title,
-  subtitle,
+  title = "",
+  subtitle = "",
   button,
   onPress,
   onPressBody = () => {},
   color = appColor,
 }) {
+  const themeColors = useThemeColors();
   let len = title.length;
   let lenSub = subtitle.length;
   return (
     <TouchableOpacity onPress={onPressBody} style={styles.cacheBox}>
       <View style={styles.textContainer}>
-        {len > 1 && <Text style={[H4, styles.title]}>{title}</Text>}
-        {lenSub > 1 && <Text style={[H6, styles.subtitle]}>{subtitle}</Text>}
+        {len > 1 && (
+          <Text style={[H4, { color: themeColors.white, fontWeight: "600" }]}>
+            {title}
+          </Text>
+        )}
+        {lenSub > 1 && (
+          <Text style={[H6, { color: White(0.7) }]}>{subtitle}</Text>
+        )}
       </View>
       <TouchableOpacity
         style={[
@@ -33,7 +41,7 @@ export default function SettingsItem({
         {button.Icon ? (
           button.Icon
         ) : (
-          <Text style={[H4, { color: white, textAlign: "center" }]}>
+          <Text style={[H4, { color: themeColors.white, textAlign: "center" }]}>
             {button.Text}
           </Text>
         )}
@@ -55,13 +63,8 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     width: "70%",
   },
-  title: {
-    color: white,
-    fontWeight: "600",
-  },
-  subtitle: {
-    color: White(0.7),
-  },
+  title: {},
+  subtitle: {},
   button: {
     backgroundColor: appColor,
     borderRadius: 8,

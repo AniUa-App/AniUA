@@ -1,19 +1,27 @@
-import { ImageBackground, SafeAreaView } from "react-native";
+import { ImageBackground, SafeAreaView, View, StyleSheet } from "react-native";
 import React, { useCallback, useState, useEffect } from "react";
 import Styles from "../Styles/Styles";
+import { useThemeColors } from "../Global/useTheme";
 import NetInfo from "@react-native-community/netinfo";
 import { InternetError } from "./ErrorsWidgets";
 import { StatusBar } from "react-native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { BlurView } from "expo-blur";
+import { EventBus } from "../Global/EventBus";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function DefaultScreenWidget({
   children,
   isCheckInternet = true,
   isConnection,
 }) {
+  const themeColors = useThemeColors();
   const [isConnected, setIsConnected_] = useState(true);
   const [userConfig, setUserConfig] = useState(null);
+
+  const headerHeight = useHeaderHeight?.() || 0;
+
+  const isCustomisation = userConfig?.background?.isCustomisation ?? false;
 
   const setIsConnected = (isConnected) => {
     setIsConnected_(isConnected);
@@ -45,42 +53,76 @@ export default function DefaultScreenWidget({
     setUserConfig(userConfig);
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = EventBus.on("userConfigChanged", (config) => {
+      setUserConfig(config);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <SafeAreaView style={[Styles.defaultScreenWidget]}>
-      {userConfig && userConfig.backgroundImage && (
-        <ImageBackground
-          source={{ uri: userConfig.backgroundImage }}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        />
-      )}
-      {userConfig && userConfig.blurBackground && (
-        <BlurView
-          intensity={userConfig.blurBackground}
-          tint={userConfig.blurBackgroundTint}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        />
-      )}
+    <SafeAreaView
+      style={[
+        Styles.defaultScreenWidget,
+        {
+          backgroundColor:
+            isCustomisation && userConfig?.background?.image
+              ? "transparent"
+              : themeColors.black,
+        },
+      ]}
+    >
+      {(() => {
+        const rawImage = userConfig?.background?.image;
+        const imageUri =
+          rawImage &&
+          (rawImage.startsWith("file://") || rawImage.startsWith("content://")
+            ? rawImage
+            : `file://${rawImage}`);
+
+        return isCustomisation &&
+          userConfig?.background?.isImageBackground &&
+          imageUri ? (
+          <ImageBackground
+            key={imageUri}
+            source={{ uri: imageUri }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+        ) : null;
+      })()}
+      {(() => {
+        const isBlurEnabled =
+          isCustomisation && userConfig?.background?.isBlurBackground;
+        const blurReductionFactor =
+          userConfig?.background?.blurReductionFactor || 80;
+        const blurTint = userConfig?.background?.blurIntensity || 80;
+
+        return isBlurEnabled ? (
+          <BlurView
+            intensity={blurTint}
+            blurReductionFactor={blurReductionFactor}
+            style={[StyleSheet.absoluteFill]}
+            experimentalBlurMethod="dimezisBlurView"
+          />
+        ) : null;
+      })()}
       <StatusBar
         barStyle="light-content"
         translucent
         backgroundColor="transparent"
       />
-      {isCheckInternet && !isConnected && (
-        <InternetError onPress={checkConnection} />
-      )}
-      {children}
+      <View style={{ flex: 1, paddingTop: headerHeight }}>
+        {isCheckInternet && !isConnected && (
+          <InternetError onPress={checkConnection} />
+        )}
+        {children}
+      </View>
     </SafeAreaView>
   );
 }

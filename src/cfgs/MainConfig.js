@@ -2,7 +2,6 @@ import * as Device from "expo-device";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
-import Config from "react-native-config";
 import SettingsStorage from "../Storage/SettingsStorage";
 import appConfig from "../../app.config";
 
@@ -29,6 +28,19 @@ const getSafeVersion = () => {
   }
 };
 
+// Безпечне отримання build-time extra (з Expo/`app.config.js`)
+const getBuildExtra = () => {
+  try {
+    const extraFromConstants = Constants?.expoConfig?.extra || {};
+    const extraFromAppConfig = appConfig?.expo?.extra || {};
+    return { ...extraFromAppConfig, ...extraFromConstants };
+  } catch (_e) {
+    return {};
+  }
+};
+
+const buildExtra = getBuildExtra();
+
 export default {
   players: ["Вбудований плеєр", "moon", "ashdi"],
   urls: {
@@ -40,8 +52,20 @@ export default {
     telegramChannelUrl,
   },
   devInfo: {
-    version: appConfig.expo.version,
+    version: getSafeVersion(),
     buildId: appConfig.expo.android.versionCode,
+    gitShortHash:
+      buildExtra.commitHashShort ||
+      buildExtra.commitHash ||
+      process.env.GIT_SHORT_HASH ||
+      process.env.GIT_HASH ||
+      "unknown",
+    gitHash:
+      buildExtra.commitHash ||
+      process.env.GIT_HASH ||
+      process.env.COMMIT_HASH ||
+      "unknown",
+    buildDate: buildExtra.buildDate || process.env.BUILD_DATE || "unknown",
     deviceId: "unknown", // Буде оновлено асинхронно
     deviceName: getSafeValue(Device.deviceName, "Unknown Device"),
     systemVersion: getSafeValue(Device.osVersion, "Unknown"),

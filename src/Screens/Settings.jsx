@@ -6,6 +6,7 @@ import Icons, { AppIcon, TelegramIcon } from "../Styles/Icons";
 import Icon from "../Styles/Icons";
 import { useNavigation } from "@react-navigation/native";
 import { appColor, Black, black, Black_1, white } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import ExpandableNotification from "../Widgets/ExpandableNotification";
 import ConfirmationWidget from "../Widgets/ConfirmationWidget";
 import MainConfig from "../cfgs/MainConfig";
@@ -17,6 +18,7 @@ import { playersIcons } from "../Widgets/DubbingBottomSheetWidget";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const [notification, setNotification] = useState({
     visible: false,
     message: "",
@@ -161,7 +163,7 @@ export default function SettingsScreen() {
               minWidth: "20%",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: appColor,
+              backgroundColor: themeColors.appColor,
               borderRadius: 8,
               padding: 10,
               minHeight: 50,
@@ -194,7 +196,7 @@ export default function SettingsScreen() {
       title: "Кастомізація",
       subtitle: "Налаштування вигляду додатку.",
       button: {
-        Icon: <Icons.PaintBrushBroad size={44} color={white} />,
+        Icon: <Icons.PaintBrushBroad size={44} color={themeColors.white} />,
       },
       onPress: () => {
         navigation.navigate("HiddenStack", {

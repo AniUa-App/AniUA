@@ -1,25 +1,25 @@
-import axios from 'axios';
-import {TransformToCompactJson} from '../Global/Functions';
+import axios from "axios";
+import { TransformToCompactJson } from "../Global/Functions";
 
 export class HikkaApi {
-  protected static apiUrl = 'https://api.hikka.io/';
-  protected static apiEpisodesUrl = 'https://api.hikka-features.pp.ua/';
-  protected static apiCache: Record<string, {data: any; timestamp: number}> =
+  protected static apiUrl = "https://api.hikka.io/";
+  protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
+  protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
   protected static CACHE_TTL = 5 * 60 * 1000;
   protected static currentYear = new Date().getFullYear();
   protected static axiosInstance = axios.create({
     timeout: 10000,
     headers: {
-      accept: 'application/json',
-      'Content-Type': 'application/json',
+      accept: "application/json",
+      "Content-Type": "application/json",
     },
   });
 
   protected static async cachedRequest(
     cacheKey: string,
     requestFn: () => Promise<any>,
-    ttl: number = HikkaApi.CACHE_TTL,
+    ttl: number = HikkaApi.CACHE_TTL
   ) {
     const cachedData = HikkaApi.apiCache[cacheKey];
     const now = Date.now();
@@ -41,9 +41,19 @@ export class HikkaApi {
     }
   }
 
+  public static async getGenres() {
+    const cacheKey = `genres`;
+    return HikkaApi.cachedRequest(cacheKey, async () => {
+      const response = await HikkaApi.axiosInstance.get(
+        `${HikkaApi.apiUrl}genres`
+      );
+      return response.data.list;
+    });
+  }
+
   public static async getMostPopularAnimeOfTheYear(
     page: number = 1,
-    size: number = 1,
+    size: number = 1
   ) {
     const cacheKey = `popular_year_${page}_${size}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -54,8 +64,8 @@ export class HikkaApi {
           include_multiseason: false,
           only_translated: true,
           score: [8, 10],
-          sort: ['scored_by:desc'],
-        },
+          sort: ["scored_by:desc"],
+        }
       );
       return response.data.list;
     }).catch(() => []);
@@ -65,7 +75,7 @@ export class HikkaApi {
     const cacheKey = `anime_details_${slug}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
       const response = await HikkaApi.axiosInstance.get(
-        `${HikkaApi.apiUrl}anime/${slug}`,
+        `${HikkaApi.apiUrl}anime/${slug}`
       );
       return response.data;
     }).catch(() => null);
@@ -81,8 +91,8 @@ export class HikkaApi {
           include_multiseason: false,
           only_translated: true,
           score: [8, 10],
-          sort: ['scored_by:desc'],
-        },
+          sort: ["scored_by:desc"],
+        }
       );
       return response.data.list;
     }).catch(() => []);
@@ -90,24 +100,24 @@ export class HikkaApi {
 
   public static async getAnimeFranchiseByFilter(
     slug: string,
-    filter: string = '',
+    filter: string = ""
   ) {
     const cacheKey = `franchise_${slug}_${filter}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
       try {
         const response = await HikkaApi.axiosInstance.get(
-          `${HikkaApi.apiUrl}anime/${slug}/franchise?page=1&size=15`,
+          `${HikkaApi.apiUrl}anime/${slug}/franchise?page=1&size=15`
         );
         return response.data.list
-          .filter((item: any) => item.media_type === 'tv')
+          .filter((item: any) => item.media_type === "tv")
           .sort((a: any, b: any) => (a.year ?? 0) - (b.year ?? 0));
       } catch (error: any) {
         if (error?.response?.status === 400) {
           return [];
         } else {
           console.error(
-            'Помилка при завантаженні франшизи:',
-            error?.message || error,
+            "Помилка при завантаженні франшизи:",
+            error?.message || error
           );
           return [];
         }
@@ -120,14 +130,14 @@ export class HikkaApi {
     return HikkaApi.cachedRequest(cacheKey, async () => {
       try {
         const response = await HikkaApi.axiosInstance.get(
-          `${HikkaApi.apiEpisodesUrl}watch/${slug}`,
+          `${HikkaApi.apiEpisodesUrl}watch/${slug}`
         );
-        const {type, ...rest} = response.data;
-        return {data: rest, code: response.status};
+        const { type, ...rest } = response.data;
+        return { data: rest, code: response.status };
       } catch (error: any) {
         console.error(
-          'Помилка при завантаженні епізодів:',
-          error?.message || error,
+          "Помилка при завантаженні епізодів:",
+          error?.message || error
         );
         return {
           data: [],
@@ -145,7 +155,7 @@ export class HikkaApi {
         {
           query: query,
           only_translated: true,
-        },
+        }
       );
       return response.data.list;
     }).catch(() => []);
@@ -168,7 +178,7 @@ export class HikkaApi {
     }).catch(() => ({
       details: null,
       franchise: [],
-      episodes: {data: [], code: 500},
+      episodes: { data: [], code: 500 },
     }));
   }
 }

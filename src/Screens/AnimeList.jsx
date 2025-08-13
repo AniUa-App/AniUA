@@ -4,18 +4,18 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-} from 'react-native';
+} from "react-native";
 // import {TouchableOpacity} from '../Widgets/Button'; // Видалено невикористаний імпорт
-import React, {useState, useEffect, useCallback} from 'react';
-import DefaultScreenWidget from '../Widgets/DefaultScreenWidget';
-import {GetScreenHeight, GetScreenWidth} from '../Global/Functions';
+import React, { useState, useEffect, useCallback } from "react";
+import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
+import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 // import {appColor, white} from '../Styles/Colors'; // Видалено невикористаний імпорт 'white'
-import {appColor} from '../Styles/Colors'; // Залишено тільки appColor
-import AnimePreviewWidget from '../Widgets/AnimePreviewWidget';
-import {HikkaApi} from '../Sources/hikka';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import AnimeStorage from '../Storage/AnimeStorage';
-import {H2} from '../Styles/Fonts';
+import { appColor } from "../Styles/Colors"; // Залишено тільки appColor
+import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
+import { HikkaApi } from "../Sources/hikka";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import AnimeStorage from "../Storage/AnimeStorage";
+import { H2 } from "../Styles/Fonts";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 
@@ -30,8 +30,8 @@ const MAX_CONCURRENT_REQUESTS = 10;
 // };
 
 // Основний компонент екрану списку аніме
-export default function AnimeListScreen({route}) {
-  const {type, initialData, title} = route.params;
+export default function AnimeListScreen({ route }) {
+  const { type, initialData, title } = route.params;
 
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,35 +42,37 @@ export default function AnimeListScreen({route}) {
     try {
       const storedInfos = AnimeStorage.getInfos();
       setInfo(storedInfos || {});
-      console.log('Infos loaded:', storedInfos);
+      console.log("Infos loaded:", storedInfos);
     } catch (error) {
-      console.error('Помилка при завантаженні інформації:', error);
+      console.error("Помилка при завантаженні інформації:", error);
       setInfo({}); // Встановлюємо пустий об'єкт у випадку помилки
     }
   }, []);
 
   const updateInfos = useCallback(
     (slug, newInfoData) => {
-      setInfo(prevInfo => {
+      setInfo((prevInfo) => {
         const updatedInfo = {
           ...prevInfo,
-          [slug]: {...(prevInfo[slug] || {}), ...newInfoData},
+          [slug]: { ...(prevInfo[slug] || {}), ...newInfoData },
         };
-        console.log('Updating info for:', slug, 'New data:', newInfoData); // Додано для відладки
+        console.log("Updating info for:", slug, "New data:", newInfoData); // Додано для відладки
         AnimeStorage.setInfoBySlug(slug, newInfoData); // Зберігаємо оновлення
         return updatedInfo;
       });
       // Якщо тип 'liked' і ми щойно видалили з улюблених, можна одразу оновити список візуально
       // (хоча useFocusEffect все одно оновить при поверненні)
-      if (type === 'Liked' && newInfoData.isFavorite === false) {
-        setAnimeList(prevList => prevList.filter(anime => anime.slug !== slug));
+      if (type === "Liked" && newInfoData.isFavorite === false) {
+        setAnimeList((prevList) =>
+          prevList.filter((anime) => anime.slug !== slug)
+        );
       }
     },
-    [type],
+    [type]
   ); // Додаємо type до залежностей, якщо він використовується
 
   // Оптимізована функція для паралельного завантаження аніме
-  const fetchAnimeDetails = useCallback(async animeSlug => {
+  const fetchAnimeDetails = useCallback(async (animeSlug) => {
     try {
       return await HikkaApi.getAnimeDetails(animeSlug);
     } catch (error) {
@@ -80,19 +82,19 @@ export default function AnimeListScreen({route}) {
   }, []);
 
   // Функція для обмеження кількості одночасних запитів
-  const fetchWithConcurrencyLimit = useCallback(async tasks => {
+  const fetchWithConcurrencyLimit = useCallback(async (tasks) => {
     const results = [];
 
     // Створюємо чергу завдань
     for (let i = 0; i < tasks.length; i += MAX_CONCURRENT_REQUESTS) {
       const batch = tasks.slice(i, i + MAX_CONCURRENT_REQUESTS);
-      const batchResults = await Promise.all(batch.map(task => task()));
+      const batchResults = await Promise.all(batch.map((task) => task()));
 
       // Накопичуємо аніме в пакеті
       const validResults = batchResults.filter(Boolean);
       if (validResults.length > 0) {
         // Оновлюємо список аніме пакетами
-        setAnimeList(prev => [...prev, ...validResults]);
+        setAnimeList((prev) => [...prev, ...validResults]);
       }
 
       results.push(...batchResults);
@@ -113,47 +115,47 @@ export default function AnimeListScreen({route}) {
 
     // Визначаємо, які дані потрібно завантажити залежно від типу списку
     switch (type) {
-      case 'Liked':
+      case "Liked":
         dataToFetch = Object.keys(currentInfo).filter(
-          slug => currentInfo[slug]?.isFavorite,
+          (slug) => currentInfo[slug]?.isFavorite
         );
-        console.log('Fetching liked slugs:', dataToFetch);
+        console.log("Fetching liked slugs:", dataToFetch);
         setIsCheckingInternet(false);
         break;
-      case 'Downloaded':
+      case "Downloaded":
         dataToFetch = Object.keys(currentInfo).filter(
-          slug => (currentInfo[slug]?.downloaded?.episodes?.length || 0) > 0, // Трохи спрощено
+          (slug) => (currentInfo[slug]?.downloaded?.episodes?.length || 0) > 0 // Трохи спрощено
         );
-        console.log('Fetching downloaded slugs:', dataToFetch);
+        console.log("Fetching downloaded slugs:", dataToFetch);
         setIsCheckingInternet(false);
         break;
       default:
         dataToFetch = initialData; // Використовуємо initialData для інших типів
-        console.log('Fetching initialData:', dataToFetch);
+        console.log("Fetching initialData:", dataToFetch);
         setIsCheckingInternet(true);
     }
 
     // Перевіряємо дані, використовуючи dataToFetch
     if (!Array.isArray(dataToFetch) || dataToFetch.length === 0) {
-      console.log('No data to fetch or data is not an array:', dataToFetch);
+      console.log("No data to fetch or data is not an array:", dataToFetch);
       setIsLoading(false);
       return;
     }
 
     // Підготовка завдань для паралельного виконання, використовуючи dataToFetch
-    const tasks = dataToFetch.map(item => {
+    const tasks = dataToFetch.map((item) => {
       // Якщо це об'єкт з деталями (з initialData)
-      if (typeof item === 'object' && item?.slug) {
+      if (typeof item === "object" && item?.slug) {
         // Можна додати перевірку, чи потрібне оновлення, якщо дані вже є
         // if (item.synopsis_ua) return async () => item; // Якщо дані повні, не перезавантажувати
         return async () => await fetchAnimeDetails(item.slug); // Або завжди оновлювати
       }
       // Якщо це просто slug (з 'liked' або 'downloaded')
-      else if (typeof item === 'string') {
+      else if (typeof item === "string") {
         return async () => await fetchAnimeDetails(item);
       }
       // Логуємо невалідний елемент і повертаємо функцію, що повертає null
-      console.warn('Invalid item in dataToFetch:', item);
+      console.warn("Invalid item in dataToFetch:", item);
       return async () => null;
     });
 
@@ -161,7 +163,7 @@ export default function AnimeListScreen({route}) {
     await fetchWithConcurrencyLimit(tasks);
 
     setIsLoading(false);
-    console.log('fetchMoreAnime finished.'); // Додано для відладки
+    console.log("fetchMoreAnime finished."); // Додано для відладки
   }, [type, initialData, fetchAnimeDetails, fetchWithConcurrencyLimit]); // Видалено info з залежностей
 
   // Використовуємо useFocusEffect для завантаження/оновлення даних при фокусі екрану
@@ -173,16 +175,16 @@ export default function AnimeListScreen({route}) {
       };
 
       loadDataSequentially();
-    }, [getInfos, fetchMoreAnime]), // Передаємо функції як залежності
+    }, [getInfos, fetchMoreAnime]) // Передаємо функції як залежності
   );
 
   // Оптимізований рендеринг списку
   const renderItem = useCallback(
-    ({item}) => {
+    ({ item }) => {
       // Перевіряємо чи є взагалі item та item.slug
       if (!item?.slug) {
         // Трохи спрощена перевірка
-        console.warn('RenderItem received invalid item:', item);
+        console.warn("RenderItem received invalid item:", item);
         return null;
       }
 
@@ -190,7 +192,7 @@ export default function AnimeListScreen({route}) {
 
       // Якщо тип списку 'liked', показуємо елемент тільки якщо він є улюбленим
       // Використовуємо currentItemInfo, яке оновлюється через useFocusEffect -> getInfos
-      if (type === 'Liked' && !currentItemInfo.isFavorite) {
+      if (type === "Liked" && !currentItemInfo.isFavorite) {
         // Якщо тип 'liked', але елемент не улюблений (згідно з актуальним info), не відображаємо його
         return null;
       }
@@ -205,7 +207,7 @@ export default function AnimeListScreen({route}) {
         />
       );
     },
-    [info, updateInfos, type], // Залежність від info потрібна для currentItemInfo
+    [info, updateInfos, type] // Залежність від info потрібна для currentItemInfo
   );
 
   // Унікальний ключ для елементів списку
@@ -218,16 +220,16 @@ export default function AnimeListScreen({route}) {
         <View style={styles.emptyContainer}>
           {/* Додано контейнер для кращого центрування */}
           <Text style={[styles.emptyMessage, H2]}>
-            {type === 'Liked'
-              ? 'Список улюбленого порожній'
-              : type === 'Downloaded'
-              ? 'Список завантаженого порожній'
-              : 'Список порожній'}
+            {type === "Liked"
+              ? "Список улюбленого порожній"
+              : type === "Downloaded"
+                ? "Список завантаженого порожній"
+                : "Список порожній"}
           </Text>
         </View>
       ) : null,
     // Додаємо type до залежностей, оскільки текст повідомлення залежить від нього
-    [isLoading, type],
+    [isLoading, type]
   );
 
   // Індикатор завантаження в кінці списку
@@ -238,7 +240,7 @@ export default function AnimeListScreen({route}) {
           <ActivityIndicator size="large" color={appColor} />
         </View>
       ) : null,
-    [isLoading],
+    [isLoading]
   );
 
   return (
@@ -268,22 +270,22 @@ const styles = StyleSheet.create({
   },
   // Стиль для контейнера індикатора завантаження
   loaderContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 20,
   },
   // Стиль для повідомлення про кінець списку (перейменовано для ясності)
   emptyMessage: {
-    textAlign: 'center',
-    padding: '5%',
+    textAlign: "center",
+    padding: "5%",
     // marginTop: '55%', // Видалено, щоб центрування працювало краще
-    color: 'grey', // Можна додати колір для кращої видимості
+    color: "grey", // Можна додати колір для кращої видимості
   },
   // Додано стиль для контейнера порожнього списку
   emptyContainer: {
     flex: 1, // Займає весь доступний простір
-    justifyContent: 'center', // Центрує по вертикалі
-    alignItems: 'center', // Центрує по горизонталі
+    justifyContent: "center", // Центрує по вертикалі
+    alignItems: "center", // Центрує по горизонталі
     marginTop: -GetScreenHeight() * 0.1, // Невеликий зсув вгору, якщо потрібно
   },
   listContentContainer: {

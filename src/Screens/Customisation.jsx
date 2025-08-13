@@ -18,6 +18,7 @@ import {
   black_1,
   gray,
 } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { ScrollView } from "react-native-gesture-handler";
 import { H2, H3, H4, H5, H6 } from "../Styles/Fonts";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
@@ -36,8 +37,12 @@ import ColorPicker, {
 } from "reanimated-color-picker";
 import { runOnJS } from "react-native-reanimated";
 import * as DocumentPicker from "expo-document-picker";
+import RNFS from "react-native-fs";
+import { useNavigation } from "@react-navigation/native";
 
 export default function СustomisationScreen() {
+  const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const _USER_CONFIG = SettingsStorage.getParameter("userConfig");
   const MAIN_SCREEN_CONFIG = SettingsStorage.getParameter("mainScreenConfig");
   const [USER_CONFIG, _SET_USER_CONFIG] = useState(_USER_CONFIG);
@@ -251,12 +256,24 @@ export default function СustomisationScreen() {
                             },
                           });
                         }}
-                        value={USER_CONFIG?.navbar?.blurReductionFactor ?? 80}
+                        value={USER_CONFIG?.navbar?.blurReductionFactor ?? 20}
                         minimumValue={0}
                         maximumValue={100}
                       />
                     </>
                   )}
+                  <SettingsItemWidget
+                    title="Скинути налаштування"
+                    button={{
+                      Icon: <Icons.ArrowsClockwise size={34} color={white} />,
+                    }}
+                    onPress={() => {
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        navbar: { isCustomisation: true },
+                      });
+                    }}
+                  />
                 </View>
               </ScrollView>
             </>
@@ -293,7 +310,7 @@ export default function СustomisationScreen() {
               <ScrollView style={styles.bsContainer}>
                 <ColorPickerWidget
                   title="Основний колір додатка"
-                  value={USER_CONFIG?.colors?.appColor || appColor}
+                  value={USER_CONFIG?.colors?.appColor || themeColors.appColor}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
@@ -303,7 +320,7 @@ export default function СustomisationScreen() {
                 />
                 <ColorPickerWidget
                   title="Колір для фону"
-                  value={USER_CONFIG?.colors?.black || black}
+                  value={USER_CONFIG?.colors?.black || themeColors.black}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
@@ -313,7 +330,7 @@ export default function СustomisationScreen() {
                 />
                 <ColorPickerWidget
                   title="Допоміжний колір"
-                  value={USER_CONFIG?.colors?.black_1 || black_1}
+                  value={USER_CONFIG?.colors?.black_1 || themeColors.black_1}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
@@ -323,12 +340,26 @@ export default function СustomisationScreen() {
                 />
                 <ColorPickerWidget
                   title="Колір для тексту"
-                  value={USER_CONFIG?.colors?.white || white}
+                  value={USER_CONFIG?.colors?.white || themeColors.white}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
                       colors: { ...USER_CONFIG?.colors, white: value.rgba },
                     });
+                  }}
+                />
+                <SettingsItemWidget
+                  title="Скинути налаштування"
+                  onPress={() => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      colors: {
+                        isCustomisation: true,
+                      },
+                    });
+                  }}
+                  button={{
+                    Icon: <Icons.ArrowsClockwise size={34} color={white} />,
                   }}
                 />
                 <Text
@@ -367,14 +398,156 @@ export default function СustomisationScreen() {
             });
           },
           body: ({}) => {
+            const copyBackgroundImage = async (imagePath) => {
+              try {
+                const extension = imagePath.split(".").pop();
+                const destPath = `${RNFS.DocumentDirectoryPath}/background.${extension}`;
+                await RNFS.copyFile(imagePath, destPath);
+                console.log(
+                  "Зображення скопійовано у внутрішню памʼять:",
+                  destPath
+                );
+                return destPath;
+              } catch (error) {
+                console.error(
+                  "Помилка копіювання зображення у внутрішню памʼять:",
+                  error
+                );
+                return null;
+              }
+            };
             return (
               <ScrollView style={styles.bsContainer}>
-                <PhotoPickerWidget
-                  title="Фонове зображення"
-                  onPick={() => {}}
+                <SettingsItemWidget
+                  title="Зображення на фоні"
+                  subtitle="Фонове зображення додатка"
+                  onPress={() => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      background: {
+                        ...USER_CONFIG?.background,
+                        isImageBackground: !(
+                          USER_CONFIG?.background?.isImageBackground ?? false
+                        ),
+                      },
+                    });
+                  }}
+                  button={{
+                    Icon: USER_CONFIG?.background?.isImageBackground ? (
+                      <Icons.ToggleRight size={34} color={white} />
+                    ) : (
+                      <Icons.ToggleLeft size={34} color={black} />
+                    ),
+                  }}
                 />
+                {USER_CONFIG?.background?.isImageBackground && (
+                  <View style={{ marginTop: 20 }}>
+                    <PhotoPickerWidget
+                      title="Фонове зображення"
+                      subtitle="Фонове зображення додатка"
+                      onPick={async (uri) => {
+                        const uriPath = await copyBackgroundImage(uri);
+                        console.log(uriPath, "uriPath");
+                        SET_USER_CONFIG({
+                          ...USER_CONFIG,
+                          background: {
+                            ...USER_CONFIG?.background,
+                            image: uriPath,
+                          },
+                        });
+                      }}
+                    />
+                  </View>
+                )}
+                <SettingsItemWidget
+                  title="Блюр фону"
+                  subtitle="Заблюрення фонового зображення"
+                  onPress={() => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      background: {
+                        ...USER_CONFIG?.background,
+                        isBlurBackground: !(
+                          USER_CONFIG?.background?.isBlurBackground ?? false
+                        ),
+                      },
+                    });
+                  }}
+                  button={{
+                    Icon: USER_CONFIG?.background?.isBlurBackground ? (
+                      <Icons.ToggleRight size={34} color={white} />
+                    ) : (
+                      <Icons.ToggleLeft size={34} color={black} />
+                    ),
+                  }}
+                />
+                <View
+                  style={{
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    alignSelf: "center",
+                    paddingTop: 10,
+                  }}
+                >
+                  {USER_CONFIG?.background?.isBlurBackground && (
+                    <>
+                      <SliderWidget
+                        title="Заблюрення панелі"
+                        onValueChange={(value) => {
+                          SET_USER_CONFIG({
+                            ...USER_CONFIG,
+                            background: {
+                              ...USER_CONFIG?.background,
+                              blurIntensity: value,
+                            },
+                          });
+                        }}
+                        value={USER_CONFIG?.background?.blurIntensity ?? 80}
+                        minimumValue={0}
+                        maximumValue={100}
+                      />
+                      <SliderWidget
+                        title="Коефіцієнт зменшення розмиття"
+                        onValueChange={(value) => {
+                          SET_USER_CONFIG({
+                            ...USER_CONFIG,
+                            background: {
+                              ...USER_CONFIG?.background,
+                              blurReductionFactor: value,
+                            },
+                          });
+                        }}
+                        value={
+                          USER_CONFIG?.background?.blurReductionFactor ?? 80
+                        }
+                        minimumValue={0}
+                        maximumValue={20}
+                      />
+                    </>
+                  )}
+                </View>
               </ScrollView>
             );
+          },
+        },
+      ],
+    },
+    {
+      slug: "mainScreen",
+      body: [
+        {
+          title: "Налаштування головного екрану",
+          value: USER_CONFIG?.mainScreen?.isCustomisation || false,
+          button: <Icons.CaretRight size={34} color={white} />,
+          onPress: () => {
+            navigation.navigate("HiddenStack", {
+              screen: "MainScreenCustomisation",
+              params: {
+                userConfig: USER_CONFIG,
+              },
+            });
           },
         },
       ],
@@ -653,7 +826,6 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 0,
   },
   textContainer: {
     flexDirection: "column",
@@ -727,7 +899,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Quicksand",
     fontWeight: "bold",
-    marginVertical: 20,
   },
   picker: {
     gap: 20,
@@ -983,7 +1154,7 @@ export function ColorPickerWidget({
   }
 }
 
-export function PhotoPickerWidget({ title, onPick }) {
+export function PhotoPickerWidget({ title, subtitle, onPick }) {
   const [image, setImage] = useState(null);
   let len = title.length;
 
@@ -997,12 +1168,27 @@ export function PhotoPickerWidget({ title, onPick }) {
 
       console.log(result, "result");
 
-      if (result.type !== "cancel") {
-        setImage(result.uri || result.assets?.[0]?.uri);
-        onPick?.(result.uri || result.assets?.[0]?.uri);
+      const canceled = result?.canceled ?? result?.type === "cancel";
+      if (canceled) {
+        return null;
       }
+
+      const asset = result?.assets?.[0] || result;
+      const uri = asset?.uri || null;
+      const name = asset?.name || null;
+      const mimeType = asset?.mimeType || null;
+      if (!uri) {
+        console.warn("Не вдалося отримати URI вибраного зображення");
+        return null;
+      }
+
+      setImage(uri);
+      const payload = { uri, name, mimeType };
+      onPick?.(payload);
+      return payload;
     } catch (err) {
-      console.error("Ошибка выбора изображения:", err);
+      console.error("Помилка вибору зображення:", err);
+      return null;
     }
   };
 
@@ -1010,9 +1196,9 @@ export function PhotoPickerWidget({ title, onPick }) {
     <TouchableOpacity style={[styles.cacheBox]} activeOpacity={0.9}>
       <View style={styles.textContainer}>
         {len > 1 && <Text style={[H5, styles.title]}>{title}</Text>}
-        {image && (
+        {subtitle && (
           <Text style={[H6]} numberOfLines={1}>
-            {image}
+            {subtitle}
           </Text>
         )}
       </View>
@@ -1028,7 +1214,10 @@ export function PhotoPickerWidget({ title, onPick }) {
             justifyContent: "center",
           },
         ]}
-        onPress={pickImage}
+        onPress={async () => {
+          const picked = await pickImage();
+          if (!picked) return;
+        }}
       >
         <Icons.FilePng size={34} color={white} />
       </TouchableOpacity>

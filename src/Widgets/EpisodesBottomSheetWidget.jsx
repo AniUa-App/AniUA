@@ -30,6 +30,8 @@ import { HikkaApi } from "../Sources/hikka";
 import { H3, H4 } from "../Styles/Fonts";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { GetScreenHeight } from "../Global/Functions";
+import { EventBus } from "../Global/EventBus";
+import Icon from "../Styles/Icons";
 
 // Окремий компонент для елемента серії
 const EpisodeItem = React.memo(
@@ -41,6 +43,8 @@ const EpisodeItem = React.memo(
     sheetRef,
     onSwipeEpisode,
     customIcon = null,
+    animeSlug = null,
+    type = "list",
   }) => {
     const translateX = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(1)).current;
@@ -112,6 +116,32 @@ const EpisodeItem = React.memo(
       []
     );
 
+    const [downloadPct, setDownloadPct] = useState(null);
+    const [downloadStatus, setDownloadStatus] = useState(null);
+    const [pendingStart, setPendingStart] = useState(false);
+
+    useEffect(() => {
+      if (!animeSlug) return;
+      const off = EventBus.on("downloadProgress", (payload) => {
+        if (
+          payload?.slug === animeSlug &&
+          Number(payload?.episode) === Number(item?.episode)
+        ) {
+          setDownloadStatus(payload.status);
+          setDownloadPct(
+            typeof payload.progress === "number" ? payload.progress : null
+          );
+        }
+      });
+      return () => off && off();
+    }, [animeSlug, item?.episode]);
+
+    const isDownloading =
+      pendingStart ||
+      (downloadPct !== null &&
+        downloadStatus !== "error" &&
+        downloadStatus !== "success");
+
     return (
       <>
         <Animated.View
@@ -133,15 +163,26 @@ const EpisodeItem = React.memo(
               onLongSelectEpisode(item);
             }}
             onPress={() => {
+              if (type === "download") {
+                if (isDownloading) return; // Забороняємо повторний старт
+                setPendingStart(true); // оптимістично блокуємо до приходу події
+              }
               sheetRef.current?.close();
               onSelectEpisode(item);
             }}
           >
-            <View>
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexDirection: "row",
+                width: "90%",
+                opacity: isDownloading && type === "download" ? 0.8 : 1,
+              }}
+            >
               <Text
                 style={[
                   H3,
-                  styles.episodeText,
                   {
                     color: checkForStyle(item) ? appColor : white,
                   },
@@ -149,7 +190,11 @@ const EpisodeItem = React.memo(
               >
                 Серія {item.episode}
               </Text>
-              {customIcon ? customIcon : null}
+              {isDownloading && type === "download" ? (
+                <Icon.DownloadAnimated size={34} color={appColor} />
+              ) : customIcon ? (
+                customIcon
+              ) : null}
             </View>
           </TouchableHighlight>
         </Animated.View>
@@ -168,6 +213,7 @@ export default function EpisodesBottomSheet({
   onLongSelectEpisode,
   onSwipeEpisode,
   customIcon = null,
+  type = "list",
 }) {
   const navigation = useNavigation();
   const [episodesData, setEpisodesData] = useState([]);
@@ -219,6 +265,8 @@ export default function EpisodesBottomSheet({
       sheetRef={sheetRef}
       onSwipeEpisode={onSwipeEpisode}
       customIcon={customIcon || null}
+      animeSlug={storage_data?.slug || null}
+      type={type}
     />
   );
 
@@ -292,9 +340,5 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 70,
     justifyContent: "center",
-  },
-  episodeText: {
-    width: "130%",
-    paddingBottom: 10,
   },
 });

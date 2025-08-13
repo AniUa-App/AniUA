@@ -3,6 +3,7 @@ import { TouchableOpacity } from "./Button";
 import React from "react";
 import Icon from "../Styles/Icons";
 import { appColor, black, white } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
 import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
@@ -14,6 +15,7 @@ export default function AnimeListHorizontal({
   onClickMore = null,
 }) {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
 
   return (
     <View style={{ flex: 1 }}>
@@ -22,9 +24,13 @@ export default function AnimeListHorizontal({
         activeOpacity={0.9}
         onPress={onClickMore}
       >
-        <Text style={[styles.title, H3]}>{title}</Text>
+        <Text style={[styles.title, H3, { color: themeColors.white }]}>
+          {title}
+        </Text>
         <View style={styles.arrowRightIcon}>
-          {onClickMore && <Icon.ArrowRight size={34} color={appColor} />}
+          {onClickMore && (
+            <Icon.ArrowRight size={34} color={themeColors.appColor} />
+          )}
         </View>
       </TouchableOpacity>
 
@@ -41,7 +47,7 @@ export default function AnimeListHorizontal({
             }
           >
             <Image uri={anime.image} style={styles.image} />
-            <Text style={[H3, { color: white }]} numberOfLines={2}>
+            <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
               {anime.title}
             </Text>
           </TouchableOpacity>

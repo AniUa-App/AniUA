@@ -10,7 +10,8 @@
     "setup-file-opener": "node scripts/setup-file-opener-v3.js",
     "setup-ffmpeg": "cd android && ./gradlew downloadAar && cd ..",
     "eas-build-pre-install": "npm config set legacy-peer-deps true",
-    "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg "
+    "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
+    "set-env": "node ./scripts/set-environment.js "
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.1.8",
@@ -59,7 +60,6 @@
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-bootsplash": "^6.3.7",
-    "react-native-config": "^1.5.5",
     "react-native-fast-image": "^8.6.3",
     "react-native-file-opener": "./react-native-file-opener",
     "react-native-fs": "^2.20.0",

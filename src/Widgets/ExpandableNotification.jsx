@@ -1,17 +1,24 @@
-import React, {useEffect, useRef, useCallback} from 'react';
-import {Animated, StyleSheet} from 'react-native';
-import {appColor} from '../Styles/Colors';
+import React, { useEffect, useRef, useCallback } from "react";
+import { Animated, StyleSheet } from "react-native";
+import { useThemeColors } from "../Global/useTheme";
 
-const NOTIFICATION_HEIGHT = 50;
+const NOTIFICATION_HEIGHT = 300;
 const ANIMATION_DURATION = 250;
 const DISPLAY_TIME = 2000;
 
-function ExpandableNotification({message, visible, onHide, style}) {
+function ExpandableNotification({
+  message,
+  visible,
+  onHide,
+  style,
+  textStyle,
+}) {
+  const themeColors = useThemeColors();
   const heightAnim = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
 
   const animate = useCallback(
-    toValue => {
+    (toValue) => {
       Animated.sequence([
         Animated.timing(heightAnim, {
           toValue: toValue ? NOTIFICATION_HEIGHT : 0,
@@ -25,7 +32,7 @@ function ExpandableNotification({message, visible, onHide, style}) {
         }),
       ]).start();
     },
-    [heightAnim, textOpacity],
+    [heightAnim, textOpacity]
   );
 
   const hideNotification = useCallback(() => {
@@ -62,6 +69,7 @@ function ExpandableNotification({message, visible, onHide, style}) {
       style={[
         styles.container,
         {
+          backgroundColor: themeColors.appColor,
           maxHeight: heightAnim,
           opacity: heightAnim.interpolate({
             inputRange: [0, NOTIFICATION_HEIGHT],
@@ -69,15 +77,19 @@ function ExpandableNotification({message, visible, onHide, style}) {
           }),
           ...style,
         },
-      ]}>
+      ]}
+    >
       <Animated.Text
         numberOfLines={1}
         style={[
           styles.text,
           {
             opacity: textOpacity,
+            color: themeColors.white,
           },
-        ]}>
+          textStyle,
+        ]}
+      >
         {message}
       </Animated.Text>
     </Animated.View>
@@ -86,18 +98,16 @@ function ExpandableNotification({message, visible, onHide, style}) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: appColor,
-    width: '100%',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
   },
   text: {
-    color: 'white',
     fontSize: 16,
-    fontWeight: '500',
-    paddingHorizontal: 16,
+    fontWeight: "500",
     paddingVertical: 12,
+    paddingHorizontal: 16,
   },
 });
 

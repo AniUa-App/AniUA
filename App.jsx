@@ -25,6 +25,7 @@ import AllowTheVideoFolder, {
 } from "./src/FIleSystem/FileSystem";
 import { useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
+import { ThemeProvider } from "./src/Global/ThemeContext";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -150,8 +151,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: black }}>
       <BottomSheetModalProvider style={{ flex: 1, backgroundColor: black }}>
         <RootSiblingParent>
-          <ScreenController />
-          {/* {isErrorBoundary && <ErrorTestComponent />} */}
+          <ThemeProvider>
+            <ScreenController />
+            {/* {isErrorBoundary && <ErrorTestComponent />} */}
+          </ThemeProvider>
         </RootSiblingParent>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>

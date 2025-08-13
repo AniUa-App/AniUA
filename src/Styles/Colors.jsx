@@ -1,7 +1,8 @@
 import SettingsStorage from "../Storage/SettingsStorage";
 import Color from "color";
+import { EventBus } from "../Global/EventBus";
 
-const defaultColors = {
+export const defaultColors = {
   black: "rgb(24, 28, 20)",
   black_1: "rgb(33, 37, 29)",
   white: "rgb(251, 252, 251)",
@@ -9,49 +10,66 @@ const defaultColors = {
   loaderColor: "rgb(41, 91, 80)",
   yellow: "rgb(238, 201, 0)",
   gray: "rgb(96, 96, 96)",
+  red: "rgb(124, 44, 44)",
 };
 
-const USER_CONFIG = SettingsStorage.getParameter("userConfig") || {};
-const isCustomisation = USER_CONFIG?.colors?.isCustomisation || false;
-// Мерджимо користувацькі кольори з дефолтними, щоб уникнути undefined
-const userColors = USER_CONFIG?.colors || {};
-const mergedColors = { ...defaultColors, ...userColors };
-const colors = isCustomisation ? mergedColors : defaultColors;
+function resolveColorsFromStorage() {
+  const userConfig = SettingsStorage.getParameter("userConfig") || {};
+  const isCustom = Boolean(userConfig?.colors?.isCustomisation);
+  const userColors = userConfig?.colors || {};
+  const merged = { ...defaultColors, ...userColors };
+  return isCustom ? merged : defaultColors;
+}
 
-export const black = colors.black ?? defaultColors.black;
-export const black_1 = colors.black_1 ?? defaultColors.black_1;
-export const appColor = colors.appColor ?? defaultColors.appColor;
-export const white = colors.white ?? defaultColors.white;
-export const loaderColor = colors.loaderColor ?? defaultColors.loaderColor;
-export const yellow = colors.yellow ?? defaultColors.yellow;
-export const gray = colors.gray ?? defaultColors.gray;
+let current = resolveColorsFromStorage();
 
-const _black = Color(black);
-const _black_1 = Color(black_1);
-const _white = Color(white);
-const _appColor = Color(appColor);
-const _loaderColor = Color(loaderColor);
-const _yellow = Color(yellow);
-const _gray = Color(gray);
+export let black = current.black ?? defaultColors.black;
+export let black_1 = current.black_1 ?? defaultColors.black_1;
+export let appColor = current.appColor ?? defaultColors.appColor;
+export let white = current.white ?? defaultColors.white;
+export let loaderColor = current.loaderColor ?? defaultColors.loaderColor;
+export let yellow = current.yellow ?? defaultColors.yellow;
+export let gray = current.gray ?? defaultColors.gray;
+export let red = current.red ?? defaultColors.red;
+
+function refreshExportedColors() {
+  current = resolveColorsFromStorage();
+  black = current.black ?? defaultColors.black;
+  black_1 = current.black_1 ?? defaultColors.black_1;
+  appColor = current.appColor ?? defaultColors.appColor;
+  white = current.white ?? defaultColors.white;
+  loaderColor = current.loaderColor ?? defaultColors.loaderColor;
+  yellow = current.yellow ?? defaultColors.yellow;
+  gray = current.gray ?? defaultColors.gray;
+  red = current.red ?? defaultColors.red;
+}
+
+// Підписуємось на зміни конфігурації, щоб оновлювати експортовані значення на льоту
+EventBus.on("userConfigChanged", refreshExportedColors);
+
+function toRgbaString(hexOrRgb, opacity) {
+  const c = Color(hexOrRgb);
+  return `rgba(${c.red()}, ${c.green()}, ${c.blue()}, ${opacity})`;
+}
 
 export function Black(opacity = 1) {
-  return `rgba(${_black.red()}, ${_black.green()}, ${_black.blue()}, ${opacity})`;
+  return toRgbaString(black, opacity);
 }
 
 export function Black_1(opacity = 1) {
-  return `rgba(${_black_1.red()}, ${_black_1.green()}, ${_black_1.blue()}, ${opacity})`;
+  return toRgbaString(black_1, opacity);
 }
 
 export function White(opacity = 1) {
-  return `rgba(${_white.red()}, ${_white.green()}, ${_white.blue()}, ${opacity})`;
+  return toRgbaString(white, opacity);
 }
 
 export function AppColor(opacity = 1) {
-  return `rgba(${_appColor.red()}, ${_appColor.green()}, ${_appColor.blue()}, ${opacity})`;
+  return toRgbaString(appColor, opacity);
 }
 
 export function Gray(opacity = 1) {
-  return `rgba(${_gray.red()}, ${_gray.green()}, ${_gray.blue()}, ${opacity})`;
+  return toRgbaString(gray, opacity);
 }
 
 defaultColors.Black = Black;

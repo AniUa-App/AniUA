@@ -14,6 +14,8 @@ import { appColor } from "../Styles/Colors";
 import Color from "color";
 import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
+import { EventBus } from "../Global/EventBus";
+import { hasAtLeastOneGBFree } from "../FIleSystem/FileSystem";
 
 // Налаштування FFmpeg для відключення логів
 FFmpegKitConfig.setLogLevel(FFmpegKitConfig.LEVEL_QUIET);
@@ -29,6 +31,7 @@ export const STATUSES = {
   downloading_and_splicing_clips: "Завантаження серії",
   success: "Серія завантажена",
   error: "Помилка завантаження",
+  no_free_space_on_device: "Недостатньо вільного місця на пристрої",
 };
 
 export default async function DownloadVideoNotification({
@@ -46,7 +49,7 @@ export default async function DownloadVideoNotification({
   const channelId = await notifee.createChannel({
     id: activeChannelId,
     name: "AniUA",
-    importance: 4, // HIGH
+    importance: 3, // HIGH
   });
 
   // Оголошуємо змінну поза блоком try
@@ -67,7 +70,7 @@ export default async function DownloadVideoNotification({
           current: progress,
           indeterminate: progress === 0,
         },
-        smallIcon: "ic_launcher",
+        smallIcon: "ic_stat_aniua",
         color: appColorHex,
         ongoing: true,
         autoCancel: false,
@@ -76,9 +79,6 @@ export default async function DownloadVideoNotification({
         },
       },
     });
-    if (DEBUGCONFIG.isDebug) {
-      console.log(`notificationId: ${notificationId}`);
-    }
   } catch (error) {
     console.log(`error: ${error}`);
     notificationId = null;
@@ -117,7 +117,7 @@ export async function updateDownloadProgress({
         current: progress,
         indeterminate: progress === 0,
       },
-      smallIcon: "ic_launcher",
+      smallIcon: "ic_stat_aniua",
       color: appColorHex,
       ongoing: true,
 
@@ -160,7 +160,7 @@ export async function completeDownloadNotification({
     },
     android: {
       channelId: activeChannelId,
-      smallIcon: "ic_launcher",
+      smallIcon: "ic_stat_aniua",
       color: appColorHex,
       ongoing: false,
       autoCancel: true,
@@ -198,10 +198,10 @@ export async function errorDownloadNotification({
   await notifee.displayNotification({
     id: notificationId,
     title: `Помилка завантаження: ${animeName} - ${episodeNumber} серія`,
-    body: `Подробиці: ${errorMessage.substring(0, 200)}`,
+    body: `Подробиці: ${STATUSES[errorMessage] || errorMessage.substring(0, 200)}`,
     android: {
       channelId: activeChannelId,
-      smallIcon: "ic_launcher",
+      smallIcon: "ic_stat_aniua",
       color: appColorHex,
       ongoing: false,
       autoCancel: true,
@@ -229,6 +229,7 @@ export async function DownloadVideo({
   onStartDownloadCallback,
   progressCallback,
   completionCallback,
+  errorCallback,
 }) {
   const progressInfo = {
     status: "",
@@ -262,6 +263,16 @@ export async function DownloadVideo({
       progressCallback(progressInfo);
     }
 
+    // Глобальна емісія статусу завантаження для UI по конкретному епізоду
+    try {
+      EventBus.emit("downloadProgress", {
+        slug: anime?.slug,
+        episode: item?.episode,
+        status,
+        progress: typeof data?.progress === "number" ? data.progress : 0,
+      });
+    } catch {}
+
     // Оновлюємо сповіщення при кожному оновленні статусу
     if (notificationId) {
       var savedEpisodeData = {
@@ -280,22 +291,40 @@ export async function DownloadVideo({
           episodeNumber: item.episode,
           savedEpisodeData,
         });
+        // Емісія завершення (success)
+        try {
+          EventBus.emit("downloadProgress", {
+            slug: anime?.slug,
+            episode: item?.episode,
+            status: "success",
+            progress: 100,
+          });
+        } catch {}
         if (completionCallback) {
           if (!info.downloaded) info.downloaded = {};
           if (!info.downloaded.episodes) info.downloaded.episodes = [];
 
           info.downloaded.episodes.push(savedEpisodeData);
           completionCallback(info);
-          console.log(info, "newTempData");
         }
       } else if (status === "error") {
-        console.log("error", data);
         errorDownloadNotification({
           notificationId,
           animeName: anime.title_ua,
           episodeNumber: item.episode,
           error: data.data,
         });
+        if (errorCallback) {
+          errorCallback(data.data, item, anime);
+        }
+        try {
+          EventBus.emit("downloadProgress", {
+            slug: anime?.slug,
+            episode: item?.episode,
+            status: "error",
+            progress: -1,
+          });
+        } catch {}
       } else {
         const statusText = STATUSES[status] || status;
         updateDownloadProgress({
@@ -312,7 +341,6 @@ export async function DownloadVideo({
 
   try {
     FFmpegKitConfig.init();
-    console.log(await FFmpegKitConfig.getVersion(), "version");
 
     // Виправлено порядок - спочатку визначаємо nameOfFile
     const nameOfFile = `${sanitizeFileName(
@@ -323,7 +351,6 @@ export async function DownloadVideo({
     let tsLinks = [];
     let duration;
     let pathToSaveEpisodes = await getVideoDir();
-    console.log(pathToSaveEpisodes, "pathToSaveEpisodes");
 
     // Спочатку створюємо змінну outputPath
     let outputPath = `${pathToSaveEpisodes}/${sanitizeFileName(
@@ -341,6 +368,14 @@ export async function DownloadVideo({
       if (!error.message.includes("already exists")) {
         throw error;
       }
+    }
+
+    if (!(await hasAtLeastOneGBFree())) {
+      updateStatus("error", {
+        progress: -1,
+        data: ["no_free_space_on_device"],
+      });
+      return { success: false, error: "no_free_space_on_device" };
     }
 
     // Додаємо ім'я файлу до шляху
@@ -443,8 +478,6 @@ export async function DownloadVideo({
     await FFmpegKit.executeAsync(
       command,
       async (session) => {
-        console.log(await session, "session");
-
         if (!session) {
           console.error("FFmpegKit session is null");
           updateStatus("error", {
@@ -562,7 +595,6 @@ async function getPlayerDataFrom_ASHDI_Player(url) {
     const response = await axios.get(url);
     const htmlContent = response.data;
     const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
-    console.log(fileMatch);
     return fileMatch ? { file: fileMatch[1] } : null;
   } catch (error) {
     console.error("Ошибка загрузки:", error);
@@ -654,7 +686,6 @@ function dataToTsLinks(data, baseUrl = "") {
           (match) => baseUrl + "/" + match[1]
         )
       : [...data.matchAll(/(https:\/\/[^\s]+\.ts)/g)].map((match) => match[1]);
-  console.log(tsLinks, "tsLinks");
 
   if (tsLinks.length === 0) {
     return { success: false, error: "no_ts_segments_found" };

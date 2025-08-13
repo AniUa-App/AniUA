@@ -7,6 +7,7 @@ import { ActivityIndicator } from "react-native";
 import { TouchableOpacity } from "./Button";
 import AnimeStorage from "../Storage/AnimeStorage";
 import SystemNavigationBar from "react-native-system-navigation-bar";
+import { useThemeColors } from "../Global/useTheme";
 
 function goToPlayer(navigation, player, item, episodesList, anime, dubbing) {
   if (player === "Вбудований плеєр") {
@@ -30,7 +31,7 @@ function goToPlayer(navigation, player, item, episodesList, anime, dubbing) {
 }
 
 // Буде повертати текст для кнопки, нову data та функцію
-export function ViewEpisode({ navigation, episodesList, info, anime }) {
+export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
   // Перевірка на наявність необхідних даних
   if (!info || !info.watched || !episodesList) {
     return {
@@ -55,7 +56,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
       data: info,
       function: () => {},
       style: {
-        backgroundColor: loaderColor,
+        backgroundColor: (theme && theme.loaderColor) || loaderColor,
       },
     };
   }
@@ -179,7 +180,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
         data: info,
         function: () => {},
         style: {
-          backgroundColor: loaderColor,
+          backgroundColor: (theme && theme.loaderColor) || loaderColor,
         },
       };
     } else {
@@ -188,7 +189,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime }) {
         data: info,
         function: () => {},
         style: {
-          backgroundColor: loaderColor,
+          backgroundColor: (theme && theme.loaderColor) || loaderColor,
         },
       };
     }
@@ -313,14 +314,17 @@ export function ForwardButton({
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: loaderColor,
+              backgroundColor: useThemeColors()?.loaderColor || loaderColor,
             },
           ]}
           disabled={disabled}
           activeOpacity={0.7}
           {...props}
         >
-          <ActivityIndicator size="31" color={appColor} />
+          <ActivityIndicator
+            size="31"
+            color={useThemeColors()?.appColor || appColor}
+          />
         </TouchableOpacity>
       ) : isData === true && data_ ? (
         <TouchableOpacity
@@ -338,12 +342,12 @@ export function ForwardButton({
           activeOpacity={0.7}
           {...props}
         >
-          <Icon.PlayCircle size={34} color={white} />
+          <Icon.PlayCircle size={34} color={useThemeColors()?.white || white} />
           <Text
             style={[
               H3,
               {
-                color: white,
+                color: useThemeColors()?.white || white,
                 paddingLeft: 15,
                 fontSize: data_.text.length > 15 ? 18 : 20,
               },
@@ -360,14 +364,16 @@ export function ForwardButton({
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: loaderColor,
+              backgroundColor: useThemeColors()?.loaderColor || loaderColor,
             },
           ]}
           disabled={disabled}
           activeOpacity={0.7}
           {...props}
         >
-          <Text style={[H3, { color: white }]}>Немає перекладу</Text>
+          <Text style={[H3, { color: useThemeColors()?.white || white }]}>
+            Немає перекладу
+          </Text>
         </TouchableOpacity>
       )}
     </>
