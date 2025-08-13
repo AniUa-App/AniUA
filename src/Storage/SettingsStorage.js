@@ -1,28 +1,26 @@
-import {Storage} from './Storage';
-import { getDocumentDirectory } from '../FIleSystem/FileSystem';
+import { Storage } from "./Storage";
+import { getDocumentDirectory } from "../FIleSystem/FileSystem";
 
 class SettingsStorage extends Storage {
-  storageKey = 'settingsStorage';
+  storageKey = "settingsStorage";
   constructor() {
     super();
   }
-
-
 
   async initializeParameters() {
     try {
       // Безпечне отримання шляху з перевіркою
       const documentDir = await getDocumentDirectory();
-      const path = documentDir ? `${documentDir}episodes/` : 'episodes/';
-      
+      const path = documentDir ? `${documentDir}episodes/` : "episodes/";
+
       this.setDefaultParameters({
         pathToSaveEpisodes: path,
       });
     } catch (error) {
-      console.warn('Помилка ініціалізації параметрів SettingsStorage:', error);
+      console.warn("Помилка ініціалізації параметрів SettingsStorage:", error);
       // Встановлюємо резервні значення
       this.setDefaultParameters({
-        pathToSaveEpisodes: 'episodes/',
+        pathToSaveEpisodes: "episodes/",
       });
     }
   }
@@ -31,17 +29,17 @@ class SettingsStorage extends Storage {
     try {
       this.setItem(this.storageKey, structure);
     } catch (error) {
-      console.error('Error setting default parameters:', error);
+      console.error("Error setting default parameters:", error);
     }
   }
 
   getParameter(parameter) {
     try {
       const settings = this.getItem(this.storageKey, {});
-      return settings[parameter] || '';
+      return settings[parameter] || "";
     } catch (error) {
-      console.error('Error getting parameter:', error);
-      return '';
+      console.error("Error getting parameter:", error);
+      return "";
     }
   }
 
@@ -53,7 +51,17 @@ class SettingsStorage extends Storage {
         [parameter]: value,
       });
     } catch (error) {
-      console.error('Error setting parameter:', error);
+      console.error("Error setting parameter:", error);
+    }
+  }
+  setDefaultUserConfig() {
+    try {
+      this.setItem("userConfig.recommendations", {
+        isEnabled: true,
+        isDefaultBigBanner: true,
+      });
+    } catch (error) {
+      console.error("Error setting default parameters:", error);
     }
   }
 }

@@ -26,6 +26,7 @@ import AllowTheVideoFolder, {
 import { useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
+import { EventBus } from "./src/Global/EventBus";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +77,19 @@ export default function App() {
   };
 
   useEffect(() => {
+    console.log(
+      "SettingsStorage.getParameter('userConfig.recommendations')",
+      SettingsStorage.getParameter("userConfig.recommendations").length === 0
+    );
+    if (
+      SettingsStorage.getParameter("userConfig.recommendations").length === 0
+    ) {
+      SettingsStorage.setParameter("userConfig.recommendations", {
+        isEnabled: true,
+        isDefaultBigBanner: true,
+      });
+    }
+
     setIsErrorBoundary(
       MainConfig.debug.isErrorBoundary ||
         SettingsStorage.getParameter("isErrorBoundary") ||

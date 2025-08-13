@@ -181,4 +181,8 @@ export class HikkaApi {
       episodes: { data: [], code: 500 },
     }));
   }
+
+  public static getApiUrl() {
+    return `${HikkaApi.apiUrl}`;
+  }
 }

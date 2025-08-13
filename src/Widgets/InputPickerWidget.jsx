@@ -1,0 +1,256 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity as RNTouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import { useThemeColors } from "../Global/useTheme";
+import { H4, H5 } from "../Styles/Fonts";
+import Icons from "../Styles/Icons";
+import { TouchableOpacity } from "./Button";
+
+/**
+ * Віджет вибору зі списку зі зручним багатовибором і чипами вибраних значень під полем
+ *
+ * Props:
+ * - items: string[] | {label: string, value: string}[] — список опцій
+ * - selected: string[] — початково вибрані значення (контрольований режим)
+ * - onChange: (values: string[]) => void — колбек на зміну вибору
+ * - placeholder: string — плейсхолдер у полі
+ * - multiple: boolean — дозволити вибрати кілька значень (default: true)
+ * - style: ViewStyle — контейнер віджета
+ * - dropdownStyle: ViewStyle — стилі дропдауну
+ * - maxDropdownHeight: number — максимальна висота блоку опцій
+ * - chipStyle: ViewStyle — стилі окремого чипа
+ */
+export default function InputPickerWidget({
+  items = [],
+  selected,
+  onChange = () => {},
+  placeholder = "Виберіть жанр/жанри...",
+  multiple = true,
+  style,
+  dropdownStyle,
+  maxDropdownHeight = 240,
+  chipStyle,
+}) {
+  const colors = useThemeColors();
+
+  const normalizedItems = useMemo(() => {
+    return (items || []).map((it) => {
+      if (typeof it === "string") return { label: it, value: it };
+      return { label: it?.label ?? String(it?.value ?? ""), value: it?.value };
+    });
+  }, [items]);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [internalSelected, setInternalSelected] = useState(
+    Array.isArray(selected) ? selected : []
+  );
+  const [query, setQuery] = useState("");
+
+  // Синхронізація з контрольованим значенням
+  useEffect(() => {
+    if (!Array.isArray(selected)) return;
+    // Оновлюємо тільки якщо значення справді змінились,
+    // щоб уникнути зайвих ререндерів
+    const a = internalSelected;
+    const b = selected;
+    if (a.length === b.length && a.every((v, i) => v === b[i])) return;
+    setInternalSelected(b);
+  }, [selected]);
+
+  const isSelected = useCallback(
+    (value) => internalSelected.includes(value),
+    [internalSelected]
+  );
+
+  const updateSelection = useCallback(
+    (value) => {
+      if (!multiple) {
+        const newValues = [value];
+        setInternalSelected(newValues);
+        onChange(newValues);
+        setIsOpen(false);
+        return;
+      }
+      const exists = internalSelected.includes(value);
+      const newValues = exists
+        ? internalSelected.filter((v) => v !== value)
+        : [...internalSelected, value];
+      setInternalSelected(newValues);
+      onChange(newValues);
+    },
+    [internalSelected, multiple, onChange]
+  );
+
+  const removeChip = useCallback(
+    (value) => {
+      const newValues = internalSelected.filter((v) => v !== value);
+      setInternalSelected(newValues);
+      onChange(newValues);
+    },
+    [internalSelected, onChange]
+  );
+
+  const renderOption = useCallback(
+    ({ item }) => {
+      const active = isSelected(item.value);
+      return (
+        <RNTouchableOpacity
+          onPress={() => updateSelection(item.value)}
+          activeOpacity={0.8}
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            backgroundColor: active ? colors.black_1 : colors.black,
+            borderRadius: 6,
+            marginHorizontal: 8,
+            marginVertical: 6,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={[H5, { color: colors.white }]}>{item.label}</Text>
+          {active ? (
+            <Icons.Check size={18} color={colors.appColor} />
+          ) : (
+            <Icons.Plus size={18} color={colors.white} />
+          )}
+        </RNTouchableOpacity>
+      );
+    },
+    [colors, isSelected, updateSelection]
+  );
+
+  const filteredItems = useMemo(() => {
+    if (!query) return normalizedItems;
+    const q = query.toLowerCase();
+    return normalizedItems.filter((i) =>
+      String(i.label).toLowerCase().includes(q)
+    );
+  }, [normalizedItems, query]);
+
+  return (
+    <View style={[{ width: "100%" }, style]}>
+      <View style={{ position: "relative" }}>
+        <View
+          style={{
+            height: 48,
+            borderRadius: 10,
+            backgroundColor: colors.black_1,
+            paddingHorizontal: 14,
+            alignItems: "center",
+            flexDirection: "row",
+            opacity: 0.95,
+          }}
+        >
+          <TextInput
+            ref={useRef(null)}
+            value={query}
+            onChangeText={setQuery}
+            onFocus={() => setIsOpen(true)}
+            placeholder={placeholder}
+            placeholderTextColor={colors.white}
+            style={[H4, { color: colors.white, flex: 1 }]}
+          />
+          <RNTouchableOpacity
+            onPress={() => setIsOpen((v) => !v)}
+            activeOpacity={0.7}
+          >
+            {isOpen ? (
+              <Icons.CaretUp size={18} color={colors.white} />
+            ) : (
+              <Icons.CaretDown size={18} color={colors.white} />
+            )}
+          </RNTouchableOpacity>
+        </View>
+
+        {isOpen ? (
+          <View
+            style={[
+              styles.dropdown,
+              {
+                backgroundColor: colors.black,
+                borderColor: colors.black_1,
+                maxHeight: maxDropdownHeight,
+              },
+              dropdownStyle,
+            ]}
+          >
+            {/* Поле вводу тепер у хедері, тому інпут тут не потрібен */}
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
+            >
+              {filteredItems.map((item) => (
+                <View key={String(item.value)}>{renderOption({ item })}</View>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Чипи вибраних значень */}
+      {internalSelected.length > 0 ? (
+        <View style={styles.chipsContainer}>
+          {internalSelected.map((value) => (
+            <View
+              key={value}
+              style={[
+                styles.chip,
+                { backgroundColor: colors.appColor },
+                chipStyle,
+              ]}
+            >
+              <RNTouchableOpacity
+                onPress={() => removeChip(value)}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                style={{ marginRight: 6 }}
+              >
+                <Icons.XCircle size={16} color={colors.white} />
+              </RNTouchableOpacity>
+              <Text style={[H5, { color: colors.white }]}>{value}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  dropdown: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 6,
+    zIndex: 10,
+  },
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingTop: 10,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+});

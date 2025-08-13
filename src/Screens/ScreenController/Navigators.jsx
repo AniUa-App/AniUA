@@ -6,4 +6,4 @@ export const Tab = createBottomTabNavigator();
 export const HiddenStackNav = createNativeStackNavigator();
 export const RootStack = createNativeStackNavigator();
 export const TabBookmark = createMaterialTopTabNavigator();
-
+export const BottomSheetNav = createNativeStackNavigator();
