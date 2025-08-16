@@ -1,20 +1,20 @@
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   TextInput,
   Animated,
   Easing,
+  ScrollView,
 } from "react-native";
 import React, { useRef, useState } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import AnimeListHorizontal from "../Widgets/AnimeListHorizontalWidget";
 import { HikkaSets } from "../Sources/HikkaSets";
 import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
 import { ActivityIndicator } from "react-native";
+import { TouchableOpacity } from "../Widgets/Button";
 
 import {
   appColor,
@@ -39,10 +39,28 @@ import {
   CustomAnimeListsPreviewScreen,
   CustomisationAnimeListsScreen,
 } from "./BottomSheetScreens";
+import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
+import { getGenres } from "../Sources/CustomSet";
+import SliderWidget from "../Widgets/SliderWidget";
+import InputPickerWidget from "../Widgets/InputPickerWidget";
+import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import {
+  Statuses,
+  Seasons,
+  Genres,
+  Sort,
+  Rating,
+  getPagesAndSizes,
+  sendRequest,
+} from "../Sources/CustomSet";
 
 export default function MainScreenCustomisationScreen() {
   const [RECOMMENDATIONS, setRecommendations] = useState();
-  const PersonalRecommendationsSettingsRef = useRef(null);
+
+  const RecListRef = useRef(null);
+
+  const [isPersonalRecView, setIsPersonalRecView] = useState(false);
+  const [PerRecList, setPerRecList] = useState([]);
 
   function SET_RECOMMENDATIONS(newRecommendations) {
     setRecommendations(newRecommendations);
@@ -57,11 +75,16 @@ export default function MainScreenCustomisationScreen() {
       newRecommendations
     );
   }
+  function addList(list) {
+    PersonalRecListStorage.newSettingsList(list);
+    setPerRecList(PersonalRecListStorage.getSettingsList());
+  }
 
   useEffect(() => {
     setRecommendations(
       SettingsStorage.getParameter("userConfig.recommendations")
     );
+    setPerRecList(PersonalRecListStorage.getSettingsList());
   }, []);
 
   return (
@@ -75,9 +98,7 @@ export default function MainScreenCustomisationScreen() {
             isEnabled: !RECOMMENDATIONS?.isEnabled,
           });
         }}
-        onBodyPress={() => {
-          PersonalRecommendationsSettingsRef.current?.present();
-        }}
+        onBodyPress={() => {}}
       />
       <SwitchWidget
         title="Показувати вбудований банер"
@@ -94,7 +115,7 @@ export default function MainScreenCustomisationScreen() {
         value={RECOMMENDATIONS?.isCustomedPersonalRecommendations || false}
         onPress={() => {
           if (!RECOMMENDATIONS?.isCustomedPersonalRecommendations) {
-            PersonalRecommendationsSettingsRef.current?.present();
+            setIsPersonalRecView(true);
           }
           SET_RECOMMENDATIONS({
             ...RECOMMENDATIONS,
@@ -103,78 +124,248 @@ export default function MainScreenCustomisationScreen() {
           });
         }}
         onPressBody={() => {
-          if (RECOMMENDATIONS?.isCustomedPersonalRecommendations) {
-            PersonalRecommendationsSettingsRef.current?.present();
-          }
+          setIsPersonalRecView(!isPersonalRecView);
         }}
       />
-      <PersonalRecommendationsSettings
-        sheetRef={PersonalRecommendationsSettingsRef}
-        personalRecommendations={RECOMMENDATIONS?.personalRecommendations}
+      {isPersonalRecView && (
+        <PersonalRecList
+          onPressAdd={() => {
+            RecListRef.current?.present();
+          }}
+        />
+      )}
+      <PersonalRecListFilter
+        sheetRef={RecListRef}
+        onPressOk={(payload) => {
+          console.log(payload);
+          RecListRef.current?.close();
+          addList(payload);
+        }}
+        onPressCancel={() => {
+          RecListRef.current?.close();
+        }}
       />
     </DefaultScreenWidget>
   );
 }
 
-function CustomisationScreen() {
+function PersonalRecList({ onPressAdd = () => {} }) {
+  const [personalRecList, setPersonalRecList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const RecListRef = useRef(null);
+
+  useEffect(() => {
+    const list = PersonalRecListStorage.getSettingsList();
+    setPersonalRecList(list);
+  }, []);
+
   return (
-    <View>
-      <Text>CustomisationScreen</Text>
-    </View>
+    <ScrollView style={{ flex: 1, padding: 16 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          padding: 8,
+          paddingTop: 0,
+        }}
+      >
+        <TouchableOpacity
+          onPress={onPressAdd}
+          style={{
+            width: 44,
+            height: 44,
+            backgroundColor: appColor,
+            borderRadius: 8,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icons.Plus size={24} color={white} />
+        </TouchableOpacity>
+      </View>
+      {personalRecList.map((item, index) => (
+        <Text key={index}>{item.name}</Text>
+      ))}
+    </ScrollView>
   );
 }
 
-const OngoingAnimeList = React.memo(() => {
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigation();
+export function PersonalRecListFilter({
+  onPressOk = () => {},
+  onPressCancel = () => {},
+  sheetRef,
+}) {
+  const [LoadedGenres, setLoadedGenres] = useState([]);
 
-  useEffect(() => {
-    const fetchPopularAnime = async () => {
-      try {
-        const data = await HikkaSets.getOngoingAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
-      } finally {
-        setIsLoading(false);
-      }
+  const [status, setStatus] = useState("Анонс");
+  const [seasons, setSeasons] = useState("Зима");
+  const [years, setYears] = useState([1965, new Date().getFullYear()]);
+  const [score, setScore] = useState(5);
+  const [genres, setGenres] = useState([]);
+  const [animeListName, setAnimeListName] = useState("");
+
+  async function onPressOkey() {
+    if (animeListName.length === 0) {
+      return;
+    }
+    const animeSet = {
+      Genres: genres.map((genre) => Genres[genre]),
+      Statuses: status ? Statuses[status] : [],
+      Seasons: seasons ? Seasons[seasons] : [],
+      IsUkrainianised: true,
+      Sort: Sort["Загальна оцінка"],
+      Rating: [],
+      Years: years,
+      Score: [score, 10],
     };
 
-    fetchPopularAnime();
-  }, []);
-
-  const handleShowMore = useCallback(async () => {
-    try {
-      const data = await HikkaSets.getOngoingAnime(1, 32, 2020);
-      navigation.navigate("HiddenStack", {
-        screen: "AnimeList",
-        params: {
-          title: "Онґоінги",
-          initialData: data,
-        },
-      });
-    } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
-    }
-  }, [navigation]);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
-      </View>
-    );
+    const { size, pages } = await getPagesAndSizes(animeSet);
+    console.log(size, pages, "size, pages");
+    const payload = {
+      name: animeListName,
+      animeSet: animeSet,
+      type: "horizontal",
+      pages: pages,
+      size: size,
+      isArrow: null,
+    };
+    onPressOk(payload);
   }
 
+  useEffect(() => {
+    getGenres().then((res) => {
+      setLoadedGenres(res);
+    });
+  }, []);
+
   return (
-    <AnimeListHorizontal
-      title="Онґоінги"
-      animeList={animeList}
-      onClickMore={handleShowMore}
-    />
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={["60%"]}
+      enableDynamicSizing={false}
+      enablePanDownToClose={true}
+      backgroundStyle={{ backgroundColor: Black_1(0.8) }}
+      handleIndicatorStyle={{ backgroundColor: black }}
+      backdropComponent={(props) => (
+        <TouchableOpacity
+          onPress={() => sheetRef.current?.close()}
+          activeOpacity={1}
+          {...props}
+        />
+      )}
+      animationDuration={300}
+      enableContentPanningGesture={false}
+    >
+      <BottomSheetScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ flex: 1, paddingBottom: 100 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              paddingHorizontal: 16,
+              marginBottom: 16,
+              gap: 30,
+            }}
+          >
+            <TextInputWidget
+              style={{ width: "80%" }}
+              placeholder="Назва"
+              title={animeListName}
+              onChangeText={(text) => {
+                setAnimeListName(text);
+              }}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                if (animeListName.length > 0) {
+                  onPressOkey();
+                } else {
+                  onPressCancel();
+                }
+              }}
+              style={{
+                width: 44,
+                height: 44,
+                backgroundColor: appColor,
+                borderRadius: 8,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {animeListName.length > 0 ? (
+                <Icons.Check size={24} color={white} />
+              ) : (
+                <Icons.X size={24} color={white} />
+              )}
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              paddingHorizontal: 16,
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
+            <SegmentedControlLabelWidget
+              segments={[
+                { label: "Анонс" },
+                { label: "Онґоінґ" },
+                { label: "Завершено" },
+                { label: "Неважливо" },
+              ]}
+              onChange={(item) => {
+                setStatus(item?.label ?? item);
+              }}
+            />
+            <SegmentedControlLabelWidget
+              segments={[
+                { label: "Зима" },
+                { label: "Весна" },
+                { label: "Літо" },
+                { label: "Осінь" },
+                { label: "Неважливо" },
+              ]}
+              onChange={(item) => {
+                setSeasons(item?.label ?? item);
+              }}
+            />
+            <InputPickerWidget
+              items={LoadedGenres}
+              onChange={(item) => {
+                setGenres(item);
+              }}
+            />
+            <SliderWidget
+              label="Рік"
+              min={2000}
+              max={2025}
+              value={years}
+              defaultValue={2005}
+              style={{}}
+              onChange={(item) => {
+                setYears([item, new Date().getFullYear()]);
+              }}
+            />
+            <SliderWidget
+              label="Оцінка"
+              min={0}
+              max={10}
+              value={score}
+              defaultValue={5}
+              style={{}}
+              onChange={(item) => {
+                setScore(item);
+              }}
+            />
+          </View>
+        </View>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
-});
+}
 
 const styles = StyleSheet.create({
   segmentContainer: {
@@ -207,60 +398,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-
-function PersonalRecommendationsSettings({
-  sheetRef,
-  personalRecommendations,
-}) {
-  const [
-    customAnimeRecommendationsSettings,
-    setCustomAnimeRecommendationsSettings,
-  ] = useState([]);
-  const [isAdding, setIsAdding] = useState(false);
-  return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={["50%"]}
-      enableDynamicSizing={false}
-      enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Black_1(0.8) }}
-      handleIndicatorStyle={{ backgroundColor: black }}
-      backdropComponent={(props) => (
-        <TouchableOpacity
-          onPress={() => {
-            setIsAdding(false);
-            sheetRef.current?.close();
-          }}
-          {...props}
-        />
-      )}
-      animationDuration={300}
-      enableContentPanningGesture={true}
-    >
-      <BottomSheetScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {isAdding ? (
-          <CustomisationAnimeListsScreen
-            onPressCheck={() => {
-              setIsAdding(false);
-            }}
-          />
-        ) : (
-          <CustomAnimeListsPreviewScreen
-            onPressAdd={() => {
-              setIsAdding(true);
-            }}
-          />
-        )}
-      </BottomSheetScrollView>
-    </BottomSheetModal>
-  );
-}
-
-function configureAnimeRecommendationsItem() {}
 
 export function TabWidget({ segments, onSelect = () => {}, style }) {
   const [activeSegment, setActiveSegment] = useState(segments[0]);
@@ -337,10 +474,11 @@ export function TextInputWidget({
     <View style={[style]}>
       <TextInput
         value={title}
-        onChangeText={onChangeText}
+        onChangeText={(text) => {
+          onChangeText(text);
+        }}
         placeholder={placeholder}
         placeholderTextColor={gray}
-        textColor={white}
         style={{
           height: 45,
           width: "100%",

@@ -10,12 +10,13 @@
     "setup-file-opener": "node scripts/setup-file-opener-v3.js",
     "setup-ffmpeg": "cd android && ./gradlew downloadAar && cd ..",
     "eas-build-pre-install": "npm config set legacy-peer-deps true",
+    "eas-build-post-install": "npx patch-package && npm run setup-ffmpeg",
+    "postinstall": "patch-package",
     "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
     "set-env": "node ./scripts/set-environment.js ",
     "update-alpha": "npm run set-env && npx eas update --branch alpha -m 'Update!'"
   },
   "dependencies": {
-    "--legacy-peer-deps": "^0.0.1-security.6",
     "@gorhom/bottom-sheet": "^5.1.8",
     "@notifee/react-native": "^9.1.8",
     "@react-native-clipboard/clipboard": "^1.16.3",
@@ -91,6 +92,7 @@
     "react-native-video": "^6.16.1",
     "react-native-video-controls": "^2.8.1",
     "react-native-webview": "13.13.5",
+    "react-navigation-shared-element": "^3.1.3",
     "reactotron-apisauce": "^3.0.6",
     "reactotron-react-native": "^5.1.14",
     "reactotron-react-native-mmkv": "^0.2.8",

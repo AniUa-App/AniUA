@@ -1,25 +1,25 @@
-import React, {useRef, useState, useEffect, useCallback} from 'react';
-import {View, StyleSheet, Dimensions, FlatList} from 'react-native';
-import {TouchableOpacity} from './Button';
-import LinearGradient from 'react-native-linear-gradient';
-import {GetScreenHeight, GetScreenWidth} from '../Global/Functions';
-import {useNavigation} from '@react-navigation/native';
-import {Image} from './LoadersWidgets';
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { View, StyleSheet, Dimensions, FlatList } from "react-native";
+import { TouchableOpacity } from "./Button";
+import LinearGradient from "react-native-linear-gradient";
+import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
+import { useNavigation } from "@react-navigation/native";
+import { Image } from "./LoadersWidgets";
 
 const width = GetScreenWidth();
 const height = GetScreenHeight() * 0.7;
 
-const BigBannerWidget = React.memo(({animes}) => {
+const BigBannerWidget = React.memo(({ animes }) => {
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigation = useNavigation();
-  const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
   useEffect(() => {
     if (!animes || animes.length <= 1) return;
 
     const intervalId = setInterval(() => {
-      setCurrentIndex(prevIndex => {
+      setCurrentIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % animes.length;
 
         if (flatListRef.current) {
@@ -37,7 +37,7 @@ const BigBannerWidget = React.memo(({animes}) => {
   }, [animes]);
 
   const onViewableItemsChanged = useCallback(
-    ({viewableItems}) => {
+    ({ viewableItems }) => {
       if (viewableItems && viewableItems.length > 0) {
         const newIndex = viewableItems[0].index;
         if (newIndex !== null && newIndex !== currentIndex) {
@@ -45,35 +45,36 @@ const BigBannerWidget = React.memo(({animes}) => {
         }
       }
     },
-    [currentIndex],
+    [currentIndex]
   );
 
   const renderItem = useCallback(
-    ({item}) => (
+    ({ item }) => (
       <TouchableOpacity
         style={styles.imageContainer}
         onPress={() =>
-          navigation.navigate('HiddenStack', {
-            screen: 'AnimePreview',
-            params: {anime: item},
+          navigation.navigate("HiddenStack", {
+            screen: "AnimePreview",
+            params: { anime: item },
           })
-        }>
-        <Image uri={item.image} style={{width: '100%', height: '100%'}} />
+        }
+      >
+        <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
 
         <LinearGradient
-          colors={['rgba(255,249,249,0)', 'rgba(24,28,20,0.9)']}
+          colors={["rgba(255,249,249,0)", "rgba(24,28,20,0.9)"]}
           style={styles.bottomGradient}
-          start={{x: 0, y: 0}}
-          end={{x: 0, y: 1}}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
         />
       </TouchableOpacity>
     ),
-    [navigation],
+    [navigation]
   );
 
   const keyExtractor = useCallback(
     (item, index) => `banner-${item.slug || index}`,
-    [],
+    []
   );
 
   if (!animes || animes.length === 0) {
@@ -114,14 +115,14 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: width,
     height: height,
-    position: 'relative',
+    position: "relative",
   },
 
   bottomGradient: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    height: '35%',
+    height: "35%",
   },
 });

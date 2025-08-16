@@ -16,7 +16,7 @@ import { appColor } from "../Styles/Colors";
 import { useFocusEffect } from "@react-navigation/native";
 import { InternetError } from "../Widgets/ErrorsWidgets";
 import { HikkaSets } from "../Sources/HikkaSets";
-import AnimeListHorizontal from "./../Widgets/AnimeListHorizontalWidget";
+import { AnimeListHorizontal } from "./../Widgets/AnimeListHorizontalWidget";
 import { useNavigation } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
@@ -36,9 +36,6 @@ export default function HomeScreen() {
     EventBus.on("recommendations", (newRecommendations) => {
       setRecommendations(newRecommendations);
     });
-    if (recommendations === undefined) {
-      SettingsStorage.setDefaultUserConfig();
-    }
   }, []);
 
   // Отримання найпопулярніших аніме за поточний рік при першому завантаженні

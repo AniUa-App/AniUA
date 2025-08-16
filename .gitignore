@@ -74,10 +74,7 @@ tmp/
 temp/
 
 # Android
-*.aar
 *.apk
-*.aab
-*.jar
 *.war
 *.ear
 *.zip

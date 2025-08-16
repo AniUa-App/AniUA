@@ -12,6 +12,9 @@ import {
   TouchableOpacity as RNTouchableOpacity,
   ScrollView,
   TextInput,
+  Modal,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import { useThemeColors } from "../Global/useTheme";
 import { H4, H5 } from "../Styles/Fonts";
@@ -44,6 +47,8 @@ export default function InputPickerWidget({
   chipStyle,
 }) {
   const colors = useThemeColors();
+  const inputContainerRef = useRef(null);
+  const inputRef = useRef(null);
 
   const normalizedItems = useMemo(() => {
     return (items || []).map((it) => {
@@ -57,6 +62,7 @@ export default function InputPickerWidget({
     Array.isArray(selected) ? selected : []
   );
   const [query, setQuery] = useState("");
+  const [anchor, setAnchor] = useState(null);
 
   // Синхронізація з контрольованим значенням
   useEffect(() => {
@@ -107,12 +113,14 @@ export default function InputPickerWidget({
       const active = isSelected(item.value);
       return (
         <RNTouchableOpacity
-          onPress={() => updateSelection(item.value)}
+          onPress={() => {
+            updateSelection(item.value);
+            if (multiple) setIsOpen(true);
+          }}
           activeOpacity={0.8}
           style={{
             paddingHorizontal: 12,
             paddingVertical: 10,
-            backgroundColor: active ? colors.black_1 : colors.black,
             borderRadius: 6,
             marginHorizontal: 8,
             marginVertical: 6,
@@ -130,7 +138,7 @@ export default function InputPickerWidget({
         </RNTouchableOpacity>
       );
     },
-    [colors, isSelected, updateSelection]
+    [colors, isSelected, updateSelection, multiple]
   );
 
   const filteredItems = useMemo(() => {
@@ -141,9 +149,20 @@ export default function InputPickerWidget({
     );
   }, [normalizedItems, query]);
 
+  const measureAnchor = useCallback(() => {
+    if (!inputContainerRef.current) return;
+    inputContainerRef.current.measureInWindow((x, y, width, height) => {
+      setAnchor({ x, y, width, height });
+    });
+  }, []);
+
   return (
     <View style={[{ width: "100%" }, style]}>
-      <View style={{ position: "relative" }}>
+      <View
+        ref={inputContainerRef}
+        onLayout={measureAnchor}
+        style={{ position: "relative" }}
+      >
         <View
           style={{
             height: 48,
@@ -156,16 +175,25 @@ export default function InputPickerWidget({
           }}
         >
           <TextInput
-            ref={useRef(null)}
+            ref={inputRef}
             value={query}
             onChangeText={setQuery}
-            onFocus={() => setIsOpen(true)}
+            onFocus={() => {
+              measureAnchor();
+              setIsOpen(true);
+            }}
             placeholder={placeholder}
             placeholderTextColor={colors.white}
             style={[H4, { color: colors.white, flex: 1 }]}
           />
           <RNTouchableOpacity
-            onPress={() => setIsOpen((v) => !v)}
+            onPress={() =>
+              setIsOpen((v) => {
+                const next = !v;
+                if (next) measureAnchor();
+                return next;
+              })
+            }
             activeOpacity={0.7}
           >
             {isOpen ? (
@@ -175,31 +203,51 @@ export default function InputPickerWidget({
             )}
           </RNTouchableOpacity>
         </View>
-
-        {isOpen ? (
-          <View
-            style={[
-              styles.dropdown,
-              {
-                backgroundColor: colors.black,
-                borderColor: colors.black_1,
-                maxHeight: maxDropdownHeight,
-              },
-              dropdownStyle,
-            ]}
-          >
-            {/* Поле вводу тепер у хедері, тому інпут тут не потрібен */}
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              nestedScrollEnabled={true}
-            >
-              {filteredItems.map((item) => (
-                <View key={String(item.value)}>{renderOption({ item })}</View>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
       </View>
+
+      {isOpen && anchor ? (
+        <Modal
+          transparent
+          animationType="none"
+          onRequestClose={() => setIsOpen(false)}
+        >
+          <View style={{ flex: 1 }}>
+            <Pressable
+              style={StyleSheet.absoluteFillObject}
+              onPress={() => {
+                setIsOpen(false);
+                inputRef.current?.blur?.();
+                Keyboard.dismiss();
+              }}
+            />
+            <View
+              style={[
+                styles.dropdown,
+                {
+                  position: "absolute",
+                  left: anchor.x,
+                  top: anchor.y + 52,
+                  width: anchor.width,
+                  backgroundColor: colors.black,
+                  borderColor: colors.black_1,
+                  maxHeight: maxDropdownHeight,
+                },
+                dropdownStyle,
+              ]}
+            >
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={false}
+              >
+                {filteredItems.map((item) => (
+                  <View key={String(item.value)}>{renderOption({ item })}</View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      ) : null}
 
       {/* Чипи вибраних значень */}
       {internalSelected.length > 0 ? (
@@ -231,10 +279,6 @@ export default function InputPickerWidget({
 
 const styles = StyleSheet.create({
   dropdown: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 52,
     borderRadius: 10,
     borderWidth: 1,
     paddingVertical: 6,

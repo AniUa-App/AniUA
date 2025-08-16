@@ -2,7 +2,7 @@ import { Storage } from "./Storage";
 import { getDocumentDirectory } from "../FIleSystem/FileSystem";
 import ReqCustomSet from "../Sources/CustomSet";
 
-class CustomAnimeRecommendationsSettingsStorage extends Storage {
+class PersonalRecListStorage extends Storage {
   storageKey = "userConfig.customAnimeRecommendations";
   constructor() {
     super();
@@ -18,9 +18,13 @@ class CustomAnimeRecommendationsSettingsStorage extends Storage {
     const settings = this.getItem(this.storageKey, []);
     return settings;
   }
+
+  clearStorage() {
+    this.setItem(this.storageKey, []);
+  }
 }
 
-export default new CustomAnimeRecommendationsSettingsStorage();
+export default new PersonalRecListStorage();
 
 export interface CustomAnimeSet {
   name: string;

@@ -9,11 +9,7 @@ import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
 
-export default function AnimeListHorizontal({
-  animeList,
-  title,
-  onClickMore = null,
-}) {
+export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
 
@@ -39,12 +35,12 @@ export default function AnimeListHorizontal({
           <TouchableOpacity
             key={index}
             style={[{ marginHorizontal: 8 }, styles.image]}
-            onPress={() =>
+            onPress={() => {
               navigation.navigate("HiddenStack", {
                 screen: "AnimePreview",
                 params: { anime },
-              })
-            }
+              });
+            }}
           >
             <Image uri={anime.image} style={styles.image} />
             <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
@@ -54,6 +50,52 @@ export default function AnimeListHorizontal({
         ))}
       </ScrollView>
     </View>
+  );
+}
+
+export function PreviewAnimeListHorizontal({
+  animeList,
+  title,
+  onPress = () => {},
+}) {
+  const themeColors = useThemeColors();
+
+  return (
+    <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
+      <TouchableOpacity
+        style={styles.header}
+        activeOpacity={0.9}
+        onPress={onPress}
+      >
+        <Text style={[styles.title, H3, { color: themeColors.white }]}>
+          {title}
+        </Text>
+        <View style={styles.arrowRightIcon}>
+          {animeList.length >= 25 && (
+            <Icon.ArrowRight size={34} color={themeColors.appColor} />
+          )}
+        </View>
+      </TouchableOpacity>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+      >
+        {animeList.map((anime, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[{ marginHorizontal: 8 }, styles.image]}
+            onPress={onPress}
+          >
+            <Image uri={anime.image} style={styles.image} />
+            <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
+              {anime.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </TouchableOpacity>
   );
 }
 

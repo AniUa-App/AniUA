@@ -327,21 +327,6 @@ export default function ScreenController() {
   );
 }
 
-export function BottomSheetNavigator() {
-  return (
-    <BottomSheetNav.Navigator>
-      <BottomSheetNav.Screen
-        name="CustomAnimeRecommendationsPreview"
-        component={BottomSheet}
-      />
-      <BottomSheetNav.Screen
-        name="CustomAnimeRecommendationsSettings"
-        component={BottomSheet}
-      />
-    </BottomSheetNav.Navigator>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     position: "absolute",

@@ -3,7 +3,7 @@ import React, { useEffect, useCallback } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
-import { H3, H4, H5 } from "../Styles/Fonts";
+import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
 import { appColor, white, black_1 } from "../Styles/Colors";
 import { SegmentedControl } from "react-native-ui-lib";
 
@@ -76,7 +76,7 @@ export function SegmentedControlLabelWidget({ segments, onChange = () => {} }) {
       }}
       borderRadius={8}
       segmentLabelStyle={{
-        ...H4,
+        ...H7,
       }}
       onChangeIndex={(index) => {
         onChangeIndex(index);
