@@ -2,8 +2,8 @@ import * as Device from "expo-device";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
+import * as Updates from "expo-updates";
 import SettingsStorage from "../Storage/SettingsStorage";
-import appConfig from "../../app.config";
 
 const appUrl = "https://aniua.yuzka.site";
 const appUri = "aniua://";
@@ -20,26 +20,54 @@ const getSafeValue = (value, fallback = "Unknown") => {
 // Функція для безпечного отримання версії
 const getSafeVersion = () => {
   try {
-    const version = appConfig.expo.version;
-    return String(version).replace("alpha ", "a");
+    const version = Constants?.expoConfig?.version;
+    return String(version ?? "1.0.0").replace("alpha ", "a");
   } catch (error) {
     console.warn("Error getting version:", error);
     return "1.0.0";
   }
 };
 
-// Безпечне отримання build-time extra (з Expo/`app.config.js`)
+// Безпечне отримання build-time extra (з Expo runtime config або манифесту OTA)
 const getBuildExtra = () => {
   try {
     const extraFromConstants = Constants?.expoConfig?.extra || {};
-    const extraFromAppConfig = appConfig?.expo?.extra || {};
-    return { ...extraFromAppConfig, ...extraFromConstants };
+    const extraFromManifest = Updates?.manifest?.extra || {};
+    // Перевага віддається runtime-даним OTA (маніфест), потім expoConfig
+    return { ...extraFromConstants, ...extraFromManifest };
   } catch (_e) {
     return {};
   }
 };
 
 const buildExtra = getBuildExtra();
+
+// Приводимо значення до безпечного рядка
+const toSafeString = (v, fallback = "unknown") => {
+  try {
+    if (v === undefined || v === null) return fallback;
+    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+      return String(v);
+    }
+    // ISO date string inside object or timestamp
+    if (typeof v === "object") {
+      if (v instanceof Date) return v.toISOString();
+      if (Array.isArray(v)) return v.join(", ");
+      if ("value" in v && (typeof v.value === "string" || typeof v.value === "number")) {
+        return String(v.value);
+      }
+      if ("toString" in v && typeof v.toString === "function" && v.toString !== Object.prototype.toString) {
+        const s = v.toString();
+        if (s && s !== "[object Object]") return s;
+      }
+    }
+    if (v instanceof Date) return v.toISOString();
+    // Уникаємо [object Object]
+    return fallback;
+  } catch (_e) {
+    return fallback;
+  }
+};
 
 export default {
   players: ["Вбудований плеєр", "moon", "ashdi"],
@@ -53,19 +81,17 @@ export default {
   },
   devInfo: {
     version: getSafeVersion(),
-    buildId: appConfig.expo.android.versionCode,
-    gitShortHash:
+    buildId: toSafeString(Constants?.expoConfig?.android?.versionCode),
+    gitShortHash: toSafeString(
       buildExtra.commitHashShort ||
-      buildExtra.commitHash ||
-      process.env.GIT_SHORT_HASH ||
-      process.env.GIT_HASH ||
-      "unknown",
-    gitHash:
-      buildExtra.commitHash ||
-      process.env.GIT_HASH ||
-      process.env.COMMIT_HASH ||
-      "unknown",
-    buildDate: buildExtra.buildDate || process.env.BUILD_DATE || "unknown",
+        buildExtra.commitHash ||
+        process.env.GIT_SHORT_HASH ||
+        process.env.GIT_HASH
+    ),
+    gitHash: toSafeString(
+      buildExtra.commitHash || process.env.GIT_HASH || process.env.COMMIT_HASH
+    ),
+    buildDate: toSafeString(buildExtra.buildDate || process.env.BUILD_DATE),
     deviceId: "unknown", // Буде оновлено асинхронно
     deviceName: getSafeValue(Device.deviceName, "Unknown Device"),
     systemVersion: getSafeValue(Device.osVersion, "Unknown"),
@@ -74,7 +100,7 @@ export default {
     manufacturer: getSafeValue(Device.manufacturer, "Unknown"),
     model: getSafeValue(Device.modelName || Device.designName, "Unknown"),
     getUniqueId: () => Promise.resolve("unknown"), // Заглушка
-    packageName: appConfig.expo.android.package,
+    packageName: toSafeString(Constants?.expoConfig?.android?.package),
   },
   partners: {
     hikka: {

@@ -102,6 +102,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@expo/config-plugins": "^10.1.2",
+    "dotenv": "^16.6.1",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.8.3"
   },

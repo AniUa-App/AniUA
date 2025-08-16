@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
@@ -53,18 +53,43 @@ export default function ButtonsScreen({ route }) {
   );
 }
 
-export function SegmentedControlLabelWidget({ segments, onChange = () => {} }) {
+export function SegmentedControlLabelWidget({
+  segments = [],
+  onChange = () => {},
+  value = "",
+}) {
+  if (!segments || segments.length === 0) {
+    return null;
+  }
+
   segments = segments.map((segment) => ({
     ...segment,
     label: segment.label,
   }));
+
+  // Compute a safe initial index based on value and available segments
+  const selectedIndex = useMemo(() => {
+    if (!value) return 0;
+    const idx = segments.findIndex((segment) => segment.label === value);
+    return idx >= 0 ? idx : 0;
+  }, [value, segments]);
+
   function onChangeIndex(index) {
-    onChange(segments[index].label);
+    if (index >= 0 && index < segments.length) {
+      const nextLabel = segments[index].label;
+      // Avoid redundant updates that can trigger render loops
+      if (nextLabel !== value) {
+        onChange(nextLabel);
+      }
+    }
   }
+
+
   return (
     <SegmentedControl
       segments={segments}
       activeColor={white}
+      initialIndex={selectedIndex}
       inactiveColor={white}
       activeBackgroundColor={appColor}
       backgroundColor={black_1}

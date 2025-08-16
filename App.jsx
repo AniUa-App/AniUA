@@ -148,7 +148,6 @@ export default function App() {
     initApp();
   }, []);
   console.log("App render:", { isLoading, isErrorBoundary, isActivityReady });
-  console.log(SettingsStorage.getParameter("userConfig"), "userConfig");
 
   // Показуємо завантаження поки не завантажені шрифти або додаток ще ініціалізується
   if (!fontsLoaded || isLoading) {

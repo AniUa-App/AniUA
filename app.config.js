@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 export default {
   expo: {
     name: "AniUA",

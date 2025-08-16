@@ -45,7 +45,7 @@ function refreshExportedColors() {
 }
 
 // Підписуємось на зміни конфігурації, щоб оновлювати експортовані значення на льоту
-EventBus.on("userConfigChanged", refreshExportedColors);
+EventBus.on("userConfig", refreshExportedColors);
 
 function toRgbaString(hexOrRgb, opacity) {
   const c = Color(hexOrRgb);

@@ -5,12 +5,14 @@ import { CustomAnimeSet } from "../Storage/PersonalRecListStorage";
 export var Genres: Record<string, string> = {};
 
 export const Statuses: Record<string, string> = {
+  Неважливо: "",
   Онґоінґ: "ongoing",
   Завершено: "finished",
   Анонс: "announced",
 };
 
 export const Seasons: Record<string, string> = {
+  Неважливо: "",
   Зима: "winter",
   Весна: "spring",
   Осінь: "fall",
@@ -175,6 +177,7 @@ export async function getPagesAndSizes(
         ? mapUsingDict(statuses as any, Statuses)
         : [],
     only_translated: isUkrainianised || true,
+    score: score || [5, 10],
 
     season:
       seasons && mapUsingDict(seasons as any, Seasons).length > 2
@@ -184,6 +187,9 @@ export async function getPagesAndSizes(
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };
   const response = await axios.post(query, body);
+  if (response.data.pagination.pages === response.data.pagination.total) {
+    return { pages: 1, size: response.data.pagination.total };
+  }
   const pages = response.data.pagination.pages;
   const size = response.data.pagination.total;
   return { pages, size };

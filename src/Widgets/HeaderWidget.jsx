@@ -22,7 +22,7 @@ export default function Header({ navigation, route, isArrow = true, title }) {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = EventBus.on("userConfigChanged", (config) => {
+    const unsubscribe = EventBus.on("userConfig", (config) => {
       setUserConfig(config);
     });
     return () => unsubscribe();

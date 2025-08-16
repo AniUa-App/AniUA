@@ -8,15 +8,35 @@ class PersonalRecListStorage extends Storage {
     super();
   }
 
-  newSettingsList(AnimeSet: CustomAnimeSet) {
+  newSettingsList(animeSet: CustomAnimeSet) {
     const settings = this.getItem(this.storageKey, []);
-    const newSettings = [...settings, AnimeSet];
+    const newSettings = [...settings, animeSet];
     this.setItem(this.storageKey, newSettings);
   }
 
   getSettingsList() {
     const settings = this.getItem(this.storageKey, []);
     return settings;
+  }
+
+  deleteSettingsList(animeSet: CustomAnimeSet) {
+    const settings = this.getItem(this.storageKey, []);
+    const newSettings = settings.filter((set: CustomAnimeSet) => {
+      return set.name !== animeSet.name;
+    });
+    this.setItem(this.storageKey, newSettings);
+  }
+
+  editSettingsList(animeSet: CustomAnimeSet) {
+    const settings = this.getItem(this.storageKey, []);
+    const newSettings = settings.map((set: CustomAnimeSet) => {
+      if (set.name === animeSet.name) {
+        console.log("editSettingsList", animeSet);
+        return animeSet;
+      }
+      return set;
+    });
+    this.setItem(this.storageKey, newSettings);
   }
 
   clearStorage() {

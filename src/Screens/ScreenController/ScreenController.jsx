@@ -1,4 +1,5 @@
-import { View, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import { View, StyleSheet, Linking } from "react-native";
+import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
@@ -12,6 +13,9 @@ import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { black, appColor, white, AppColor } from "../../Styles/Colors";
 import { useThemeColors } from "../../Global/useTheme";
@@ -38,13 +42,17 @@ import CustomisationScreen from "../Customisation";
 import SettingsStorage from "../../Storage/SettingsStorage";
 import { EventBus } from "../../Global/EventBus";
 import MainScreenCustomisationScreen from "../MainScreenCustomisation";
+import { Text } from "react-native";
+import Icons from "../../Styles/Icons";
+import { H3, H5, H7 } from "../../Styles/Fonts";
+import AppInfoScreen from "../AppInfo";
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomNavBar {...props} />}
+      tabBar={(props) => <ThemedNavBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
 
@@ -106,6 +114,232 @@ function MainTabs() {
   );
 }
 
+// Анімований контейнер для іконки (горизонтальне збільшення з центру)
+function AnimatedIconContainer({ focused, themeColors, children }) {
+  const containerWidth = 56; // should match the wrapper width
+  const minVisiblePx = 40; // minimal visible width in pixels
+  const minScale = minVisiblePx / containerWidth; // scale so 3px is visible
+  const progress = useSharedValue(focused ? minScale : 0);
+
+  React.useEffect(() => {
+    if (focused) {
+      // start from minimal width then expand
+      progress.value = minScale;
+      progress.value = withTiming(1, { duration: 100 });
+    } else {
+      progress.value = withTiming(0, { duration: 100 });
+    }
+  }, [focused]);
+
+  const bgScaleStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scaleX: progress.value,
+        },
+      ],
+    };
+  });
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+        width: containerWidth,
+        height: 35,
+        borderRadius: 16,
+        overflow: "hidden",
+      }}
+    >
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            backgroundColor: themeColors.AppColor(0.3),
+            borderRadius: 16,
+          },
+
+          bgScaleStyle,
+        ]}
+      />
+      {children}
+    </View>
+  );
+}
+
+// Кастомна панель навігації з підписом під іконками
+export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
+  const themeColors = useThemeColors();
+  const [userConfig, setUserConfig] = useState(
+    SettingsStorage.getParameter("userConfig")
+  );
+  const isCustomisation = userConfig?.navbar?.isCustomisation;
+
+  useEffect(() => {
+    EventBus.on("userConfig", (newConfig) => {
+      setUserConfig(newConfig);
+    });
+  }, []);
+
+  const [previewIndex, setPreviewIndex] = useState(
+    state.routes.findIndex(
+      (route) => route.key === state.routes[state.index].key
+    )
+  );
+  const visibleRoutes = state.routes.filter(
+    (route) => route.name !== "AnimeList"
+  );
+  const visibleStateIndex = isPreview
+    ? previewIndex
+    : state.routes.findIndex(
+        (route) => route.key === state.routes[state.index].key
+      );
+
+  return (
+    <View
+      style={[
+        styles.container2,
+
+        {
+          backgroundColor: isCustomisation
+            ? userConfig?.navbar?.backgroundColor || themeColors.black
+            : themeColors.black,
+          borderRadius: isCustomisation
+            ? userConfig?.navbar?.borderRadius || 8
+            : 0,
+          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 0 : 0,
+          width: isCustomisation
+            ? `${userConfig?.navbar?.width || 80}%`
+            : "100%",
+        },
+      ]}
+    >
+      {isCustomisation && userConfig?.navbar?.isBlurBackground && (
+        <BlurView
+          tint="dark"
+          intensity={userConfig?.navbar?.blurIntensity || 80}
+          blurReductionFactor={userConfig?.navbar?.blurReductionFactor || 8}
+          style={[StyleSheet.absoluteFill]}
+          experimentalBlurMethod="dimezisBlurView"
+        />
+      )}
+      {visibleRoutes.map((route, index) => {
+        const labels = {
+          Home: "Головна",
+          Liked: "Обрані",
+          Download: "Збережені",
+          Settings: "Параметри",
+        };
+        const isFocused = visibleStateIndex === index;
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={() => {
+              if (!isFocused) {
+                if (isPreview) {
+                  setPreviewIndex(index);
+                } else {
+                  if (route.name === "Liked" || route.name === "Download") {
+                    navigation.navigate(route.name, {
+                      title: labels[route.name],
+                    });
+                  } else {
+                    navigation.navigate(route.name);
+                  }
+                }
+              }
+            }}
+            style={[styles.tabItemVertical, {}]}
+          >
+            <View style={styles.iconShadow} pointerEvents="none">
+              {(() => {
+                const IconComponent =
+                  {
+                    Home: Icons.House,
+                    Liked: Icons.Heart,
+                    Download: Icons.DownloadSimple,
+                    Settings: Icons.Gear,
+                  }[route.name] || null;
+                return (
+                  IconComponent && (
+                    <AnimatedIconContainer
+                      focused={isFocused}
+                      themeColors={themeColors}
+                    >
+                      <IconComponent
+                        size={25}
+                        weight={isFocused ? "fill" : "regular"}
+                        color={
+                          isFocused ? themeColors.appColor : themeColors.white
+                        }
+                      />
+                    </AnimatedIconContainer>
+                  )
+                );
+              })()}
+            </View>
+            <Text
+              style={[
+                styles.textBelow,
+                { color: themeColors.white, paddingVertical: 4 },
+              ]}
+            >
+              {labels[route.name]}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+export function ThemedNavBar({ state, navigation, isPreview = false }) {
+  const userConfig = SettingsStorage.getParameter("userConfig");
+  // Use array destructuring and provide a safe default
+  const [navbarType, setNavbarType] = useState(
+    userConfig?.navbar?.style ?? "Default"
+  );
+
+  useEffect(() => {
+    const unsubscribe = EventBus.on("userConfig", (newConfig) => {
+      setNavbarType(newConfig?.navbar?.style ?? "Default");
+    });
+    return () => unsubscribe && unsubscribe();
+  }, []);
+
+  if (navbarType == "MD3") {
+    return (
+      <MD3StyleNavBar
+        state={state}
+        navigation={navigation}
+        isPreview={isPreview}
+      />
+    );
+  } else if (navbarType === "Default") {
+    return (
+      <CustomNavBar
+        state={state}
+        navigation={navigation}
+        isPreview={isPreview}
+      />
+    );
+  } else {
+    return (
+      <CustomNavBar
+        state={state}
+        navigation={navigation}
+        isPreview={isPreview}
+      />
+    );
+  }
+}
+
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -118,7 +352,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
   const isCustomisation = userConfig?.navbar?.isCustomisation;
 
   useEffect(() => {
-    EventBus.on("userConfigChanged", (newConfig) => {
+    EventBus.on("userConfig", (newConfig) => {
       setUserConfig(newConfig);
     });
   }, []);
@@ -204,20 +438,32 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
             ]}
           >
             <View style={styles.iconShadow} pointerEvents="none">
-              {(
-                {
-                  Home: HomeIcon,
-                  Liked: LikeIcon,
-                  Download: DownloadIcon,
-                  Settings: SettingsIcon,
-                }[route.name] || (() => null)
-              )({ fill: isFocused ? themeColors.appColor : themeColors.white })}
+              {(() => {
+                const IconComponent =
+                  {
+                    Home: Icons.House,
+                    Liked: Icons.Heart,
+                    Download: Icons.DownloadSimple,
+                    Settings: Icons.Gear,
+                  }[route.name] || null;
+                return (
+                  IconComponent && (
+                    <IconComponent
+                      size={32}
+                      weight={"regular"}
+                      color={
+                        isFocused ? themeColors.appColor : themeColors.white
+                      }
+                    />
+                  )
+                );
+              })()}
             </View>
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
-                style={[styles.text, { color: themeColors.white }]}
+                style={[H7, { color: themeColors.white, marginLeft: 8 }]}
               >
                 {labels[route.name]}
               </Animated.Text>
@@ -295,7 +541,15 @@ function HiddenStack() {
         component={MainScreenCustomisationScreen}
         options={{
           headerShown: true,
-          headerTitle: "Кастомні рекомендації",
+          headerTitle: "Особисті рекомендації",
+        }}
+      />
+      <HiddenStackNav.Screen
+        name="AppInfo"
+        component={AppInfoScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Інформація про застосунок",
         }}
       />
     </HiddenStackNav.Navigator>
@@ -345,6 +599,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
+  container2: {
+    position: "absolute",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Black(0.6),
+    paddingHorizontal: 30,
+    width: "100%",
+    alignSelf: "center",
+    paddingVertical: 8,
+    paddingBottom: 25,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
   tabItem: {
     flexDirection: "row",
     justifyContent: "center",
@@ -352,19 +620,19 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 30,
   },
-  text: {
+  tabItemVertical: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    height: 56,
+    borderRadius: 14,
+  },
+  text: {},
+  textBelow: {
     fontFamily: "Nunito-SemiBold",
     color: white,
-    fontSize: 16,
-    lineHeight: 16,
-    marginLeft: 8,
-    fontWeight: "500",
+    fontSize: 12,
+    textAlign: "center",
   },
-  iconShadow: {
-    shadowColor: black,
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 8,
-  },
+  iconShadow: {},
 });

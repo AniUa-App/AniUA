@@ -7,7 +7,7 @@ import {
   Easing,
   ScrollView,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { HikkaSets } from "../Sources/HikkaSets";
 import { useEffect } from "react";
@@ -53,6 +53,7 @@ import {
   getPagesAndSizes,
   sendRequest,
 } from "../Sources/CustomSet";
+import { PreviewAnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 
 export default function MainScreenCustomisationScreen() {
   const [RECOMMENDATIONS, setRecommendations] = useState();
@@ -61,6 +62,7 @@ export default function MainScreenCustomisationScreen() {
 
   const [isPersonalRecView, setIsPersonalRecView] = useState(false);
   const [PerRecList, setPerRecList] = useState([]);
+  const [value, setValue] = useState(null);
 
   function SET_RECOMMENDATIONS(newRecommendations) {
     setRecommendations(newRecommendations);
@@ -79,6 +81,14 @@ export default function MainScreenCustomisationScreen() {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
   }
+  function editList(list) {
+    PersonalRecListStorage.editSettingsList(list);
+    setPerRecList(PersonalRecListStorage.getSettingsList());
+  }
+  function deleteList(list) {
+    PersonalRecListStorage.deleteSettingsList(list);
+    setPerRecList(PersonalRecListStorage.getSettingsList());
+  }
 
   useEffect(() => {
     setRecommendations(
@@ -86,6 +96,16 @@ export default function MainScreenCustomisationScreen() {
     );
     setPerRecList(PersonalRecListStorage.getSettingsList());
   }, []);
+
+  function onPressEdit(name) {
+    for (let i = 0; i < PerRecList.length; i++) {
+      if (PerRecList[i].name === name) {
+        setValue(PerRecList[i]);
+        break;
+      }
+    }
+    RecListRef.current?.present();
+  }
 
   return (
     <DefaultScreenWidget>
@@ -114,9 +134,8 @@ export default function MainScreenCustomisationScreen() {
         title="Показувати особисті рекомендації"
         value={RECOMMENDATIONS?.isCustomedPersonalRecommendations || false}
         onPress={() => {
-          if (!RECOMMENDATIONS?.isCustomedPersonalRecommendations) {
-            setIsPersonalRecView(true);
-          }
+          setIsPersonalRecView(!isPersonalRecView);
+
           SET_RECOMMENDATIONS({
             ...RECOMMENDATIONS,
             isCustomedPersonalRecommendations:
@@ -129,19 +148,36 @@ export default function MainScreenCustomisationScreen() {
       />
       {isPersonalRecView && (
         <PersonalRecList
+          list={PerRecList}
           onPressAdd={() => {
             RecListRef.current?.present();
+          }}
+          onPressEdit={(name) => {
+            onPressEdit(name);
           }}
         />
       )}
       <PersonalRecListFilter
         sheetRef={RecListRef}
+        value={value}
         onPressOk={(payload) => {
-          console.log(payload);
+          console.log(payload, "payload");
           RecListRef.current?.close();
-          addList(payload);
+          const existingItem = PerRecList.find(
+            (item) => item.name === payload.name
+          );
+          if (existingItem) {
+            editList(payload);
+          } else {
+            addList(payload);
+          }
         }}
         onPressCancel={() => {
+          RecListRef.current?.close();
+        }}
+        onPressDelete={() => {
+          console.log(value.name, "value.name");
+          deleteList(value);
           RecListRef.current?.close();
         }}
       />
@@ -149,15 +185,42 @@ export default function MainScreenCustomisationScreen() {
   );
 }
 
-function PersonalRecList({ onPressAdd = () => {} }) {
+function PersonalRecList({
+  list = [],
+  onPressAdd = () => {},
+  onPressEdit = () => {},
+}) {
   const [personalRecList, setPersonalRecList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const RecListRef = useRef(null);
+  const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
 
-  useEffect(() => {
-    const list = PersonalRecListStorage.getSettingsList();
-    setPersonalRecList(list);
-  }, []);
+  useLayoutEffect(() => {
+    setPersonalRecList(list ?? []);
+  }, [list]);
+
+  useLayoutEffect(() => {
+    if (!personalRecList || personalRecList.length === 0) {
+      setLoadedAnimeLists([]);
+      return;
+    }
+
+    setLoading(true);
+    Promise.all(
+      personalRecList.map(async (anime) => {
+        try {
+          const res = await sendRequest(anime, "preview");
+          return { name: anime.name, animeList: res };
+        } catch (e) {
+          return { name: anime.name, animeList: [] };
+        }
+      })
+    )
+      .then((results) => {
+        setLoadedAnimeLists(results);
+        console.log(results, "results");
+      })
+      .finally(() => setLoading(false));
+  }, [personalRecList]);
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
@@ -167,8 +230,25 @@ function PersonalRecList({ onPressAdd = () => {} }) {
           justifyContent: "flex-end",
           padding: 8,
           paddingTop: 0,
+          gap: 8,
         }}
       >
+        <TouchableOpacity
+          onPress={() => {
+            PersonalRecListStorage.clearStorage();
+            setPersonalRecList([]);
+          }}
+          style={{
+            width: 44,
+            height: 44,
+            backgroundColor: appColor,
+            borderRadius: 8,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icons.Trash size={24} color={white} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={onPressAdd}
           style={{
@@ -183,9 +263,18 @@ function PersonalRecList({ onPressAdd = () => {} }) {
           <Icons.Plus size={24} color={white} />
         </TouchableOpacity>
       </View>
-      {personalRecList.map((item, index) => (
-        <Text key={index}>{item.name}</Text>
-      ))}
+      {loading && <ActivityIndicator size="large" color={appColor} />}
+      {!loading &&
+        loadedAnimeLists?.map((anime, index) => (
+          <PreviewAnimeListHorizontal
+            key={`${anime.name}-${index}`}
+            animeList={anime.animeList}
+            title={anime.name}
+            onPress={() => {
+              onPressEdit?.(anime.name);
+            }}
+          />
+        ))}
     </ScrollView>
   );
 }
@@ -193,16 +282,52 @@ function PersonalRecList({ onPressAdd = () => {} }) {
 export function PersonalRecListFilter({
   onPressOk = () => {},
   onPressCancel = () => {},
+  onPressDelete = () => {},
   sheetRef,
+  value = {},
 }) {
   const [LoadedGenres, setLoadedGenres] = useState([]);
 
   const [status, setStatus] = useState("Анонс");
   const [seasons, setSeasons] = useState("Зима");
-  const [years, setYears] = useState([1965, new Date().getFullYear()]);
+  const [years, setYears] = useState([2000, new Date().getFullYear()]);
   const [score, setScore] = useState(5);
   const [genres, setGenres] = useState([]);
   const [animeListName, setAnimeListName] = useState("");
+
+  // Track initial snapshot for edit mode to detect changes
+  const [initialSnapshot, setInitialSnapshot] = useState(null);
+  const isEditMode = React.useMemo(() => {
+    return value && Object.keys(value || {}).length > 0;
+  }, [value]);
+  const hasChanges = React.useMemo(() => {
+    if (!isEditMode || !initialSnapshot) return false;
+    const isEqualArray = (a = [], b = []) =>
+      a.length === b.length && a.every((v, i) => v === b[i]);
+    const sameName = animeListName === initialSnapshot.name;
+    const sameStatus = status === initialSnapshot.status;
+    const sameSeasons = seasons === initialSnapshot.seasons;
+    const sameYears = isEqualArray(years, initialSnapshot.years);
+    const sameScore = score === initialSnapshot.score;
+    const sameGenres = isEqualArray(genres, initialSnapshot.genres);
+    return !(
+      sameName &&
+      sameStatus &&
+      sameSeasons &&
+      sameYears &&
+      sameScore &&
+      sameGenres
+    );
+  }, [
+    isEditMode,
+    initialSnapshot,
+    animeListName,
+    status,
+    seasons,
+    years,
+    score,
+    genres,
+  ]);
 
   async function onPressOkey() {
     if (animeListName.length === 0) {
@@ -220,7 +345,6 @@ export function PersonalRecListFilter({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
-    console.log(size, pages, "size, pages");
     const payload = {
       name: animeListName,
       animeSet: animeSet,
@@ -236,7 +360,41 @@ export function PersonalRecListFilter({
     getGenres().then((res) => {
       setLoadedGenres(res);
     });
-  }, []);
+    if (value) {
+      const name = value.name ?? "";
+      const st = Object.keys(Statuses).find(
+        (key) => Statuses[key] === value.animeSet.Statuses
+      );
+      const ss = Object.keys(Seasons).find(
+        (key) => Seasons[key] === value.animeSet.Seasons
+      );
+      const yrs = value.animeSet.Years ?? [2000, new Date().getFullYear()];
+      const scr = value.animeSet.Score?.[0] ?? 5;
+      const genreNames = (value.animeSet.Genres || [])
+        .map((genreSlug) =>
+          Object.keys(Genres).find((key) => Genres[key] === genreSlug)
+        )
+        .filter(Boolean);
+
+      setAnimeListName(name);
+      setStatus(st);
+      setSeasons(ss);
+      setYears(yrs);
+      setScore(scr);
+      setGenres(genreNames);
+
+      setInitialSnapshot({
+        name,
+        status: st,
+        seasons: ss,
+        years: yrs,
+        score: scr,
+        genres: genreNames,
+      });
+    } else {
+      setInitialSnapshot(null);
+    }
+  }, [value]);
 
   return (
     <BottomSheetModal
@@ -280,10 +438,18 @@ export function PersonalRecListFilter({
             />
             <TouchableOpacity
               onPress={() => {
-                if (animeListName.length > 0) {
-                  onPressOkey();
+                if (isEditMode) {
+                  if (hasChanges) {
+                    onPressOkey();
+                  } else {
+                    onPressDelete();
+                  }
                 } else {
-                  onPressCancel();
+                  if (animeListName.length > 0) {
+                    onPressOkey();
+                  } else {
+                    onPressCancel();
+                  }
                 }
               }}
               style={{
@@ -295,7 +461,13 @@ export function PersonalRecListFilter({
                 justifyContent: "center",
               }}
             >
-              {animeListName.length > 0 ? (
+              {isEditMode ? (
+                hasChanges ? (
+                  <Icons.Check size={24} color={white} />
+                ) : (
+                  <Icons.Trash size={24} color={white} />
+                )
+              ) : animeListName.length > 0 ? (
                 <Icons.Check size={24} color={white} />
               ) : (
                 <Icons.X size={24} color={white} />
@@ -316,6 +488,7 @@ export function PersonalRecListFilter({
                 { label: "Завершено" },
                 { label: "Неважливо" },
               ]}
+              value={status}
               onChange={(item) => {
                 setStatus(item?.label ?? item);
               }}
@@ -328,12 +501,15 @@ export function PersonalRecListFilter({
                 { label: "Осінь" },
                 { label: "Неважливо" },
               ]}
+              value={seasons}
               onChange={(item) => {
                 setSeasons(item?.label ?? item);
               }}
             />
             <InputPickerWidget
               items={LoadedGenres}
+              placeholder="Виберіть жанр/жанри..."
+              selected={genres}
               onChange={(item) => {
                 setGenres(item);
               }}
@@ -342,7 +518,7 @@ export function PersonalRecListFilter({
               label="Рік"
               min={2000}
               max={2025}
-              value={years}
+              value={years[0]}
               defaultValue={2005}
               style={{}}
               onChange={(item) => {

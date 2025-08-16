@@ -2,13 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
-
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
@@ -157,8 +150,6 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    // ffmpeg-kit AAR is provided via flatDir at $rootDir/libs and consumed by the library through patch-package
-
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
@@ -186,6 +177,12 @@ dependencies {
     }
 }
 
+// Generate .env with commit hash and build date before building
+task setEnvFile(type: Exec) {
+    // android/ is the Gradle root; our script lives in project root at ../scripts
+    workingDir rootProject.projectDir
+    commandLine 'node', '../scripts/set-environment.js'
+}
 
 // Download ffmpeg-kit AAR if not exists
 task downloadAar {
@@ -202,6 +199,6 @@ task downloadAar {
     }
 }
 
-
 // Ensure the download task runs before preBuild
 preBuild.dependsOn downloadAar
+preBuild.dependsOn setEnvFile

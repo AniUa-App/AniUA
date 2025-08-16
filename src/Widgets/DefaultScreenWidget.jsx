@@ -54,7 +54,7 @@ export default function DefaultScreenWidget({
   }, []);
 
   useEffect(() => {
-    const unsubscribe = EventBus.on("userConfigChanged", (config) => {
+    const unsubscribe = EventBus.on("userConfig", (config) => {
       setUserConfig(config);
     });
     return () => unsubscribe();
@@ -65,10 +65,8 @@ export default function DefaultScreenWidget({
       style={[
         Styles.defaultScreenWidget,
         {
-          backgroundColor:
-            isCustomisation && userConfig?.background?.image
-              ? "transparent"
-              : themeColors.black,
+          // Always keep an opaque background to avoid white flashes during transitions
+          backgroundColor: themeColors.black,
         },
       ]}
     >

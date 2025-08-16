@@ -39,7 +39,7 @@ export default function InputPickerWidget({
   items = [],
   selected,
   onChange = () => {},
-  placeholder = "Виберіть жанр/жанри...",
+  placeholder = "",
   multiple = true,
   style,
   dropdownStyle,

@@ -3,6 +3,12 @@
     "version": ">= 5.9.1"
   },
   "build": {
+    "alpha": {
+      "channel": "alpha",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"

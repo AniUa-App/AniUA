@@ -29,7 +29,7 @@ export function ThemeProvider({ children }) {
   const [state, setState] = useState(getColorsFromConfig);
 
   useEffect(() => {
-    const unsubscribe = EventBus.on("userConfigChanged", () => {
+    const unsubscribe = EventBus.on("userConfig", () => {
       setState(getColorsFromConfig());
     });
     return unsubscribe;

@@ -24,7 +24,10 @@ import { H2, H3, H4, H5, H6 } from "../Styles/Fonts";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 import Icons from "../Styles/Icons";
 import Slider from "@react-native-community/slider"; // Потрібно встановити цей пакет
-import { CustomNavBar } from "./ScreenController/ScreenController";
+import {
+  CustomNavBar,
+  ThemedNavBar,
+} from "./ScreenController/ScreenController";
 import { EventBus } from "../Global/EventBus";
 import ColorPicker, {
   Panel1,
@@ -39,6 +42,7 @@ import { runOnJS } from "react-native-reanimated";
 import * as DocumentPicker from "expo-document-picker";
 import RNFS from "react-native-fs";
 import { useNavigation } from "@react-navigation/native";
+import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 
 export default function СustomisationScreen() {
   const navigation = useNavigation();
@@ -60,7 +64,7 @@ export default function СustomisationScreen() {
     _SET_USER_CONFIG(newConfig);
     SettingsStorage.setParameter("userConfig", newConfig);
     console.log(newConfig, "newConfig");
-    EventBus.emit("userConfigChanged", newConfig);
+    EventBus.emit("userConfig", newConfig);
   };
 
   // Функція для керування анімацією
@@ -114,6 +118,45 @@ export default function СustomisationScreen() {
   };
 
   const CUSTOMISATION_SETTINGS_V1 = [
+    {
+      slug: "navbar",
+      body: [
+        {
+          title: "Стиль навігаційної панелі",
+          description: ``,
+          value: USER_CONFIG?.navbar?.style || "default",
+          button: <Icons.CaretDown size={34} color={white} />,
+          onPress: () => {},
+          body: () => {
+            return (
+              <View
+                style={[
+                  styles.bsContainer,
+                  {
+                    width: "100%",
+                  },
+                ]}
+              >
+                <SegmentedControlLabelWidget
+                  segments={[{ label: "Default" }, { label: "MD3" }]}
+                  value={USER_CONFIG?.navbar?.style || "Default"}
+                  onChange={(value) => {
+                    console.log(value, "value");
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      navbar: {
+                        ...USER_CONFIG?.navbar,
+                        style: value,
+                      },
+                    });
+                  }}
+                />
+              </View>
+            );
+          },
+        },
+      ],
+    },
     {
       slug: "navbar",
       body: [
@@ -398,11 +441,36 @@ export default function СustomisationScreen() {
             });
           },
           body: ({}) => {
-            const copyBackgroundImage = async (imagePath) => {
+            const copyBackgroundImage = async (input) => {
               try {
-                const extension = imagePath.split(".").pop();
-                const destPath = `${RNFS.DocumentDirectoryPath}/background.${extension}`;
-                await RNFS.copyFile(imagePath, destPath);
+                const uri = typeof input === "string" ? input : input?.uri;
+                const name = typeof input === "object" ? input?.name : null;
+                const mimeType = typeof input === "object" ? input?.mimeType : null;
+                if (!uri) throw new Error("URI is missing");
+
+                // Try to determine extension from name, URI or mimeType
+                let extension = null;
+                if (name && name.includes(".")) {
+                  extension = name.split(".").pop();
+                }
+                if (!extension && typeof uri === "string") {
+                  const uriParts = uri.split(".");
+                  if (uriParts.length > 1) {
+                    extension = uriParts.pop().split("?")[0];
+                  }
+                }
+                if (!extension && mimeType) {
+                  const mimeMap = {
+                    "image/png": "png",
+                    "image/jpeg": "jpg",
+                    "image/jpg": "jpg",
+                    "image/webp": "webp",
+                  };
+                  extension = mimeMap[mimeType] || "png";
+                }
+                const safeExt = extension || "png";
+                const destPath = `${RNFS.DocumentDirectoryPath}/background.${safeExt}`;
+                await RNFS.copyFile(uri, destPath);
                 console.log(
                   "Зображення скопійовано у внутрішню памʼять:",
                   destPath
@@ -445,8 +513,8 @@ export default function СustomisationScreen() {
                     <PhotoPickerWidget
                       title="Фонове зображення"
                       subtitle="Фонове зображення додатка"
-                      onPick={async (uri) => {
-                        const uriPath = await copyBackgroundImage(uri);
+                      onPick={async (payload) => {
+                        const uriPath = await copyBackgroundImage(payload);
                         console.log(uriPath, "uriPath");
                         SET_USER_CONFIG({
                           ...USER_CONFIG,
@@ -643,7 +711,7 @@ export default function СustomisationScreen() {
             bottom: 0,
           }}
         >
-          <CustomNavBar
+          <ThemedNavBar
             isPreview={true}
             state={{
               history: [{ key: "", type: "route" }],

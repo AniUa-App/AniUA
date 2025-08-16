@@ -20,6 +20,8 @@ import { AnimeListHorizontal } from "./../Widgets/AnimeListHorizontalWidget";
 import { useNavigation } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
+import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
+import { sendRequest } from "../Sources/CustomSet";
 
 export default function HomeScreen() {
   // Стан для аніме, відсортованих за популярністю за поточний рік
@@ -117,6 +119,9 @@ export default function HomeScreen() {
               alignSelf: "center",
             }}
           >
+            {recommendations?.isCustomedPersonalRecommendations && (
+              <CustomPersonalRecList />
+            )}
             {recommendations?.isEnabled && (
               <>
                 <OngoingAnimeList />
@@ -132,6 +137,101 @@ export default function HomeScreen() {
     </DefaultScreenWidget>
   );
 }
+
+const CustomPersonalRecList = React.memo(() => {
+  const [personalRecList, setPersonalRecList] = useState([]);
+  const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigation = useNavigation();
+
+  // Load list from storage once (or on mount)
+  useEffect(() => {
+    try {
+      setIsLoading(true);
+      const data = PersonalRecListStorage.getSettingsList();
+      setPersonalRecList(data);
+    } catch (error) {
+      console.error("Помилка при завантаженні популярних аніме:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Refresh list when Home gains focus
+  useFocusEffect(
+    useCallback(() => {
+      try {
+        const data = PersonalRecListStorage.getSettingsList();
+        setPersonalRecList(data);
+      } catch (e) {
+        console.error("Помилка при оновленні персональних списків:", e);
+      }
+    }, [])
+  );
+
+  // When list changes, fetch previews
+  useEffect(() => {
+    if (!personalRecList || personalRecList.length === 0) {
+      setLoadedAnimeLists([]);
+      return;
+    }
+    setIsLoading(true);
+    Promise.all(
+      personalRecList.map(async (anime) => {
+        try {
+          const res = await sendRequest(anime, "preview");
+          return { name: anime.name, animeList: res };
+        } catch (e) {
+          return { name: anime.name, animeList: [] };
+        }
+      })
+    )
+      .then((results) => {
+        setLoadedAnimeLists(results);
+        console.log(results, "results");
+      })
+      .finally(() => setIsLoading(false));
+  }, [personalRecList]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={appColor} />
+      </View>
+    );
+  }
+  if (loadedAnimeLists.length === 0) {
+    return null;
+  }
+  return (
+    <>
+      {loadedAnimeLists.map((animeList, index) => (
+        <AnimeListHorizontal
+          key={index}
+          title={animeList.name}
+          animeList={animeList.animeList}
+          onClickMore={
+            loadedAnimeLists[index].animeList.length < 10
+              ? null
+              : async () => {
+                  const data = await sendRequest(
+                    personalRecList[index],
+                    "full"
+                  );
+                  navigation.navigate("HiddenStack", {
+                    screen: "AnimeList",
+                    params: {
+                      title: personalRecList[index].name,
+                      initialData: data,
+                    },
+                  });
+                }
+          }
+        />
+      ))}
+    </>
+  );
+});
 
 // Компонент для відображення популярних аніме
 const PopularAnimeList = React.memo(() => {

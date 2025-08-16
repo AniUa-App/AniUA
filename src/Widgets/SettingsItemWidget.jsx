@@ -8,7 +8,7 @@ import { TouchableOpacity } from "./Button";
 export default function SettingsItem({
   title = "",
   subtitle = "",
-  button,
+  button = null,
   onPress,
   onPressBody = () => {},
   color = appColor,
@@ -28,24 +28,28 @@ export default function SettingsItem({
           <Text style={[H6, { color: White(0.7) }]}>{subtitle}</Text>
         )}
       </View>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          {
-            padding: button.Icon ? 4 : 10,
-            backgroundColor: color,
-          },
-        ]}
-        onPress={onPress}
-      >
-        {button.Icon ? (
-          button.Icon
-        ) : (
-          <Text style={[H4, { color: themeColors.white, textAlign: "center" }]}>
-            {button.Text}
-          </Text>
-        )}
-      </TouchableOpacity>
+      {button?.Icon !== null || button?.Text !== null ? (
+        <TouchableOpacity
+          style={[
+            styles.button,
+            {
+              padding: button?.Icon ? 4 : 10,
+              backgroundColor: color,
+            },
+          ]}
+          onPress={onPress}
+        >
+          {button?.Icon ? (
+            button?.Icon
+          ) : (
+            <Text
+              style={[H4, { color: themeColors.white, textAlign: "center" }]}
+            >
+              {button.Text}
+            </Text>
+          )}
+        </TouchableOpacity>
+      ) : null}
     </TouchableOpacity>
   );
 }

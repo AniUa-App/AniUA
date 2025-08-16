@@ -15,6 +15,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import AnimeStorage from "../Storage/AnimeStorage";
 import { playersIcons } from "../Widgets/DubbingBottomSheetWidget";
+import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -50,6 +51,15 @@ export default function SettingsScreen() {
       // Очищаємо MMKV storage
       AnimeHashStorage.clearHash();
       AnimeStorage.clearStorage();
+      PersonalRecListStorage.clearStorage();
+      if (
+        SettingsStorage.getParameter("userConfig.recommendations").length === 0
+      ) {
+        SettingsStorage.setParameter("userConfig.recommendations", {
+          isEnabled: true,
+          isDefaultBigBanner: true,
+        });
+      }
 
       // Очищаємо файли епізодів
       const episodesPath = SettingsStorage.getParameter("pathToSaveEpisodes");
@@ -107,9 +117,12 @@ export default function SettingsScreen() {
           screen: "ButtonsScreen",
           params: {
             title: "Виберіть плеєр за замовчуванням.",
+            Sbutton: true,
+
             isGoBack: true,
             list: MainConfig.players.map((player) => ({
               title: player,
+
               onPress: () => {
                 SettingsStorage.setParameter("defaultPlayer", player);
                 showNotification(
@@ -133,7 +146,7 @@ export default function SettingsScreen() {
     },
 
     {
-      title: "Оцінити додаток",
+      title: "Оцінити застосунок",
       subtitle: "Допоможіть нам стати кращими.",
       button: {
         Text: "Оцінити",
@@ -207,36 +220,22 @@ export default function SettingsScreen() {
         });
       },
     },
-  ];
-
-  if (MainConfig.debug.isDebug) {
-    SETTINGS_ITEMS.push({
-      title: "Продвинуті функції",
-      subtitle: "Ввімкнути режим розробника.",
+    {
+      title: "Інформація про застосунок",
+      subtitle: "Версія, хеш та ін.",
       button: {
-        Text:
-          MainConfig.debug.isErrorBoundary === true ? "Вимкнути" : "Ввімкнути",
+        Icon: <Icons.Info size={42} color={Black(0.8)} />,
       },
       onPress: () => {
-        MainConfig.debug.isErrorBoundary = !MainConfig.debug.isErrorBoundary;
-        SettingsStorage.setParameter(
-          "isErrorBoundary",
-          MainConfig.debug.isErrorBoundary
-        );
-
-        // Оновлюємо стан в App.jsx
-        if (MainConfig.updateErrorBoundaryState) {
-          MainConfig.updateErrorBoundaryState(MainConfig.debug.isErrorBoundary);
-        }
-
-        showNotification(
-          MainConfig.debug.isErrorBoundary
-            ? "Режим розробника успішно ввімкнуто"
-            : "Режим розробника успішно вимкнуто"
-        );
+        navigation.navigate("HiddenStack", {
+          screen: "AppInfo",
+          params: {
+            title: "Інформація про застосунок",
+          },
+        });
       },
-    });
-  }
+    },
+  ];
 
   return (
     <DefaultScreenWidget isCheckInternet={false}>
