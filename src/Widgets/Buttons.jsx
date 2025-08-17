@@ -5,7 +5,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
 import { appColor, white, black_1 } from "../Styles/Colors";
-import { SegmentedControl } from "react-native-ui-lib";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
 export default function ButtonsScreen({ route }) {
   const { list, title, buttonStyle } = route.params;
@@ -87,24 +87,24 @@ export function SegmentedControlLabelWidget({
 
   return (
     <SegmentedControl
-      segments={segments}
-      activeColor={white}
-      initialIndex={selectedIndex}
-      inactiveColor={white}
-      activeBackgroundColor={appColor}
+      values={segments.map((s) => String(s.label))}
+      selectedIndex={selectedIndex}
+      onChange={(event) => onChangeIndex(event.nativeEvent.selectedSegmentIndex)}
+      tintColor={appColor}
       backgroundColor={black_1}
-      outlineWidth={0}
       style={{
         width: "100%",
         height: 50,
         borderWidth: 0,
+        borderRadius: 8,
       }}
-      borderRadius={8}
-      segmentLabelStyle={{
+      fontStyle={{
         ...H7,
+        color: white,
       }}
-      onChangeIndex={(index) => {
-        onChangeIndex(index);
+      activeFontStyle={{
+        ...H7,
+        color: white,
       }}
     />
   );

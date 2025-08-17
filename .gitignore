@@ -77,8 +77,7 @@ temp/
 *.apk
 *.war
 *.ear
-*.aar
-*.jar
+
 *.zip
 *.tar
 *.gz
@@ -88,3 +87,7 @@ react-native-file-opener/node_modules/
 
 
 test.*
+
+
+*.aar
+*.jar

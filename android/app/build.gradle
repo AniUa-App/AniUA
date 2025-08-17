@@ -177,12 +177,6 @@ dependencies {
     }
 }
 
-// Generate .env with commit hash and build date before building
-task setEnvFile(type: Exec) {
-    // android/ is the Gradle root; our script lives in project root at ../scripts
-    workingDir rootProject.projectDir
-    commandLine 'node', '../scripts/set-environment.js'
-}
 
 // Download ffmpeg-kit AAR if not exists
 task downloadAar {
@@ -201,4 +195,3 @@ task downloadAar {
 
 // Ensure the download task runs before preBuild
 preBuild.dependsOn downloadAar
-preBuild.dependsOn setEnvFile

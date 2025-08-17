@@ -87,6 +87,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] = useState(false);
 
+  // Флаг монтування, щоб не викликати нативні методи після анмаунту/під час ротації
+  const isMountedRef = useRef(true);
+
   // Функція для отримання повної тривалості відео
   const getDuration = () => {
     if (player) {
@@ -339,19 +342,40 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     EOrientation.unlockAsync();
     const orientationSubscription = EOrientation.addOrientationChangeListener(
       ({ orientationInfo }) => {
-        if (
-          orientationInfo.orientation ===
-            EOrientation.Orientation.LANDSCAPE_LEFT ||
-          orientationInfo.orientation ===
-            EOrientation.Orientation.LANDSCAPE_RIGHT
-        ) {
-          SystemNavigationBar.fullScreen(true);
-          SystemNavigationBar.navigationHide();
-          setIsLandscape(true);
+        if (!isMountedRef.current) return;
+        const applyChanges = () => {
+          try {
+            if (
+              orientationInfo.orientation ===
+                EOrientation.Orientation.LANDSCAPE_LEFT ||
+              orientationInfo.orientation ===
+                EOrientation.Orientation.LANDSCAPE_RIGHT
+            ) {
+              try {
+                SystemNavigationBar.fullScreen(true);
+                SystemNavigationBar.navigationHide();
+              } catch (e) {
+                console.warn("SystemNavigationBar landscape error:", e);
+              }
+              setIsLandscape(true);
+            } else {
+              try {
+                SystemNavigationBar.fullScreen(false);
+                SystemNavigationBar.navigationShow();
+              } catch (e) {
+                console.warn("SystemNavigationBar portrait error:", e);
+              }
+              setIsLandscape(false);
+            }
+          } catch (e) {
+            console.warn("Orientation applyChanges error:", e);
+          }
+        };
+        // Дебаунсимо зміни, щоб не торкатись UIManager під час ре-ініціалізації
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(applyChanges);
         } else {
-          SystemNavigationBar.fullScreen(false);
-          SystemNavigationBar.navigationShow();
-          setIsLandscape(false);
+          setTimeout(applyChanges, 0);
         }
       }
     );
@@ -367,6 +391,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     showControlsWithAnimation();
 
     return () => {
+      isMountedRef.current = false;
       backHandlerSubscription.remove();
       if (hideControlsTimerRef.current) {
         clearTimeout(hideControlsTimerRef.current);
@@ -382,8 +407,16 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
-      StatusBar.setHidden(false, "slide");
-      SystemNavigationBar.navigationShow();
+      try {
+        StatusBar.setHidden(false, "slide");
+      } catch (e) {
+        console.warn("StatusBar show error:", e);
+      }
+      try {
+        SystemNavigationBar.navigationShow();
+      } catch (e) {
+        console.warn("SystemNavigationBar show error:", e);
+      }
       // SystemNavigationBar.fullScreen(false);
       // Orientation.lockToPortrait();
       EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
@@ -582,19 +615,39 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     animateButton("rotate");
     // Orientation.getOrientation((orientation) => { ... });
     EOrientation.getOrientationAsync().then((orientation) => {
-      if (
-        orientation === EOrientation.Orientation.PORTRAIT_UP ||
-        orientation === EOrientation.Orientation.PORTRAIT_DOWN
-      ) {
-        EOrientation.lockAsync(EOrientation.OrientationLock.LANDSCAPE);
-        SystemNavigationBar.fullScreen(true);
-        SystemNavigationBar.navigationHide();
-        setIsLandscape(true);
+      if (!isMountedRef.current) return;
+      const applyToggle = () => {
+        try {
+          if (
+            orientation === EOrientation.Orientation.PORTRAIT_UP ||
+            orientation === EOrientation.Orientation.PORTRAIT_DOWN
+          ) {
+            EOrientation.lockAsync(EOrientation.OrientationLock.LANDSCAPE);
+            try {
+              SystemNavigationBar.fullScreen(true);
+              SystemNavigationBar.navigationHide();
+            } catch (e) {
+              console.warn("SystemNavigationBar toggle->landscape error:", e);
+            }
+            setIsLandscape(true);
+          } else {
+            EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
+            try {
+              SystemNavigationBar.fullScreen(false);
+              SystemNavigationBar.navigationShow();
+            } catch (e) {
+              console.warn("SystemNavigationBar toggle->portrait error:", e);
+            }
+            setIsLandscape(false);
+          }
+        } catch (e) {
+          console.warn("toggleOrientation error:", e);
+        }
+      };
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(applyToggle);
       } else {
-        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
-        SystemNavigationBar.fullScreen(false);
-        SystemNavigationBar.navigationShow();
-        setIsLandscape(false);
+        setTimeout(applyToggle, 0);
       }
     });
     if (showControls) {
@@ -742,14 +795,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             }}
           />
         </View>
-
-        {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
-        <Pressable
-          onPress={handleVideoAreaPress}
-          style={StyleSheet.absoluteFill}
-          android_disableSound
-          hitSlop={10}
-        />
 
         {/* Оверлей завантаження */}
         {isLoading ? (
@@ -1409,6 +1454,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           </View>
         </Animated.View>
       )}
+      {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
+      <Pressable
+        onPress={handleVideoAreaPress}
+        style={StyleSheet.absoluteFill}
+        android_disableSound
+        hitSlop={10}
+      />
 
       {/* Bottom Sheet */}
       <SpeedBottomSheet
