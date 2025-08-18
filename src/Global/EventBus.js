@@ -12,13 +12,14 @@ export const EventBus = {
 
   off(event, callback) {
     if (listeners[event]) {
-      listeners[event] = listeners[event].filter(cb => cb !== callback);
+      listeners[event] = listeners[event].filter((cb) => cb !== callback);
     }
   },
 
   emit(event, data) {
+    console.log("EventBus emit", event, data);
     if (listeners[event]) {
-      listeners[event].forEach(callback => callback(data));
+      listeners[event].forEach((callback) => callback(data));
     }
   },
 };

@@ -84,26 +84,33 @@ export function SegmentedControlLabelWidget({
     }
   }
 
-
   return (
     <SegmentedControl
       values={segments.map((s) => String(s.label))}
       selectedIndex={selectedIndex}
-      onChange={(event) => onChangeIndex(event.nativeEvent.selectedSegmentIndex)}
+      onChange={(event) =>
+        onChangeIndex(event.nativeEvent.selectedSegmentIndex)
+      }
       tintColor={appColor}
       backgroundColor={black_1}
       style={{
         width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        alignSelf: "center",
+        padding: 10,
         height: 50,
         borderWidth: 0,
         borderRadius: 8,
       }}
       fontStyle={{
-        ...H7,
+        ...H5,
         color: white,
       }}
       activeFontStyle={{
-        ...H7,
+        ...H5,
+
+        textAlign: "center",
         color: white,
       }}
     />

@@ -46,6 +46,7 @@ import { Text } from "react-native";
 import Icons from "../../Styles/Icons";
 import { H3, H5, H7 } from "../../Styles/Fonts";
 import AppInfoScreen from "../AppInfo";
+import PrivilegesScreen from "../Privileges";
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
@@ -550,6 +551,14 @@ function HiddenStack() {
         options={{
           headerShown: true,
           headerTitle: "Інформація про застосунок",
+        }}
+      />
+      <HiddenStackNav.Screen
+        name="Privileges"
+        component={PrivilegesScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Привілеї",
         }}
       />
     </HiddenStackNav.Navigator>

@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -10,14 +10,8 @@ import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 export default function ButtonsScreen({ route }) {
   const navigation = useNavigation();
   const { list, title, buttonStyle, isGoBack, Sbutton } = route.params;
-  useEffect(() => {
-    console.log(list);
-  }, [list]);
-  useFocusEffect(
-    useCallback(() => {
-      console.log(list);
-    }, [list])
-  );
+  const [value, setValue] = useState(list[0].title);
+
   return (
     <DefaultScreenWidget>
       <View
@@ -62,8 +56,11 @@ export default function ButtonsScreen({ route }) {
             segments={list.map((item) => ({
               label: item.title,
             }))}
-            onChange={(index) => {
-              list.find((item) => item.title === index).onPress();
+            value={value}
+            onChange={(_item) => {
+              console.log(_item);
+              setValue(_item);
+              list.find((item) => item.title === _item)?.onPress();
             }}
           />
         )}

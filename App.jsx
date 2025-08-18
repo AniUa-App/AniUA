@@ -32,6 +32,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isErrorBoundary, setIsErrorBoundary] = useState(false);
   const [isActivityReady, setIsActivityReady] = useState(false);
+  const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
+    SettingsStorage.getParameter("isNotFirstLaunch") || false
+  );
 
   // Завантажуємо кастомні шрифти (хук має бути на верхньому рівні!)
   const fontsLoaded = useCustomFonts();
@@ -138,10 +141,17 @@ export default function App() {
         AppLogger.logAppInit("Критична помилка ініціалізації", false, error);
       } finally {
         // Зменшуємо час завантаження до 1.5 секунд
-        setTimeout(() => {
-          AppLogger.logAppInit("Завершення завантаження");
-          setIsLoading(false);
-        }, 1500);
+        setTimeout(
+          () => {
+            if (isNotFirstLaunch === false)
+              SettingsStorage.setParameter("isNotFirstLaunch", true);
+
+            AppLogger.logAppInit("Завершення завантаження");
+
+            setIsLoading(false);
+          },
+          isNotFirstLaunch ? 1200 : 2500
+        );
       }
     };
 
@@ -154,7 +164,7 @@ export default function App() {
     return (
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: black }}>
         <BottomSheetModalProvider style={{ flex: 1, backgroundColor: black }}>
-          <Loader />
+          <Loader isNotFirstLaunch={isNotFirstLaunch} />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     );
@@ -166,7 +176,7 @@ export default function App() {
         <RootSiblingParent>
           <ThemeProvider>
             <ScreenController />
-            {/* {isErrorBoundary && <ErrorTestComponent />} */}
+            {isErrorBoundary && <ErrorTestComponent />}
           </ThemeProvider>
         </RootSiblingParent>
       </BottomSheetModalProvider>

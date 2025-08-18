@@ -28,7 +28,11 @@ import {
 } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4, H5 } from "../Styles/Fonts";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import {
+  useNavigation,
+  useFocusEffect,
+  useIsFocused,
+} from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
 import { Image } from "../Widgets/LoadersWidgets";
 import AnimeStorage from "../Storage/AnimeStorage";
@@ -55,7 +59,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { DownloadVideo, STATUSES } from "../Notifications/VideoDownloader";
 import { DEBUGCONFIG } from "../cfgs/DebugConfig";
-import SystemNavigationBar from "react-native-system-navigation-bar";
+import * as NavigationBar from "expo-navigation-bar";
 import FileOpener from "../Global/FileOpener";
 import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import { HikkaApi } from "../Sources/hikka";
@@ -89,6 +93,7 @@ function getEpisodeDateOrType(anime) {
 }
 export default function AnimePreviewScreen({ route }) {
   const themeColors = useThemeColors();
+  const isFocused = useIsFocused();
   if (!route || !route.params) {
     return (
       <DefaultScreenWidget>
@@ -392,23 +397,7 @@ export default function AnimePreviewScreen({ route }) {
         <TouchableOpacity
           key={item.slug}
           style={styles.similarCard}
-          onPress={() =>
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 1,
-                routes: [
-                  { name: "MainTabs" },
-                  {
-                    name: "HiddenStack",
-                    params: {
-                      screen: "AnimePreview",
-                      params: { anime: item },
-                    },
-                  },
-                ],
-              })
-            )
-          }
+          onPress={() => navigation.replace("AnimePreview", { anime: item })}
         >
           <Image style={styles.similarImage} uri={item.image} />
         </TouchableOpacity>
@@ -467,7 +456,7 @@ export default function AnimePreviewScreen({ route }) {
         <View style={styles.posterContainer}>
           <Image style={styles.posterImage} uri={anime?.image} />
           {/* Напівпрозорий затемнений блок зверху */}
-          <View style={[styles.overlay]} />
+          {isFocused ? <View style={[styles.overlay]} /> : null}
 
           {/* Кнопка "Назад" або іконка (за потреби) */}
           <TouchableOpacity
@@ -530,7 +519,7 @@ export default function AnimePreviewScreen({ route }) {
               marginLeft: "2%",
             }}
           >
-            {info?.watched && (
+            {info?.watched?.player && (
               <>
                 <Text style={[H3, { color: themeColors.white }]}>Дубляж:</Text>
                 <TouchableOpacity
@@ -860,7 +849,7 @@ export default function AnimePreviewScreen({ route }) {
                 watched: { ...info.watched, episodes: watched_episodes },
               });
               // SystemNavigationBar.navigationHide();
-              SystemNavigationBar.navigationHide();
+              NavigationBar.setVisibilityAsync("hidden");
               episodesSheetRef.current?.close();
 
               console.log(info.watched.player, "player");

@@ -71,7 +71,7 @@ export function PreviewAnimeListHorizontal({
           {title}
         </Text>
         <View style={styles.arrowRightIcon}>
-          {animeList.length >= 25 && (
+          {animeList.length >= 10 && (
             <Icon.ArrowRight size={34} color={themeColors.appColor} />
           )}
         </View>

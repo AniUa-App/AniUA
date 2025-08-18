@@ -136,20 +136,18 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         storage_data={info}
         type="download"
         isChanges={null}
-        checkForStyle={async (item) => {
+        checkForStyle={(item) => {
           if (!info.downloaded?.episodes) return false;
 
-          for (const ep of info.downloaded.episodes) {
-            if (ep.episode === item.episode) {
-              try {
-                const fileInfo = await FileSystem.getInfoAsync(ep.video_path);
-                return fileInfo.exists;
-              } catch (error) {
-                return false;
-              }
-            }
-          }
-          return false;
+          const episode = info.downloaded.episodes.find(
+            (ep) => ep.episode === item.episode
+          );
+
+          return (
+            episode &&
+            episode.video_path &&
+            typeof episode.video_path === "string"
+          );
         }}
         onSelectEpisode={async (item) => {
           const episode = info.downloaded?.episodes?.find(

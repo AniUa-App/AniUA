@@ -445,7 +445,8 @@ export default function СustomisationScreen() {
               try {
                 const uri = typeof input === "string" ? input : input?.uri;
                 const name = typeof input === "object" ? input?.name : null;
-                const mimeType = typeof input === "object" ? input?.mimeType : null;
+                const mimeType =
+                  typeof input === "object" ? input?.mimeType : null;
                 if (!uri) throw new Error("URI is missing");
 
                 // Try to determine extension from name, URI or mimeType
@@ -694,7 +695,7 @@ export default function СustomisationScreen() {
             })}
           </View>
         ))}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 150, backgroundColor: "transparent" }} />
       </ScrollView>
       {USER_CONFIG?.navbar?.isCustomisation && (
         <View

@@ -11,9 +11,9 @@ import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function DefaultScreenWidget({
-  children,
   isCheckInternet = true,
   isConnection,
+  children,
 }) {
   const themeColors = useThemeColors();
   const [isConnected, setIsConnected_] = useState(true);
@@ -61,66 +61,69 @@ export default function DefaultScreenWidget({
   }, []);
 
   return (
-    <SafeAreaView
-      style={[
-        Styles.defaultScreenWidget,
-        {
-          // Always keep an opaque background to avoid white flashes during transitions
-          backgroundColor: themeColors.black,
-        },
-      ]}
-    >
-      {(() => {
-        const rawImage = userConfig?.background?.image;
-        const imageUri =
-          rawImage &&
-          (rawImage.startsWith("file://") || rawImage.startsWith("content://")
-            ? rawImage
-            : `file://${rawImage}`);
+    <>
+      <SafeAreaView
+        style={[
+          Styles.defaultScreenWidget,
+          {
+            // Always keep an opaque background to avoid white flashes during transitions
+            backgroundColor: themeColors.black,
+          },
+        ]}
+      >
+        {(() => {
+          const rawImage = userConfig?.background?.image;
+          const imageUri =
+            rawImage &&
+            (rawImage.startsWith("file://") || rawImage.startsWith("content://")
+              ? rawImage
+              : `file://${rawImage}`);
 
-        return isCustomisation &&
-          userConfig?.background?.isImageBackground &&
-          imageUri ? (
-          <ImageBackground
-            key={imageUri}
-            source={{ uri: imageUri }}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          />
-        ) : null;
-      })()}
-      {(() => {
-        const isBlurEnabled =
-          isCustomisation && userConfig?.background?.isBlurBackground;
-        const blurReductionFactor =
-          userConfig?.background?.blurReductionFactor || 80;
-        const blurTint = userConfig?.background?.blurIntensity || 80;
+          return isCustomisation &&
+            userConfig?.background?.isImageBackground &&
+            imageUri ? (
+            <ImageBackground
+              key={imageUri}
+              source={{ uri: imageUri }}
+              style={{
+                position: "absolute",
+                backgroundColor: "transparent",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+          ) : null;
+        })()}
+        {(() => {
+          const isBlurEnabled =
+            isCustomisation && userConfig?.background?.isBlurBackground;
+          const blurReductionFactor =
+            userConfig?.background?.blurReductionFactor || 80;
+          const blurTint = userConfig?.background?.blurIntensity || 80;
 
-        return isBlurEnabled ? (
-          <BlurView
-            intensity={blurTint}
-            blurReductionFactor={blurReductionFactor}
-            style={[StyleSheet.absoluteFill]}
-            experimentalBlurMethod="dimezisBlurView"
-          />
-        ) : null;
-      })()}
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
-        {isCheckInternet && !isConnected && (
-          <InternetError onPress={checkConnection} />
-        )}
-        {children}
-      </View>
-    </SafeAreaView>
+          return isBlurEnabled ? (
+            <BlurView
+              intensity={blurTint}
+              blurReductionFactor={blurReductionFactor}
+              style={[StyleSheet.absoluteFill]}
+              experimentalBlurMethod="dimezisBlurView"
+            />
+          ) : null;
+        })()}
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+        <View style={{ flex: 1, paddingTop: headerHeight }}>
+          {isCheckInternet && !isConnected && (
+            <InternetError onPress={checkConnection} />
+          )}
+          {children}
+        </View>
+      </SafeAreaView>
+    </>
   );
 }

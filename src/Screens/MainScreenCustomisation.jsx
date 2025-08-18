@@ -44,6 +44,7 @@ import { getGenres } from "../Sources/CustomSet";
 import SliderWidget from "../Widgets/SliderWidget";
 import InputPickerWidget from "../Widgets/InputPickerWidget";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+
 import {
   Statuses,
   Seasons,
@@ -80,14 +81,17 @@ export default function MainScreenCustomisationScreen() {
   function addList(list) {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    EventBus.emit("personalRecListUpdated", list);
   }
   function editList(list) {
     PersonalRecListStorage.editSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    EventBus.emit("personalRecListUpdated", list);
   }
   function deleteList(list) {
     PersonalRecListStorage.deleteSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    EventBus.emit("personalRecListUpdated", list);
   }
 
   useEffect(() => {
@@ -275,6 +279,7 @@ function PersonalRecList({
             }}
           />
         ))}
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 }

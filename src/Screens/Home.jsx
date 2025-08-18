@@ -133,6 +133,7 @@ export default function HomeScreen() {
             )}
           </View>
         )}
+        <View style={{ height: 40, backgroundColor: "transparent" }} />
       </ScrollView>
     </DefaultScreenWidget>
   );
@@ -160,12 +161,18 @@ const CustomPersonalRecList = React.memo(() => {
   // Refresh list when Home gains focus
   useFocusEffect(
     useCallback(() => {
-      try {
-        const data = PersonalRecListStorage.getSettingsList();
-        setPersonalRecList(data);
-      } catch (e) {
-        console.error("Помилка при оновленні персональних списків:", e);
-      }
+      EventBus.on(
+        "personalRecListUpdated",
+        () => {
+          try {
+            const data = PersonalRecListStorage.getSettingsList();
+            setPersonalRecList(data);
+          } catch (e) {
+            console.error("Помилка при оновленні персональних списків:", e);
+          }
+        },
+        []
+      );
     }, [])
   );
 

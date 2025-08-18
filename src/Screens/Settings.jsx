@@ -60,6 +60,7 @@ export default function SettingsScreen() {
           isDefaultBigBanner: true,
         });
       }
+      SettingsStorage.setParameter("isNotFirstLaunch", false);
 
       // Очищаємо файли епізодів
       const episodesPath = SettingsStorage.getParameter("pathToSaveEpisodes");
@@ -118,7 +119,6 @@ export default function SettingsScreen() {
           params: {
             title: "Виберіть плеєр за замовчуванням.",
             Sbutton: true,
-
             isGoBack: true,
             list: MainConfig.players.map((player) => ({
               title: player,
@@ -181,6 +181,21 @@ export default function SettingsScreen() {
               padding: 10,
               minHeight: 50,
             },
+          },
+        });
+      },
+    },
+    {
+      title: "Привілеї",
+      subtitle: "Ви можете відкрити додаткові опції за донат.",
+      button: {
+        Text: "Відкрити",
+      },
+      onPress: () => {
+        navigation.navigate("HiddenStack", {
+          screen: "Privileges",
+          params: {
+            title: "Привілеї",
           },
         });
       },

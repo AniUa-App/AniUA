@@ -1,21 +1,21 @@
-import {View, Text} from 'react-native';
-import React from 'react';
-import {Dimensions} from 'react-native';
+import { View, Text } from "react-native";
+import React from "react";
+import { Dimensions } from "react-native";
 
 export function GetScreenHeight() {
-  return Dimensions.get('window').height; // Получаем высоту экрана
+  return Dimensions.get("window").height; // Получаем высоту экрана
 }
 export function GetScreenWidth() {
-  return (screenWidth = Dimensions.get('window').width); // Получаем ширину экрана
+  return (screenWidth = Dimensions.get("window").width); // Получаем ширину экрана
 }
 
 export function getStudioByIndex(index) {
   const studios = Object.entries(data.moon);
   if (index < 0 || index >= studios.length) {
-    return {error: 'Студія не знайдена'};
+    return { error: "Студія не знайдена" };
   }
   const [name, content] = studios[index];
-  return {name, content};
+  return { name, content };
 }
 
 export function $(obj) {
@@ -23,10 +23,14 @@ export function $(obj) {
 }
 
 export function TransformToCompactJson(data) {
+  if (!data || (!data.moon && !data.ashdi)) {
+    return [];
+  }
+
   const result = {};
 
   for (const [source, shows] of Object.entries(data)) {
-    if (typeof shows !== 'object' || shows === null) {
+    if (typeof shows !== "object" || shows === null) {
       continue; // Пропускаем, если значение не является объектом
     }
 
@@ -44,7 +48,7 @@ export function TransformToCompactJson(data) {
         }
 
         if (!result[episodeNum]) {
-          result[episodeNum] = {episode: episodeNum, [show]: {}};
+          result[episodeNum] = { episode: episodeNum, [show]: {} };
         }
 
         if (!result[episodeNum][show]) {
@@ -69,9 +73,9 @@ export function TransformToCompactJson(data) {
 export function sanitizeFileName(
   filename,
   transliterate = true,
-  replacement = '_',
+  replacement = "_"
 ) {
-  if (!filename) return '';
+  if (!filename) return "";
 
   // Заборонені символи у більшості ОС
   const forbiddenChars = /[\\/:*?"<>|]/g;
@@ -85,24 +89,24 @@ export function sanitizeFileName(
   // Транслітерація кирилиці на латиницю
   if (transliterate) {
     const cyrillic =
-      'абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ';
+      "абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ";
     const latin =
-      'abvggdeezzyiiyklmnoprstufhtschsh_yuiaABVGGDEEZZYIIYKLMNOPRSTUFHTSCHSH_YUIA';
+      "abvggdeezzyiiyklmnoprstufhtschsh_yuiaABVGGDEEZZYIIYKLMNOPRSTUFHTSCHSH_YUIA";
 
     sanitized = sanitized
-      .split('')
-      .map(char => {
+      .split("")
+      .map((char) => {
         const index = cyrillic.indexOf(char);
         return index >= 0 ? latin[index] : char;
       })
-      .join('');
+      .join("");
   }
 
   // Видалення контрольних символів і спеціальних послідовностей
-  sanitized = sanitized.replace(/[\x00-\x1f\x7f-\x9f]/g, '');
+  sanitized = sanitized.replace(/[\x00-\x1f\x7f-\x9f]/g, "");
 
   // Видалення початкових та кінцевих пробілів і крапок
-  sanitized = sanitized.trim().replace(/\.+$/g, '');
+  sanitized = sanitized.trim().replace(/\.+$/g, "");
 
   // Перевірка на зарезервовані імена файлів у Windows
   const reservedNames = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
@@ -112,7 +116,7 @@ export function sanitizeFileName(
 
   // Якщо після очищення нічого не залишилось
   if (sanitized.length === 0) {
-    sanitized = 'file';
+    sanitized = "file";
   }
 
   return sanitized;
@@ -124,7 +128,7 @@ export function sanitizeFileName(
  * @param {string} mimeType - MIME тип файлу (за замовчуванням 'video/*')
  * @returns {Promise<void>}
  */
-export async function openFileWithChooser(filePath, mimeType = 'video/*') {
-  const FileOpener = require('./FileOpener').default;
+export async function openFileWithChooser(filePath, mimeType = "video/*") {
+  const FileOpener = require("./FileOpener").default;
   return await FileOpener.openFile(filePath, mimeType);
 }

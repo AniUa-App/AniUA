@@ -30,6 +30,9 @@ export class HikkaApi {
 
     try {
       const result = await requestFn();
+      if (result.code === 404) {
+        return { data: [], code: 404 };
+      }
       HikkaApi.apiCache[cacheKey] = {
         data: result,
         timestamp: now,
@@ -129,10 +132,27 @@ export class HikkaApi {
     const cacheKey = `episodes_${slug}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
       try {
+        console.log("episodes1data slugggg:", slug);
+
         const response = await HikkaApi.axiosInstance.get(
           `${HikkaApi.apiEpisodesUrl}watch/${slug}`
         );
+
+        console.log("episodes1data response:", response.data);
+
+        // Check if the response is empty or has an error structure
+        // if (!response.data || Object.keys(response.data).length === 0) {
+        //   return { data: [], code: 404 };
+        // }
+
+        // Check if response doesn't have ashdi or moon
+        // if (!response.data.ashdi || !response.data.moon) {
+        //   return { data: [], code: 404 };
+        // }
+
+        // Remove type property from response if it exists
         const { type, ...rest } = response.data;
+
         return { data: rest, code: response.status };
       } catch (error: any) {
         console.error(

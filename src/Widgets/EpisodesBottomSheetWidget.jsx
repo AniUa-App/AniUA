@@ -69,8 +69,16 @@ const EpisodeItem = React.memo(
     const panResponder = useMemo(
       () =>
         PanResponder.create({
-          onStartShouldSetPanResponder: () => true,
-          onMoveShouldSetPanResponder: () => true,
+          // Don't capture immediately; allow list to decide until clear horizontal intent
+          onStartShouldSetPanResponder: () => false,
+          onMoveShouldSetPanResponder: (evt, gestureState) => {
+            if (!onSwipeEpisode) return false;
+            const { dx, dy } = gestureState;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            // Capture only when horizontal movement is dominant and above threshold
+            return absDx > 10 && absDx > absDy * 1.2;
+          },
           onPanResponderGrant: (evt, gestureState) => {
             // Початок жесту - збільшуємо масштаб
             Animated.spring(scale, {
@@ -79,9 +87,9 @@ const EpisodeItem = React.memo(
             }).start();
           },
           onPanResponderMove: (evt, gestureState) => {
-            const { dx } = gestureState;
-            // Анімуємо рух вправо
-            if (dx > 0) {
+            const { dx, dy } = gestureState;
+            // Only react to horizontal movement; ignore vertical so FlatList can scroll
+            if (Math.abs(dx) > Math.abs(dy) && dx > 0) {
               translateX.setValue(dx * 0.3); // Зменшуємо рух для плавності
             }
           },
@@ -113,7 +121,7 @@ const EpisodeItem = React.memo(
             }
           },
         }),
-      []
+      [onSwipeEpisode]
     );
 
     const [downloadPct, setDownloadPct] = useState(null);
@@ -145,7 +153,8 @@ const EpisodeItem = React.memo(
     return (
       <>
         <Animated.View
-          {...panResponder.panHandlers}
+          // Attach pan handlers only if swipe is enabled to avoid hijacking vertical scroll
+          {...(onSwipeEpisode ? panResponder.panHandlers : {})}
           style={[
             styles.rowContainer,
             {

@@ -263,7 +263,8 @@ export function ForwardButton({
   useEffect(() => {
     setIsData(data?.watched?.player && data?.watched?.dubbing ? true : null);
 
-    if (errorCode === 404) {
+    // Якщо сервер повернув будь-яку помилку (HTTP >= 400) — не показувати лоадер
+    if (Number(errorCode) >= 400) {
       setIsData(false);
     } else if (!episodesList || episodesList?.length === 0) {
       setIsData(null);

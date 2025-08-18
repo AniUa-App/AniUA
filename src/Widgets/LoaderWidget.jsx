@@ -9,14 +9,21 @@ import {
   loaderColor,
   White,
 } from "../Styles/Colors";
-import { H2, H3, H4, H5 } from "../Styles/Fonts";
+import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
 import FastImage from "react-native-fast-image";
 import MainConfig from "../cfgs/MainConfig";
+import SettingsStorage from "../Storage/SettingsStorage";
 
-export default function Loader() {
+export default function Loader({ isNotFirstLaunch = false }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const translateYAnim = useRef(new Animated.Value(50)).current;
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // bounceInUp for welcome text
+  const welcomeOpacity = useRef(new Animated.Value(0)).current;
+  const welcomeTranslateY = useRef(new Animated.Value(10)).current;
+  const welcomeOpacity_1 = useRef(new Animated.Value(0)).current;
+  const welcomeTranslateY_1 = useRef(new Animated.Value(20)).current;
 
   // Отримуємо версію додатку з безпечною перевіркою
   const appVersion = MainConfig.devInfo.version || "1.0.0";
@@ -36,6 +43,39 @@ export default function Loader() {
         useNativeDriver: true,
       }).start();
     }, 1000);
+    setTimeout(
+      () => {
+        Animated.parallel([
+          Animated.timing(welcomeOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(welcomeTranslateY, {
+            toValue: 0,
+            bounciness: 14,
+            speed: 6,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      },
+      !isNotFirstLaunch ? 0 : 1000
+    );
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(welcomeOpacity_1, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(welcomeTranslateY_1, {
+          toValue: 0,
+          bounciness: 14,
+          speed: 6,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 2000);
   }, []);
 
   return (
@@ -48,16 +88,47 @@ export default function Loader() {
 
       {!imageLoaded && <View style={[styles.logo]} />}
 
-      <FastImage
-        source={require("../../assets/AniUA-Logo.png")}
-        style={[
-          styles.logo,
-          !imageLoaded && { position: "absolute" },
-          { marginTop: 30 },
-        ]}
-        onLoadEnd={() => setImageLoaded(true)}
-      />
-      {/* Версія додатку внизу екрану */}
+      <Animated.View
+        style={{
+          opacity: welcomeOpacity,
+          transform: [{ translateY: welcomeTranslateY }],
+        }}
+      >
+        <FastImage
+          source={require("../../assets/AniUA-Logo.png")}
+          style={[
+            styles.logo,
+            !imageLoaded && { position: "absolute" },
+            { marginTop: !isNotFirstLaunch ? -100 : 30 },
+          ]}
+          onLoadEnd={() => setImageLoaded(true)}
+        />
+      </Animated.View>
+
+      {!isNotFirstLaunch && (
+        <Animated.View
+          style={{
+            opacity: welcomeOpacity_1,
+            transform: [{ translateY: welcomeTranslateY_1 }],
+            position: "absolute",
+            alignSelf: "center",
+            marginTop: 220,
+            flexDirection: "column",
+          }}
+        >
+          <Text
+            style={[
+              H2,
+              {
+                color: White(1),
+                fontSize: 64,
+              },
+            ]}
+          >
+            {`Вітаємо`}
+          </Text>
+        </Animated.View>
+      )}
       <Animated.View
         style={[
           styles.versionContainer,

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
+    "android": "npm run set-env && expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "setup-file-opener": "node scripts/setup-file-opener-v3.js",
@@ -13,7 +13,7 @@
     "eas-build-post-install": "npx patch-package && npm run setup-ffmpeg",
     "postinstall": "patch-package",
     "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
-    "set-env": "node ./scripts/set-environment.js ",
+    "set-env": "node ./scripts/set-environment.js",
     "update-alpha": "npm run set-env && npx eas update --branch alpha -m 'Update!'"
   },
   "dependencies": {
