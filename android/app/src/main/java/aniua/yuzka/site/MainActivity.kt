@@ -1,4 +1,4 @@
-package com.aniua
+package aniua.yuzka.site
 
 import android.os.Build
 import android.os.Bundle

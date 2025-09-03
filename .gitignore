@@ -56,11 +56,7 @@ Thumbs.db
 .idea/
 *.iml
 
-# Local env files
-.env
-.env.*
-.env*.local
-!.env.example
+
 
 # TypeScript
 *.tsbuildinfo
@@ -91,3 +87,8 @@ test.*
 
 *.aar
 *.jar
+# Local env files
+.env
+.env.*
+.env*.local
+!.env.example

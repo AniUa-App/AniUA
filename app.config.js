@@ -1,4 +1,8 @@
 import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.local", override: true });
 
 export default {
   expo: {
@@ -86,7 +90,7 @@ export default {
               "../../node_modules/@notifee/react-native/android/libs",
             ],
             compileSdkVersion: 36,
-            targetSdkVersion: 31,
+            targetSdkVersion: 32,
           },
         },
       ],

@@ -28,8 +28,6 @@ import { ThemeProvider } from "./src/Global/ThemeContext";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
 import Api, { getUniqueAccountId } from "./src/Api/api";
-import ApiSupabase from "./src/Api/apiSupabase";
-import RatingWidget from "./src/Widgets/RatingWidget";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);

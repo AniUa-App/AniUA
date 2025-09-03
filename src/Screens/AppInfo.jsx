@@ -50,7 +50,7 @@ export default function AppInfoScreen() {
     },
     {
       title: "Device ID",
-      value: String(Config.devInfo.deviceId || "unknown"),
+      value: String(Config.devInfo.getUniqueId() || "unknown"),
     },
     {
       title: "Account ID",
