@@ -4,7 +4,7 @@ import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
-import { appColor, white, black_1 } from "../Styles/Colors";
+import { appColor, white, black_1, red } from "../Styles/Colors";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
 export default function ButtonsScreen({ route }) {
@@ -93,15 +93,14 @@ export function SegmentedControlLabelWidget({
       }
       tintColor={appColor}
       backgroundColor={black_1}
+      sliderStyle={{ top: 0, bottom: 0, left: 0, right: 0 }}
       style={{
         width: "100%",
-        alignItems: "center",
-        justifyContent: "center",
         alignSelf: "center",
-        padding: 10,
         height: 50,
         borderWidth: 0,
         borderRadius: 8,
+        overflow: "hidden",
       }}
       fontStyle={{
         ...H7,
@@ -112,6 +111,7 @@ export function SegmentedControlLabelWidget({
 
         textAlign: "center",
         color: white,
+        lineHeight: (H7?.fontSize ?? 13) + 2,
       }}
     />
   );

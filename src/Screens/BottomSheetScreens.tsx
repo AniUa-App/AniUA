@@ -254,7 +254,7 @@ export function CustomisationAnimeListsScreen({
             { label: "Анонс" },
             { label: "Онґоінґ" },
             { label: "Завершено" },
-            { label: "Неважливо" },
+            { label: "Байдуже" },
           ]}
           onChange={(item: any) => {
             setStatus(item?.label ?? item);
@@ -266,7 +266,7 @@ export function CustomisationAnimeListsScreen({
             { label: "Весна" },
             { label: "Літо" },
             { label: "Осінь" },
-            { label: "Неважливо" },
+            { label: "Байдуже" },
           ]}
           onChange={(item: any) => {
             setSeasons(item?.label ?? item);

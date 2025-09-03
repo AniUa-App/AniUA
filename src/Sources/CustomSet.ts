@@ -5,14 +5,14 @@ import { CustomAnimeSet } from "../Storage/PersonalRecListStorage";
 export var Genres: Record<string, string> = {};
 
 export const Statuses: Record<string, string> = {
-  Неважливо: "",
+  Байдуже: "",
   Онґоінґ: "ongoing",
   Завершено: "finished",
   Анонс: "announced",
 };
 
 export const Seasons: Record<string, string> = {
-  Неважливо: "",
+  Байдуже: "",
   Зима: "winter",
   Весна: "spring",
   Осінь: "fall",

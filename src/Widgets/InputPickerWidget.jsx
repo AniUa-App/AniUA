@@ -112,7 +112,7 @@ export default function InputPickerWidget({
     ({ item }) => {
       const active = isSelected(item.value);
       return (
-        <RNTouchableOpacity
+        <TouchableOpacity
           onPress={() => {
             updateSelection(item.value);
             if (multiple) setIsOpen(true);
@@ -135,7 +135,7 @@ export default function InputPickerWidget({
           ) : (
             <Icons.Plus size={18} color={colors.white} />
           )}
-        </RNTouchableOpacity>
+        </TouchableOpacity>
       );
     },
     [colors, isSelected, updateSelection, multiple]
@@ -163,46 +163,35 @@ export default function InputPickerWidget({
         onLayout={measureAnchor}
         style={{ position: "relative" }}
       >
-        <View
-          style={{
-            height: 48,
-            borderRadius: 10,
-            backgroundColor: colors.black_1,
-            paddingHorizontal: 14,
-            alignItems: "center",
-            flexDirection: "row",
-            opacity: 0.95,
+        <TouchableOpacity
+          onPress={() => {
+            measureAnchor();
+            setIsOpen(true);
           }}
+          activeOpacity={0.9}
         >
-          <TextInput
-            ref={inputRef}
-            value={query}
-            onChangeText={setQuery}
-            onFocus={() => {
-              measureAnchor();
-              setIsOpen(true);
+          <View
+            style={{
+              height: 48,
+              borderRadius: 10,
+              backgroundColor: colors.black_1,
+              paddingHorizontal: 14,
+              alignItems: "center",
+              flexDirection: "row",
+              opacity: 0.95,
             }}
-            placeholder={placeholder}
-            placeholderTextColor={colors.white}
-            style={[H4, { color: colors.white, flex: 1 }]}
-          />
-          <RNTouchableOpacity
-            onPress={() =>
-              setIsOpen((v) => {
-                const next = !v;
-                if (next) measureAnchor();
-                return next;
-              })
-            }
-            activeOpacity={0.7}
           >
-            {isOpen ? (
-              <Icons.CaretUp size={18} color={colors.white} />
-            ) : (
-              <Icons.CaretDown size={18} color={colors.white} />
-            )}
-          </RNTouchableOpacity>
-        </View>
+            <TextInput
+              value={query}
+              editable={false}
+              pointerEvents="none"
+              placeholder={placeholder}
+              placeholderTextColor={colors.white}
+              style={[H4, { color: colors.white, flex: 1 }]}
+            />
+            <Icons.CaretDown size={18} color={colors.white} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {isOpen && anchor ? (
@@ -220,6 +209,42 @@ export default function InputPickerWidget({
                 Keyboard.dismiss();
               }}
             />
+            {/* Переміщуємо інпут у модальний шар, щоб не втрачати фокус */}
+            <View
+              style={{
+                position: "absolute",
+                left: anchor.x,
+                top: anchor.y,
+                width: anchor.width,
+              }}
+            >
+              <View
+                style={{
+                  height: 48,
+                  borderRadius: 10,
+                  backgroundColor: colors.black_1,
+                  paddingHorizontal: 14,
+                  alignItems: "center",
+                  flexDirection: "row",
+                  opacity: 0.95,
+                }}
+              >
+                <TextInput
+                  ref={inputRef}
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={placeholder}
+                  placeholderTextColor={colors.white}
+                  style={[H4, { color: colors.white, flex: 1 }]}
+                />
+                <TouchableOpacity
+                  onPress={() => setIsOpen(false)}
+                  activeOpacity={0.7}
+                >
+                  <Icons.CaretUp size={18} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+            </View>
             <View
               style={[
                 styles.dropdown,
@@ -261,13 +286,13 @@ export default function InputPickerWidget({
                 chipStyle,
               ]}
             >
-              <RNTouchableOpacity
+              <TouchableOpacity
                 onPress={() => removeChip(value)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 style={{ marginRight: 6 }}
               >
                 <Icons.XCircle size={16} color={colors.white} />
-              </RNTouchableOpacity>
+              </TouchableOpacity>
               <Text style={[H5, { color: colors.white }]}>{value}</Text>
             </View>
           ))}

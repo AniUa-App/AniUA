@@ -491,7 +491,7 @@ export function PersonalRecListFilter({
                 { label: "Анонс" },
                 { label: "Онґоінґ" },
                 { label: "Завершено" },
-                { label: "Неважливо" },
+                { label: "Байдуже" },
               ]}
               value={status}
               onChange={(item) => {
@@ -504,7 +504,7 @@ export function PersonalRecListFilter({
                 { label: "Весна" },
                 { label: "Літо" },
                 { label: "Осінь" },
-                { label: "Неважливо" },
+                { label: "Байдуже" },
               ]}
               value={seasons}
               onChange={(item) => {

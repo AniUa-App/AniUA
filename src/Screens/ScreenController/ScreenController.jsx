@@ -223,10 +223,12 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
           borderRadius: isCustomisation
             ? userConfig?.navbar?.borderRadius || 8
             : 0,
-          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 0 : 0,
+          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset : 0,
           width: isCustomisation
             ? `${userConfig?.navbar?.width || 80}%`
             : "100%",
+          paddingBottom:
+            isCustomisation && userConfig?.navbar?.bottomOffset > 20 ? 0 : 25,
         },
       ]}
     >
@@ -239,8 +241,8 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
             StyleSheet.absoluteFill,
             {
               borderRadius: isCustomisation
-                ? userConfig?.navbar?.borderRadius || 8
-                : 0,
+                ? userConfig?.navbar?.borderRadius
+                : 8,
             },
           ]}
           experimentalBlurMethod="dimezisBlurView"
