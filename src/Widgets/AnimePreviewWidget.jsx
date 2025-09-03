@@ -23,6 +23,8 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   info,
   updateInfo,
   type,
+  maxHeight,
+  maxWidth,
 }) {
   if (!anime || !anime.slug) return null;
 
@@ -59,6 +61,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
     icon: {
       Liked: Icon.Heart,
       Downloaded: Icon.DownloadSimple,
+      Search: Icon.ArrowCircleRight,
     },
     onPress: {
       Liked: () => updateInfo(anime.slug, { isFavorite: !isFavorite }),
@@ -75,7 +78,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       ? isFavorite
       : type === "Downloaded"
         ? hasDownloads
-        : false;
+        : type === "Search"
+          ? true
+          : false;
 
   const IconComponent = Component.icon[type];
   const handlePress = Component.onPress[type];
@@ -83,7 +88,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   return (
     <>
       <TouchableOpacity
-        style={styles.cardContainer}
+        style={[styles.cardContainer, { maxHeight, maxWidth }]}
         onPress={() =>
           navigation.navigate("HiddenStack", {
             screen: "AnimePreview",
@@ -91,12 +96,21 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           })
         }
       >
-        <Image uri={anime.image} style={styles.animeImage} />
+        <Image
+          uri={anime.image}
+          style={[
+            styles.animeImage,
+            {
+              width: maxWidth ? maxWidth / 2.8 : GetScreenWidth() * 0.43,
+              height: maxHeight ? maxHeight / 1 : GetScreenWidth() * 0.4 * 1.8,
+            },
+          ]}
+        />
         <View style={[styles.infoContainer]}>
           <Text
             numberOfLines={4}
             ellipsizeMode="tail"
-            style={[H3, { marginBottom: 20 }]}
+            style={[H3, { marginBottom: maxHeight ? 0 : 20 }]}
           >
             {anime.title_ua}
           </Text>
@@ -117,7 +131,11 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           <Text style={[H4, { marginBottom: 8 }]}>
             Дата виходу: <Text style={styles.animeHighlight}>{anime.year}</Text>
           </Text>
-          <Text numberOfLines={2} ellipsizeMode="tail" style={H4}>
+          <Text
+            numberOfLines={maxHeight ? 1 : 2}
+            ellipsizeMode="tail"
+            style={H4}
+          >
             Жанри:
             <Text style={styles.animeHighlight}>
               {anime.genres?.map((genre) => genre.name_ua).join(", ") ?? ""}
@@ -125,7 +143,13 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           </Text>
         </View>
         {IconComponent && (
-          <TouchableOpacity style={styles.favoriteButton} onPress={handlePress}>
+          <TouchableOpacity
+            style={[
+              styles.favoriteButton,
+              { padding: maxHeight ? maxHeight / 100 : 20 },
+            ]}
+            onPress={handlePress}
+          >
             <IconComponent fill={isIconFilled ? appColor : white} />
           </TouchableOpacity>
         )}
@@ -196,8 +220,6 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   animeImage: {
-    width: GetScreenWidth() * 0.43,
-    height: GetScreenWidth() * 0.4 * 1.8,
     borderRadius: 10,
     marginRight: 10,
   },
@@ -210,8 +232,7 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: "absolute",
-    right: 10,
-    bottom: 10,
-    padding: 5,
+    right: 0,
+    bottom: 0,
   },
 });

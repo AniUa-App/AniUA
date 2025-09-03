@@ -16,6 +16,8 @@ import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import AnimeStorage from "../Storage/AnimeStorage";
 import { playersIcons } from "../Widgets/DubbingBottomSheetWidget";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
+import RatingWidget from "../Widgets/RatingWidget";
+import Api from "../Api/api";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -29,6 +31,7 @@ export default function SettingsScreen() {
     message: "",
     onConfirm: null,
   });
+  const [isRatingVisible, setIsRatingVisible] = useState(false);
 
   const showNotification = (message) => {
     setNotification({ visible: true, message });
@@ -136,12 +139,12 @@ export default function SettingsScreen() {
     },
     {
       title: "Підтримка",
-      subtitle: "Телеграм бот для зв'язку з розробниками.",
+      subtitle: "Зворотній зв'язок з розробниками.",
       button: {
         Text: "Відкрити",
       },
       onPress: () => {
-        Linking.openURL(MainConfig.urls.supportBotUrl);
+        Linking.openURL(MainConfig.urls.telegramChannelUrl);
       },
     },
 
@@ -152,7 +155,7 @@ export default function SettingsScreen() {
         Text: "Оцінити",
       },
       onPress: () => {
-        Linking.openURL(MainConfig.urls.googlePlayUrl);
+        setIsRatingVisible(true);
       },
     },
     {
@@ -186,18 +189,13 @@ export default function SettingsScreen() {
       },
     },
     {
-      title: "Привілеї",
-      subtitle: "Ви можете відкрити додаткові опції за донат.",
+      title: "Донат",
+      subtitle: "Ви можете зробити добровольне пожертвування.",
       button: {
         Text: "Відкрити",
       },
       onPress: () => {
-        navigation.navigate("HiddenStack", {
-          screen: "Privileges",
-          params: {
-            title: "Привілеї",
-          },
-        });
+        Linking.openURL(MainConfig.urls.donateUrl);
       },
     },
     {
@@ -267,6 +265,22 @@ export default function SettingsScreen() {
           onDecline={hideConfirmation}
           onHide={hideConfirmation}
         />
+        <RatingWidget
+          visible={isRatingVisible}
+          onClose={() => setIsRatingVisible(false)}
+          onRatingSubmit={(rating, feedback) => {
+            console.log("Користувач поставив оцінку:", rating);
+            console.log("Користувач залишив відгук:", feedback);
+            Api.sendFeedback(rating, feedback).then((success) => {
+              if (success) {
+                showNotification("Відгук успішно відправлено.");
+              } else {
+                showNotification("Помилка при відправці відгуку.");
+              }
+            });
+            setIsRatingVisible(false);
+          }}
+        />
         {SETTINGS_ITEMS.map((item, index) => (
           <SettingsItemWidget
             key={index}
@@ -276,6 +290,7 @@ export default function SettingsScreen() {
             onPress={item.onPress}
           />
         ))}
+        <View style={{ height: 130 }} />
       </ScrollView>
     </DefaultScreenWidget>
   );

@@ -47,6 +47,10 @@ import Icons from "../../Styles/Icons";
 import { H3, H5, H7 } from "../../Styles/Fonts";
 import AppInfoScreen from "../AppInfo";
 import PrivilegesScreen from "../Privileges";
+import DonateScreen from "../Donate";
+
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
@@ -72,6 +76,9 @@ function MainTabs() {
               route={route}
               isArrow={false}
               title={options?.headerTitle}
+              arrowSide={
+                options?.arrowSide ?? route?.params?.arrowSide ?? "right"
+              }
             />
           ),
         }}
@@ -94,6 +101,9 @@ function MainTabs() {
               route={route}
               isArrow={false}
               title={options?.headerTitle}
+              arrowSide={
+                options?.arrowSide ?? route?.params?.arrowSide ?? "right"
+              }
             />
           ),
         }}
@@ -225,7 +235,14 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
           tint="dark"
           intensity={userConfig?.navbar?.blurIntensity || 80}
           blurReductionFactor={userConfig?.navbar?.blurReductionFactor || 8}
-          style={[StyleSheet.absoluteFill]}
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              borderRadius: isCustomisation
+                ? userConfig?.navbar?.borderRadius || 8
+                : 0,
+            },
+          ]}
           experimentalBlurMethod="dimezisBlurView"
         />
       )}
@@ -341,9 +358,6 @@ export function ThemedNavBar({ state, navigation, isPreview = false }) {
   }
 }
 
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
-
 // Кастомна панель навігації
 export function CustomNavBar({ state, navigation, isPreview = false }) {
   const themeColors = useThemeColors();
@@ -395,6 +409,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
           tint="dark"
           intensity={userConfig?.navbar?.blurIntensity || 80}
           blurReductionFactor={userConfig?.navbar?.blurReductionFactor || 8}
+          borderRadius={userConfig?.navbar?.borderRadius || 8}
           style={[StyleSheet.absoluteFill]}
           experimentalBlurMethod="dimezisBlurView"
         />
@@ -410,7 +425,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
 
         return (
           <AnimatedTouchableOpacity
-            layout={LinearTransition.springify().mass(0.5)}
+            layout={LinearTransition.springify().mass(0.7)}
             key={route.key}
             onPress={() => {
               if (!isFocused) {
@@ -431,40 +446,35 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
             style={[
               styles.tabItem,
               {
-                backgroundColor: "transparent",
-                paddingHorizontal: isFocused
-                  ? GetScreenWidth() * 0.01
-                  : GetScreenWidth() * 0.04,
+                width: isFocused ? 100 : "auto",
+                // make opened tab farther from others, and closed tabs closer together
+                marginRight: isFocused ? GetScreenWidth() / 12 : 10,
               },
             ]}
           >
-            <View style={styles.iconShadow} pointerEvents="none">
-              {(() => {
-                const IconComponent =
-                  {
-                    Home: Icons.House,
-                    Liked: Icons.Heart,
-                    Download: Icons.DownloadSimple,
-                    Settings: Icons.Gear,
-                  }[route.name] || null;
-                return (
-                  IconComponent && (
-                    <IconComponent
-                      size={32}
-                      weight={"regular"}
-                      color={
-                        isFocused ? themeColors.appColor : themeColors.white
-                      }
-                    />
-                  )
-                );
-              })()}
-            </View>
+            {(() => {
+              const IconComponent =
+                {
+                  Home: Icons.House,
+                  Liked: Icons.Heart,
+                  Download: Icons.DownloadSimple,
+                  Settings: Icons.Gear,
+                }[route.name] || null;
+              return (
+                IconComponent && (
+                  <IconComponent
+                    size={32}
+                    weight={"regular"}
+                    color={isFocused ? themeColors.appColor : themeColors.white}
+                  />
+                )
+              );
+            })()}
             {isFocused && (
               <Animated.Text
-                entering={FadeIn.duration(200)}
-                exiting={FadeOut.duration(200)}
-                style={[H7, { color: themeColors.white, marginLeft: 8 }]}
+                entering={FadeIn.duration(600)}
+                exiting={FadeOut.duration(100)}
+                style={[H7, { color: themeColors.white, paddingLeft: 6 }]}
               >
                 {labels[route.name]}
               </Animated.Text>
@@ -490,6 +500,10 @@ function HiddenStack() {
             navigation={navigation}
             route={route}
             title={options?.headerTitle}
+            arrowSide={
+              options?.arrowSide ?? route?.params?.arrowSide ?? "right"
+            }
+            isArrow={options?.isArrow ?? route?.params?.isArrow ?? true}
           />
         ),
         contentStyle: { backgroundColor: black },
@@ -561,6 +575,14 @@ function HiddenStack() {
           headerTitle: "Привілеї",
         }}
       />
+      <HiddenStackNav.Screen
+        name="Donate"
+        component={DonateScreen}
+        initialParams={{ arrowSide: "left", isArrow: true }}
+        options={{
+          headerShown: true,
+        }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -595,7 +617,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
     backgroundColor: Black(0.6),
     width: "80%",
     alignSelf: "center",
@@ -603,18 +624,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
   },
   container2: {
     position: "absolute",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     alignItems: "center",
     backgroundColor: Black(0.6),
-    paddingHorizontal: 30,
     width: "100%",
     alignSelf: "center",
     paddingVertical: 8,
@@ -624,10 +640,8 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     height: 36,
-    borderRadius: 30,
   },
   tabItemVertical: {
     flexDirection: "column",

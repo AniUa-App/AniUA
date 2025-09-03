@@ -87,7 +87,7 @@ react-native-file-opener/node_modules/
 
 
 test.*
-
+/google-services.json
 
 *.aar
 *.jar

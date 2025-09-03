@@ -5,7 +5,7 @@ import { EventBus } from "../Global/EventBus";
 export const defaultColors = {
   black: "rgb(24, 28, 20)",
   black_1: "rgb(33, 37, 29)",
-  white: "rgb(251, 252, 251)",
+  white: "rgb(217, 217, 217)",
   appColor: "rgb(44, 124, 116)",
   loaderColor: "rgb(41, 91, 80)",
   yellow: "rgb(238, 201, 0)",

@@ -5,91 +5,93 @@ import { useThemeColors } from "../Global/useTheme";
 import { H2, H3, H4, H6 } from "../Styles/Fonts";
 import Icons from "../Styles/Icons";
 import { TouchableOpacity } from "../Widgets/Button";
+import { useNavigation } from "@react-navigation/native";
 
 function Row({ icon, label, color }) {
   const theme = useThemeColors();
   return (
     <View style={styles.row}>
-      <View style={[styles.iconBox, { backgroundColor: theme.Black(0.3) }]}>
-        {icon}
-      </View>
-      <Text style={[H4, { color: color ?? theme.white }]}>{label}</Text>
+      <View style={[styles.iconBox, {}]}>{icon}</View>
+      <Text style={[H4, { color: color ?? theme.White(0.7) }]}>{label}</Text>
     </View>
   );
 }
 
-export default function PrivilegesScreen({ navigation }) {
+export default function PrivilegesScreen() {
   const theme = useThemeColors();
+  const navigation = useNavigation();
 
   const goDonate = () => {
-    // Replace with your donation link if you have a specific one
-    Linking.openURL("https://send.monobank.ua/jar/000000000000000000000000");
-  };
-
-  const onSkip = () => {
-    if (navigation.canGoBack()) navigation.goBack();
-    else navigation.navigate("MainTabs");
+    navigation.navigate("HiddenStack", {
+      screen: "Donate",
+      params: { arrowSide: "left", title: "" },
+    });
   };
 
   return (
     <DefaultScreenWidget>
       <View style={styles.container}>
-        <Text style={[H2, { marginBottom: 16 }]}>Привілеї</Text>
-
         {/* Кохай */}
-        <Text style={[H3, { marginBottom: 8 }]}>Кохай</Text>
-        <View style={[styles.card, { backgroundColor: theme.Black(0.6) }]}>
+        <Text style={[H2, { paddingLeft: 0 }]}>Кохай</Text>
+        <View style={[styles.card]}>
           <Row
             label="Перегляд аніме"
-            icon={<Icons.Eye size={22} color={theme.white} weight="regular" />}
+            icon={<Icons.Eye size={34} color={theme.gray} />}
           />
           <Row
             label="Реклама в вбудованому плеєрі"
-            icon={<Icons.PlayCircle size={22} color={theme.white} weight="regular" />}
+            icon={<Icons.Video size={34} color={theme.gray} />}
           />
           <Row
             label="Завантаження за рекламу"
-            icon={<Icons.DownloadSimple size={22} color={theme.white} weight="regular" />}
+            icon={<Icons.DownloadSimple size={34} color={theme.gray} />}
           />
         </View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: theme.White(0.12) }]} />
+        <View
+          style={[styles.divider, { backgroundColor: theme.White(0.12) }]}
+        />
 
         {/* Сенпай */}
-        <Text style={[H3, { marginBottom: 8 }]}>Сенпай</Text>
-        <View style={[styles.card, { backgroundColor: theme.Black(0.6) }]}>
+        <Text style={[H2, {}]}>Сенпай</Text>
+        <View style={[styles.card, {}]}>
           <Row
             label="Кастомізація головного меню"
-            color={theme.appColor}
-            icon={<Icons.PencilSimple size={22} color={theme.appColor} weight="regular" />}
+            color={theme.white}
+            icon={<Icons.PaintBrush size={34} color={theme.appColor} />}
           />
           <Row
             label="Бета оновлення"
-            color={theme.appColor}
-            icon={<Icons.CloudArrowDown size={22} color={theme.appColor} weight="regular" />}
+            color={theme.white}
+            icon={<Icons.BoxArrowDown size={34} color={theme.appColor} />}
           />
           <Row
             label="Внутрішній плеєр без реклами"
-            color={theme.appColor}
-            icon={<Icons.DeviceMobileCamera size={22} color={theme.appColor} weight="regular" />}
+            color={theme.white}
+            icon={
+              <Icons.DeviceMobileSpeaker
+                size={34}
+                color={theme.appColor}
+                style={{ transform: [{ rotate: "180deg" }] }}
+              />
+            }
           />
           <Row
             label="Завантаження без обмежень"
-            color={theme.appColor}
-            icon={<Icons.DownloadSimple size={22} color={theme.appColor} weight="regular" />}
+            color={theme.white}
+            icon={<Icons.DownloadSimple size={34} color={theme.appColor} />}
           />
+          <Text style={[H6, { alignSelf: "center", color: theme.White(0.3) }]}>
+            Лише за пожертву від 30 ₴
+          </Text>
         </View>
 
-        <Text style={[H6, { color: theme.White(0.5), marginTop: 8 }]}>Лише за пожертву від 30 ₴</Text>
-
-        <TouchableOpacity onPress={goDonate} style={[styles.primaryBtn, { backgroundColor: theme.appColor }]}>
-          <Text style={[H3, { color: theme.white }]}>Пожертвувати</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={onSkip} style={[styles.skipBtn, { backgroundColor: theme.White(0.1) }]}>
-          <Text style={[H4, { color: theme.White(0.8) }]}>Пропустити</Text>
-          <Icons.ArrowRight size={20} color={theme.White(0.8)} />
+        <TouchableOpacity
+          onPress={goDonate}
+          style={[styles.primaryBtn, { backgroundColor: theme.appColor }]}
+        >
+          <Text style={[H4, { color: theme.white }]}>Пожертвувати</Text>
         </TouchableOpacity>
       </View>
     </DefaultScreenWidget>
@@ -98,20 +100,19 @@ export default function PrivilegesScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 10,
+    flex: 1,
+    paddingHorizontal: 26,
+    paddingTop: 16,
   },
   card: {
-    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingTop: 8,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   iconBox: {
     width: 34,
@@ -122,15 +123,17 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 15,
     borderRadius: 1,
+    width: "90%",
+    alignSelf: "center",
   },
   primaryBtn: {
     alignSelf: "center",
-    paddingHorizontal: 22,
+    paddingHorizontal: 90,
     paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 10,
+    borderRadius: 8,
+    marginTop: 24,
   },
   skipBtn: {
     alignSelf: "center",

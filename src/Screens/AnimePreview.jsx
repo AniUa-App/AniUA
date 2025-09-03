@@ -736,7 +736,15 @@ export default function AnimePreviewScreen({ route }) {
                 {getEpisodeDateOrType(anime)}
               </Text>
             </View>
-            <View style={styles.titleContainer}>
+            <TouchableOpacity
+              style={styles.titleContainer}
+              onLongPress={() => {
+                if (anime.title_ua) {
+                  Clipboard.setString(anime.title_ua);
+                }
+              }}
+              delayLongPress={400}
+            >
               <Text
                 style={[
                   H3,
@@ -757,17 +765,17 @@ export default function AnimePreviewScreen({ route }) {
                         ? "16+"
                         : "18+"}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Жанри/мітки */}
-          <View style={styles.tagsRow}>
+          <TouchableOpacity style={styles.tagsRow}>
             <Text style={[H4, styles.tagItem, { color: themeColors.appColor }]}>
               {anime.genres && anime.genres.length > 0
                 ? anime.genres.map((genre) => genre.name_ua).join(", ")
                 : ""}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Опис аніме */}
           <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>

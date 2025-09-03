@@ -1,6 +1,6 @@
 import { View, Text as TextNative, StyleSheet, ScrollView } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
-import React from "react";
+import React, { useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4 } from "../Styles/Fonts";
@@ -11,6 +11,7 @@ import Toast from "react-native-root-toast";
 import { AppIcon } from "../Styles/Icons";
 import * as Updates from "expo-updates";
 import Constants from "expo-constants";
+import SettingsStorage from "../Storage/SettingsStorage";
 
 export default function AppInfoScreen() {
   const expoChannel =
@@ -47,7 +48,14 @@ export default function AppInfoScreen() {
       value:
         `${Config.devInfo.systemName || "OS"} ${Config.devInfo.systemVersion || ""}`.trim(),
     },
-    { title: "Device ID", value: String(Config.devInfo.deviceId || "unknown") },
+    {
+      title: "Device ID",
+      value: String(Config.devInfo.deviceId || "unknown"),
+    },
+    {
+      title: "Account ID",
+      value: String(SettingsStorage.getParameter("accountId") || "unknown"),
+    },
   ];
 
   return (

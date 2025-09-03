@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "AniUA",
     slug: "AniUA",
-    version: "a0.0.1",
+    version: "0.0.1",
     orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
@@ -15,16 +15,22 @@ export default {
       checkAutomatically: "ON_LOAD",
       channel: "alpha",
     },
-    runtimeVersion: "a0.0.1",
+    runtimeVersion: "0.0.1",
     extra: {
       hermes: true,
       eas: {
         projectId: "3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       },
-      // Build-time metadata injected from .env via react-native-config/dotenv.gradle
       commitHash: process.env.COMMIT_HASH || null,
       commitHashShort: process.env.COMMIT_HASH_SHORT || null,
       buildDate: process.env.BUILD_DATE || null,
+      expoPublickSupabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL || null,
+      expoPublickSupabaseKey: process.env.EXPO_PUBLIC_SUPABASE_KEY || null,
+      appUrl: process.env.APP_URL || null,
+      appUri: process.env.APP_URI || null,
+      dubbingsUrl: process.env.DUBBINGS_URL || null,
+      telegramChannelUrl: process.env.TELEGRAM_CHANNEL_URL || null,
+      donateUrl: process.env.DONATE_URL || null,
     },
     splash: {
       image: "./assets/AniUA-Logo.png",
@@ -40,7 +46,7 @@ export default {
       },
     },
     android: {
-      package: "com.aniua",
+      package: "aniua.yuzka.site",
       versionCode: 1,
       buildType: "apk",
       adaptiveIcon: {
@@ -58,7 +64,6 @@ export default {
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
-      // Використовуємо requestLegacyExternalStorage для сумісності зі старими версіями
       requestLegacyExternalStorage: true,
     },
     assetBundlePatterns: ["**/*"],
@@ -81,7 +86,7 @@ export default {
               "../../node_modules/@notifee/react-native/android/libs",
             ],
             compileSdkVersion: 36,
-            targetSdkVersion: 36,
+            targetSdkVersion: 31,
           },
         },
       ],

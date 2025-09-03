@@ -11,7 +11,13 @@ import { EventBus } from "../Global/EventBus";
 
 const Stack = createStackNavigator();
 
-export default function Header({ navigation, route, isArrow = true, title }) {
+export default function Header({
+  navigation,
+  route,
+  isArrow = true,
+  title = "",
+  arrowSide = "right",
+}) {
   const themeColors = useThemeColors();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
@@ -44,20 +50,36 @@ export default function Header({ navigation, route, isArrow = true, title }) {
         paddingHorizontal: 25,
       }}
     >
-      {/* Название экрана */}
-      <Text style={[H3, { color: themeColors.white }]} numberOfLines={1}>
+      {arrowSide === "left" && isArrow && (
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icons.ArrowLeft fill={themeColors.appColor} size={34} />
+        </TouchableOpacity>
+      )}
+
+      <Text
+        style={[
+          H3,
+          {
+            color: themeColors.white,
+            paddingLeft: 10,
+            flex: 1,
+          },
+        ]}
+        numberOfLines={1}
+      >
         {(() => {
-          const fallback = route?.name || "";
-          const rawTitle = title ?? route?.params?.title ?? fallback;
-          if (typeof rawTitle !== "string") return fallback;
-          return rawTitle.length > 24
-            ? rawTitle.slice(0, 24) + "..."
-            : rawTitle;
+          const explicitTitle =
+            title != null && String(title).trim() !== "" ? String(title) : null;
+          const paramsTitle =
+            route?.params?.title != null ? String(route.params.title) : null;
+          const chosen = explicitTitle ?? paramsTitle ?? "";
+          const safe = String(chosen).trim() || "";
+          return safe.length > 24 ? safe.slice(0, 24) + "..." : safe;
         })()}
       </Text>
 
       {/* Кнопка "Назад" справа */}
-      {isArrow && (
+      {arrowSide === "right" && isArrow && (
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icons.ArrowLeft fill={themeColors.appColor} size={34} />
         </TouchableOpacity>

@@ -4,7 +4,6 @@ import ScreenController from "./src/Screens/ScreenController/ScreenController";
 import { black, white } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-
 import Loader from "./src/Widgets/LoaderWidget";
 // import Orientation from "react-native-orientation-locker";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -27,6 +26,10 @@ import { useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
 import { EventBus } from "./src/Global/EventBus";
+import * as Application from "expo-application";
+import Api, { getUniqueAccountId } from "./src/Api/api";
+import ApiSupabase from "./src/Api/apiSupabase";
+import RatingWidget from "./src/Widgets/RatingWidget";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -80,10 +83,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log(
-      "SettingsStorage.getParameter('userConfig.recommendations')",
-      SettingsStorage.getParameter("userConfig.recommendations").length === 0
-    );
+    MainConfig.devInfo.deviceId = MainConfig.devInfo.getUniqueId();
+    console.log(MainConfig.devInfo.deviceId, "MainConfig.devInfo.deviceId");
+    const isUser = async () => {
+      const isUser = await getUniqueAccountId();
+      SettingsStorage.setParameter("accountId", isUser);
+    };
+    isUser();
+
     if (
       SettingsStorage.getParameter("userConfig.recommendations").length === 0
     ) {
@@ -140,7 +147,6 @@ export default function App() {
       } catch (error) {
         AppLogger.logAppInit("Критична помилка ініціалізації", false, error);
       } finally {
-        // Зменшуємо час завантаження до 1.5 секунд
         setTimeout(
           () => {
             if (isNotFirstLaunch === false)
