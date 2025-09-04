@@ -107,25 +107,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const controlsOpacity = useRef(new Animated.Value(1)).current;
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const controlsTranslateY = useRef(new Animated.Value(0)).current;
-  const playButtonScale = useRef(new Animated.Value(1)).current;
   const episodesPanelTranslateX = useRef(new Animated.Value(300)).current;
   const episodesPanelOpacity = useRef(new Animated.Value(0)).current;
 
   // Анімації кнопок
-  const buttonScales = useRef({
-    back: new Animated.Value(1),
-    speed: new Animated.Value(1),
-    subtitles: new Animated.Value(1),
-    pip: new Animated.Value(1),
-    episodes: new Animated.Value(1),
-    lock: new Animated.Value(1),
-    volume: new Animated.Value(1),
-    skipBack: new Animated.Value(1),
-    skipForward: new Animated.Value(1),
-    download: new Animated.Value(1),
-    rotate: new Animated.Value(1),
-    fit: new Animated.Value(1),
-  }).current;
 
   // Посилання на bottom sheet швидкості
   const speedSheetRef = useRef(null);
@@ -218,7 +203,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       } else {
         player.play();
       }
-      animatePlayButton();
       if (showControls) {
         startHideControlsTimer();
       }
@@ -252,7 +236,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const toggleVolume = () => {
     // залишаємо як mute/unmute якщо знадобиться викликати десь ще
-    animateButton("volume");
     const newVolume = volume > 0 ? 0 : 1.0;
     setVolume(newVolume);
     if (player) {
@@ -278,7 +261,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const openSpeedBottomSheet = () => {
-    animateButton("speed");
     speedSheetRef.current?.present();
     if (showControls) {
       startHideControlsTimer();
@@ -483,17 +465,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       }),
     ]).start();
 
-    const buttonKeys = Object.keys(buttonScales);
-    buttonKeys.forEach((key, index) => {
-      Animated.timing(buttonScales[key], {
-        toValue: 1,
-        duration: 250,
-        delay: index * 35,
-        easing: Easing.out(Easing.back(1.2)),
-        useNativeDriver: true,
-      }).start();
-    });
-
     startHideControlsTimer();
   };
 
@@ -572,47 +543,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     }, 2000);
   };
 
-  const animateButton = (buttonKey) => {
-    const scale = buttonScales[buttonKey];
-    Animated.sequence([
-      Animated.spring(scale, {
-        toValue: 0.85,
-        tension: 380,
-        friction: 4,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scale, {
-        toValue: 1,
-        tension: 380,
-        friction: 4,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const animatePlayButton = () => {
-    Animated.sequence([
-      Animated.spring(playButtonScale, {
-        toValue: 0.9,
-        tension: 140,
-        friction: 4,
-        useNativeDriver: true,
-      }),
-      Animated.spring(playButtonScale, {
-        toValue: 1,
-        tension: 140,
-        friction: 4,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
   const handlePlayPress = () => {
     togglePlayPause();
   };
 
   const toggleOrientation = () => {
-    animateButton("rotate");
     // Orientation.getOrientation((orientation) => { ... });
     EOrientation.getOrientationAsync().then((orientation) => {
       if (!isMountedRef.current) return;
@@ -698,7 +633,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const toggleEpisodes = () => {
-    animateButton("episodes");
     if (showEpisodes) {
       hideEpisodesPanel();
     } else {
@@ -822,15 +756,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 style={styles.headerGradient}
               >
                 <View style={styles.headerContent}>
-                  <Animated.View
-                    style={{
-                      transform: [{ scale: buttonScales.back }],
-                    }}
-                  >
+                  <View>
                     <CustomTouchableOpacity
                       style={styles.headerButton}
                       onPress={() => {
-                        animateButton("back");
                         deactivateKeepAwake();
                         StatusBar.setHidden(false, "slide");
                         SystemNavigationBar.navigationShow();
@@ -845,7 +774,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     >
                       <Icons.ArrowLeft size={32} color={appColor} />
                     </CustomTouchableOpacity>
-                  </Animated.View>
+                  </View>
 
                   <View style={styles.titleContainer}>
                     <Text style={[H4, { color: white }]} numberOfLines={1}>
@@ -857,24 +786,19 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </View>
 
                   <View style={styles.headerButtons}>
-                    <Animated.View
-                      style={{ transform: [{ scale: buttonScales.speed }] }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
                         onPress={openSpeedBottomSheet}
                       >
                         <Icons.Speedometer size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
 
-                    <Animated.View
-                      style={{ transform: [{ scale: buttonScales.pip }] }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
                         onPress={() => {
-                          animateButton("pip");
                           if (showControls) {
                             startHideControlsTimer();
                           }
@@ -883,11 +807,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.PictureInPicture size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
 
-                    <Animated.View
-                      style={{ transform: [{ scale: buttonScales.episodes }] }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
                         onPress={toggleEpisodes}
@@ -897,7 +819,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           color={showEpisodes ? appColor : white}
                         />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
                   </View>
                 </View>
               </LinearGradient>
@@ -936,15 +858,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   >
                     <View style={{ flex: 1 }} />
 
-                    <Animated.View
-                      style={{
-                        transform: [{ scale: buttonScales.lock }],
-                      }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={[styles.controlButton]}
                         onPress={() => {
-                          animateButton("lock");
                           setIsLocked((prev) => !prev);
                           if (showControls) {
                             startHideControlsTimer();
@@ -953,7 +870,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.Lock type={"enabled"} size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
                   </View>
                   <View style={styles.progressContainer}>
                     <Text
@@ -1020,9 +937,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 <View style={styles.mainControls}>
                   {/* Ліві елементи керування */}
                   <View style={styles.leftControlGroup}>
-                    <Animated.View
-                      style={{ transform: [{ scale: buttonScales.volume }] }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.controlButton}
                         onPress={() => {
@@ -1044,7 +959,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           onClose={() => setVolumeTooltipVisible(false)}
                         />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
                   </View>
 
                   {/* Центральні елементи керування відтворенням */}
@@ -1058,13 +973,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <Icons.ArrowCounterClockwise size={24} color={white} />
                       </CustomTouchableOpacity>
                     )}
-                    <Animated.View
-                      style={{ transform: [{ scale: buttonScales.skipBack }] }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.skipButton}
                         onPress={() => {
-                          animateButton("skipBack");
                           goToPreviousEpisode();
                           if (showControls) {
                             startHideControlsTimer();
@@ -1073,35 +985,25 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.SkipBack size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
 
                     <CustomTouchableOpacity
                       style={styles.playButtonContainer}
                       onPress={handlePlayPress}
                     >
-                      <Animated.View
-                        style={[
-                          styles.playButton,
-                          { transform: [{ scale: playButtonScale }] },
-                        ]}
-                      >
+                      <View style={styles.playButton}>
                         {player.playing ? (
                           <Icons.Pause size={32} color={white} />
                         ) : (
                           <Icons.Play size={32} color={white} />
                         )}
-                      </Animated.View>
+                      </View>
                     </CustomTouchableOpacity>
 
-                    <Animated.View
-                      style={{
-                        transform: [{ scale: buttonScales.skipForward }],
-                      }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.skipButton}
                         onPress={() => {
-                          animateButton("skipForward");
                           goToNextEpisode();
                           if (showControls) {
                             startHideControlsTimer();
@@ -1110,7 +1012,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.SkipForward size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
 
                     {isLandscape && (
                       <CustomTouchableOpacity
@@ -1127,15 +1029,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   <View style={styles.rightControlGroup}>
                     {isLandscape && (
                       <>
-                        <Animated.View
-                          style={{
-                            transform: [{ scale: buttonScales.fit }],
-                          }}
-                        >
+                        <View>
                           <CustomTouchableOpacity
                             style={styles.controlButton}
                             onPress={() => {
-                              animateButton("fit");
                               setIsZoomed((prev) => !prev);
                               if (showControls) {
                                 startHideControlsTimer();
@@ -1147,18 +1044,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                               color={isZoomed ? appColor : white}
                             />
                           </CustomTouchableOpacity>
-                        </Animated.View>
+                        </View>
 
-                        <Animated.View
-                          style={{
-                            transform: [{ scale: buttonScales.download }],
-                          }}
-                        >
+                        <View>
                           <CustomTouchableOpacity
                             style={styles.controlButton}
                             onPress={async function () {
                               if (isDownloading) return;
-                              animateButton("download");
                               if (showControls) {
                                 startHideControlsTimer();
                               }
@@ -1278,22 +1170,18 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                               />
                             )}
                           </CustomTouchableOpacity>
-                        </Animated.View>
+                        </View>
                       </>
                     )}
 
-                    <Animated.View
-                      style={{
-                        transform: [{ scale: buttonScales.rotate }],
-                      }}
-                    >
+                    <View>
                       <CustomTouchableOpacity
                         style={styles.controlButton}
                         onPress={toggleOrientation}
                       >
                         <Icons.DeviceRotate size={24} color={white} />
                       </CustomTouchableOpacity>
-                    </Animated.View>
+                    </View>
                   </View>
                 </View>
 
@@ -1324,17 +1212,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 justifyContent: "flex-end",
                 paddingBottom: 180,
                 paddingRight: 24,
+                zIndex: 12,
               }}
             >
-              <Animated.View
-                style={{
-                  transform: [{ scale: buttonScales.lock }],
-                }}
-              >
+              <Animated.View>
                 <CustomTouchableOpacity
                   style={[styles.controlButton]}
                   onPress={() => {
-                    animateButton("lock");
                     setIsLocked((prev) => !prev);
                     if (showControls) {
                       startHideControlsTimer();
@@ -1457,7 +1341,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
       <Pressable
         onPress={handleVideoAreaPress}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, { zIndex: 5 }]}
         android_disableSound
         hitSlop={10}
       />

@@ -1,4 +1,4 @@
-import { View, Text as TextNative, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
 import React, { useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -72,6 +72,7 @@ export default function AppInfoScreen() {
               key={`${item.title}-${index}`}
               title={item.title}
               value={item.value}
+              appInfo={APP_INFO}
             />
           ))}
         </View>
@@ -79,14 +80,14 @@ export default function AppInfoScreen() {
     </DefaultScreenWidget>
   );
 }
-function InfoRow({ title = "", value = "" }) {
+function InfoRow({ title = "", value = "", appInfo = [] }) {
   const themeColors = useThemeColors();
   const onCopy = () => {
-    Clipboard.setString(String(value));
+    Clipboard.setString(JSON.stringify(appInfo));
     Toast.show("Скопійовано", {
       duration: Toast.durations.SHORT,
       position: Toast.positions.BOTTOM,
-      backgroundColor: themeColors.appColor,
+      backgroundColor: themeColors.black,
       textColor: themeColors.white,
       shadow: false,
     });
@@ -96,19 +97,21 @@ function InfoRow({ title = "", value = "" }) {
     <TouchableOpacity onPress={onCopy} activeOpacity={0.8} style={styles.row}>
       <View style={styles.rowTextContainer}>
         {title?.length > 0 && (
-          <TextNative style={[H4, { color: themeColors.white, opacity: 0.9 }]}>
+          <Text style={[H4, { color: themeColors.white, opacity: 0.9 }]}>
             {title}
-          </TextNative>
+          </Text>
         )}
       </View>
-      <View style={[styles.valuePill, { backgroundColor: appColor }]}>
-        <TextNative
+      <View
+        style={[styles.valuePill, { backgroundColor: themeColors.appColor }]}
+      >
+        <Text
           numberOfLines={1}
           ellipsizeMode="tail"
           style={[H4, { color: themeColors.white, maxWidth: 220 }]}
         >
           {String(value)}
-        </TextNative>
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -118,16 +121,14 @@ function Header() {
   const themeColors = useThemeColors();
   return (
     <View style={styles.header}>
-      <AppIcon styles={{ width: 56, height: 56, borderRadius: 12 }} />
+      <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
       <View style={{ marginLeft: 12 }}>
-        <TextNative
-          style={[H3, { color: themeColors.white, fontWeight: "700" }]}
-        >
+        <Text style={[H3, { color: themeColors.white, fontWeight: "700" }]}>
           Про застосунок
-        </TextNative>
-        <TextNative style={[H4, { color: themeColors.white, opacity: 0.7 }]}>
+        </Text>
+        <Text style={[H4, { color: themeColors.white, opacity: 0.7 }]}>
           AniUA • {String(Config.devInfo.version || "unknown")}
-        </TextNative>
+        </Text>
       </View>
     </View>
   );
