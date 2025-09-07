@@ -90,7 +90,7 @@ export default {
               "../../node_modules/@notifee/react-native/android/libs",
             ],
             compileSdkVersion: 36,
-            targetSdkVersion: 32,
+            targetSdkVersion: 35,
           },
         },
       ],

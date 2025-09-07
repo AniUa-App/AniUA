@@ -6,6 +6,7 @@ import {
   Animated,
   Text,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
@@ -22,26 +23,38 @@ export default function SearchLine() {
   const [searchText, setSearchText] = useState("");
   const [isVisibleNotification, setIsVisibleNotification] = useState(false);
   const [loadedAnimeList, setLoadedAnimeList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const searchAnime = async (event) => {
     try {
       const query = searchText.trim();
-
       if (!query) return;
 
-      const anime = await HikkaApi.searchAnime(query);
-      let animeDetails = [];
-      anime.map(async (item) => {
-        animeDetails.push(await HikkaApi.getAnimeDetails(item.slug));
-      });
+      setIsVisibleNotification(false);
+      setLoadedAnimeList([]);
+      setIsLoading(true);
 
-      if (anime && anime.length > 0) {
+      const anime = await HikkaApi.searchAnime(query);
+
+      if (!anime || anime.length === 0) {
+        setIsVisibleNotification(true);
+        return;
+      }
+
+      const animeDetails = await Promise.all(
+        anime.map((item) => HikkaApi.getAnimeDetails(item.slug))
+      );
+
+      if (animeDetails && animeDetails.length > 0) {
         setLoadedAnimeList(animeDetails);
       } else {
         setIsVisibleNotification(true);
       }
     } catch (error) {
       console.error("Помилка пошуку:", error);
+      setIsVisibleNotification(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -141,7 +154,11 @@ export default function SearchLine() {
                 styles.input,
                 {
                   borderBottomRightRadius:
-                    isVisibleNotification || loadedAnimeList.length > 0 ? 0 : 8,
+                    isVisibleNotification ||
+                    loadedAnimeList.length > 0 ||
+                    isLoading
+                      ? 0
+                      : 8,
                 },
               ]}
               placeholder="Пошук..."
@@ -152,6 +169,22 @@ export default function SearchLine() {
             />
           </Animated.View>
         </View>
+        {isLoading && isFocused && (
+          <View
+            style={{
+              backgroundColor: Black(0.7),
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 10,
+              borderBottomRightRadius: 10,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 14,
+            }}
+          >
+            <ActivityIndicator size="small" color={appColor} />
+          </View>
+        )}
         {loadedAnimeList.length > 0 && isFocused && (
           <View
             style={{

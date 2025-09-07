@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-console.log('🔧 Налаштування react-native-file-opener (v3)...');
+console.log("🔧 Налаштування react-native-file-opener (v3)...");
 
 // Функція для безпечного додавання тексту в файл
 function addToFile(filePath, searchText, addText, description) {
@@ -10,15 +10,15 @@ function addToFile(filePath, searchText, addText, description) {
     return false;
   }
 
-  let content = fs.readFileSync(filePath, 'utf8');
-  
+  let content = fs.readFileSync(filePath, "utf8");
+
   if (content.includes(addText)) {
     console.log(`✅ ${description} вже додано`);
     return true;
   }
 
   if (content.includes(searchText)) {
-    content = content.replace(searchText, searchText + '\n' + addText);
+    content = content.replace(searchText, searchText + "\n" + addText);
     fs.writeFileSync(filePath, content);
     console.log(`✅ ${description} додано`);
     return true;
@@ -52,10 +52,10 @@ function addFileProvider(filePath) {
     return false;
   }
 
-  let content = fs.readFileSync(filePath, 'utf8');
-  
+  let content = fs.readFileSync(filePath, "utf8");
+
   // Перевіряємо чи FileProvider вже є
-  if (content.includes('androidx.core.content.FileProvider')) {
+  if (content.includes("androidx.core.content.FileProvider")) {
     console.log(`✅ FileProvider вже додано`);
     return true;
   }
@@ -73,9 +73,9 @@ function addFileProvider(filePath) {
     </provider>`;
 
   // Шукаємо місце після відкриваючого тегу application
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   let insertIndex = -1;
-  
+
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].includes(applicationTag)) {
       insertIndex = i + 1;
@@ -85,7 +85,7 @@ function addFileProvider(filePath) {
 
   if (insertIndex !== -1) {
     lines.splice(insertIndex, 0, fileProviderContent);
-    const newContent = lines.join('\n');
+    const newContent = lines.join("\n");
     fs.writeFileSync(filePath, newContent);
     console.log(`✅ FileProvider додано в AndroidManifest.xml`);
     return true;
@@ -96,22 +96,22 @@ function addFileProvider(filePath) {
 }
 
 // Налаштування Android
-console.log('\n📱 Налаштування Android...');
+console.log("\n📱 Налаштування Android...");
 
 // 1. Додати в settings.gradle
 addToFile(
-  'android/settings.gradle',
-  'include \':app\'',
-  'include \':react-native-file-opener\'\nproject(\':react-native-file-opener\').projectDir = new File(rootProject.projectDir, \'../node_modules/react-native-file-opener/android\')',
-  'Налаштування в settings.gradle'
+  "android/settings.gradle",
+  "include ':app'",
+  "include ':react-native-file-opener'\nproject(':react-native-file-opener').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-file-opener/android')",
+  "Налаштування в settings.gradle"
 );
 
 // 2. Додати в build.gradle
 addToFile(
-  'android/app/build.gradle',
-  'implementation jscFlavor',
-  '    implementation project(\':react-native-file-opener\')',
-  'Залежність в build.gradle'
+  "android/app/build.gradle",
+  "implementation jscFlavor",
+  "    implementation project(':react-native-file-opener')",
+  "Залежність в build.gradle"
 );
 
 // 3. Створити file_paths.xml
@@ -127,34 +127,34 @@ const filePathsContent = `<?xml version="1.0" encoding="utf-8"?>
 </paths>`;
 
 createFile(
-  'android/app/src/main/res/xml/file_paths.xml',
+  "android/app/src/main/res/xml/file_paths.xml",
   filePathsContent,
-  'file_paths.xml'
+  "file_paths.xml"
 );
 
 // 4. Додати FileProvider в AndroidManifest.xml (покращена версія)
-addFileProvider('android/app/src/main/AndroidManifest.xml');
+addFileProvider("android/app/src/main/AndroidManifest.xml");
 
 // 5. Додати імпорт в MainApplication.kt
 addToFile(
-  'android/app/src/main/java/com/aniua/MainApplication.kt',
-  'import expo.modules.ReactNativeHostWrapper',
-  'import com.fileopener.FileOpenerPackage',
-  'Імпорт FileOpenerPackage'
+  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
+  "import expo.modules.ReactNativeHostWrapper",
+  "import com.fileopener.FileOpenerPackage",
+  "Імпорт FileOpenerPackage"
 );
 
 // 6. Додати пакет в getPackages()
 addToFile(
-  'android/app/src/main/java/com/aniua/MainApplication.kt',
-  'return packages',
-  '            packages.add(FileOpenerPackage())\n            return packages',
-  'Додавання FileOpenerPackage в getPackages()'
+  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
+  "return packages",
+  "            packages.add(FileOpenerPackage())\n            return packages",
+  "Додавання FileOpenerPackage в getPackages()"
 );
 
-console.log('\n✅ Налаштування react-native-file-opener завершено!');
-console.log('\n📝 Наступні кроки:');
-console.log('1. Запустіть: npx expo run:android');
-console.log('2. Або: npx expo run:ios');
-console.log('\n💡 Використання в коді:');
-console.log('import FileOpener from \'react-native-file-opener\';');
-console.log('await FileOpener.openFileAuto(filePath);'); 
+console.log("\n✅ Налаштування react-native-file-opener завершено!");
+console.log("\n📝 Наступні кроки:");
+console.log("1. Запустіть: npx expo run:android");
+console.log("2. Або: npx expo run:ios");
+console.log("\n💡 Використання в коді:");
+console.log("import FileOpener from 'react-native-file-opener';");
+console.log("await FileOpener.openFileAuto(filePath);");

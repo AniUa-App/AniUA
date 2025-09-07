@@ -9,19 +9,10 @@
         "buildType": "apk"
       }
     },
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal",
+    "aab-alpha": {
+      "channel": "alpha",
       "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },

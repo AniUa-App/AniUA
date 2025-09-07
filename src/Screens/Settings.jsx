@@ -18,6 +18,7 @@ import { playersIcons } from "../Widgets/DubbingBottomSheetWidget";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
 import Api from "../Api/api";
+import * as Expo from "expo";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -104,6 +105,9 @@ export default function SettingsScreen() {
           "Ви впевнені, що хочете видалити всі кешовані дані?",
           clearCache
         );
+        setTimeout(() => {
+          Expo.reloadAppAsync();
+        }, 3000);
       },
     },
     {
