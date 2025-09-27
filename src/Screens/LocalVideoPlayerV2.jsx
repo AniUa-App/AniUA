@@ -23,7 +23,7 @@ import { useKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
 import LinearGradient from "react-native-linear-gradient";
 import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
-import { black, Black, Gray, white, appColor } from "../Styles/Colors";
+import { black, Black, Gray, white, appColor, black_1 } from "../Styles/Colors";
 import { H3, H4, H5, H6 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity as CustomTouchableOpacity } from "../Widgets/Button";
@@ -41,11 +41,14 @@ import AnimeStorage from "../Storage/AnimeStorage";
 import RNFS from "react-native-fs";
 import FileOpener from "react-native-file-opener";
 import { DownloadVideo } from "../Notifications/VideoDownloader";
+import Toast from "react-native-root-toast";
+import { useThemeColors } from "../Global/useTheme";
 
 const { width, height } = Dimensions.get("window");
 
 export default function LocalVideoPlayerV2Screen({ route }) {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   useKeepAwake();
 
   const { _episodes, _currentEpisode, _anime } = route.params;
@@ -752,13 +755,20 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               ]}
             >
               <LinearGradient
-                colors={[Black(0.8), Black(0.4), "transparent"]}
+                colors={[
+                  themeColors.Black(0.8),
+                  themeColors.Black(0.4),
+                  "transparent",
+                ]}
                 style={styles.headerGradient}
               >
                 <View style={styles.headerContent}>
                   <View>
                     <CustomTouchableOpacity
                       style={styles.headerButton}
+                      activeOpacity={1}
+                      delayPressIn={0}
+                      delayPressOut={0}
                       onPress={() => {
                         deactivateKeepAwake();
                         StatusBar.setHidden(false, "slide");
@@ -777,10 +787,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </View>
 
                   <View style={styles.titleContainer}>
-                    <Text style={[H4, { color: white }]} numberOfLines={1}>
+                    <Text
+                      style={[H4, { color: themeColors.white }]}
+                      numberOfLines={1}
+                    >
                       {title || "Відео"}
                     </Text>
-                    <Text style={[H6, { color: Gray(0.7) }]}>
+                    <Text style={[H6, { color: themeColors.Gray(0.7) }]}>
                       Епізод {currentEpisode?.episode || "1"}
                     </Text>
                   </View>
@@ -789,34 +802,60 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={openSpeedBottomSheet}
                       >
-                        <Icons.Speedometer size={24} color={white} />
+                        <Icons.Speedometer
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     </View>
 
                     <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => {
                           if (showControls) {
                             startHideControlsTimer();
                           }
-                          videoViewRef.current.startPictureInPicture();
+                          if (isPictureInPictureSupported()) {
+                            videoViewRef.current.startPictureInPicture();
+                            Toast.show(
+                              "Якщо PiP не з'явився, дозвольте використання PiP у налаштуваннях",
+                              {
+                                duration: Toast.durations.SHORT,
+                                backgroundColor: themeColors.black_1,
+                                shadow: false,
+                                position: Toast.positions.BOTTOM,
+                              }
+                            );
+                          }
                         }}
                       >
-                        <Icons.PictureInPicture size={24} color={white} />
+                        <Icons.PictureInPicture
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     </View>
 
                     <View>
                       <CustomTouchableOpacity
                         style={styles.headerButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={toggleEpisodes}
                       >
                         <Icons.Queue
                           size={24}
-                          color={showEpisodes ? appColor : white}
+                          color={showEpisodes ? appColor : themeColors.white}
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -844,7 +883,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               ]}
             >
               <LinearGradient
-                colors={["transparent", Black(0.4), Black(0.9)]}
+                colors={[
+                  "transparent",
+                  themeColors.Black(0.4),
+                  themeColors.Black(0.9),
+                ]}
                 style={styles.controlsGradient}
               >
                 {/* Секція прогресу */}
@@ -861,6 +904,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <View>
                       <CustomTouchableOpacity
                         style={[styles.controlButton]}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => {
                           setIsLocked((prev) => !prev);
                           if (showControls) {
@@ -868,7 +914,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           }
                         }}
                       >
-                        <Icons.Lock type={"enabled"} size={24} color={white} />
+                        <Icons.Lock
+                          type={"enabled"}
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     </View>
                   </View>
@@ -876,7 +926,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <Text
                       style={[
                         H6,
-                        { color: white, minWidth: 50, textAlign: "center" },
+                        {
+                          color: themeColors.white,
+                          minWidth: 50,
+                          textAlign: "center",
+                        },
                       ]}
                     >
                       {formatTime(currentTime)}
@@ -893,7 +947,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         maximumValue={duration || 0}
                         step={0.1}
                         minimumTrackTintColor={appColor}
-                        maximumTrackTintColor={white}
+                        maximumTrackTintColor={themeColors.white}
                         thumbTintColor={appColor}
                         disabled={!duration || duration <= 0}
                         onSlidingStart={() => {
@@ -925,7 +979,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <Text
                       style={[
                         H6,
-                        { color: white, minWidth: 50, textAlign: "center" },
+                        {
+                          color: themeColors.white,
+                          minWidth: 50,
+                          textAlign: "center",
+                        },
                       ]}
                     >
                       {formatTime(duration)}
@@ -940,6 +998,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <View>
                       <CustomTouchableOpacity
                         style={styles.controlButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => {
                           setVolumeTooltipVisible((v) => !v);
                           if (showControls) {
@@ -950,7 +1011,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <Icons.Volume
                           volume={volume * 100}
                           size={24}
-                          color={white}
+                          color={themeColors.white}
                         />
                         <VolumeWidget
                           visible={volumeTooltipVisible}
@@ -967,15 +1028,24 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     {isLandscape && (
                       <CustomTouchableOpacity
                         style={styles.seekButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => seekTo(-10)}
                         onLongPress={() => seekTo(-30)}
                       >
-                        <Icons.ArrowCounterClockwise size={24} color={white} />
+                        <Icons.ArrowCounterClockwise
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     )}
                     <View>
                       <CustomTouchableOpacity
                         style={styles.skipButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => {
                           goToPreviousEpisode();
                           if (showControls) {
@@ -983,19 +1053,22 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           }
                         }}
                       >
-                        <Icons.SkipBack size={24} color={white} />
+                        <Icons.SkipBack size={24} color={themeColors.white} />
                       </CustomTouchableOpacity>
                     </View>
 
                     <CustomTouchableOpacity
                       style={styles.playButtonContainer}
+                      activeOpacity={1}
+                      delayPressIn={0}
+                      delayPressOut={0}
                       onPress={handlePlayPress}
                     >
                       <View style={styles.playButton}>
                         {player.playing ? (
-                          <Icons.Pause size={32} color={white} />
+                          <Icons.Pause size={32} color={themeColors.white} />
                         ) : (
-                          <Icons.Play size={32} color={white} />
+                          <Icons.Play size={32} color={themeColors.white} />
                         )}
                       </View>
                     </CustomTouchableOpacity>
@@ -1003,6 +1076,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <View>
                       <CustomTouchableOpacity
                         style={styles.skipButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => {
                           goToNextEpisode();
                           if (showControls) {
@@ -1010,17 +1086,26 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           }
                         }}
                       >
-                        <Icons.SkipForward size={24} color={white} />
+                        <Icons.SkipForward
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     </View>
 
                     {isLandscape && (
                       <CustomTouchableOpacity
                         style={styles.seekButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={() => seekTo(10)}
                         onLongPress={() => seekTo(30)}
                       >
-                        <Icons.ArrowClockwise size={24} color={white} />
+                        <Icons.ArrowClockwise
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     )}
                   </View>
@@ -1032,6 +1117,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <View>
                           <CustomTouchableOpacity
                             style={styles.controlButton}
+                            activeOpacity={1}
+                            delayPressIn={0}
+                            delayPressOut={0}
                             onPress={() => {
                               setIsZoomed((prev) => !prev);
                               if (showControls) {
@@ -1041,7 +1129,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           >
                             <Icons.FrameCorners
                               size={24}
-                              color={isZoomed ? appColor : white}
+                              color={isZoomed ? appColor : themeColors.white}
                             />
                           </CustomTouchableOpacity>
                         </View>
@@ -1049,6 +1137,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <View>
                           <CustomTouchableOpacity
                             style={styles.controlButton}
+                            activeOpacity={1}
+                            delayPressIn={0}
+                            delayPressOut={0}
                             onPress={async function () {
                               if (isDownloading) return;
                               if (showControls) {
@@ -1153,7 +1244,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                             {isDownloading ? (
                               <Icons.DownloadAnimated
                                 size={24}
-                                color={appColor}
+                                color={themeColors.appColor}
                               />
                             ) : (
                               <Icons.DownloadSimple
@@ -1164,8 +1255,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                     (ep) =>
                                       ep.episode === currentEpisode?.episode
                                   )
-                                    ? appColor
-                                    : white
+                                    ? themeColors.appColor
+                                    : themeColors.white
                                 }
                               />
                             )}
@@ -1177,9 +1268,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     <View>
                       <CustomTouchableOpacity
                         style={styles.controlButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
                         onPress={toggleOrientation}
                       >
-                        <Icons.DeviceRotate size={24} color={white} />
+                        <Icons.DeviceRotate
+                          size={24}
+                          color={themeColors.white}
+                        />
                       </CustomTouchableOpacity>
                     </View>
                   </View>
@@ -1189,6 +1286,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 <View style={styles.secondaryControls}>
                   <CustomTouchableOpacity
                     style={styles.controlButton}
+                    activeOpacity={1}
+                    delayPressIn={0}
+                    delayPressOut={0}
                     onPress={() => {
                       qualitySheetRef.current?.present();
                     }}
@@ -1218,6 +1318,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               <Animated.View>
                 <CustomTouchableOpacity
                   style={[styles.controlButton]}
+                  activeOpacity={1}
+                  delayPressIn={0}
+                  delayPressOut={0}
                   onPress={() => {
                     setIsLocked((prev) => !prev);
                     if (showControls) {
@@ -1248,15 +1351,25 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             <View style={styles.episodesPanelHeader}>
               <CustomTouchableOpacity
                 style={styles.episodesBackButton}
+                activeOpacity={1}
+                delayPressIn={0}
+                delayPressOut={0}
                 onPress={hideEpisodesPanel}
               >
-                <Icons.ArrowLeft size={34} color={appColor} />
+                <Icons.ArrowLeft size={34} color={themeColors.appColor} />
               </CustomTouchableOpacity>
-              <Text style={[H4, { color: white, flex: 1, marginLeft: 12 }]}>
+              <Text
+                style={[
+                  H4,
+                  { color: themeColors.white, flex: 1, marginLeft: 12 },
+                ]}
+              >
                 Епізоди
               </Text>
               <View style={styles.episodeCount}>
-                <Text style={[H6, { color: appColor }]}>{episodes.length}</Text>
+                <Text style={[H6, { color: themeColors.appColor }]}>
+                  {episodes.length}
+                </Text>
               </View>
             </View>
 
@@ -1288,6 +1401,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       currentEpisode?.episode === episode.episode &&
                         styles.episodeItemActive,
                     ]}
+                    activeOpacity={1}
+                    delayPressIn={0}
+                    delayPressOut={0}
                     onPress={() => onEpisodeSelect(episode)}
                   >
                     <View style={styles.episodeNumber}>
@@ -1297,8 +1413,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           {
                             color:
                               currentEpisode?.episode === episode.episode
-                                ? appColor
-                                : Gray(0.7),
+                                ? themeColors.appColor
+                                : themeColors.Gray(0.7),
                           },
                         ]}
                       >
@@ -1313,15 +1429,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           {
                             color:
                               currentEpisode?.episode === episode.episode
-                                ? appColor
-                                : white,
+                                ? themeColors.appColor
+                                : themeColors.white,
                             marginBottom: 4,
                           },
                         ]}
                       >
                         Епізод {episode.episode}
                       </Text>
-                      <Text style={[H6, { color: Gray(0.5) }]}>
+                      <Text style={[H6, { color: themeColors.Gray(0.5) }]}>
                         {episode.duration || "Тривалість невідома"}
                       </Text>
                     </View>

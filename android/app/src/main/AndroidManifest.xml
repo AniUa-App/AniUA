@@ -28,11 +28,11 @@
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
-      <intent-filter>
+      <intent-filter android:autoVerify="true" data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
-        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:scheme="https" android:host="aniua.yuzka.site"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="exp+aniua"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
   </application>

@@ -27,7 +27,7 @@ import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
-import Api, { getUniqueAccountId } from "./src/Api/api";
+import Api, { getUniqueAccountId, getMetadata } from "./src/Api/api";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -88,6 +88,15 @@ export default function App() {
       SettingsStorage.setParameter("accountId", isUser);
     };
     isUser();
+
+    const fetchMetadata = async () => {
+      const metadata = await getMetadata();
+      MainConfig.urls.appUrl = metadata.website_url;
+      MainConfig.urls.telegramChannelUrl = metadata.telegram_channel;
+      MainConfig.urls.donateUrl = metadata.donation_url;
+      MainConfig.urls.supportTelegramBotUrl = metadata.support_telegram_bot;
+    };
+    fetchMetadata();
 
     if (
       SettingsStorage.getParameter("userConfig.recommendations").length === 0

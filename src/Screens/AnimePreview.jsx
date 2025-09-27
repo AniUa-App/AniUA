@@ -189,7 +189,12 @@ export default function AnimePreviewScreen({ route }) {
           }
         } catch (error) {
           console.error("Error fetching anime by slug:", error);
-          navigation.goBack();
+          const code = error?.response?.status || error?.code || 404;
+          const message = error?.message || "Not Found";
+          navigation.navigate("HiddenStack", {
+            screen: "InvalidLink",
+            params: { slug, code, message },
+          });
         } finally {
           setIsLoading(false);
         }

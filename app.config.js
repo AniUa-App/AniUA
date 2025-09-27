@@ -30,11 +30,7 @@ export default {
       buildDate: process.env.BUILD_DATE || null,
       expoPublickSupabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL || null,
       expoPublickSupabaseKey: process.env.EXPO_PUBLIC_SUPABASE_KEY || null,
-      appUrl: process.env.APP_URL || null,
       appUri: process.env.APP_URI || null,
-      dubbingsUrl: process.env.DUBBINGS_URL || null,
-      telegramChannelUrl: process.env.TELEGRAM_CHANNEL_URL || null,
-      donateUrl: process.env.DONATE_URL || null,
     },
     splash: {
       image: "./assets/AniUA-Logo.png",
@@ -69,6 +65,19 @@ export default {
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
       requestLegacyExternalStorage: true,
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "aniua.yuzka.site",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     assetBundlePatterns: ["**/*"],
     plugins: [

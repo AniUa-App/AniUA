@@ -148,7 +148,7 @@ export default function SettingsScreen() {
         Text: "Відкрити",
       },
       onPress: () => {
-        Linking.openURL(MainConfig.urls.telegramChannelUrl);
+        Linking.openURL(MainConfig.urls.supportTelegramBotUrl);
       },
     },
 
@@ -199,7 +199,7 @@ export default function SettingsScreen() {
         Text: "Відкрити",
       },
       onPress: () => {
-        Linking.openURL(MainConfig.urls.donateUrl);
+        Linking.openURL(`${MainConfig.urls.donateUrl}?amount=40`);
       },
     },
     {
@@ -275,8 +275,9 @@ export default function SettingsScreen() {
           onRatingSubmit={(rating, feedback) => {
             console.log("Користувач поставив оцінку:", rating);
             console.log("Користувач залишив відгук:", feedback);
-            Api.sendFeedback(rating, feedback).then((success) => {
-              if (success) {
+            Api.sendFeedback(rating, feedback).then((saved) => {
+              console.log("Відгук успішно відправлено:", saved);
+              if (saved) {
                 showNotification("Відгук успішно відправлено.");
               } else {
                 showNotification("Помилка при відправці відгуку.");

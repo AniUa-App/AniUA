@@ -48,6 +48,7 @@ import { H3, H5, H7 } from "../../Styles/Fonts";
 import AppInfoScreen from "../AppInfo";
 import PrivilegesScreen from "../Privileges";
 import DonateScreen from "../Donate";
+import InvalidLinkScreen from "../InvalidLink";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -583,6 +584,14 @@ function HiddenStack() {
         initialParams={{ arrowSide: "left", isArrow: true }}
         options={{
           headerShown: true,
+        }}
+      />
+      <HiddenStackNav.Screen
+        name="InvalidLink"
+        component={InvalidLinkScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Посилання недійсне",
         }}
       />
     </HiddenStackNav.Navigator>

@@ -59,7 +59,8 @@ class ServerApi {
    */
   private static async callEdge<T = any>(
     endpoint: string,
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    method: string = "POST"
   ): Promise<ApiResponse<T>> {
     const startTime = Date.now();
     const controller = new AbortController();
@@ -74,12 +75,18 @@ class ServerApi {
       // Формуємо URL з використанням конфігурації
       const url = `${this.BASE_URL}/${endpoint}`;
 
-      const response = await fetch(url, {
-        method: "POST",
+      const fetchOptions: RequestInit = {
+        method: method,
         headers: this.getHeaders(),
-        body: JSON.stringify(payload),
         signal: controller.signal,
-      });
+      };
+
+      // Only attach a body when the method supports it
+      if (method !== "GET" && method !== "HEAD") {
+        fetchOptions.body = JSON.stringify(payload);
+      }
+
+      const response = await fetch(url, fetchOptions);
 
       clearTimeout(timeoutId);
 
@@ -140,7 +147,7 @@ class ServerApi {
       if (!text) {
         return {} as ApiResponse<T>;
       }
-
+      console.log("API відповідь:", text);
       return JSON.parse(text) as ApiResponse<T>;
     } catch (error) {
       console.warn(
@@ -156,12 +163,14 @@ class ServerApi {
   public static async isUser(): Promise<boolean> {
     try {
       const userId = await this.getUserId();
+      console.log("Перевірка користувача:", userId, MainConfig.devInfo.version);
       const response = await this.callEdge<{ isUser?: boolean }>("isUser", {
         unique_device_id: userId,
+        user_version: MainConfig.devInfo.version,
       });
 
       console.log("Результат перевірки користувача:", response);
-      return !!response?.isUser;
+      return !!response?.exists;
     } catch (error: any) {
       console.error(
         "Помилка при перевірці користувача:",
@@ -182,7 +191,7 @@ class ServerApi {
       }
 
       const userId = await this.getUserId();
-      const response = await this.callEdge<{ account_id?: string }>(
+      const response = await this.callEdge<{ unique_account_id?: string }>(
         "getAccId",
         {
           unique_device_id: userId,
@@ -190,7 +199,10 @@ class ServerApi {
       );
 
       const accountId =
-        (response && typeof response === "object" && response.account_id) || "";
+        (response &&
+          typeof response === "object" &&
+          response.unique_account_id) ||
+        "";
       this.uniqueAccountId = accountId as string;
       return accountId as string;
     } catch (error: any) {
@@ -212,6 +224,7 @@ class ServerApi {
         "newUser",
         {
           unique_device_id: userId,
+          user_version: MainConfig.devInfo.version,
         }
       );
 
@@ -239,28 +252,33 @@ class ServerApi {
       const userId =
         SettingsStorage.getParameter("accountId") ||
         (await ServerApi.getUniqueAccountId());
-      const response = await this.callEdge<{}>("addFeedback", {
+      const response = await this.callEdge<{ saved?: boolean }>("newFeedBack", {
         unique_account_id: userId,
         stars: rating,
-        comment: feedback,
+        message: feedback,
       });
-      if (response.success) {
-        return true;
-      } else {
-        return false;
-      }
+      return !!response.saved;
     } catch (error: any) {
       console.error("Помилка при відправці відгуку:", error?.message || error);
       return false;
-    } finally {
+    }
+  }
+  public static async getMetadata(): Promise<any> {
+    try {
+      // Use POST to be consistent with other endpoints and avoid GET body restrictions
+      const response = await this.callEdge<any>("getMetadata", {}, "GET");
+
+      return response;
+    } catch (error: any) {
+      console.error(
+        "Помилка при отриманні метаданів:",
+        error?.message || error
+      );
+      return {};
     }
   }
 }
 
-/**
- * Отримує унікальний ID акаунту користувача.
- * Якщо користувач існує - повертає його ID, інакше реєструє нового користувача.
- */
 export const getUniqueAccountId = async (): Promise<string> => {
   try {
     const isExistingUser = await ServerApi.isUser();
@@ -278,5 +296,14 @@ export const getUniqueAccountId = async (): Promise<string> => {
   }
 };
 
-// Експортуємо статичні методи для зручності використання
+export const getMetadata = async (): Promise<any> => {
+  try {
+    const response = await ServerApi.getMetadata();
+    return response;
+  } catch (error) {
+    console.error("Помилка при отриманні метаданів:", error);
+    return {};
+  }
+};
+
 export default ServerApi;

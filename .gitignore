@@ -81,7 +81,7 @@ temp/
 
 react-native-file-opener/node_modules/
 
-
+build
 test.*
 /google-services.json
 

@@ -20,11 +20,7 @@ export const getBuildExtra = () => {
 
 export const buildExtra = getBuildExtra();
 
-const appUrl = buildExtra.appUrl || "";
 const appUri = buildExtra.appUri || "";
-const dubbingsUrl = buildExtra.dubbingsUrl || `${appUrl}/dubbings`;
-const telegramChannelUrl = buildExtra.telegramChannelUrl || "";
-const donateUrl = buildExtra.donateUrl || "";
 
 // Функція для безпечного отримання значень з fallback
 const getSafeValue = (value, fallback = "Unknown") => {
@@ -87,11 +83,12 @@ export default {
     key: toSafeString(buildExtra.expoPublickSupabaseKey || null),
   },
   urls: {
-    appUrl,
+    appUrl: "",
     appUri,
-    dubbingsUrl,
-    telegramChannelUrl,
-    donateUrl,
+    dubbingsUrl: "",
+    telegramChannelUrl: "",
+    donateUrl: "",
+    supportTelegramBotUrl: "",
   },
   devInfo: {
     version: getSafeVersion(),

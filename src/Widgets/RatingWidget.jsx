@@ -7,12 +7,9 @@ import {
   TextInput,
 } from "react-native";
 import Animated, {
-  Easing,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSpring,
-  withDelay,
   withSequence,
   runOnJS,
 } from "react-native-reanimated";
@@ -34,11 +31,8 @@ const RatingWidget = ({
   const [feedback, setFeedback] = useState("");
   const themeColors = useThemeColors();
 
-  // Анімація появи
+  // Дуже проста анімація появи (тільки прозорість)
   const fade = useSharedValue(0);
-  const scale = useSharedValue(0.3);
-  const backdrop = useSharedValue(0);
-  const slide = useSharedValue(50);
 
   // Масштаби зірок
   const starScale0 = useSharedValue(1);
@@ -55,72 +49,27 @@ const RatingWidget = ({
   ];
 
   // Стилі анімацій
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdrop.value,
-  }));
-
   const containerStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: -188.5 },
-      { translateY: -102 + slide.value },
-      { scale: scale.value },
-    ],
+    transform: [{ translateX: -188.5 }, { translateY: -102 }],
     opacity: fade.value,
   }));
 
-  // Відкласти перший показ до наступного кадру, щоб уникнути insertion-ефекту
-  const [didMount, setDidMount] = useState(false);
+  // Проста анімація: при появі робимо fade-in, при закритті fade-out
   useEffect(() => {
-    const id = requestAnimationFrame(() => setDidMount(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  useEffect(() => {
-    if (!visible || !didMount) return;
-
-    // Скидаємо значення, щоб уникнути артефактів
-    fade.value = 0;
-    scale.value = 0.3;
-    backdrop.value = 0;
-    slide.value = 50;
-
-    // Відкладаємо запуск анімацій на наступні кадри,
-    // щоб уникнути оновлень під час вставки стилів (useInsertionEffect warning)
-    let raf1 = 0;
-    let raf2 = 0;
-    raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        backdrop.value = withTiming(1, { duration: 150 });
-        fade.value = withDelay(
-          20,
-          withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) })
-        );
-        scale.value = withDelay(
-          40,
-          withSpring(1, { stiffness: 600, damping: 22, mass: 1 })
-        );
-        slide.value = withDelay(
-          60,
-          withTiming(0, { duration: 250, easing: Easing.out(Easing.cubic) })
-        );
-      });
-    });
-
-    return () => {
-      if (raf1) cancelAnimationFrame(raf1);
-      if (raf2) cancelAnimationFrame(raf2);
-    };
-  }, [visible, didMount]);
+    if (visible) {
+      fade.value = withTiming(1, { duration: 200 });
+    } else {
+      fade.value = withTiming(0, { duration: 150 });
+    }
+  }, [visible]);
 
   const handleClose = () => {
-    // Анімація зникнення
-    fade.value = withTiming(0, { duration: 120 }, (finished) => {
+    // Анімація зникнення (тільки прозорість)
+    fade.value = withTiming(0, { duration: 150 }, (finished) => {
       if (finished && onClose) {
         runOnJS(onClose)(rating);
       }
     });
-    scale.value = withTiming(0.8, { duration: 120 });
-    backdrop.value = withTiming(0, { duration: 150 });
   };
 
   const handleStarPress = (starIndex) => {
@@ -184,12 +133,14 @@ const RatingWidget = ({
     });
   };
 
-  if (!visible || !didMount) return null;
+  if (!visible) return null;
 
   return (
     <>
       {/* Анімований backdrop */}
-      <Animated.View
+      <TouchableOpacity
+        onPress={handleClose}
+        activeOpacity={1}
         style={[
           {
             position: "absolute",
@@ -197,18 +148,12 @@ const RatingWidget = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: themeColors.Black(0.6),
+            backgroundColor: themeColors.Black(0.3),
             zIndex: 10,
           },
-          backdropStyle,
+          StyleSheet.absoluteFillObject,
         ]}
-      >
-        <TouchableOpacity
-          onPress={handleClose}
-          activeOpacity={1}
-          style={StyleSheet.absoluteFillObject}
-        />
-      </Animated.View>
+      />
 
       {/* Анімований контейнер віджета */}
       <Animated.View

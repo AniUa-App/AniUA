@@ -1,18 +1,18 @@
-import {View, Text, Share, Linking} from 'react-native';
-import React from 'react';
-import {BottomSheetModal, BottomSheetView} from '@gorhom/bottom-sheet';
-import {TouchableOpacity} from './Button';
-import {Black, White} from '../Styles/Colors';
-import {H2, H3} from '../Styles/Fonts';
-import MainConfig from '../cfgs/MainConfig';
-import {useNavigation} from '@react-navigation/native';
+import { View, Text, Share, Linking } from "react-native";
+import React from "react";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { TouchableOpacity } from "./Button";
+import { Black, White } from "../Styles/Colors";
+import { H2, H3 } from "../Styles/Fonts";
+import MainConfig from "../cfgs/MainConfig";
+import { useNavigation } from "@react-navigation/native";
 
-export default function MoreBottomSheet({sheetRef, anime}) {
+export default function MoreBottomSheet({ sheetRef, anime }) {
   const navigation = useNavigation();
 
   const elements = [
     {
-      title: 'Поділитись',
+      title: "Поділитись",
       onPress: () => {
         Share.share({
           title: anime.title_ua,
@@ -23,43 +23,28 @@ export default function MoreBottomSheet({sheetRef, anime}) {
       },
     },
     {
-      title: 'На головну',
+      title: "На головну",
       onPress: () => {
-        navigation.navigate('MainTabs', {
-          screen: 'Home',
+        navigation.navigate("MainTabs", {
+          screen: "Home",
         });
         sheetRef.current?.close();
       },
     },
     {
-      title: 'Поскаржитися',
+      title: "Поскаржитися",
       onPress: () => {
-        Linking.openURL(
-          `https://t.me/${
-            MainConfig.urls.telegramBotUrl
-          }?start=${JSON.stringify({
-            type: 'anime_report',
-            anime_slug: anime.slug,
-            anime_title: anime.title_ua,
-          })}`,
-        );
+        Linking.openURL(`${MainConfig.urls.telegramChannelUrl}`);
         sheetRef.current?.close();
       },
     },
 
     {
-      title: 'Відкрити налаштування',
+      title: "Відкрити налаштування",
       onPress: () => {
-        navigation.navigate('MainTabs', {
-          screen: 'Settings',
+        navigation.navigate("MainTabs", {
+          screen: "Settings",
         });
-        sheetRef.current?.close();
-      },
-    },
-    {
-      title: 'Подякувати за переклад',
-      onPress: () => {
-        Linking.openURL(MainConfig.urls.dubbingsUrl);
         sheetRef.current?.close();
       },
     },
@@ -68,31 +53,33 @@ export default function MoreBottomSheet({sheetRef, anime}) {
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={['35%']}
+      snapPoints={["28%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{backgroundColor: Black(0.8)}}
-      handleIndicatorStyle={{backgroundColor: Black(1)}}
-      backdropComponent={props => (
+      backgroundStyle={{ backgroundColor: Black(0.8) }}
+      handleIndicatorStyle={{ backgroundColor: Black(1) }}
+      backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
           activeOpacity={1}
           {...props}
         />
-      )}>
+      )}
+    >
       <BottomSheetView>
         {elements.map((element, index) => (
           <TouchableOpacity
             activeOpacity={0.6}
             key={index}
             style={{
-              alignItems: 'center',
-              width: '100%',
-              paddingTop: index === 0 ? '1%' : '3%',
-              paddingBottom: index === elements.length - 1 ? '1%' : '3%',
+              alignItems: "center",
+              width: "100%",
+              paddingTop: index === 0 ? "1%" : "3%",
+              paddingBottom: index === elements.length - 1 ? "1%" : "3%",
             }}
-            onPress={element.onPress}>
-            <Text style={[H3, {color: White(0.91)}]}>{element.title}</Text>
+            onPress={element.onPress}
+          >
+            <Text style={[H3, { color: White(0.91) }]}>{element.title}</Text>
           </TouchableOpacity>
         ))}
       </BottomSheetView>

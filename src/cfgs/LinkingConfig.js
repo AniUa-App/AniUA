@@ -1,24 +1,24 @@
-import MainConfig from './MainConfig';
+import MainConfig from "./MainConfig";
 
 const config = {
   screens: {
     MainTabs: {
       screens: {
-        Home: 'home',
-        Liked: 'liked',
-        Download: 'downloads',
-        Settings: 'settings',
+        Home: "home",
+        Liked: "liked",
+        Download: "downloads",
+        Settings: "settings",
       },
     },
     HiddenStack: {
       screens: {
         AnimePreview: {
-          path: 'anime/:slug',
+          path: "anime/:slug",
           parse: {
-            slug: slug => slug,
+            slug: (slug) => slug,
           },
         },
-        SecretScreen: 'no-ads',
+        SecretScreen: "no-ads",
       },
     },
   },
@@ -26,29 +26,47 @@ const config = {
 
 // Фільтруємо валідні URL prefixes
 const validPrefixes = [MainConfig.urls.appUri, MainConfig.urls.appUrl].filter(
-  prefix => prefix && typeof prefix === 'string' && prefix.trim() !== '',
+  (prefix) => prefix && typeof prefix === "string" && prefix.trim() !== ""
 );
 
 export default {
-  prefixes: validPrefixes.length > 0 ? validPrefixes : ['aniua://'],
+  prefixes:
+    validPrefixes.length > 0
+      ? validPrefixes
+      : [MainConfig.urls.appUri, MainConfig.urls.appUrl],
   config,
   // Додаємо обробник для фільтрації невалідних URL
   getStateFromPath: (path, options) => {
     // Перевіряємо чи path валідний
-    if (!path || typeof path !== 'string') {
+    if (!path || typeof path !== "string") {
       return undefined;
     }
 
     // Викликаємо стандартну функцію React Navigation
     const {
       getStateFromPath: defaultGetStateFromPath,
-    } = require('@react-navigation/native');
+    } = require("@react-navigation/native");
 
     try {
       return defaultGetStateFromPath(path, options);
     } catch (error) {
-      console.warn('LinkingConfig: Invalid URL path ignored:', path, error);
-      return undefined;
+      console.warn("LinkingConfig: Invalid URL path ignored:", path, error);
+      // Navigate to a friendly InvalidLink screen when the path can't be parsed
+      return {
+        routes: [
+          {
+            name: "HiddenStack",
+            state: {
+              routes: [
+                {
+                  name: "InvalidLink",
+                  params: { slug: path, code: 400, message: "Invalid URL" },
+                },
+              ],
+            },
+          },
+        ],
+      };
     }
   },
 };
