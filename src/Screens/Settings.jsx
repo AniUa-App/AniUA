@@ -128,7 +128,7 @@ export default function SettingsScreen() {
             Sbutton: true,
             isGoBack: true,
             list: MainConfig.players.map((player) => ({
-              title: player,
+              title: player.slice(0, 10),
 
               onPress: () => {
                 SettingsStorage.setParameter("defaultPlayer", player);

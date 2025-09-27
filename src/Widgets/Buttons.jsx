@@ -107,7 +107,7 @@ export function SegmentedControlLabelWidget({
         color: white,
       }}
       activeFontStyle={{
-        ...H7,
+        ...H5,
 
         textAlign: "center",
         color: white,
