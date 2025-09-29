@@ -39,7 +39,15 @@ export function Image({ uri, style, onLoad }) {
 
       {/* Загружаем картинку через FastImage */}
       <FastImage
-        style={[style, { position: "absolute" }]}
+        style={[
+          style,
+          {
+            position: "absolute",
+            flex: 1,
+            width: "100%",
+            height: "100%",
+          },
+        ]}
         source={{ uri }}
         onLoadEnd={() => {
           setLoading(false);

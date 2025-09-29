@@ -22,6 +22,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { sendRequest } from "../Sources/CustomSet";
+import { isTabletLandscape } from "../Styles/Responsive";
 
 export default function HomeScreen() {
   // Стан для аніме, відсортованих за популярністю за поточний рік
@@ -95,46 +96,69 @@ export default function HomeScreen() {
 
   return (
     // Основний компонент екрану
-    <DefaultScreenWidget>
-      {/* Компонент для пошуку */}
-      <SearchLine />
-      {/* Прокручуваний контейнер для контенту */}
+    <DefaultScreenWidget style={{}}>
+      <View
+        style={{
+          flexDirection: isTabletLandscape() ? "row" : "column",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* Компонент для пошуку */}
+        <SearchLine />
+        {/* Прокручуваний контейнер для контенту */}
+        {recommendations?.isDefaultBigBanner === true &&
+          isTabletLandscape() && (
+            <View
+              style={{
+                width: "40%",
+              }}
+            >
+              <BigBannerWidget.Tablet animes={animeList_popularity_this_year} />
+            </View>
+          )}
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {/* Великий банер для відображення популярних аніме року */}
-        {recommendations?.isDefaultBigBanner === true && (
-          <BigBannerWidget animes={animeList_popularity_this_year} />
-        )}
-        {/* Вертикальний список аніме */}
-        {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={appColor} />
-          </View>
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              paddingBottom: 50,
-              width: "95%",
-              alignSelf: "center",
-            }}
-          >
-            {recommendations?.isCustomedPersonalRecommendations && (
-              <CustomPersonalRecList />
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          {recommendations?.isDefaultBigBanner === true &&
+            !isTabletLandscape() && (
+              <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
             )}
-            {recommendations?.isEnabled && (
-              <>
-                <OngoingAnimeList />
-                <PopularAnimeList />
-                <RomanceAnimeList />
-                <ActionAnimeList />
-                <SciFiAnimeList />
-              </>
-            )}
-          </View>
-        )}
-        <View style={{ height: 40, backgroundColor: "transparent" }} />
-      </ScrollView>
+          {isLoading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color={appColor} />
+            </View>
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                paddingBottom: 50,
+                width: "95%",
+                alignSelf: "center",
+              }}
+            >
+              {isTabletLandscape() && (
+                <View style={{ height: 20, backgroundColor: "transparent" }} />
+              )}
+              {recommendations?.isCustomedPersonalRecommendations && (
+                <CustomPersonalRecList />
+              )}
+              {recommendations?.isEnabled && (
+                <>
+                  <OngoingAnimeList />
+                  <PopularAnimeList />
+                  <RomanceAnimeList />
+                  <ActionAnimeList />
+                  <SciFiAnimeList />
+                </>
+              )}
+            </View>
+          )}
+          {!isTabletLandscape() && (
+            <View style={{ height: 40, backgroundColor: "transparent" }} />
+          )}
+        </ScrollView>
+      </View>
     </DefaultScreenWidget>
   );
 }

@@ -31,6 +31,7 @@ import AnimePreviewScreen from "../AnimePreview";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
 import { GetScreenWidth } from "../../Global/Functions";
 import { Black } from "../../Styles/Colors";
+import { isTabletLandscape, getNavbarWidth } from "../../Styles/Responsive";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import SettingsScreen from "../Settings";
 import ButtonsScreen from "../Buttons";
@@ -215,8 +216,9 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
   return (
     <View
       style={[
-        styles.container2,
-
+        isTabletLandscape()
+          ? styles.containerTabletVertical
+          : styles.container2,
         {
           backgroundColor: isCustomisation
             ? userConfig?.navbar?.backgroundColor || themeColors.black
@@ -225,11 +227,20 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
             ? userConfig?.navbar?.borderRadius || 8
             : 0,
           bottom: isCustomisation ? userConfig?.navbar?.bottomOffset : 0,
-          width: isCustomisation
-            ? `${userConfig?.navbar?.width || 80}%`
-            : "100%",
+          width: isTabletLandscape()
+            ? getNavbarWidth()
+            : isCustomisation
+              ? `${userConfig?.navbar?.width || 80}%`
+              : "100%",
           paddingBottom:
-            isCustomisation && userConfig?.navbar?.bottomOffset > 20 ? 0 : 25,
+            isCustomisation && userConfig?.navbar?.bottomOffset > 20
+              ? 0
+              : isTabletLandscape()
+                ? 0
+                : 25,
+          right: isTabletLandscape() ? 0 : "auto",
+          top: isTabletLandscape() ? getNavbarWidth() : "auto",
+          ...(isTabletLandscape() && { transform: [{ translateY: -50 }] }),
         },
       ]}
     >
@@ -276,7 +287,12 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                 }
               }
             }}
-            style={[styles.tabItemVertical, {}]}
+            style={[
+              isTabletLandscape()
+                ? styles.tabItemTabletVertical
+                : styles.tabItemVertical,
+              {},
+            ]}
           >
             <View style={styles.iconShadow} pointerEvents="none">
               {(() => {
@@ -392,7 +408,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
   return (
     <View
       style={[
-        styles.container,
+        isTabletLandscape() ? styles.containerTabletVertical : styles.container,
         {
           backgroundColor: isCustomisation
             ? userConfig?.navbar?.backgroundColor || themeColors.black
@@ -400,10 +416,19 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
           borderRadius: isCustomisation
             ? userConfig?.navbar?.borderRadius || 8
             : 8,
-          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 25 : 25,
-          width: isCustomisation
-            ? `${userConfig?.navbar?.width || 80}%`
-            : "80%",
+          bottom: isTabletLandscape()
+            ? "auto"
+            : isCustomisation
+              ? userConfig?.navbar?.bottomOffset || 25
+              : 25,
+          width: isTabletLandscape()
+            ? getNavbarWidth()
+            : isCustomisation
+              ? `${userConfig?.navbar?.width || 80}%`
+              : "80%",
+          right: isTabletLandscape() ? 0 : "auto",
+          top: isTabletLandscape() ? "50%" : "auto",
+          ...(isTabletLandscape() && { transform: [{ translateY: -50 }] }),
         },
       ]}
     >
@@ -447,11 +472,18 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
               }
             }}
             style={[
-              styles.tabItem,
+              isTabletLandscape()
+                ? styles.tabItemTabletVertical
+                : styles.tabItem,
               {
-                width: isFocused ? 100 : "auto",
+                width: isTabletLandscape() ? "100%" : isFocused ? 100 : "auto",
                 // make opened tab farther from others, and closed tabs closer together
-                marginRight: isFocused ? GetScreenWidth() / 12 : 10,
+                marginRight: isTabletLandscape()
+                  ? 0
+                  : isFocused
+                    ? GetScreenWidth() / 12
+                    : 10,
+                marginBottom: isTabletLandscape() ? 16 : 0,
               },
             ]}
           >
@@ -649,6 +681,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
   },
+  containerTabletVertical: {
+    position: "absolute",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Black(0.6),
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
   tabItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -660,6 +703,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 56,
     borderRadius: 14,
+  },
+  tabItemTabletVertical: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    height: 64,
+    width: 64,
+    borderRadius: 16,
+    marginBottom: 8,
   },
   text: {},
   textBelow: {

@@ -9,11 +9,12 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { BlurView } from "expo-blur";
 import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { isTabletLandscape } from "../Styles/Responsive";
 
 export default function DefaultScreenWidget({
+  children,
   isCheckInternet = true,
   isConnection,
-  children,
 }) {
   const themeColors = useThemeColors();
   const [isConnected, setIsConnected_] = useState(true);
@@ -61,16 +62,17 @@ export default function DefaultScreenWidget({
   }, []);
 
   return (
-    <>
-      <SafeAreaView
-        style={[
-          Styles.defaultScreenWidget,
-          {
-            // Always keep an opaque background to avoid white flashes during transitions
-            backgroundColor: themeColors.black,
-          },
-        ]}
-      >
+    <SafeAreaView
+      style={[
+        Styles.defaultScreenWidget,
+        {
+          // Always keep an opaque background to avoid white flashes during transitions
+          backgroundColor: themeColors.black,
+          flexDirection: isTabletLandscape() ? "row" : "column",
+        },
+      ]}
+    >
+      <View style={{ flex: 1 }}>
         {(() => {
           const rawImage = userConfig?.background?.image;
           const imageUri =
@@ -87,7 +89,6 @@ export default function DefaultScreenWidget({
               source={{ uri: imageUri }}
               style={{
                 position: "absolute",
-                backgroundColor: "transparent",
                 top: 0,
                 left: 0,
                 right: 0,
@@ -123,7 +124,8 @@ export default function DefaultScreenWidget({
           )}
           {children}
         </View>
-      </SafeAreaView>
-    </>
+      </View>
+      {isTabletLandscape() && <View style={{ width: 60 }} />}
+    </SafeAreaView>
   );
 }

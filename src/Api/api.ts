@@ -66,6 +66,7 @@ class ServerApi {
     const controller = new AbortController();
 
     try {
+      console.log(`Виконується запит до API: ${this.BASE_URL}`);
       // Встановлюємо таймаут для запиту
       const timeoutId = setTimeout(
         () => controller.abort(),

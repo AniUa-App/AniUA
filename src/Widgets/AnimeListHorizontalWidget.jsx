@@ -1,6 +1,11 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { TouchableOpacity } from "./Button";
-import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+
 import Icon from "../Styles/Icons";
 import { appColor, black, white } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
@@ -8,6 +13,7 @@ import { H3 } from "../Styles/Fonts";
 import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
+import { isTabletLandscape } from "../Styles/Responsive";
 
 export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
   const navigation = useNavigation();
@@ -34,7 +40,13 @@ export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
-            style={[{ marginHorizontal: 8 }, styles.image]}
+            style={[
+              styles.imageContainer,
+              isTabletLandscape() && {
+                width: GetScreenWidth() * 0.12,
+                height: GetScreenHeight() * 0.3,
+              },
+            ]}
             onPress={() => {
               navigation.navigate("HiddenStack", {
                 screen: "AnimePreview",
@@ -42,10 +54,15 @@ export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
               });
             }}
           >
-            <Image uri={anime.image} style={styles.image} />
-            <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
-              {anime.title}
-            </Text>
+            <Image
+              uri={anime.image}
+              style={[
+                { flex: 1, width: "100%", height: "100%", borderRadius: 8 },
+              ]}
+            />
+            {/* <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
+              {anime.title_ua}
+            </Text> */}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -85,7 +102,7 @@ export function PreviewAnimeListHorizontal({
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
-            style={[{ marginHorizontal: 8 }, styles.image]}
+            style={[{ marginHorizontal: 8 }, styles.imageContainer]}
             onPress={onPress}
           >
             <Image uri={anime.image} style={styles.image} />
@@ -100,26 +117,24 @@ export function PreviewAnimeListHorizontal({
 }
 
 const styles = StyleSheet.create({
-  image: {
+  imageContainer: {
     width: GetScreenWidth() * 0.4,
     height: GetScreenHeight() * 0.3,
     borderRadius: 8,
+    paddingHorizontal: 8,
   },
   arrowRightIcon: {
     paddingRight: "5%",
-    paddingTop: "5%",
+    paddingVertical: isTabletLandscape() ? "2%" : "4%",
   },
   header: {
-    paddingHorizontal: 2,
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "transparent",
     width: "100%",
-    paddingBottom: 5,
   },
   title: {
-    paddingLeft: "5%",
-    paddingTop: "5%",
-    paddingBottom: "3%",
+    paddingLeft: 25,
+    paddingVertical: isTabletLandscape() ? "2%" : "4%",
   },
 });

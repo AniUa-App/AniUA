@@ -119,11 +119,11 @@ export default function App() {
 
         // Базова ініціалізація без залежності від activity
 
-        AppLogger.logAppInit("Блокування орієнтації");
+        //AppLogger.logAppInit("Блокування орієнтації");
         // Orientation.lockToPortrait();
-        await ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.PORTRAIT_UP
-        );
+        //await ScreenOrientation.lockAsync(
+        //  ScreenOrientation.OrientationLock.PORTRAIT_UP
+        //);
 
         AppLogger.logAppInit("Перевірка дозволів.");
         await NotificationPermission();

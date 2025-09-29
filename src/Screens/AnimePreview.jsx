@@ -72,6 +72,7 @@ import {
 import Toast from "react-native-root-toast";
 import ExpandableNotification from "../Widgets/ExpandableNotification";
 import Clipboard from "@react-native-clipboard/clipboard";
+import { isTabletLandscape } from "../Styles/Responsive";
 
 function getEpisodeDateOrType(anime) {
   if (
@@ -404,7 +405,16 @@ export default function AnimePreviewScreen({ route }) {
           style={styles.similarCard}
           onPress={() => navigation.replace("AnimePreview", { anime: item })}
         >
-          <Image style={styles.similarImage} uri={item.image} />
+          <Image
+            style={[
+              styles.similarImage,
+              isTabletLandscape() && {
+                width: GetScreenWidth() * 0.13,
+                height: GetScreenHeight() * 0.35,
+              },
+            ]}
+            uri={item.image}
+          />
         </TouchableOpacity>
       );
     },
@@ -441,251 +451,703 @@ export default function AnimePreviewScreen({ route }) {
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection}>
-      <ScrollView
-        style={{ flex: 1 }}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
-        <ExpandableNotification
-          visible={isVisibleNotification}
-          message={notificationMessage}
-          style={{
-            paddingTop: 30,
-            backgroundColor: notificationColor || themeColors.appColor,
-          }}
-          onHide={() => {
-            setIsVisibleNotification(false);
-          }}
-        />
-        {/* Верхній блок з "постером" */}
-        <View style={styles.posterContainer}>
-          <Image style={styles.posterImage} uri={anime?.image} />
-          {/* Напівпрозорий затемнений блок зверху */}
-          {isFocused ? <View style={[styles.overlay]} /> : null}
-
-          {/* Кнопка "Назад" або іконка (за потреби) */}
-          <TouchableOpacity
-            style={[styles.backButton]}
-            onPress={() => {
-              console.log("back");
-              navigation.goBack();
-            }}
-          >
-            <Icon.ArrowLeft size={35} color={themeColors.appColor} />
-          </TouchableOpacity>
-
-          {/* Оцінка та зірочка у верхньому правому куті */}
-          <View style={styles.ratingContainer}>
-            <Text
-              style={[H3, { color: themeColors.appColor, marginRight: 10 }]}
+      {isTabletLandscape() ? (
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          <View style={{ width: "40%" }}>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
             >
-              {anime?.score || 0}
-            </Text>
-            <Icon.Star size={30} color={themeColors.yellow} />
-          </View>
+              <ExpandableNotification
+                visible={isVisibleNotification}
+                message={notificationMessage}
+                style={{
+                  paddingTop: 30,
+                  backgroundColor: notificationColor || themeColors.appColor,
+                }}
+                onHide={() => {
+                  setIsVisibleNotification(false);
+                }}
+              />
+              {/* Верхній блок з "постером" */}
+              <View
+                style={[
+                  styles.posterContainer,
+                  {
+                    height: GetScreenHeight() * 0.75,
+                  },
+                ]}
+              >
+                <Image style={[styles.posterImage, {}]} uri={anime?.image} />
+                {/* Напівпрозорий затемнений блок зверху */}
+                {isFocused ? <View style={[styles.overlay]} /> : null}
 
-          {/* Кнопка "Дивитися трейлер" посередині */}
-          {anime?.videos?.find((v) => v.video_type === "video_promo")?.url && (
-            <TouchableOpacity
-              style={styles.playTrailerBtn}
-              onPress={() =>
-                Linking.openURL(
-                  anime.videos.find((v) => v.video_type === "video_promo")?.url
-                )
-              }
-            >
-              {/* <PlayIcon fill={appColor} /> */}
-              <Icon.PlayCircle size={34} color={themeColors.appColor} />
-              <Text style={[H4, { marginLeft: 10 }]}>Дивитися трейлер</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Тіло з назвою, жанрами та описом */}
-        <View style={styles.contentContainer}>
-          <ForwardButton
-            navigation={navigation}
-            anime={anime}
-            errorCode={errorCode}
-            episodesList={episodesList}
-            style={[
-              styles.continueWatchingBtn,
-              { marginBottom: 18, backgroundColor: themeColors.appColor },
-            ]}
-            data={info}
-            onDataChange={(newData) => setInfo(newData)}
-          />
-
-          {/* Вибір дубляжу */}
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 6,
-              marginLeft: "2%",
-            }}
-          >
-            {info?.watched?.player && (
-              <>
-                <Text style={[H3, { color: themeColors.white }]}>Дубляж:</Text>
+                {/* Кнопка "Назад" або іконка (за потреби) */}
                 <TouchableOpacity
-                  style={{
-                    marginLeft: 10,
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
+                  style={[styles.backButton]}
                   onPress={() => {
-                    if (dubbingSheetRef.current) {
-                      dubbingSheetRef.current?.present();
-                    }
+                    console.log("back");
+                    navigation.goBack();
                   }}
                 >
+                  <Icon.ArrowLeft size={35} color={themeColors.appColor} />
+                </TouchableOpacity>
+
+                {/* Оцінка та зірочка у верхньому правому куті */}
+                <View style={styles.ratingContainer}>
                   <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
                     style={[
                       H3,
-                      {
-                        color: themeColors.appColor,
-                        paddingRight: 3,
-                      },
+                      { color: themeColors.appColor, marginRight: 10 },
                     ]}
                   >
-                    {(info?.watched?.dubbing || "Вибрати дубляж").slice(0, 15)}
+                    {anime?.score || 0}
                   </Text>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      width: info?.watched?.player ? 30 : 0,
-                      height: info?.watched?.player ? 30 : 0,
-                    }}
-                  >
-                    {playersIcons[info?.watched?.player]}
-                  </View>
-                  <Icon.CaretDown
-                    size={30}
-                    color={themeColors.white}
-                    style={{ marginLeft: 10 }}
-                  />
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+                  <Icon.Star size={30} color={themeColors.yellow} />
+                </View>
 
-          {/* Рядок з кнопками дій (епізоди, вподобати, завантажити, більше) */}
-          <View style={styles.actionsRow}>
-            {episodesList.length === 0 ? (
-              <>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  style={[styles.actionButton]}
-                >
-                  {/* <EpisodesIcon style={{ marginLeft: 2, position: 'relative' }} /> */}
-                  <Icon.Queue size={34} color={themeColors.white} />
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: Black(0.7),
-                      borderRadius: 8,
-                    }}
-                  />
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TouchableOpacity
-                  style={[styles.actionButton]}
-                  onPress={() => {
-                    if (episodesSheetRef.current) {
-                      episodesSheetRef.current?.present();
+                {/* Кнопка "Дивитися трейлер" посередині */}
+                {anime?.videos?.find((v) => v.video_type === "video_promo")
+                  ?.url && (
+                  <TouchableOpacity
+                    style={styles.playTrailerBtn}
+                    onPress={() =>
+                      Linking.openURL(
+                        anime.videos.find((v) => v.video_type === "video_promo")
+                          ?.url
+                      )
                     }
+                  >
+                    {/* <PlayIcon fill={appColor} /> */}
+                    <Icon.PlayCircle size={34} color={themeColors.appColor} />
+                    <Text style={[H4, { marginLeft: 10 }]}>
+                      Дивитися трейлер
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.contentContainer}>
+                <ForwardButton
+                  navigation={navigation}
+                  anime={anime}
+                  errorCode={errorCode}
+                  episodesList={episodesList}
+                  style={[
+                    styles.continueWatchingBtn,
+                    { marginBottom: 18, backgroundColor: themeColors.appColor },
+                  ]}
+                  data={info}
+                  onDataChange={(newData) => setInfo(newData)}
+                />
+
+                {/* Вибір дубляжу */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginBottom: 6,
+                    marginLeft: "2%",
                   }}
                 >
-                  {/* <EpisodesIcon style={{marginLeft: 2}} /> */}
-                  <Icon.Queue size={34} color={white} />
-                </TouchableOpacity>
-              </>
-            )}
+                  {info?.watched?.player && (
+                    <>
+                      <Text style={[H3, { color: themeColors.white }]}>
+                        Дубляж:
+                      </Text>
+                      <TouchableOpacity
+                        style={{
+                          marginLeft: 10,
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                        onPress={() => {
+                          if (dubbingSheetRef.current) {
+                            dubbingSheetRef.current?.present();
+                          }
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={[
+                            H3,
+                            {
+                              color: themeColors.appColor,
+                              paddingRight: 3,
+                            },
+                          ]}
+                        >
+                          {(info?.watched?.dubbing || "Вибрати дубляж").slice(
+                            0,
+                            15
+                          )}
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            width: info?.watched?.player ? 30 : 0,
+                            height: info?.watched?.player ? 30 : 0,
+                          }}
+                        >
+                          {playersIcons[info?.watched?.player]}
+                        </View>
+                        <Icon.CaretDown
+                          size={30}
+                          color={themeColors.white}
+                          style={{ marginLeft: 10 }}
+                        />
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
 
-            {/* Кнопка додавання/видалення з улюблених */}
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => {
-                AnimeStorage.setInfoBySlug(anime.slug, {
-                  isFavorite: !(info?.isFavorite || false),
-                  watched: info?.watched || { player: "", dubbing: "" },
-                });
-                setInfo(AnimeStorage.getInfoBySlug(anime.slug));
-              }}
-            >
-              {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
-              <Icon.Heart
-                size={34}
-                color={
-                  info.isFavorite ? themeColors.appColor : themeColors.white
-                }
-              />
-            </TouchableOpacity>
+                {/* Рядок з кнопками дій (епізоди, вподобати, завантажити, більше) */}
+                <View style={[styles.actionsRow, {}]}>
+                  {episodesList.length === 0 ? (
+                    <>
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={[styles.actionButton]}
+                      >
+                        {/* <EpisodesIcon style={{ marginLeft: 2, position: 'relative' }} /> */}
+                        <Icon.Queue size={34} color={themeColors.white} />
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: Black(0.7),
+                            borderRadius: 8,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.actionButton]}
+                        onPress={() => {
+                          if (episodesSheetRef.current) {
+                            episodesSheetRef.current?.present();
+                          }
+                        }}
+                      >
+                        {/* <EpisodesIcon style={{marginLeft: 2}} /> */}
+                        <Icon.Queue size={34} color={white} />
+                      </TouchableOpacity>
+                    </>
+                  )}
 
-            {episodesList.length === 0 ? (
-              <>
-                {/* Неактивна кнопка завантаження, якщо немає епізодів */}
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  style={[styles.actionButton]}
-                >
-                  {/* <DownloadIcon_
-                    style={{marginLeft: 2, position: 'relative'}}
-                  /> */}
-                  <Icon.DownloadSimple size={34} color={themeColors.white} />
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: Black(0.7),
-                      borderRadius: 8,
+                  {/* Кнопка додавання/видалення з улюблених */}
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      AnimeStorage.setInfoBySlug(anime.slug, {
+                        isFavorite: !(info?.isFavorite || false),
+                        watched: info?.watched || { player: "", dubbing: "" },
+                      });
+                      setInfo(AnimeStorage.getInfoBySlug(anime.slug));
                     }}
+                  >
+                    {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
+                    <Icon.Heart
+                      size={34}
+                      color={
+                        info.isFavorite
+                          ? themeColors.appColor
+                          : themeColors.white
+                      }
+                    />
+                  </TouchableOpacity>
+
+                  {episodesList.length === 0 ? (
+                    <>
+                      {/* Неактивна кнопка завантаження, якщо немає епізодів */}
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={[styles.actionButton]}
+                      >
+                        {/* <DownloadIcon_
+                      style={{marginLeft: 2, position: 'relative'}}
+                    /> */}
+                        <Icon.DownloadSimple
+                          size={34}
+                          color={themeColors.white}
+                        />
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: Black(0.7),
+                            borderRadius: 8,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      {/* Активна кнопка завантаження */}
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => {
+                          if (downloadEpisodeRef.current) {
+                            downloadEpisodeRef.current?.present();
+                          }
+                        }}
+                      >
+                        {/* <DownloadIcon_ style={{marginLeft: 2}} /> */}
+                        <Icon.DownloadSimple size={34} color={white} />
+                      </TouchableOpacity>
+                    </>
+                  )}
+                  {/* Кнопка "Більше" */}
+                  {/* <Menu>
+                <MenuTrigger> */}
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      if (moreSheetRef.current) {
+                        moreSheetRef.current?.present();
+                      }
+                    }}
+                  >
+                    {/* <MoreIcon /> */}
+                    <Icon.DotsThreeVertical
+                      size={34}
+                      color={themeColors.white}
+                    />
+                  </TouchableOpacity>
+                  {/* </MenuTrigger>
+                <MenuOptions>
+                  <MenuOption
+                    onSelect={() => alert('Редактировать')}
+                    text="Редактировать"
                   />
+                  <MenuOption onSelect={() => alert('Удалить')} text="Удалить" />
+                </MenuOptions>
+              </Menu> */}
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+
+          <View style={{ width: "65%", padding: 20 }}>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Рік, кількість епізодів, назва та обмеження за віком */}
+              <View style={styles.headerRow}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "baseline",
+                    gap: "10%",
+                    width: "80%",
+                  }}
+                >
+                  {(() => {
+                    if (
+                      anime.episodes_total !== null &&
+                      anime.episodes_released !== null &&
+                      anime.episodes_total === anime.episodes_released
+                    ) {
+                      // Якщо всі епізоди вийшли
+                      return (
+                        <Text style={[H5, styles.yearEpisodes]}>
+                          {anime.year} | {anime.episodes_released}
+                        </Text>
+                      );
+                    } else if (
+                      anime.episodes_total !== null &&
+                      anime.episodes_released !== null &&
+                      anime.episodes_total !== anime.episodes_released
+                    ) {
+                      // Якщо вийшли не всі епізоди
+                      return (
+                        <Text style={[H5, styles.yearEpisodes]}>
+                          {anime.year} |{" "}
+                          {anime.episodes_released +
+                            " з " +
+                            anime.episodes_total}
+                        </Text>
+                      );
+                    }
+                  })()}
+                  <Text
+                    style={[
+                      H5,
+                      styles.yearEpisodes,
+                      { color: themeColors.appColor },
+                    ]}
+                  >
+                    {getEpisodeDateOrType(anime)}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.titleContainer}
+                  onLongPress={() => {
+                    if (anime.title_ua) {
+                      Clipboard.setString(anime.title_ua);
+                    }
+                  }}
+                  delayLongPress={400}
+                >
+                  <Text
+                    style={[
+                      H3,
+                      { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
+                    ]}
+                  >
+                    {anime.title_ua}
+                  </Text>
+                  {/* Відображення вікового обмеження */}
+                  <Text style={[H3, { color: themeColors.appColor }]}>
+                    {anime.rating === "g"
+                      ? "0+"
+                      : anime.rating === "pg"
+                        ? "6+"
+                        : anime.rating === "pg_13"
+                          ? "13+"
+                          : anime.rating === "r"
+                            ? "16+"
+                            : "18+"}
+                  </Text>
                 </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                {/* Активна кнопка завантаження */}
+              </View>
+
+              {/* Жанри/мітки */}
+              <TouchableOpacity style={styles.tagsRow}>
+                <Text
+                  style={[H4, styles.tagItem, { color: themeColors.appColor }]}
+                >
+                  {anime.genres && anime.genres.length > 0
+                    ? anime.genres.map((genre) => genre.name_ua).join(", ")
+                    : ""}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Опис аніме */}
+              <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>
+                {anime?.synopsis_ua ? (
+                  <Markdown
+                    style={{
+                      body: [
+                        H4,
+                        {
+                          marginBottom: anime?.synopsis_ua ? 25 : 0,
+                        },
+                      ],
+                      link: [
+                        H4,
+                        {
+                          marginBottom: anime?.synopsis_ua ? 25 : 0,
+                          color: appColor,
+                          textDecorationLine: "underline",
+                        },
+                      ],
+                    }}
+                  >
+                    {anime?.synopsis_ua}
+                  </Markdown>
+                ) : null}
+              </Text>
+
+              {/* Секція схожих аніме */}
+              {animeList.length > 0 ? (
+                <>
+                  <Text
+                    style={[
+                      H4,
+                      { color: themeColors.appColor, marginBottom: 10 },
+                    ]}
+                  >
+                    Схожі Відтворення
+                  </Text>
+                  <FlatList
+                    horizontal={true}
+                    data={animeList}
+                    renderItem={renderSimilarAnime}
+                    keyExtractor={keyExtractorSimilar}
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.similarContainer}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                    initialNumToRender={3}
+                    windowSize={5}
+                  />
+                </>
+              ) : null}
+            </ScrollView>
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          style={{
+            flex: 1,
+          }}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+        >
+          <View>
+            <ExpandableNotification
+              visible={isVisibleNotification}
+              message={notificationMessage}
+              style={{
+                paddingTop: 30,
+                backgroundColor: notificationColor || themeColors.appColor,
+              }}
+              onHide={() => {
+                setIsVisibleNotification(false);
+              }}
+            />
+            {/* Верхній блок з "постером" */}
+            <View style={[styles.posterContainer]}>
+              <Image style={styles.posterImage} uri={anime?.image} />
+              {/* Напівпрозорий затемнений блок зверху */}
+              {isFocused ? <View style={[styles.overlay]} /> : null}
+
+              {/* Кнопка "Назад" або іконка (за потреби) */}
+              <TouchableOpacity
+                style={[styles.backButton]}
+                onPress={() => {
+                  console.log("back");
+                  navigation.goBack();
+                }}
+              >
+                <Icon.ArrowLeft size={35} color={themeColors.appColor} />
+              </TouchableOpacity>
+
+              {/* Оцінка та зірочка у верхньому правому куті */}
+              <View style={styles.ratingContainer}>
+                <Text
+                  style={[H3, { color: themeColors.appColor, marginRight: 10 }]}
+                >
+                  {anime?.score || 0}
+                </Text>
+                <Icon.Star size={30} color={themeColors.yellow} />
+              </View>
+
+              {/* Кнопка "Дивитися трейлер" посередині */}
+              {anime?.videos?.find((v) => v.video_type === "video_promo")
+                ?.url && (
+                <TouchableOpacity
+                  style={styles.playTrailerBtn}
+                  onPress={() =>
+                    Linking.openURL(
+                      anime.videos.find((v) => v.video_type === "video_promo")
+                        ?.url
+                    )
+                  }
+                >
+                  {/* <PlayIcon fill={appColor} /> */}
+                  <Icon.PlayCircle size={34} color={themeColors.appColor} />
+                  <Text style={[H4, { marginLeft: 10 }]}>Дивитися трейлер</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Тіло з назвою, жанрами та описом */}
+            <View style={styles.contentContainer}>
+              <ForwardButton
+                navigation={navigation}
+                anime={anime}
+                errorCode={errorCode}
+                episodesList={episodesList}
+                style={[
+                  styles.continueWatchingBtn,
+                  { marginBottom: 18, backgroundColor: themeColors.appColor },
+                ]}
+                data={info}
+                onDataChange={(newData) => setInfo(newData)}
+              />
+
+              {/* Вибір дубляжу */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginBottom: 6,
+                  marginLeft: "2%",
+                }}
+              >
+                {info?.watched?.player && (
+                  <>
+                    <Text style={[H3, { color: themeColors.white }]}>
+                      Дубляж:
+                    </Text>
+                    <TouchableOpacity
+                      style={{
+                        marginLeft: 10,
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                      onPress={() => {
+                        if (dubbingSheetRef.current) {
+                          dubbingSheetRef.current?.present();
+                        }
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={[
+                          H3,
+                          {
+                            color: themeColors.appColor,
+                            paddingRight: 3,
+                          },
+                        ]}
+                      >
+                        {(info?.watched?.dubbing || "Вибрати дубляж").slice(
+                          0,
+                          15
+                        )}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          width: info?.watched?.player ? 30 : 0,
+                          height: info?.watched?.player ? 30 : 0,
+                        }}
+                      >
+                        {playersIcons[info?.watched?.player]}
+                      </View>
+                      <Icon.CaretDown
+                        size={30}
+                        color={themeColors.white}
+                        style={{ marginLeft: 10 }}
+                      />
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+
+              {/* Рядок з кнопками дій (епізоди, вподобати, завантажити, більше) */}
+              <View style={styles.actionsRow}>
+                {episodesList.length === 0 ? (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      style={[styles.actionButton]}
+                    >
+                      {/* <EpisodesIcon style={{ marginLeft: 2, position: 'relative' }} /> */}
+                      <Icon.Queue size={34} color={themeColors.white} />
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: Black(0.7),
+                          borderRadius: 8,
+                        }}
+                      />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={[styles.actionButton]}
+                      onPress={() => {
+                        if (episodesSheetRef.current) {
+                          episodesSheetRef.current?.present();
+                        }
+                      }}
+                    >
+                      {/* <EpisodesIcon style={{marginLeft: 2}} /> */}
+                      <Icon.Queue size={34} color={white} />
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Кнопка додавання/видалення з улюблених */}
                 <TouchableOpacity
                   style={styles.actionButton}
                   onPress={() => {
-                    if (downloadEpisodeRef.current) {
-                      downloadEpisodeRef.current?.present();
+                    AnimeStorage.setInfoBySlug(anime.slug, {
+                      isFavorite: !(info?.isFavorite || false),
+                      watched: info?.watched || { player: "", dubbing: "" },
+                    });
+                    setInfo(AnimeStorage.getInfoBySlug(anime.slug));
+                  }}
+                >
+                  {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
+                  <Icon.Heart
+                    size={34}
+                    color={
+                      info.isFavorite ? themeColors.appColor : themeColors.white
+                    }
+                  />
+                </TouchableOpacity>
+
+                {episodesList.length === 0 ? (
+                  <>
+                    {/* Неактивна кнопка завантаження, якщо немає епізодів */}
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      style={[styles.actionButton]}
+                    >
+                      {/* <DownloadIcon_
+                    style={{marginLeft: 2, position: 'relative'}}
+                  /> */}
+                      <Icon.DownloadSimple
+                        size={34}
+                        color={themeColors.white}
+                      />
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: Black(0.7),
+                          borderRadius: 8,
+                        }}
+                      />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    {/* Активна кнопка завантаження */}
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={() => {
+                        if (downloadEpisodeRef.current) {
+                          downloadEpisodeRef.current?.present();
+                        }
+                      }}
+                    >
+                      {/* <DownloadIcon_ style={{marginLeft: 2}} /> */}
+                      <Icon.DownloadSimple size={34} color={white} />
+                    </TouchableOpacity>
+                  </>
+                )}
+                {/* Кнопка "Більше" */}
+                {/* <Menu>
+              <MenuTrigger> */}
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    if (moreSheetRef.current) {
+                      moreSheetRef.current?.present();
                     }
                   }}
                 >
-                  {/* <DownloadIcon_ style={{marginLeft: 2}} /> */}
-                  <Icon.DownloadSimple size={34} color={white} />
+                  {/* <MoreIcon /> */}
+                  <Icon.DotsThreeVertical size={34} color={themeColors.white} />
                 </TouchableOpacity>
-              </>
-            )}
-            {/* Кнопка "Більше" */}
-            {/* <Menu>
-              <MenuTrigger> */}
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => {
-                if (moreSheetRef.current) {
-                  moreSheetRef.current?.present();
-                }
-              }}
-            >
-              {/* <MoreIcon /> */}
-              <Icon.DotsThreeVertical size={34} color={themeColors.white} />
-            </TouchableOpacity>
-            {/* </MenuTrigger>
+                {/* </MenuTrigger>
               <MenuOptions>
                 <MenuOption
                   onSelect={() => alert('Редактировать')}
@@ -694,143 +1156,153 @@ export default function AnimePreviewScreen({ route }) {
                 <MenuOption onSelect={() => alert('Удалить')} text="Удалить" />
               </MenuOptions>
             </Menu> */}
-          </View>
-          {/* Рік, кількість епізодів, назва та обмеження за віком */}
-          <View style={styles.headerRow}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "baseline",
-                gap: "10%",
-                width: "80%",
-              }}
-            >
-              {(() => {
-                if (
-                  anime.episodes_total !== null &&
-                  anime.episodes_released !== null &&
-                  anime.episodes_total === anime.episodes_released
-                ) {
-                  // Якщо всі епізоди вийшли
-                  return (
-                    <Text style={[H5, styles.yearEpisodes]}>
-                      {anime.year} | {anime.episodes_released}
-                    </Text>
-                  );
-                } else if (
-                  anime.episodes_total !== null &&
-                  anime.episodes_released !== null &&
-                  anime.episodes_total !== anime.episodes_released
-                ) {
-                  // Якщо вийшли не всі епізоди
-                  return (
-                    <Text style={[H5, styles.yearEpisodes]}>
-                      {anime.year} |{" "}
-                      {anime.episodes_released + " з " + anime.episodes_total}
-                    </Text>
-                  );
-                }
-              })()}
-              <Text
-                style={[
-                  H5,
-                  styles.yearEpisodes,
-                  { color: themeColors.appColor },
-                ]}
-              >
-                {getEpisodeDateOrType(anime)}
+              </View>
+              {/* Рік, кількість епізодів, назва та обмеження за віком */}
+              <View style={styles.headerRow}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "baseline",
+                    gap: "10%",
+                    width: "80%",
+                  }}
+                >
+                  {(() => {
+                    if (
+                      anime.episodes_total !== null &&
+                      anime.episodes_released !== null &&
+                      anime.episodes_total === anime.episodes_released
+                    ) {
+                      // Якщо всі епізоди вийшли
+                      return (
+                        <Text style={[H5, styles.yearEpisodes]}>
+                          {anime.year} | {anime.episodes_released}
+                        </Text>
+                      );
+                    } else if (
+                      anime.episodes_total !== null &&
+                      anime.episodes_released !== null &&
+                      anime.episodes_total !== anime.episodes_released
+                    ) {
+                      // Якщо вийшли не всі епізоди
+                      return (
+                        <Text style={[H5, styles.yearEpisodes]}>
+                          {anime.year} |{" "}
+                          {anime.episodes_released +
+                            " з " +
+                            anime.episodes_total}
+                        </Text>
+                      );
+                    }
+                  })()}
+                  <Text
+                    style={[
+                      H5,
+                      styles.yearEpisodes,
+                      { color: themeColors.appColor },
+                    ]}
+                  >
+                    {getEpisodeDateOrType(anime)}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.titleContainer}
+                  onLongPress={() => {
+                    if (anime.title_ua) {
+                      Clipboard.setString(anime.title_ua);
+                    }
+                  }}
+                  delayLongPress={400}
+                >
+                  <Text
+                    style={[
+                      H3,
+                      { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
+                    ]}
+                  >
+                    {anime.title_ua}
+                  </Text>
+                  {/* Відображення вікового обмеження */}
+                  <Text style={[H3, { color: themeColors.appColor }]}>
+                    {anime.rating === "g"
+                      ? "0+"
+                      : anime.rating === "pg"
+                        ? "6+"
+                        : anime.rating === "pg_13"
+                          ? "13+"
+                          : anime.rating === "r"
+                            ? "16+"
+                            : "18+"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Жанри/мітки */}
+              <TouchableOpacity style={styles.tagsRow}>
+                <Text
+                  style={[H4, styles.tagItem, { color: themeColors.appColor }]}
+                >
+                  {anime.genres && anime.genres.length > 0
+                    ? anime.genres.map((genre) => genre.name_ua).join(", ")
+                    : ""}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Опис аніме */}
+              <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>
+                {anime?.synopsis_ua ? (
+                  <Markdown
+                    style={{
+                      body: [
+                        H4,
+                        {
+                          marginBottom: anime?.synopsis_ua ? 25 : 0,
+                        },
+                      ],
+                      link: [
+                        H4,
+                        {
+                          marginBottom: anime?.synopsis_ua ? 25 : 0,
+                          color: appColor,
+                          textDecorationLine: "underline",
+                        },
+                      ],
+                    }}
+                  >
+                    {anime?.synopsis_ua}
+                  </Markdown>
+                ) : null}
               </Text>
+
+              {/* Секція схожих аніме */}
+              {animeList.length > 0 ? (
+                <>
+                  <Text
+                    style={[
+                      H4,
+                      { color: themeColors.appColor, marginBottom: 10 },
+                    ]}
+                  >
+                    Схожі Відтворення
+                  </Text>
+                  <FlatList
+                    horizontal={true}
+                    data={animeList}
+                    renderItem={renderSimilarAnime}
+                    keyExtractor={keyExtractorSimilar}
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.similarContainer}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                    initialNumToRender={3}
+                    windowSize={5}
+                  />
+                </>
+              ) : null}
             </View>
-            <TouchableOpacity
-              style={styles.titleContainer}
-              onLongPress={() => {
-                if (anime.title_ua) {
-                  Clipboard.setString(anime.title_ua);
-                }
-              }}
-              delayLongPress={400}
-            >
-              <Text
-                style={[
-                  H3,
-                  { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
-                ]}
-              >
-                {anime.title_ua}
-              </Text>
-              {/* Відображення вікового обмеження */}
-              <Text style={[H3, { color: themeColors.appColor }]}>
-                {anime.rating === "g"
-                  ? "0+"
-                  : anime.rating === "pg"
-                    ? "6+"
-                    : anime.rating === "pg_13"
-                      ? "13+"
-                      : anime.rating === "r"
-                        ? "16+"
-                        : "18+"}
-              </Text>
-            </TouchableOpacity>
           </View>
+        </ScrollView>
+      )}
 
-          {/* Жанри/мітки */}
-          <TouchableOpacity style={styles.tagsRow}>
-            <Text style={[H4, styles.tagItem, { color: themeColors.appColor }]}>
-              {anime.genres && anime.genres.length > 0
-                ? anime.genres.map((genre) => genre.name_ua).join(", ")
-                : ""}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Опис аніме */}
-          <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>
-            {anime?.synopsis_ua ? (
-              <Markdown
-                style={{
-                  body: [
-                    H4,
-                    {
-                      marginBottom: anime?.synopsis_ua ? 25 : 0,
-                    },
-                  ],
-                  link: [
-                    H4,
-                    {
-                      marginBottom: anime?.synopsis_ua ? 25 : 0,
-                      color: appColor,
-                      textDecorationLine: "underline",
-                    },
-                  ],
-                }}
-              >
-                {anime?.synopsis_ua}
-              </Markdown>
-            ) : null}
-          </Text>
-
-          {/* Секція схожих аніме */}
-          {animeList.length > 0 ? (
-            <>
-              <Text
-                style={[H4, { color: themeColors.appColor, marginBottom: 10 }]}
-              >
-                Схожі Відтворення
-              </Text>
-              <FlatList
-                horizontal={true}
-                data={animeList}
-                renderItem={renderSimilarAnime}
-                keyExtractor={keyExtractorSimilar}
-                showsHorizontalScrollIndicator={false}
-                style={styles.similarContainer}
-                contentContainerStyle={{ paddingRight: 16 }}
-                initialNumToRender={3}
-                windowSize={5}
-              />
-            </>
-          ) : null}
-        </View>
-      </ScrollView>
       {/* Нижня панель для вибору дубляжу */}
       {info?.watched?.dubbing &&
       info?.watched?.player &&

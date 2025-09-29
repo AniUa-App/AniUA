@@ -17,6 +17,7 @@ import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
+import { isTabletLandscape } from "../Styles/Responsive";
 
 const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   anime,
@@ -101,8 +102,16 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           style={[
             styles.animeImage,
             {
-              width: maxWidth ? maxWidth / 2.8 : GetScreenWidth() * 0.43,
-              height: maxHeight ? maxHeight / 1 : GetScreenWidth() * 0.4 * 1.8,
+              width: isTabletLandscape()
+                ? GetScreenWidth() * 0.13
+                : maxWidth
+                  ? maxWidth / 2.8
+                  : GetScreenWidth() * 0.43,
+              height: isTabletLandscape()
+                ? GetScreenWidth() * 0.13 * 1.8
+                : maxHeight
+                  ? maxHeight / 1
+                  : GetScreenWidth() * 0.4 * 1.8,
             },
           ]}
         />
