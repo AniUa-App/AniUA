@@ -55,9 +55,7 @@ export class HikkaSets extends HikkaApi {
 
   public static getMostPopularAnimeOfTheYear(page = 1, size = 1) {
     return HikkaSets.fetchAnime(`popular_year_${page}_${size}`, page, size, {
-      years: [HikkaApi.currentYear, HikkaApi.currentYear],
-      include_multiseason: false,
-      only_translated: true,
+      years: [HikkaApi.currentYear, HikkaApi.currentYear + 1],
       score: [8, 10],
       sort: ["start_date:desc"],
     });

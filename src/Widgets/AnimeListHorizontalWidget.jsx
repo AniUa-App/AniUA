@@ -81,6 +81,9 @@ export function PreviewAnimeListHorizontal({
   onPress = () => {},
 }) {
   const themeColors = useThemeColors();
+  const { width, height } = useWindowDimensions();
+  const baseWidth = Math.max(120, width * 0.4);
+  const baseHeight = Math.max(120, height * 0.3);
 
   return (
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
@@ -107,13 +110,30 @@ export function PreviewAnimeListHorizontal({
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
-            style={[{ marginHorizontal: 8 }, styles.imageContainer]}
-            onPress={onPress}
+            style={[
+              styles.imageContainer,
+              isTabletLandscape()
+                ? { width: width * 0.12, height: height * 0.3 }
+                : isTablet()
+                  ? { width: width * 0.2, height: height * 0.2 }
+                  : { width: baseWidth, height: baseHeight },
+            ]}
+            onPress={() => {
+              navigation.navigate("HiddenStack", {
+                screen: "AnimePreview",
+                params: { anime },
+              });
+            }}
           >
-            <Image uri={anime.image} style={styles.image} />
-            <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
-              {anime.title}
-            </Text>
+            <Image
+              uri={anime.image}
+              style={[
+                { flex: 1, width: "100%", height: "100%", borderRadius: 8 },
+              ]}
+            />
+            {/* <Text style={[H3, { color: themeColors.white }]} numberOfLines={2}>
+              {anime.title_ua}
+            </Text> */}
           </TouchableOpacity>
         ))}
       </ScrollView>

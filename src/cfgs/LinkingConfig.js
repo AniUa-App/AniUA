@@ -29,11 +29,12 @@ const validPrefixes = [MainConfig.urls.appUri, MainConfig.urls.appUrl].filter(
   (prefix) => prefix && typeof prefix === "string" && prefix.trim() !== ""
 );
 
+// Якщо немає валідних префіксів, використовуємо дефолтні
+const finalPrefixes =
+  validPrefixes.length > 0 ? validPrefixes : ["aniua://", "https://aniua.yuzka.site"];
+
 export default {
-  prefixes:
-    validPrefixes.length > 0
-      ? validPrefixes
-      : [MainConfig.urls.appUri, MainConfig.urls.appUrl],
+  prefixes: finalPrefixes,
   config,
   // Додаємо обробник для фільтрації невалідних URL
   getStateFromPath: (path, options) => {

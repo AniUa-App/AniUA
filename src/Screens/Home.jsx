@@ -48,7 +48,7 @@ export default function HomeScreen() {
       setIsLoading(true);
       setHasInternetError(false);
       try {
-        const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 5);
+        const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
         setAnimeList_popularity_this_year(yearData);
       } catch (error) {
         console.error("Помилка при завантаженні даних:", error);
@@ -78,7 +78,7 @@ export default function HomeScreen() {
         setIsLoading(true);
         setHasInternetError(false);
         try {
-          const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 5);
+          const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
           setAnimeList_popularity_this_year(yearData);
         } catch (error) {
           console.error("Помилка при повторному завантаженні:", error);

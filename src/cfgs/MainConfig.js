@@ -83,8 +83,8 @@ export default {
     key: toSafeString(buildExtra.expoPublickSupabaseKey || null),
   },
   urls: {
-    appUrl: "",
-    appUri,
+    appUrl: "https://aniua.yuzka.site",
+    appUri: appUri || "aniua://",
     dubbingsUrl: "",
     telegramChannelUrl: "",
     donateUrl: "",
