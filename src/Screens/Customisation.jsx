@@ -43,6 +43,7 @@ import * as DocumentPicker from "expo-document-picker";
 import RNFS from "react-native-fs";
 import { useNavigation } from "@react-navigation/native";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import { isTablet } from "../Styles/Responsive";
 
 export default function СustomisationScreen() {
   const navigation = useNavigation();
@@ -117,7 +118,7 @@ export default function СustomisationScreen() {
     }));
   };
 
-  const CUSTOMISATION_SETTINGS_V1 = [
+  const MOBILE_CUSTOMISATION_SETTINGS = [
     {
       slug: "navbar",
       body: [
@@ -327,6 +328,59 @@ export default function СustomisationScreen() {
         },
       ],
     },
+  ];
+  const TABLET_CUSTOMISATION_SETTINGS = [
+    {
+      slug: "navbar",
+      body: [
+        {
+          title: "Розташування панелі",
+          description: ``,
+          value: USER_CONFIG?.navbar?.placedAt || "Внизу",
+          button: <Icons.CaretDown size={34} color={white} />,
+          onPress: () => {},
+          body: () => {
+            return (
+              <View
+                style={[
+                  styles.bsContainer,
+                  {
+                    width: "100%",
+                  },
+                ]}
+              >
+                <SegmentedControlLabelWidget
+                  segments={[
+                    {
+                      label: "Внизу",
+                    },
+                    {
+                      label: "Праворуч",
+                    },
+                    {
+                      label: "Ліворуч",
+                    },
+                  ]}
+                  value={USER_CONFIG?.navbar?.placedAt || "Внизу"}
+                  onChange={(value) => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      navbar: {
+                        ...USER_CONFIG?.navbar,
+                        placedAt: value,
+                        style: "MD3",
+                      },
+                    });
+                  }}
+                />
+              </View>
+            );
+          },
+        },
+      ],
+    },
+  ];
+  const CROSS_PLATFORM_CUSTOMISATION_SETTINGS = [
     {
       slug: "colors",
       body: [
@@ -623,10 +677,20 @@ export default function СustomisationScreen() {
     },
   ];
 
+  let CUSTOMISATION_SETTINGS = isTablet()
+    ? [
+        ...TABLET_CUSTOMISATION_SETTINGS,
+        ...CROSS_PLATFORM_CUSTOMISATION_SETTINGS,
+      ]
+    : [
+        ...MOBILE_CUSTOMISATION_SETTINGS,
+        ...CROSS_PLATFORM_CUSTOMISATION_SETTINGS,
+      ];
+
   return (
     <DefaultScreenWidget>
       <ScrollView style={{ paddingTop: 20 }}>
-        {CUSTOMISATION_SETTINGS_V1.map((items, index) => (
+        {CUSTOMISATION_SETTINGS.map((items, index) => (
           <View key={index} style={{ marginBottom: 0 }}>
             {items.body.map((item, index) => {
               const itemKey = `${items.slug || items.title || "group"}-${item.title}-${index}`;

@@ -14,6 +14,7 @@ import {
   Text,
   ActivityIndicator,
   FlatList,
+  useWindowDimensions,
 } from "react-native";
 import { GetScreenWidth, GetScreenHeight } from "../Global/Functions";
 import {
@@ -95,6 +96,9 @@ function getEpisodeDateOrType(anime) {
 export default function AnimePreviewScreen({ route }) {
   const themeColors = useThemeColors();
   const isFocused = useIsFocused();
+  const { width: winWidth, height: winHeight } = useWindowDimensions();
+  const portraitPosterHeight = Math.max(260, winHeight * 0.7);
+  const landscapePosterHeight = Math.max(260, winHeight * 0.75);
   if (!route || !route.params) {
     return (
       <DefaultScreenWidget>
@@ -408,17 +412,16 @@ export default function AnimePreviewScreen({ route }) {
           <Image
             style={[
               styles.similarImage,
-              isTabletLandscape() && {
-                width: GetScreenWidth() * 0.13,
-                height: GetScreenHeight() * 0.35,
-              },
+              isTabletLandscape()
+                ? { width: winWidth * 0.13, height: winHeight * 0.35 }
+                : { width: winWidth * 0.5, height: winHeight * 0.38 },
             ]}
             uri={item.image}
           />
         </TouchableOpacity>
       );
     },
-    [navigation, initialAnime?.slug]
+    [navigation, initialAnime?.slug, winWidth, winHeight]
   );
 
   const keyExtractorSimilar = useCallback((item) => item?.slug || "", []);
@@ -475,7 +478,7 @@ export default function AnimePreviewScreen({ route }) {
                 style={[
                   styles.posterContainer,
                   {
-                    height: GetScreenHeight() * 0.75,
+                    height: landscapePosterHeight,
                   },
                 ]}
               >
@@ -910,7 +913,7 @@ export default function AnimePreviewScreen({ route }) {
               }}
             />
             {/* Верхній блок з "постером" */}
-            <View style={[styles.posterContainer]}>
+            <View style={[styles.posterContainer, { height: portraitPosterHeight }]}>
               <Image style={styles.posterImage} uri={anime?.image} />
               {/* Напівпрозорий затемнений блок зверху */}
               {isFocused ? <View style={[styles.overlay]} /> : null}
@@ -1494,7 +1497,7 @@ const styles = StyleSheet.create({
   posterContainer: {
     position: "relative",
     width: "100%",
-    height: GetScreenHeight() * 0.7, // пропорція висоти для постера
+    // height is applied dynamically per-orientation
     backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
@@ -1616,8 +1619,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   similarImage: {
-    width: GetScreenWidth() * 0.5,
-    height: GetScreenHeight() * 0.38, // пропорція висоти для постера
+    // size is applied dynamically per-orientation
     borderRadius: 4,
     marginBottom: 4,
   },

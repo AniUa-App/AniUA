@@ -23,6 +23,26 @@ export default function DefaultScreenWidget({
   const headerHeight = useHeaderHeight?.() || 0;
 
   const isCustomisation = userConfig?.background?.isCustomisation ?? false;
+  
+  // Визначаємо padding для navbar
+  const getNavbarPadding = () => {
+    const placedAt = userConfig?.navbar?.placedAt || "Внизу";
+    const navbarStyle = userConfig?.navbar?.style || "Default";
+    
+    if (navbarStyle !== "MD3") {
+      return { paddingBottom: 80 };
+    }
+    
+    switch (placedAt) {
+      case "Праворуч":
+        return { paddingRight: 92 };
+      case "Ліворуч":
+        return { paddingLeft: 92 };
+      case "Внизу":
+      default:
+        return { paddingBottom: 80 };
+    }
+  };
 
   const setIsConnected = (isConnected) => {
     setIsConnected_(isConnected);
@@ -118,14 +138,13 @@ export default function DefaultScreenWidget({
           translucent
           backgroundColor="transparent"
         />
-        <View style={{ flex: 1, paddingTop: headerHeight }}>
+        <View style={[{ flex: 1, paddingTop: headerHeight }, getNavbarPadding()]}>
           {isCheckInternet && !isConnected && (
             <InternetError onPress={checkConnection} />
           )}
           {children}
         </View>
       </View>
-      {isTabletLandscape() && <View style={{ width: 60 }} />}
     </SafeAreaView>
   );
 }

@@ -633,6 +633,65 @@ function DownloadAnimatedIcon({ color = white, size = 30 }) {
   );
 }
 
+export function NavbarPositionIcon({
+  placed = "down",
+  width = 57,
+  height = 44,
+  cornerRadius = 12,
+  pillRadius = 6,
+  padding = 10,
+  baseColor = white,
+  baseOpacity = 0.07,
+  pillOpacity = 0.24,
+}) {
+  // Outer rounded rectangle and inner pill indicating navbar position
+  const pillThickness = placed === "down" ? 8 : 8; // height for bottom, width for sides
+  let pillX = padding;
+  let pillY = padding;
+  let pillW = width - padding * 2;
+  let pillH = pillThickness;
+
+  if (placed === "down") {
+    pillW = Math.max(22, Math.floor(width * 0.38));
+    pillH = pillThickness;
+    pillX = Math.floor((width - pillW) / 2);
+    pillY = height - padding - pillH;
+  } else if (placed === "right") {
+    pillW = pillThickness;
+    pillH = Math.max(18, Math.floor(height * 0.55));
+    pillX = width - padding - pillW;
+    pillY = Math.floor((height - pillH) / 2);
+  } else if (placed === "left") {
+    pillW = pillThickness;
+    pillH = Math.max(18, Math.floor(height * 0.55));
+    pillX = padding;
+    pillY = Math.floor((height - pillH) / 2);
+  }
+
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        rx={cornerRadius}
+        fill={baseColor}
+        fillOpacity={baseOpacity}
+      />
+      <Rect
+        x={pillX}
+        y={pillY}
+        width={pillW}
+        height={pillH}
+        rx={pillRadius}
+        fill={baseColor}
+        fillOpacity={pillOpacity}
+      />
+    </Svg>
+  );
+}
+
 export default {
   ...PhosphorIcons,
   ArrowLeft: PhosphorIcons.ArrowCircleLeft,
@@ -641,6 +700,8 @@ export default {
   Lock: LockIcon,
   Volume: VolumeIcon,
   DownloadAnimated: DownloadAnimatedIcon,
+  NavbarPosition: NavbarPositionIcon,
+  NavbarPositionIcon,
 };
 
 export {

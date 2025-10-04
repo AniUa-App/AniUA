@@ -15,8 +15,8 @@ export function maxContentWidth() {
   const longest = Math.max(width, height);
   // Choose a pleasant readable width cap for typical tablet sizes
   if (longest >= 1366) return 1024; // iPad Pro 12.9, large Android tablets
-  if (longest >= 1180) return 980;  // iPad Air/Pro 11
-  if (longest >= 1080) return 900;  // Many 10-11" Android tablets
+  if (longest >= 1180) return 980; // iPad Air/Pro 11
+  if (longest >= 1080) return 900; // Many 10-11" Android tablets
   return 820; // Small tablets
 }
 
@@ -46,6 +46,12 @@ export function getSidebarWidth() {
   return 140; // Small tablets
 }
 
+// MD3 navbar (vertical) width used on tablet landscape
 export function getNavbarWidth() {
-  return isTabletLandscape() ? 80 : "100%";
+  const { width } = getDims();
+  // Slightly narrower than sidebar to fit MD3 compact rail
+  if (width >= 1366) return 120;
+  if (width >= 1180) return 108;
+  if (width >= 1080) return 96;
+  return 84;
 }

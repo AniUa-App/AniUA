@@ -116,3 +116,87 @@ export function SegmentedControlLabelWidget({
     />
   );
 }
+
+// Icon/Image-based segmented control with sliding highlight
+export function SegmentedControlImageWidget({
+  segments = [], // [{ icon: <JSX />, value?: string, label?: string }]
+  onChange = () => {},
+  value = "",
+}) {
+  if (!segments || segments.length === 0) return null;
+
+  // Normalize segments: ensure each has label and value for internal mapping
+  const normalized = useMemo(
+    () =>
+      segments.map((s, idx) => ({
+        ...s,
+        label: s.label ?? s.value ?? String(idx),
+        value: s.value ?? s.label ?? String(idx),
+      })),
+    [segments]
+  );
+
+  const selectedIndex = useMemo(() => {
+    if (!value) return 0;
+    const idx = normalized.findIndex(
+      (s) => s.value === value || s.label === value
+    );
+    return idx >= 0 ? idx : 0;
+  }, [value, normalized]);
+
+  const onChangeIndex = (index) => {
+    if (index >= 0 && index < normalized.length) {
+      const next = normalized[index].value;
+      if (next !== value) onChange(next);
+    }
+  };
+
+  const itemWidthPct = 100 / normalized.length;
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        alignSelf: "center",
+        height: 50,
+        borderRadius: 8,
+        overflow: "hidden",
+        backgroundColor: black_1,
+        position: "relative",
+        flexDirection: "row",
+      }}
+    >
+      {/* slider */}
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: `${selectedIndex * itemWidthPct}%`,
+          width: `${itemWidthPct}%`,
+          backgroundColor: appColor,
+          opacity: 0.25,
+          borderRadius: 8,
+        }}
+        pointerEvents="none"
+      />
+      {normalized.map((seg, idx) => (
+        <TouchableOpacity
+          key={seg.value}
+          onPress={() => onChangeIndex(idx)}
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            height: 50,
+          }}
+          activeOpacity={0.8}
+        >
+          {seg.icon ?? (
+            <Text style={{ color: white }}>{String(seg.label)}</Text>
+          )}
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}

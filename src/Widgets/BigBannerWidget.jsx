@@ -1,15 +1,14 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, Dimensions, FlatList } from "react-native";
+import { View, StyleSheet, FlatList, useWindowDimensions } from "react-native";
 import { TouchableOpacity } from "./Button";
 import LinearGradient from "react-native-linear-gradient";
 import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "./LoadersWidgets";
 
-const width = GetScreenWidth();
-const height = GetScreenHeight() * 0.7;
-
 const Mobile = React.memo(({ animes }) => {
+  const { width: winWidth, height: winHeight } = useWindowDimensions();
+  const bannerHeight = Math.max(220, winHeight * 0.7);
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigation = useNavigation();
@@ -51,7 +50,10 @@ const Mobile = React.memo(({ animes }) => {
   const renderItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
-        style={styles.imageContainer}
+        style={[
+          styles.imageContainer,
+          { width: winWidth, height: bannerHeight },
+        ]}
         onPress={() =>
           navigation.navigate("HiddenStack", {
             screen: "AnimePreview",
@@ -82,7 +84,7 @@ const Mobile = React.memo(({ animes }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: bannerHeight }]}>
       <FlatList
         ref={flatListRef}
         data={animes}
@@ -97,8 +99,8 @@ const Mobile = React.memo(({ animes }) => {
         maxToRenderPerBatch={1}
         windowSize={3}
         getItemLayout={(data, index) => ({
-          length: width,
-          offset: width * index,
+          length: winWidth,
+          offset: winWidth * index,
           index,
         })}
       />
@@ -107,6 +109,8 @@ const Mobile = React.memo(({ animes }) => {
 });
 
 const Tablet = React.memo(({ animes }) => {
+  const { width: winWidth } = useWindowDimensions();
+  const cardWidth = winWidth / 2.5;
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigation = useNavigation();
@@ -149,7 +153,8 @@ const Tablet = React.memo(({ animes }) => {
     ({ item }) => (
       <TouchableOpacity
         style={{
-          width: width / 2.5,
+          width: cardWidth,
+          height: "100%",
           position: "relative",
         }}
         onPress={() =>
@@ -176,14 +181,13 @@ const Tablet = React.memo(({ animes }) => {
     (item, index) => `banner-${item.slug || index}`,
     []
   );
-
   if (!animes || animes.length === 0) {
     return null;
   }
 
   return (
     <View
-      style={[styles.container, { flex: 1, width: "100%", height: "100%" }]}
+      style={[styles.container, { height: "100%", width: "100%", flex: 1 }]}
     >
       <FlatList
         ref={flatListRef}
@@ -199,8 +203,8 @@ const Tablet = React.memo(({ animes }) => {
         maxToRenderPerBatch={1}
         windowSize={3}
         getItemLayout={(data, index) => ({
-          length: width / 2.5,
-          offset: (width / 2.5) * index,
+          length: cardWidth,
+          offset: cardWidth * index,
           index,
         })}
       />
@@ -211,11 +215,10 @@ export default { Mobile: Mobile, Tablet: Tablet };
 
 const styles = StyleSheet.create({
   container: {
-    height: height,
+    // dynamic height is applied inline
   },
   imageContainer: {
-    width: width,
-    height: height,
+    // dynamic width/height are applied inline
     position: "relative",
   },
 

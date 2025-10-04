@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
 
 import Icon from "../Styles/Icons";
@@ -13,11 +14,14 @@ import { H3 } from "../Styles/Fonts";
 import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
-import { isTabletLandscape } from "../Styles/Responsive";
+import { isTablet, isTabletLandscape } from "../Styles/Responsive";
 
 export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
+  const { width, height } = useWindowDimensions();
+  const baseWidth = Math.max(120, width * 0.4);
+  const baseHeight = Math.max(120, height * 0.3);
 
   return (
     <View style={{ flex: 1 }}>
@@ -42,10 +46,11 @@ export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
             key={index}
             style={[
               styles.imageContainer,
-              isTabletLandscape() && {
-                width: GetScreenWidth() * 0.12,
-                height: GetScreenHeight() * 0.3,
-              },
+              isTabletLandscape()
+                ? { width: width * 0.12, height: height * 0.3 }
+                : isTablet()
+                  ? { width: width * 0.2, height: height * 0.2 }
+                  : { width: baseWidth, height: baseHeight },
             ]}
             onPress={() => {
               navigation.navigate("HiddenStack", {
@@ -118,14 +123,12 @@ export function PreviewAnimeListHorizontal({
 
 const styles = StyleSheet.create({
   imageContainer: {
-    width: GetScreenWidth() * 0.4,
-    height: GetScreenHeight() * 0.3,
     borderRadius: 8,
     paddingHorizontal: 8,
   },
   arrowRightIcon: {
     paddingRight: "5%",
-    paddingVertical: isTabletLandscape() ? "2%" : "4%",
+    paddingVertical: isTabletLandscape() ? 8 : 16,
   },
   header: {
     flexDirection: "row",
@@ -135,6 +138,6 @@ const styles = StyleSheet.create({
   },
   title: {
     paddingLeft: 25,
-    paddingVertical: isTabletLandscape() ? "2%" : "4%",
+    paddingVertical: isTabletLandscape() ? 8 : 16,
   },
 });

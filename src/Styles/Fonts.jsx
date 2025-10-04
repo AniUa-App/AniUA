@@ -4,7 +4,7 @@ import { white } from "./Colors";
 import { GetScreenWidth, GetScreenHeight } from "../Global/Functions";
 import { useFonts } from "expo-font";
 import { useThemeColors } from "../Global/useTheme";
-import { isTabletLandscape } from "./Responsive";
+import { isTablet, isTabletLandscape } from "./Responsive";
 
 export function useCustomFonts() {
   const [fontsLoaded] = useFonts({
@@ -49,7 +49,7 @@ const scale = Math.min(GetScreenWidth(), GetScreenHeight()) / 350;
 const scale_landscape = Math.min(GetScreenWidth(), GetScreenHeight()) / 650;
 
 export const scaleFontSize = (size) => {
-  const newSize = size * (isTabletLandscape() ? scale_landscape : scale);
+  const newSize = size * (isTablet() ? scale_landscape : scale);
   return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
 

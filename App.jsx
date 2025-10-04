@@ -28,6 +28,7 @@ import { ThemeProvider } from "./src/Global/ThemeContext";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
 import Api, { getUniqueAccountId, getMetadata } from "./src/Api/api";
+import { isTablet } from "./src/Styles/Responsive";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -119,11 +120,27 @@ export default function App() {
 
         // Базова ініціалізація без залежності від activity
 
-        //AppLogger.logAppInit("Блокування орієнтації");
-        // Orientation.lockToPortrait();
-        //await ScreenOrientation.lockAsync(
-        //  ScreenOrientation.OrientationLock.PORTRAIT_UP
-        //);
+        // Блокування орієнтації глобально: телефони — лише портрет, планшети — вільно
+        try {
+          if (isTablet()) {
+            await ScreenOrientation.unlockAsync();
+            const existingConfig = SettingsStorage.getParameter("userConfig");
+            if (!existingConfig || Object.keys(existingConfig).length === 0) {
+              SettingsStorage.setParameter("userConfig", {
+                navbar: {
+                  placedAt: "Внизу",
+                  style: "MD3",
+                },
+              });
+            }
+          } else {
+            await ScreenOrientation.lockAsync(
+              ScreenOrientation.OrientationLock.PORTRAIT_UP
+            );
+          }
+        } catch (e) {
+          AppLogger.logAppInit("Помилка блокування орієнтації", false, e);
+        }
 
         AppLogger.logAppInit("Перевірка дозволів.");
         await NotificationPermission();
