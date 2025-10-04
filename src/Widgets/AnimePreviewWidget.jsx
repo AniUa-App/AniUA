@@ -17,7 +17,8 @@ import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
-import { isTabletLandscape } from "../Styles/Responsive";
+import { isTabletLandscape, isTablet } from "../Styles/Responsive";
+import { useWindowDimensions } from "react-native";
 
 const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   anime,
@@ -28,6 +29,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   maxWidth,
 }) {
   if (!anime || !anime.slug) return null;
+  const { width, height } = useWindowDimensions();
 
   const [episodesList, setEpisodesList] = useState([]);
 
@@ -89,7 +91,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   return (
     <>
       <TouchableOpacity
-        style={[styles.cardContainer, { maxHeight, maxWidth }]}
+        style={[styles.cardContainer]}
         onPress={() =>
           navigation.navigate("HiddenStack", {
             screen: "AnimePreview",
@@ -101,18 +103,11 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           uri={anime.image}
           style={[
             styles.animeImage,
-            {
-              width: isTabletLandscape()
-                ? GetScreenWidth() * 0.13
-                : maxWidth
-                  ? maxWidth / 2.8
-                  : GetScreenWidth() * 0.43,
-              height: isTabletLandscape()
-                ? GetScreenWidth() * 0.13 * 1.8
-                : maxHeight
-                  ? maxHeight / 1
-                  : GetScreenWidth() * 0.4 * 1.8,
-            },
+            isTabletLandscape()
+              ? { width: width * 0.12, height: height * 0.3 }
+              : isTablet()
+                ? { width: width * 0.2, height: height * 0.2 }
+                : { width: width * 0.4, height: height * 0.3 },
           ]}
         />
         <View style={[styles.infoContainer]}>

@@ -66,9 +66,6 @@ function MainTabs() {
     return () => unsubscribe && unsubscribe();
   }, []);
 
-  const placedAt = userConfig?.navbar?.placedAt || "Внизу";
-  const navbarStyle = userConfig?.navbar?.style || "Default";
-
   return (
     <Tab.Navigator
       screenOptions={{
@@ -100,7 +97,7 @@ function MainTabs() {
           ),
         }}
       >
-        {(props) => <AnimeListScreen {...props} />}
+        {(props) => <AnimeListScreen {...props} isNavBarPadding={true} />}
       </Tab.Screen>
 
       <Tab.Screen
@@ -125,7 +122,7 @@ function MainTabs() {
           ),
         }}
       >
-        {(props) => <AnimeListScreen {...props} />}
+        {(props) => <AnimeListScreen {...props} isNavBarPadding={true} />}
       </Tab.Screen>
 
       <Tab.Screen
@@ -249,7 +246,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
       position: "absolute",
       height: "100%",
       flexDirection: "column",
-      paddingVertical: 20,
       paddingHorizontal: 12,
       justifyContent: "center",
     },
@@ -258,7 +254,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
       left: 0,
       height: "100%",
       flexDirection: "column",
-      paddingVertical: 20,
       paddingHorizontal: 12,
       justifyContent: "center",
     },

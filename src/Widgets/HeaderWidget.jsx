@@ -8,6 +8,8 @@ import { H3 } from "../Styles/Fonts";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { useState, useEffect } from "react";
 import { EventBus } from "../Global/EventBus";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getNavbarWidth } from "../Styles/Responsive";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +21,7 @@ export default function Header({
   arrowSide = "right",
 }) {
   const themeColors = useThemeColors();
+  const insets = useSafeAreaInsets?.() || { top: 0 };
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
@@ -45,9 +48,20 @@ export default function Header({
           userConfig?.background?.image
             ? "transparent"
             : themeColors.black,
-        paddingTop: StatusBar.currentHeight + 10,
+        // Respect safe area on all platforms
+        paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
         paddingVertical: 10,
-        paddingHorizontal: 25,
+        // Avoid overlap with vertical MD3 navbar
+        paddingLeft:
+          userConfig?.navbar?.style === "MD3" &&
+          userConfig?.navbar?.placedAt === "Ліворуч"
+            ? getNavbarWidth() / 1.1
+            : 25,
+        paddingRight:
+          userConfig?.navbar?.style === "MD3" &&
+          userConfig?.navbar?.placedAt === "Праворуч"
+            ? getNavbarWidth() / 1.1
+            : 25,
       }}
     >
       {arrowSide === "left" && isArrow && (

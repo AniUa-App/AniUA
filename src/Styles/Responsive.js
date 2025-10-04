@@ -1,4 +1,4 @@
-import { Dimensions, Platform } from "react-native";
+import { Dimensions, Platform, useWindowDimensions } from "react-native";
 
 const getDims = () => Dimensions.get("window");
 
@@ -54,4 +54,22 @@ export function getNavbarWidth() {
   if (width >= 1180) return 108;
   if (width >= 1080) return 96;
   return 84;
+}
+
+// Reactive hooks that update on rotation using useWindowDimensions
+export function useIsTablet() {
+  const { width, height } = useWindowDimensions();
+  const shortest = Math.min(width, height);
+  return shortest >= 600 || (Platform.OS === "ios" && Platform.isPad === true);
+}
+
+export function useIsLandscape() {
+  const { width, height } = useWindowDimensions();
+  return width > height;
+}
+
+export function useIsTabletLandscape() {
+  const tablet = useIsTablet();
+  const landscape = useIsLandscape();
+  return tablet && landscape;
 }

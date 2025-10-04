@@ -9,13 +9,15 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { BlurView } from "expo-blur";
 import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { isTabletLandscape } from "../Styles/Responsive";
+import { useIsTabletLandscape } from "../Styles/Responsive";
 
 export default function DefaultScreenWidget({
   children,
   isCheckInternet = true,
   isConnection,
+  isNavBarPadding = false,
 }) {
+  const isTL = useIsTabletLandscape();
   const themeColors = useThemeColors();
   const [isConnected, setIsConnected_] = useState(true);
   const [userConfig, setUserConfig] = useState(null);
@@ -23,24 +25,23 @@ export default function DefaultScreenWidget({
   const headerHeight = useHeaderHeight?.() || 0;
 
   const isCustomisation = userConfig?.background?.isCustomisation ?? false;
-  
+
   // Визначаємо padding для navbar
   const getNavbarPadding = () => {
     const placedAt = userConfig?.navbar?.placedAt || "Внизу";
-    const navbarStyle = userConfig?.navbar?.style || "Default";
-    
+    const navbarStyle = userConfig?.navbar?.style || "MD3";
+
     if (navbarStyle !== "MD3") {
       return { paddingBottom: 80 };
     }
-    
+
     switch (placedAt) {
       case "Праворуч":
-        return { paddingRight: 92 };
+        return { paddingRight: 70 };
       case "Ліворуч":
-        return { paddingLeft: 92 };
-      case "Внизу":
+        return { paddingLeft: 70 };
       default:
-        return { paddingBottom: 80 };
+        return {};
     }
   };
 
@@ -88,7 +89,7 @@ export default function DefaultScreenWidget({
         {
           // Always keep an opaque background to avoid white flashes during transitions
           backgroundColor: themeColors.black,
-          flexDirection: isTabletLandscape() ? "row" : "column",
+          flexDirection: isTL ? "row" : "column",
         },
       ]}
     >
@@ -138,7 +139,12 @@ export default function DefaultScreenWidget({
           translucent
           backgroundColor="transparent"
         />
-        <View style={[{ flex: 1, paddingTop: headerHeight }, getNavbarPadding()]}>
+        <View
+          style={[
+            { flex: 1, paddingTop: headerHeight },
+            isNavBarPadding ? getNavbarPadding() : {},
+          ]}
+        >
           {isCheckInternet && !isConnected && (
             <InternetError onPress={checkConnection} />
           )}

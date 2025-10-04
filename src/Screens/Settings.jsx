@@ -255,8 +255,11 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <DefaultScreenWidget isCheckInternet={false}>
-      <ScrollView style={{ flex: 1, paddingTop: StatusBar.currentHeight }}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+      <ScrollView
+        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        showsVerticalScrollIndicator={false}
+      >
         <ExpandableNotification
           visible={notification.visible}
           message={notification.message}

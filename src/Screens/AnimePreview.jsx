@@ -73,7 +73,7 @@ import {
 import Toast from "react-native-root-toast";
 import ExpandableNotification from "../Widgets/ExpandableNotification";
 import Clipboard from "@react-native-clipboard/clipboard";
-import { isTabletLandscape } from "../Styles/Responsive";
+import { isTabletLandscape, isTablet } from "../Styles/Responsive";
 
 function getEpisodeDateOrType(anime) {
   if (
@@ -413,8 +413,10 @@ export default function AnimePreviewScreen({ route }) {
             style={[
               styles.similarImage,
               isTabletLandscape()
-                ? { width: winWidth * 0.13, height: winHeight * 0.35 }
-                : { width: winWidth * 0.5, height: winHeight * 0.38 },
+                ? { width: winWidth * 0.12, height: winHeight * 0.3 }
+                : isTablet()
+                  ? { width: winWidth * 0.2, height: winHeight * 0.2 }
+                  : { width: winWidth * 0.2, height: winHeight * 0.2 },
             ]}
             uri={item.image}
           />
@@ -871,7 +873,7 @@ export default function AnimePreviewScreen({ route }) {
                   <Text
                     style={[
                       H4,
-                      { color: themeColors.appColor, marginBottom: 10 },
+                      { color: themeColors.appColor, marginBottom: 15 },
                     ]}
                   >
                     Схожі Відтворення
@@ -913,7 +915,9 @@ export default function AnimePreviewScreen({ route }) {
               }}
             />
             {/* Верхній блок з "постером" */}
-            <View style={[styles.posterContainer, { height: portraitPosterHeight }]}>
+            <View
+              style={[styles.posterContainer, { height: portraitPosterHeight }]}
+            >
               <Image style={styles.posterImage} uri={anime?.image} />
               {/* Напівпрозорий затемнений блок зверху */}
               {isFocused ? <View style={[styles.overlay]} /> : null}
@@ -1613,7 +1617,6 @@ const styles = StyleSheet.create({
   },
   similarContainer: {
     flexDirection: "row",
-    marginTop: 20,
   },
   similarCard: {
     marginRight: 16,

@@ -206,7 +206,7 @@ export default function SearchLine() {
                   info={{}}
                   updateInfo={() => {}}
                   type="Search"
-                  maxHeight={190}
+                  maxHeight={190 / 2}
                   maxWidth={GetScreenWidth() * 0.85}
                 />
               )}

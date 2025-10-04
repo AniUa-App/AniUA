@@ -22,9 +22,10 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { sendRequest } from "../Sources/CustomSet";
-import { isTabletLandscape, isTablet } from "../Styles/Responsive";
+import { useIsTabletLandscape } from "../Styles/Responsive";
 
 export default function HomeScreen() {
+  const isTL = useIsTabletLandscape();
   // Стан для аніме, відсортованих за популярністю за поточний рік
   const [animeList_popularity_this_year, setAnimeList_popularity_this_year] =
     useState([]);
@@ -96,16 +97,16 @@ export default function HomeScreen() {
 
   return (
     // Основний компонент екрану
-    <DefaultScreenWidget style={{}}>
+    <DefaultScreenWidget isNavBarPadding={true}>
       <View
         style={{
-          flexDirection: isTabletLandscape() ? "row" : "column",
+          flexDirection: isTL ? "row" : "column",
           flex: 1,
-          alignItems: isTabletLandscape() ? "stretch" : "center",
-          justifyContent: isTabletLandscape() ? "flex-start" : "center",
+          alignItems: isTL ? "stretch" : "center",
+          justifyContent: isTL ? "flex-start" : "center",
         }}
       >
-        {isTabletLandscape() ? (
+        {isTL ? (
           <>
             {/* Ліва колонка: банер на повну висоту */}
             {recommendations?.isDefaultBigBanner === true && (
@@ -117,8 +118,9 @@ export default function HomeScreen() {
             )}
 
             {/* Права колонка: пошук + контент */}
+            <SearchLine />
+
             <View style={{ flex: 1, height: "100%" }}>
-              <SearchLine />
               <ScrollView
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
