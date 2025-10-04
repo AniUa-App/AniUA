@@ -416,7 +416,7 @@ export default function AnimePreviewScreen({ route }) {
                 ? { width: winWidth * 0.12, height: winHeight * 0.3 }
                 : isTablet()
                   ? { width: winWidth * 0.2, height: winHeight * 0.2 }
-                  : { width: winWidth * 0.2, height: winHeight * 0.2 },
+                  : { width: winWidth * 0.38, height: winHeight * 0.25 },
             ]}
             uri={item.image}
           />
@@ -873,7 +873,10 @@ export default function AnimePreviewScreen({ route }) {
                   <Text
                     style={[
                       H4,
-                      { color: themeColors.appColor, marginBottom: 15 },
+                      {
+                        color: themeColors.appColor,
+                        marginBottom: 10,
+                      },
                     ]}
                   >
                     Схожі Відтворення
@@ -1287,7 +1290,7 @@ export default function AnimePreviewScreen({ route }) {
                   <Text
                     style={[
                       H4,
-                      { color: themeColors.appColor, marginBottom: 10 },
+                      { color: themeColors.appColor, marginBottom: 15 },
                     ]}
                   >
                     Схожі Відтворення
