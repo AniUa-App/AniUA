@@ -1,28 +1,29 @@
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Dimensions } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Button";
-import { Black, white, appColor, Gray } from "../../Styles/Colors";
-import { H3, H4 } from "../../Styles/Fonts";
-import Icons from "../../Styles/Icons";
+import { appColor } from "../../Styles/Colors";
+import { H3, H4, H5 } from "../../Styles/Fonts";
+import Slider from "@react-native-community/slider";
+import { useThemeColors } from "../../Global/useTheme";
 
 export default function SpeedBottomSheet({
   sheetRef,
   currentRate,
   onRateChange,
 }) {
-  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0];
-  const [orientation, setOrientation] = React.useState(
+  const themeColors = useThemeColors();
+  const [tempRate, setTempRate] = useState(currentRate);
+  const [orientation, setOrientation] = useState(
     getOrientation(
       Dimensions.get("window").width,
       Dimensions.get("window").height
     )
   );
 
-  const handleRateChange = (rate) => {
-    onRateChange(rate);
-    sheetRef.current?.close();
-  };
+  useEffect(() => {
+    setTempRate(currentRate);
+  }, [currentRate]);
 
   function getOrientation(width, height) {
     if (!width || !height) return "vertical";
@@ -45,11 +46,11 @@ export default function SpeedBottomSheet({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={orientation === "horizontal" ? ["45%"] : ["20%"]}
+      snapPoints={orientation === "horizontal" ? ["50%"] : ["20%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Black(0.95) }}
-      handleIndicatorStyle={{ backgroundColor: Gray(0.5) }}
+      backgroundStyle={{ backgroundColor: themeColors.Black(0.95) }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.Gray(0.5) }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -62,50 +63,44 @@ export default function SpeedBottomSheet({
     >
       <BottomSheetView style={styles.container}>
         <View style={styles.header}>
-          <Text
-            style={[H3, { color: white, textAlign: "left", marginBottom: 12 }]}
-          >
+          <Text style={[H3, { color: themeColors.white, marginBottom: 8 }]}>
             Швидкість відтворення
+          </Text>
+          <Text style={[H4, { color: appColor, textAlign: "center" }]}>
+            {tempRate.toFixed(2)}x
           </Text>
         </View>
 
-        <View style={styles.flatListContainer}>
-          <FlatList
-            data={speedOptions}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.speedOptionsContainer}
-            keyExtractor={(item) => item.toString()}
-            decelerationRate="fast"
-            snapToAlignment="center"
-            renderItem={({ item: speed, index }) => (
-              <TouchableOpacity
-                style={[
-                  styles.speedOption,
-                  currentRate === speed && styles.speedOptionActive,
-                  index !== speedOptions.length - 1 && { marginRight: 12 },
-                ]}
-                onPress={() => handleRateChange(speed)}
-              >
-                <Text
-                  style={[
-                    H4,
-                    {
-                      color: currentRate === speed ? appColor : white,
-                      textAlign: "center",
-                    },
-                  ]}
-                >
-                  {speed}x
-                </Text>
-                {currentRate === speed && (
-                  <View style={styles.checkIcon}>
-                    <Icons.Check size={16} color={appColor} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
+        <View style={styles.sliderContainer}>
+          <Text style={[H5, { color: themeColors.Gray(0.7), minWidth: 40 }]}>
+            0.25x
+          </Text>
+          <Slider
+            style={styles.slider}
+            value={tempRate}
+            minimumValue={0.25}
+            maximumValue={3.0}
+            step={0.05}
+            minimumTrackTintColor={appColor}
+            maximumTrackTintColor={themeColors.Gray(0.5)}
+            thumbTintColor={appColor}
+            onValueChange={(value) => {
+              setTempRate(value);
+              onRateChange(value);
+            }}
           />
+          <Text
+            style={[
+              H5,
+              {
+                color: themeColors.Gray(0.7),
+                minWidth: 40,
+                textAlign: "right",
+              },
+            ]}
+          >
+            3.0x
+          </Text>
         </View>
       </BottomSheetView>
     </BottomSheetModal>
@@ -114,39 +109,41 @@ export default function SpeedBottomSheet({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 16,
   },
   header: {
-    paddingHorizontal: 4,
-  },
-
-  speedOptionsContainer: {
-    paddingHorizontal: 16,
     alignItems: "center",
-    flexDirection: "row",
+    marginBottom: 20,
   },
-  speedOption: {
-    minWidth: 80,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: Black(0.5),
+  sliderContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+    marginHorizontal: 12,
+  },
+  presetsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  presetButton: {
+    minWidth: 55,
+    height: 40,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: Gray(0.5),
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    position: "relative",
+    paddingHorizontal: 12,
   },
-  speedOptionActive: {
-    backgroundColor: Black(0.8),
+  presetButtonActive: {
     borderWidth: 2,
     borderColor: appColor,
-  },
-  checkIcon: {
-    position: "absolute",
-    top: 8,
-    right: 8,
   },
 });

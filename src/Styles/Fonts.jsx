@@ -45,7 +45,7 @@ export function Fonts() {
   return null;
 }
 
-const scale = Math.min(GetScreenWidth(), GetScreenHeight()) / 350;
+const scale = Math.min(GetScreenWidth(), GetScreenHeight()) / 390;
 const scale_landscape = Math.min(GetScreenWidth(), GetScreenHeight()) / 650;
 
 export const scaleFontSize = (size) => {

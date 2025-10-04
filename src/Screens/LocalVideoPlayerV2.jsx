@@ -5,8 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Animated,
-  Easing,
   ActivityIndicator,
   Pressable,
 } from "react-native";
@@ -45,6 +43,12 @@ import Toast from "react-native-root-toast";
 import { useThemeColors } from "../Global/useTheme";
 
 const { width, height } = Dimensions.get("window");
+
+// Функція для визначення чи це планшет
+const isTablet = () => {
+  const minDimension = Math.min(width, height);
+  return minDimension >= 600; // Планшети зазвичай мають мінімальний розмір >= 600
+};
 
 export default function LocalVideoPlayerV2Screen({ route }) {
   const navigation = useNavigation();
@@ -106,14 +110,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     AnimeStorage.setInfoBySlug(_anime.slug, newInfo);
   };
 
-  // Анімовані значення
-  const controlsOpacity = useRef(new Animated.Value(1)).current;
-  const headerTranslateY = useRef(new Animated.Value(0)).current;
-  const controlsTranslateY = useRef(new Animated.Value(0)).current;
-  const episodesPanelTranslateX = useRef(new Animated.Value(300)).current;
-  const episodesPanelOpacity = useRef(new Animated.Value(0)).current;
-
-  // Анімації кнопок
+  // Removed animation values for optimization
 
   // Посилання на bottom sheet швидкості
   const speedSheetRef = useRef(null);
@@ -158,6 +155,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const player = useVideoPlayer(currentUrl, (player) => {
     player.play();
+    player.preservesPitch = true;
     player.timeUpdateEventInterval = 1;
     player.startsPictureInPictureAutomatically = true;
     // Колбек плеєра
@@ -296,7 +294,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       SystemNavigationBar.navigationShow();
       // SystemNavigationBar.fullScreen(false);
       // Orientation.lockToPortrait();
-      EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
+      if (isTablet()) {
+        EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      } else {
+        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+      }
       return true;
     };
 
@@ -373,7 +375,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
     // Вже розблоковано вище
 
-    showControlsWithAnimation();
+    setShowControls(true);
+    startHideControlsTimer();
 
     return () => {
       isMountedRef.current = false;
@@ -404,15 +407,19 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       }
       // SystemNavigationBar.fullScreen(false);
       // Orientation.lockToPortrait();
-      EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
+      if (isTablet()) {
+        EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      } else {
+        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+      }
     };
   }, []);
 
-  // Автовхід у PiP при згортанні застосунку
+  // Show controls when orientation changes to landscape
   useEffect(() => {
-    // Показувати контролли при зміні орієнтації для landscape
     if (isLandscape) {
-      showControlsWithAnimation();
+      setShowControls(true);
+      startHideControlsTimer();
     }
   }, [isLandscape]);
 
@@ -446,55 +453,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const showControlsWithAnimation = () => {
     setShowControls(true);
-
-    Animated.parallel([
-      Animated.timing(controlsOpacity, {
-        toValue: 1,
-        duration: 220,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-      Animated.spring(headerTranslateY, {
-        toValue: 0,
-        tension: 110,
-        friction: 5,
-        useNativeDriver: true,
-      }),
-      Animated.spring(controlsTranslateY, {
-        toValue: 0,
-        tension: 110,
-        friction: 5,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
     startHideControlsTimer();
   };
 
   const hideControls = () => {
-    Animated.parallel([
-      Animated.timing(controlsOpacity, {
-        toValue: 0,
-        duration: 160,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerTranslateY, {
-        toValue: -100,
-        duration: 180,
-        easing: Easing.in(Easing.back(1.2)),
-        useNativeDriver: true,
-      }),
-      Animated.timing(controlsTranslateY, {
-        toValue: 100,
-        duration: 180,
-        easing: Easing.in(Easing.back(1.2)),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowControls(false);
-    });
-
+    setShowControls(false);
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
       hideControlsTimerRef.current = null;
@@ -569,7 +532,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             }
             setIsLandscape(true);
           } else {
-            EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
+            if (isTablet()) {
+              EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+            } else {
+              EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+            }
             try {
               SystemNavigationBar.fullScreen(false);
               SystemNavigationBar.navigationShow();
@@ -595,44 +562,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const showEpisodesPanel = () => {
     setShowEpisodes(true);
-
-    Animated.parallel([
-      Animated.spring(episodesPanelTranslateX, {
-        toValue: 0,
-        tension: 120,
-        friction: 6,
-        useNativeDriver: true,
-      }),
-      Animated.timing(episodesPanelOpacity, {
-        toValue: 1,
-        duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start();
-
     if (showControls) {
       startHideControlsTimer();
     }
   };
 
   const hideEpisodesPanel = () => {
-    Animated.parallel([
-      Animated.spring(episodesPanelTranslateX, {
-        toValue: 300,
-        tension: 140,
-        friction: 6,
-        useNativeDriver: true,
-      }),
-      Animated.timing(episodesPanelOpacity, {
-        toValue: 0,
-        duration: 140,
-        easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowEpisodes(false);
-    });
+    setShowEpisodes(false);
   };
 
   const toggleEpisodes = () => {
@@ -686,24 +622,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     setIsLoading(true);
     player.currentTime = 0;
     setWatchedEpisode(_anime.slug, episode);
-
-    Animated.sequence([
-      Animated.timing(episodesPanelOpacity, {
-        toValue: 0.7,
-        duration: 70,
-        useNativeDriver: true,
-      }),
-      Animated.timing(episodesPanelOpacity, {
-        toValue: 1,
-        duration: 70,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    setTimeout(() => {
-      hideEpisodesPanel();
-    }, 500);
-
+    hideEpisodesPanel();
     if (showControls) {
       startHideControlsTimer();
     }
@@ -745,15 +664,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       {showControls && (
         <>
           {!isLocked ? (
-            <Animated.View
-              style={[
-                styles.header,
-                {
-                  opacity: controlsOpacity,
-                  transform: [{ translateY: headerTranslateY }],
-                },
-              ]}
-            >
+            <View style={styles.header}>
               <LinearGradient
                 colors={[
                   themeColors.Black(0.8),
@@ -776,9 +687,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         setTimeout(() => {
                           navigation.goBack();
                           // Orientation.lockToPortrait();
-                          EOrientation.lockAsync(
-                            EOrientation.OrientationLock.PORTRAIT_UP
-                          );
+                          if (isTablet()) {
+                            EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+                          } else {
+                            EOrientation.lockAsync(
+                              EOrientation.OrientationLock.PORTRAIT_UP
+                            ); // На телефонах блокуємо портретну
+                          }
                         }, 100);
                       }}
                     >
@@ -862,9 +777,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </View>
                 </View>
               </LinearGradient>
-            </Animated.View>
+            </View>
           ) : (
-            <Animated.View style={styles.header} />
+            <View style={styles.header} />
           )}
         </>
       )}
@@ -873,15 +788,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       {showControls && (
         <>
           {!isLocked ? (
-            <Animated.View
-              style={[
-                styles.controlsContainer,
-                {
-                  opacity: controlsOpacity,
-                  transform: [{ translateY: controlsTranslateY }],
-                },
-              ]}
-            >
+            <View style={styles.controlsContainer}>
               <LinearGradient
                 colors={[
                   "transparent",
@@ -891,7 +798,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 style={styles.controlsGradient}
               >
                 {/* Секція прогресу */}
-                <View style={styles.progressSection}>
+                <View>
                   <View
                     style={{
                       flexDirection: "row",
@@ -1299,7 +1206,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </CustomTouchableOpacity>
                 </View>
               </LinearGradient>
-            </Animated.View>
+            </View>
           ) : (
             <View
               style={{
@@ -1315,7 +1222,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 zIndex: 12,
               }}
             >
-              <Animated.View>
+              <View>
                 <CustomTouchableOpacity
                   style={[styles.controlButton]}
                   activeOpacity={1}
@@ -1330,7 +1237,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 >
                   <Icons.Lock type={"disabled"} size={24} color={appColor} />
                 </CustomTouchableOpacity>
-              </Animated.View>
+              </View>
             </View>
           )}
         </>
@@ -1338,15 +1245,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
       {/* Панель епізодів */}
       {showEpisodes && (
-        <Animated.View
-          style={[
-            styles.episodesPanel,
-            {
-              opacity: episodesPanelOpacity,
-              transform: [{ translateX: episodesPanelTranslateX }],
-            },
-          ]}
-        >
+        <View style={styles.episodesPanel}>
           <View style={styles.episodesPanelContent}>
             <View style={styles.episodesPanelHeader}>
               <CustomTouchableOpacity
@@ -1378,23 +1277,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               showsVerticalScrollIndicator={false}
             >
               {episodes.map((episode, index) => (
-                <Animated.View
-                  key={episode.episode}
-                  style={{
-                    opacity: episodesPanelOpacity.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 1],
-                    }),
-                    transform: [
-                      {
-                        translateX: episodesPanelOpacity.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [50, 0],
-                        }),
-                      },
-                    ],
-                  }}
-                >
+                <View key={episode.episode}>
                   <CustomTouchableOpacity
                     style={[
                       styles.episodeItem,
@@ -1448,11 +1331,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       </View>
                     )}
                   </CustomTouchableOpacity>
-                </Animated.View>
+                </View>
               ))}
             </ScrollView>
           </View>
-        </Animated.View>
+        </View>
       )}
       {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
       <Pressable
@@ -1567,17 +1450,15 @@ const styles = StyleSheet.create({
   },
 
   // Секція прогресу
-  progressSection: {
-    marginBottom: 20,
-  },
+
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   progressBarContainer: {
     flex: 1,
-    marginHorizontal: 16,
-    height: 40,
+    marginHorizontal: 8,
+    height: 60,
     justifyContent: "center",
   },
   progressBarBackground: {
@@ -1615,7 +1496,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 0,
   },
   leftControlGroup: {
     flexDirection: "row",
@@ -1669,7 +1550,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 0,
   },
   centerInfo: {
     flex: 1,

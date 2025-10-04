@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  Dimensions,
   // StatusBar,
 } from "react-native";
 import { StatusBar } from "react-native";
@@ -16,6 +17,13 @@ import { useEffect } from "react";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { BackHandler } from "react-native";
 
+// Функція для визначення чи це планшет
+const isTablet = () => {
+  const { width, height } = Dimensions.get("window");
+  const minDimension = Math.min(width, height);
+  return minDimension >= 600; // Планшети зазвичай мають мінімальний розмір >= 600
+};
+
 export default function WebVideoPlayerScreen({ route }) {
   const { videoUrl, title } = route.params;
   const navigation = useNavigation();
@@ -26,17 +34,28 @@ export default function WebVideoPlayerScreen({ route }) {
       navigation.goBack();
       StatusBar.setHidden(false, "slide");
       // Orientation.lockToPortrait();
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT_UP
-      );
+      if (isTablet()) {
+        ScreenOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      } else {
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP
+        ); // На телефонах блокуємо портретну
+      }
       return true;
     };
 
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
 
     StatusBar.setHidden(true, "slide");
     // Orientation.unlockAllOrientations();
     ScreenOrientation.unlockAsync();
+
+    return () => {
+      backHandlerSubscription.remove();
+    };
   }, []);
 
   return (
