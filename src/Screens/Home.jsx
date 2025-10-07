@@ -226,23 +226,21 @@ const CustomPersonalRecList = React.memo(() => {
     }
   }, []);
 
-  // Refresh list when Home gains focus
-  useFocusEffect(
-    useCallback(() => {
-      EventBus.on(
-        "personalRecListUpdated",
-        () => {
-          try {
-            const data = PersonalRecListStorage.getSettingsList();
-            setPersonalRecList(data);
-          } catch (e) {
-            console.error("Помилка при оновленні персональних списків:", e);
-          }
-        },
-        []
-      );
-    }, [])
-  );
+  // Subscribe to personal rec list updates
+  useEffect(() => {
+    const unsubscribe = EventBus.on("personalRecListUpdated", () => {
+      try {
+        const data = PersonalRecListStorage.getSettingsList();
+        setPersonalRecList(data);
+      } catch (e) {
+        console.error("Помилка при оновленні персональних списків:", e);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // When list changes, fetch previews
   useEffect(() => {

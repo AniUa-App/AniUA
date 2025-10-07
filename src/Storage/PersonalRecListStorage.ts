@@ -27,11 +27,10 @@ class PersonalRecListStorage extends Storage {
     this.setItem(this.storageKey, newSettings);
   }
 
-  editSettingsList(animeSet: CustomAnimeSet) {
+  editSettingsList(name: string, animeSet: CustomAnimeSet) {
     const settings = this.getItem(this.storageKey, []);
     const newSettings = settings.map((set: CustomAnimeSet) => {
-      if (set.name === animeSet.name) {
-        console.log("editSettingsList", animeSet);
+      if (set.name === name) {
         return animeSet;
       }
       return set;

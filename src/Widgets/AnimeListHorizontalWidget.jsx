@@ -119,10 +119,7 @@ export function PreviewAnimeListHorizontal({
                   : { width: baseWidth, height: baseHeight },
             ]}
             onPress={() => {
-              navigation.navigate("HiddenStack", {
-                screen: "AnimePreview",
-                params: { anime },
-              });
+              onPress(anime);
             }}
           >
             <Image

@@ -162,8 +162,6 @@ export async function getPagesAndSizes(
     Score: score,
   } = customSet;
 
-  console.log(years, "years");
-
   const query = HikkaApi.getApiUrl() + `anime?page=1&size=1`;
   const toArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
   const mapUsingDict = (input: any | any[], dict: Record<string, string>) =>
@@ -187,7 +185,9 @@ export async function getPagesAndSizes(
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };
   const response = await axios.post(query, body);
+  console.log(response.data, "response.data");
   if (response.data.pagination.pages === response.data.pagination.total) {
+    console.log(response.data, "response.data");
     return { pages: 1, size: response.data.pagination.total };
   }
   const pages = response.data.pagination.pages;

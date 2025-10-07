@@ -81,16 +81,19 @@ export default function MainScreenCustomisationScreen() {
   function addList(list) {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    console.log("addList", list);
     EventBus.emit("personalRecListUpdated", list);
   }
-  function editList(list) {
-    PersonalRecListStorage.editSettingsList(list);
+  function editList(name, list) {
+    PersonalRecListStorage.editSettingsList(name, list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    console.log("editList", list);
     EventBus.emit("personalRecListUpdated", list);
   }
   function deleteList(list) {
     PersonalRecListStorage.deleteSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    console.log("deleteList", list);
     EventBus.emit("personalRecListUpdated", list);
   }
 
@@ -167,13 +170,20 @@ export default function MainScreenCustomisationScreen() {
         onPressOk={(payload) => {
           console.log(payload, "payload");
           RecListRef.current?.close();
-          const existingItem = PerRecList.find(
-            (item) => item.name === payload.name
-          );
-          if (existingItem) {
-            editList(payload);
-          } else {
-            addList(payload);
+          console.log(value?.name, "value.name");
+          console.log(payload.name, "payload.name");
+          try {
+            const existingItem = !!PerRecList.find(
+              (item) => item.name === payload?.name || item.name === value?.name
+            );
+            console.log(existingItem, "existingItem");
+            if (existingItem) {
+              editList(value?.name, payload);
+            } else {
+              addList(payload);
+            }
+          } catch (error) {
+            console.error(error);
           }
         }}
         onPressCancel={() => {
@@ -241,6 +251,7 @@ function PersonalRecList({
           onPress={() => {
             PersonalRecListStorage.clearStorage();
             setPersonalRecList([]);
+            EventBus.emit("personalRecListUpdated");
           }}
           style={{
             width: 44,
@@ -350,6 +361,7 @@ export function PersonalRecListFilter({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
+    console.log(pages, size, "pages, size");
     const payload = {
       name: animeListName,
       animeSet: animeSet,
@@ -358,6 +370,7 @@ export function PersonalRecListFilter({
       size: size,
       isArrow: null,
     };
+    console.log(payload, "payload");
     onPressOk(payload);
   }
 
