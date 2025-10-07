@@ -173,8 +173,11 @@ export default function App() {
       } finally {
         setTimeout(
           () => {
-            if (isNotFirstLaunch === false)
+            if (isNotFirstLaunch === false){
               SettingsStorage.setParameter("isNotFirstLaunch", true);
+              SettingsStorage.setParameter("defaultPlayer", MainConfig.players[1]);
+            }
+
 
             AppLogger.logAppInit("Завершення завантаження");
 

@@ -6,11 +6,12 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { H3, H4, H5 } from "../Styles/Fonts";
 import { appColor } from "../Styles/Colors";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import SettingsStorage from "../Storage/SettingsStorage";
 
 export default function ButtonsScreen({ route }) {
   const navigation = useNavigation();
-  const { list, title, buttonStyle, isGoBack, Sbutton } = route.params;
-  const [value, setValue] = useState(list[0].title);
+  const { list, title, buttonStyle, isGoBack, Sbutton, value } = route.params;
+  const [_value, setValue] = useState(value || list[0].title);
 
   return (
     <DefaultScreenWidget>
@@ -56,7 +57,7 @@ export default function ButtonsScreen({ route }) {
             segments={list.map((item) => ({
               label: item.title,
             }))}
-            value={value}
+            value={_value}
             onChange={(_item) => {
               console.log(_item);
               setValue(_item);

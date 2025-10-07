@@ -319,7 +319,7 @@ export default function AnimePreviewScreen({ route }) {
                 delete data["vidsrc"];
               }
 
-              console.log(data, "data");
+              console.log(JSON.stringify(data), "data");
 
               data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
 

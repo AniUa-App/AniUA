@@ -112,11 +112,11 @@ export default function SettingsScreen() {
     },
     {
       title: "Плеєр за замовчуванням",
-      subtitle: `Виберіть плеєр за замовчуванням, зараз ${
+      subtitle: `${
         SettingsStorage.getParameter("defaultPlayer")
           ? SettingsStorage.getParameter("defaultPlayer")
           : "не вибрано"
-      }`,
+      } є за замовчуванням`,
       button: {
         Text: "Вибрати",
       },
@@ -127,6 +127,7 @@ export default function SettingsScreen() {
             title: "Виберіть плеєр за замовчуванням.",
             Sbutton: true,
             isGoBack: true,
+            value: SettingsStorage.getParameter("defaultPlayer"),
             list: MainConfig.players.map((player) => ({
               title: player.slice(0, 10),
 

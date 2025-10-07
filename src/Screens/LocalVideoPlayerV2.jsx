@@ -1670,7 +1670,7 @@ async function ___getPlayerDataFrom_ASHDI_Player(url) {
   try {
     const response = await axios.get(url);
     const htmlContent = response.data;
-    const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
+    const fileMatch = htmlContent.match(/file:\s*['"]([^'"]+)['"]/);
     const qualitys = await ___getQualities(fileMatch[1]);
     return fileMatch
       ? {
