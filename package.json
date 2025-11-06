@@ -63,6 +63,7 @@
     "patch-package": "^8.0.0",
     "phosphor-react-native": "^3.0.0",
     "react": "19.0.0",
+    "react-figma": "^0.31.0",
     "react-native": "0.79.5",
     "react-native-bootsplash": "^6.3.7",
     "react-native-fast-image": "^8.6.3",
@@ -91,6 +92,7 @@
     "react-native-toast-message": "^2.3.3",
     "react-native-video": "^6.16.1",
     "react-native-video-controls": "^2.8.1",
+    "react-native-view-shot": "^4.0.3",
     "react-native-webview": "13.13.5",
     "react-navigation-shared-element": "^3.1.3",
     "reactotron-apisauce": "^3.0.6",
@@ -102,6 +104,9 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@expo/config-plugins": "^10.1.2",
+    "@storybook/addon-ondevice-actions": "^9.1.4",
+    "@storybook/addon-ondevice-controls": "^9.1.4",
+    "@storybook/react-native": "^9.1.4",
     "dotenv": "^16.6.1",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.8.3"

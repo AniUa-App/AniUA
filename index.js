@@ -10,10 +10,13 @@ import {
 import MainConfig from "./src/cfgs/MainConfig";
 import { getUniqueAccountId } from "./src/Api/api";
 
+function app() {
+  return <App />;
+}
 // Ініціалізуємо обробник для фонових подій
 setupBackgroundHandler();
 
 // Ініціалізуємо обробник для foreground подій
 const foregroundHandler = setupForegroundHandler();
 
-registerRootComponent(App);
+registerRootComponent(app);

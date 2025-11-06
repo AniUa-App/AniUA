@@ -30,6 +30,7 @@ export default {
       buildDate: process.env.BUILD_DATE || null,
       expoPublickSupabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL || null,
       expoPublickSupabaseKey: process.env.EXPO_PUBLIC_SUPABASE_KEY || null,
+      expoPrivateMoonApiKey: process.env.EXPO_PUBLIC_MOON_KEY || null,
       appUri: process.env.APP_URI || null,
     },
     splash: {
