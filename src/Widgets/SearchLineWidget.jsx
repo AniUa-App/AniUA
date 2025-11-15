@@ -35,6 +35,7 @@ export default function SearchLine() {
       setIsLoading(true);
 
       const anime = await HikkaApi.searchAnime(query);
+      console.log(anime, "anime");
 
       if (!anime || anime.length === 0) {
         setIsVisibleNotification(true);

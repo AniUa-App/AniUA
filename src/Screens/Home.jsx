@@ -261,7 +261,7 @@ const CustomPersonalRecList = React.memo(() => {
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        console.log(results, "results");
+        console.log(JSON.parse(results), "results");
       })
       .finally(() => setIsLoading(false));
   }, [personalRecList]);

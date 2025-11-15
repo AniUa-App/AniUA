@@ -171,10 +171,9 @@ export class HikkaApi {
     const cacheKey = `search_${query}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
       const response = await HikkaApi.axiosInstance.post(
-        `${HikkaApi.apiUrl}anime?size=20`,
+        `${HikkaApi.apiUrl}anime?page=1&size=30`,
         {
           query: query,
-          only_translated: true,
         }
       );
       return response.data.list;
