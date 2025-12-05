@@ -18,20 +18,20 @@ const styles = {
   },
 };
 
-//*  Цвета вкладок и линии
+//*  Кольори вкладок та лінії
 const routeColors = {
-  Plans: '#5F77B6', // цвет фона "У планах"
-  Watching: '#D6AA63', // цвет фона "Дивлюсь"
-  Viewed: '#ADD8E6', // цвет фона "Переглянуто"
-  Dropped: '#E4837A', // цвет фона "Покинуто"
+  Plans: '#5F77B6', // колір фону "У планах"
+  Watching: '#D6AA63', // колір фону "Дивлюсь"
+  Viewed: '#ADD8E6', // колір фону "Переглянуто"
+  Dropped: '#E4837A', // колір фону "Покинуто"
 };
 
-//* Более тёмные оттенки для нижней линии
+//* Темніші відтінки для нижньої лінії
 const routeBorderColors = {
-  Plans: '#384A79', // темнее синего
-  Watching: '#FFEA4F', // темнее золотистого
-  Viewed: '#00B0E9', // темнее голубовато-зелёного
-  Dropped: '#FF2511', // темнее красного
+  Plans: '#384A79', // темніший синій
+  Watching: '#FFEA4F', // темніший золотистий
+  Viewed: '#00B0E9', // темніший блакитно-зелений
+  Dropped: '#FF2511', // темніший червоний
 };
 
 const textColor = {
@@ -41,7 +41,7 @@ const textColor = {
   Dropped: '#FF897E',
 };
 
-//* Кастомный таб-бар
+//* Кастомний таб-бар
 function CustomTabBar({state, descriptors, navigation}) {
   return (
     <View style={{flexDirection: 'row'}}>
@@ -49,12 +49,12 @@ function CustomTabBar({state, descriptors, navigation}) {
         const isFocused = state.index === index;
         const {options} = descriptors[route.key];
 
-        // Определяем фон вкладки
+        // Визначаємо фон вкладки
         const backgroundColor = isFocused
-          ? routeColors[route.name] // цвет вкладки, если активна
-          : '#4A4B4D'; // серый, если не активна
+          ? routeColors[route.name] // колір вкладки, якщо активна
+          : '#4A4B4D'; // сірий, якщо не активна
 
-        // Линия внизу — более тёмный цвет, если активна; "прозрачная", если нет
+        // Лінія знизу — темніший колір, якщо активна; "прозора", якщо ні
         const borderBottomColor = isFocused
           ? routeBorderColors[route.name]
           : 'transparent';
@@ -76,7 +76,7 @@ function CustomTabBar({state, descriptors, navigation}) {
           <TouchableOpacity
             key={route.name}
             onPress={onPress}
-            activeOpacity={1} // <-- добавляем это
+            activeOpacity={1} // <-- додаємо це
             style={{
               flex: 1,
               borderBottomColor,
@@ -106,7 +106,7 @@ function CustomTabBar({state, descriptors, navigation}) {
   );
 }
 
-// Основной навигатор с нашим кастомным таб-баром
+// Основний навігатор з нашим кастомним таб-баром
 export default function BookmarkScreen() {
   return (
     <View style={{flex: 1}}>

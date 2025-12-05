@@ -4,7 +4,6 @@ import React from "react";
 import Icon from "../Styles/Icons";
 import { appColor, black, white } from "../Styles/Colors";
 import { H3 } from "../Styles/Fonts";
-import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
 
@@ -73,9 +72,9 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
-    flexDirection: "row", // Размещаем элементы по горизонтали
-    flexWrap: "wrap", // Разрешаем перенос элементов на следующую строку
-    justifyContent: "center", // Центрирование по горизонтали
+    flexDirection: "row", // Розміщуємо елементи по горизонталі
+    flexWrap: "wrap", // Дозволяємо перенесення елементів на наступний рядок
+    justifyContent: "center", // Центрування по горизонталі
   },
   arrowRightIcon: {
     paddingRight: "5%",

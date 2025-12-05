@@ -1,4 +1,4 @@
-import { View, StyleSheet, Linking } from "react-native";
+import { View, StyleSheet, Linking, useWindowDimensions } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
@@ -29,7 +29,6 @@ import {
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
-import { GetScreenWidth } from "../../Global/Functions";
 import { Black } from "../../Styles/Colors";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import SettingsScreen from "../Settings";
@@ -49,6 +48,7 @@ import AppInfoScreen from "../AppInfo";
 import PrivilegesScreen from "../Privileges";
 import DonateScreen from "../Donate";
 import InvalidLinkScreen from "../InvalidLink";
+import Logger from "../../Logger/Logger";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -411,6 +411,7 @@ export function ThemedNavBar({ state, navigation, isPreview = false }) {
 // Кастомна панель навігації
 export function CustomNavBar({ state, navigation, isPreview = false }) {
   const themeColors = useThemeColors();
+  const { width } = useWindowDimensions();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
@@ -479,7 +480,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
             key={route.key}
             onPress={() => {
               if (!isFocused) {
-                console.log(route.name);
+                Logger.debug('ScreenController', 'Route changed', { route: route.name });
                 if (isPreview) {
                   setPreviewIndex(index);
                 } else {
@@ -498,7 +499,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
               {
                 width: isFocused ? 100 : "auto",
                 // make opened tab farther from others, and closed tabs closer together
-                marginRight: isFocused ? GetScreenWidth() / 12 : 10,
+                marginRight: isFocused ? width / 12 : 10,
               },
             ]}
           >
@@ -647,7 +648,7 @@ function HiddenStack() {
 
 export default function ScreenController() {
   const handleNavigationError = (error) => {
-    console.warn("Navigation linking error:", error);
+    Logger.warn('ScreenController', 'Navigation linking error', error);
     // Не показуємо error користувачу, просто логуємо
   };
 

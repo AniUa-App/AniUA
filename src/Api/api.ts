@@ -1,10 +1,15 @@
 import MainConfig from "../cfgs/MainConfig";
 import SettingsStorage from "../Storage/SettingsStorage";
+import Logger from "../Logger/Logger";
 
 interface ApiResponse<T = any> {
   [key: string]: T;
 }
 
+/**
+ * API клас для взаємодії з серверним бекендом AniUA
+ * Керує автентифікацією користувачів, збором feedback, та отриманням метаданих
+ */
 class ServerApi {
   private static readonly BASE_URL = MainConfig.api.url;
   private static readonly API_KEY = MainConfig.api.key;
@@ -14,38 +19,39 @@ class ServerApi {
   private static cachedDeviceId: string | undefined;
 
   /**
-   * Отримує унікальний ID пристрою
+   * Отримує унікальний ID пристрою з кешу або генерує новий
+   * @returns {Promise<string>} Унікальний ID пристрою
    */
   private static async getUserId(): Promise<string> {
-    // Якщо є закешований валідний ID
     if (this.isValidDeviceId(this.cachedDeviceId)) {
       return this.cachedDeviceId!;
     }
 
-    // Якщо є ID у конфігурації
     if (this.isValidDeviceId(MainConfig?.devInfo?.deviceId)) {
       this.cachedDeviceId = MainConfig.devInfo.deviceId;
       return this.cachedDeviceId!;
     }
 
-    // Генеруємо новий ID
     const newDeviceId = MainConfig.devInfo.getUniqueId();
     MainConfig.devInfo.deviceId = newDeviceId;
     this.cachedDeviceId = newDeviceId;
 
-    console.log(`Згенеровано новий device ID: ${newDeviceId}`);
+    Logger.debug("ServerApi", "Згенеровано новий device ID", newDeviceId);
     return newDeviceId;
   }
 
   /**
-   * Перевіряє чи є ID пристрою валідним
+   * Перевіряє валідність ID пристрою
+   * @param {string | undefined} deviceId - ID для перевірки
+   * @returns {boolean} true якщо ID валідний
    */
   private static isValidDeviceId(deviceId: string | undefined): boolean {
     return !!(deviceId && deviceId !== "unknown");
   }
 
   /**
-   * Отримує заголовки для запитів
+   * Формує HTTP заголовки для API запитів
+   * @returns {Record<string, string>} Об'єкт з заголовками
    */
   private static getHeaders(): Record<string, string> {
     return {
@@ -55,7 +61,12 @@ class ServerApi {
   }
 
   /**
-   * Виконує HTTP запит до API
+   * Виконує HTTP запит до серверного API з підтримкою таймауту
+   * @template T - Тип даних відповіді
+   * @param {string} endpoint - Endpoint API
+   * @param {Record<string, any>} payload - Дані для відправки
+   * @param {string} [method="POST"] - HTTP метод
+   * @returns {Promise<ApiResponse<T>>} Відповідь від сервера
    */
   private static async callEdge<T = any>(
     endpoint: string,
@@ -66,8 +77,7 @@ class ServerApi {
     const controller = new AbortController();
 
     try {
-      console.log(`Виконується запит до API: ${this.BASE_URL}`);
-      // Встановлюємо таймаут для запиту
+      Logger.debug("ServerApi", `Виконується запит до API: ${this.BASE_URL}`);
       const timeoutId = setTimeout(
         () => controller.abort(),
         this.REQUEST_TIMEOUT
@@ -82,7 +92,6 @@ class ServerApi {
         signal: controller.signal,
       };
 
-      // Only attach a body when the method supports it
       if (method !== "GET" && method !== "HEAD") {
         fetchOptions.body = JSON.stringify(payload);
       }
@@ -91,30 +100,29 @@ class ServerApi {
 
       clearTimeout(timeoutId);
 
-      // Логування часу виконання запиту
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`⏱️ API запит "${endpoint}" виконано за ${executionTime}с`);
+      Logger.info("ServerApi", `API запит "${endpoint}" виконано за ${executionTime}с`);
 
-      // Детальне логування відповіді (тільки в debug режимі)
       this.logResponseDetails(endpoint, response);
 
-      // Обробка відповіді
       return await this.parseResponse<T>(response);
     } catch (error: any) {
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.error(
-        `⚠️ Помилка API запиту "${endpoint}" за ${executionTime}с:`,
-        error?.message || error
+      Logger.error(
+        "ServerApi",
+        `Помилка API запиту "${endpoint}" за ${executionTime}с`,
+        error
       );
       throw error;
     } finally {
-      // Завжди скасовуємо запит для очищення ресурсів
       controller.abort();
     }
   }
 
   /**
-   * Логує деталі відповіді від сервера
+   * Логує деталі відповіді сервера (Cloudflare headers, статус, розмір)
+   * @param {string} endpoint - Назва endpoint
+   * @param {Response} response - HTTP відповідь
    */
   private static logResponseDetails(
     endpoint: string,
@@ -125,20 +133,26 @@ class ServerApi {
       const getHeader = (key: string) =>
         headers.get(key) || headers.get(key.toUpperCase()) || "-";
 
-      console.log(
+      Logger.debug(
+        "ServerApi",
         `${endpoint} → Статус: ${response.status}`,
-        `| cf-ray: ${getHeader("cf-ray")}`,
-        `| server-timing: ${getHeader("server-timing")}`,
-        `| cache-status: ${getHeader("cf-cache-status")}`,
-        `| content-length: ${getHeader("content-length")}`
+        {
+          cfRay: getHeader("cf-ray"),
+          serverTiming: getHeader("server-timing"),
+          cacheStatus: getHeader("cf-cache-status"),
+          contentLength: getHeader("content-length")
+        }
       );
     } catch (error) {
-      // Ігноруємо помилки логування
+      // Ігноруємо помилки, щоб не блокувати основний процес
     }
   }
 
   /**
-   * Парсить відповідь від сервера
+   * Парсить JSON відповідь від сервера
+   * @template T - Тип даних відповіді
+   * @param {Response} response - HTTP відповідь
+   * @returns {Promise<ApiResponse<T>>} Розпарсена відповідь або порожній об'єкт
    */
   private static async parseResponse<T>(
     response: Response
@@ -148,10 +162,11 @@ class ServerApi {
       if (!text) {
         return {} as ApiResponse<T>;
       }
-      console.log("API відповідь:", text);
+      Logger.debug("ServerApi", "API відповідь", text);
       return JSON.parse(text) as ApiResponse<T>;
     } catch (error) {
-      console.warn(
+      Logger.warn(
+        "ServerApi",
         "Не вдалося розпарсити JSON відповідь, повертаємо порожній об'єкт"
       );
       return {} as ApiResponse<T>;
@@ -159,30 +174,29 @@ class ServerApi {
   }
 
   /**
-   * Перевіряє чи є користувач зареєстрованим
+   * Перевіряє чи зареєстрований користувач з поточним deviceId
+   * @returns {Promise<boolean>} true якщо користувач існує в базі
    */
   public static async isUser(): Promise<boolean> {
     try {
       const userId = await this.getUserId();
-      console.log("Перевірка користувача:", userId, MainConfig.devInfo.version);
+      Logger.debug("ServerApi", "Перевірка користувача", { userId, version: MainConfig.devInfo.version });
       const response = await this.callEdge<{ isUser?: boolean }>("isUser", {
         unique_device_id: userId,
         user_version: MainConfig.devInfo.version,
       });
 
-      console.log("Результат перевірки користувача:", response);
+      Logger.debug("ServerApi", "Результат перевірки користувача", response);
       return !!response?.exists;
     } catch (error: any) {
-      console.error(
-        "Помилка при перевірці користувача:",
-        error?.message || error
-      );
+      Logger.error("ServerApi", "Помилка при перевірці користувача", error);
       return false;
     }
   }
 
   /**
-   * Отримує унікальний ID акаунту користувача
+   * Отримує унікальний ID акаунту користувача з сервера або кешу
+   * @returns {Promise<string>} Унікальний ID акаунту
    */
   public static async getUniqueAccountId(): Promise<string> {
     try {
@@ -207,16 +221,14 @@ class ServerApi {
       this.uniqueAccountId = accountId as string;
       return accountId as string;
     } catch (error: any) {
-      console.error(
-        "Помилка при отриманні ID акаунту:",
-        error?.message || error
-      );
+      Logger.error("ServerApi", "Помилка при отриманні ID акаунту", error);
       return "";
     }
   }
 
   /**
-   * Реєструє нового користувача
+   * Реєструє нового користувача в системі
+   * @returns {Promise<string>} Унікальний ID новоствореного акаунту
    */
   public static async newUser(): Promise<string> {
     try {
@@ -235,16 +247,20 @@ class ServerApi {
           response.unique_account_id) ||
         "";
       this.uniqueAccountId = accountId as string;
-      console.log("Зареєстровано нового користувача з ID:", accountId);
+      Logger.info("ServerApi", "Зареєстровано нового користувача з ID", accountId);
       return accountId as string;
     } catch (error: any) {
-      console.error(
-        "Помилка при реєстрації нового користувача:",
-        error?.message || error
-      );
+      Logger.error("ServerApi", "Помилка при реєстрації нового користувача", error);
       return "";
     }
   }
+
+  /**
+   * Відправляє відгук користувача на сервер
+   * @param {number} rating - Оцінка від 1 до 5 зірок
+   * @param {string} feedback - Текст відгуку
+   * @returns {Promise<boolean>} true якщо відгук успішно збережено
+   */
   public static async sendFeedback(
     rating: number,
     feedback: string
@@ -260,18 +276,22 @@ class ServerApi {
       });
       return !!response.saved;
     } catch (error: any) {
-      console.error("Помилка при відправці відгуку:", error?.message || error);
+      Logger.error("ServerApi", "Помилка при відправці відгуку", error);
       return false;
     }
   }
+
+  /**
+   * Отримує метадані додатку (URL сайту, Telegram, GitHub тощо)
+   * @returns {Promise<any>} Об'єкт з метаданими
+   */
   public static async getMetadata(): Promise<any> {
     try {
-      // Use POST to be consistent with other endpoints and avoid GET body restrictions
       const response = await this.callEdge<any>("getMetadata", {}, "GET");
 
       return response;
     } catch (error: any) {
-      console.error(
+      Logger.error("getGithubRaw", 
         "Помилка при отриманні метаданів:",
         error?.message || error
       );
@@ -280,29 +300,69 @@ class ServerApi {
   }
 }
 
+/**
+ * Завантажує raw вміст файлу з GitHub репозиторію
+ * @param {string} gitHash - Хеш коміту або назва гілки
+ * @param {string} file - Шлях до файлу в репозиторії
+ * @returns {Promise<string>} Текстовий вміст файлу
+ */
+export const getGithubRaw = async (
+  gitHash: string,
+  file: string
+): Promise<string> => {
+  try {
+    const response = await fetch(
+      `${MainConfig.urls.github}/AniUA/${gitHash}/${file}`.replace(
+        "github.com",
+        "raw.githubusercontent.com"
+      )
+    );
+    Logger.debug(
+      "getGithubRaw",
+      "Завантаження файлу з GitHub",
+      `${MainConfig.urls.github}/AniUA/${gitHash}/${file}`.replace(
+        "github.com",
+        "raw.githubusercontent.com"
+      )
+    );
+    return await response.text();
+  } catch (error: any) {
+    Logger.error("getGithubRaw", "Помилка при отриманні raw файлу з Github", error);
+  }
+};
+
+/**
+ * Отримує або створює унікальний ID акаунту користувача
+ * Перевіряє чи існує користувач, якщо ні - реєструє нового
+ * @returns {Promise<string>} Унікальний ID акаунту
+ */
 export const getUniqueAccountId = async (): Promise<string> => {
   try {
     const isExistingUser = await ServerApi.isUser();
 
     if (isExistingUser) {
-      console.log("Користувач існує, отримуємо ID акаунту");
+      Logger.debug("getUniqueAccountId", "Користувач існує, отримуємо ID акаунту");
       return await ServerApi.getUniqueAccountId();
     } else {
-      console.log("Користувач не існує, реєструємо нового");
+      Logger.debug("getUniqueAccountId", "Користувач не існує, реєструємо нового");
       return await ServerApi.newUser();
     }
   } catch (error) {
-    console.error("Помилка при отриманні унікального ID акаунту:", error);
+    Logger.error("getUniqueAccountId", "Помилка при отриманні унікального ID акаунту", error);
     return "";
   }
 };
 
+/**
+ * Зручна функція-обгортка для отримання метаданих додатку
+ * @returns {Promise<any>} Об'єкт з метаданими
+ */
 export const getMetadata = async (): Promise<any> => {
   try {
     const response = await ServerApi.getMetadata();
     return response;
   } catch (error) {
-    console.error("Помилка при отриманні метаданів:", error);
+    Logger.error("getMetadata", "Помилка при отриманні метаданів", error);
     return {};
   }
 };

@@ -4,6 +4,7 @@ import notifee, {
   AuthorizationStatus,
 } from "@notifee/react-native";
 import SettingsStorage from "../Storage/SettingsStorage";
+import Logger from "../Logger/Logger";
 
 export default async function NotificationPermission() {
   try {
@@ -56,9 +57,7 @@ export default async function NotificationPermission() {
       isAniUAChannelBlocked ||
       areAppNotificationsDisabled
     ) {
-      console.log(
-        "Сповіщення заблоковані. Відкриваю налаштування каналу/додатка."
-      );
+      Logger.info('NotificationPermission', 'Сповіщення заблоковані. Відкриваю налаштування каналу/додатка');
       // Спробуємо відкрити налаштування каналу; якщо не вийде — загальні налаштування сповіщень
       try {
         await notifee.openChannelSettings(activeChannelId);
@@ -71,8 +70,8 @@ export default async function NotificationPermission() {
     // Зберігаємо використаний channelId для інших модулів
     SettingsStorage.setParameter("notificationsChannelId", activeChannelId);
 
-    console.log("Дозвіл на повідомлення надано/активний");
+    Logger.info('NotificationPermission', 'Дозвіл на повідомлення надано/активний');
   } catch (error) {
-    console.error("Помилка при запиті дозволу на повідомлення:", error);
+    Logger.error('NotificationPermission', 'Помилка при запиті дозволу на повідомлення', error);
   }
 }

@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  useWindowDimensions,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import {
@@ -12,8 +18,10 @@ import {
 } from "../Styles/Colors";
 import { TouchableOpacity } from "./Button";
 import Icon, { MoonIcon, AshdiIcon, AppIcon } from "../Styles/Icons";
-import { GetScreenHeight } from "../Global/Functions";
 import { H2, H3, H4 } from "../Styles/Fonts";
+import MainConfig from "../cfgs/MainConfig";
+import { Linking } from "react-native";
+import Logger from "../Logger/Logger";
 
 export const playersIcons = {
   "Вбудований плеєр": <Icon.MonitorPlay color={appColor} size={40} />,
@@ -21,8 +29,24 @@ export const playersIcons = {
   ashdi: <AshdiIcon styles={{ width: 40, height: 40 }} />,
 };
 
+// Функція для сортування студій - партнерські студії вгорі
+export const sortDubbingsByPartnerStudios = (dubbingsList) => {
+  if (!dubbingsList || dubbingsList.length === 0) return [];
+
+  const partnerStudios = Object.keys(MainConfig.partnerStudios);
+  const partners = dubbingsList.filter((dubbing) =>
+    partnerStudios.includes(dubbing)
+  );
+  const others = dubbingsList.filter(
+    (dubbing) => !partnerStudios.includes(dubbing)
+  );
+
+  return [...partners, ...others];
+};
+
 function MoonPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
+  const { height } = useWindowDimensions();
 
   return (
     <>
@@ -43,7 +67,7 @@ function MoonPlayerContent({ dubbings, data, changeDubbing }) {
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
         contentContainerStyle={{ paddingVertical: 10 }}
-        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        style={{ maxHeight: height * 0.5 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{
@@ -70,13 +94,16 @@ function MoonPlayerContent({ dubbings, data, changeDubbing }) {
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, maxWidth: "60%" },
+                { marginLeft: 10, width: "55%" },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
+            {MainConfig.partnerStudios[item] && (
+              <Icon.TelegramLogo size={30} fill={appColor} />
+            )}
           </TouchableOpacity>
         )}
       />
@@ -86,6 +113,7 @@ function MoonPlayerContent({ dubbings, data, changeDubbing }) {
 
 function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
+  const { height } = useWindowDimensions();
 
   return (
     <>
@@ -106,7 +134,7 @@ function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
         contentContainerStyle={{ paddingVertical: 10 }}
-        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        style={{ maxHeight: height * 0.5 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{
@@ -133,13 +161,16 @@ function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, maxWidth: "60%" },
+                { marginLeft: 10, width: "55%" },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
+            {MainConfig.partnerStudios[item] && (
+              <Icon.TelegramLogo size={30} fill={appColor} />
+            )}
           </TouchableOpacity>
         )}
       />
@@ -149,6 +180,7 @@ function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
 
 function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
   const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
+  const { height } = useWindowDimensions();
 
   return (
     <>
@@ -158,7 +190,7 @@ function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
         bounces={true}
         data={dubbings ? Object.keys(dubbings) : []}
         contentContainerStyle={{ paddingVertical: 10 }}
-        style={{ maxHeight: GetScreenHeight() * 0.5 }}
+        style={{ maxHeight: height * 0.5 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{
@@ -185,13 +217,31 @@ function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, maxWidth: "60%" },
+                { marginLeft: 10, width: "55%" },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
+            {MainConfig.partnerStudios[item] && (
+              <TouchableOpacity
+                onPress={() => {
+                  const tgLink = MainConfig.partnerStudios[item];
+                  if (tgLink) {
+                    Linking.openURL(tgLink).catch((err) =>
+                      Logger.error(
+                        "DubbingBottomSheet",
+                        "Failed to open URL",
+                        err
+                      )
+                    );
+                  }
+                }}
+              >
+                <Icon.TelegramLogo size={30} fill={appColor} />
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
         )}
       />
@@ -201,7 +251,9 @@ function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
 
 export function getFullDubbersListOfQueues(episodesList) {
   if (!episodesList || typeof episodesList !== "object") {
-    console.log("episodesList is not valid:", episodesList);
+    Logger.warn("DubbingBottomSheet", "episodesList is not valid", {
+      episodesList,
+    });
     return {};
   }
 
@@ -211,7 +263,11 @@ export function getFullDubbersListOfQueues(episodesList) {
   for (const player of players) {
     const playerEpisodes = episodesList[player];
     if (!playerEpisodes || typeof playerEpisodes !== "object") {
-      console.log(`Player ${player} episodes is not valid:`, playerEpisodes);
+      Logger.warn(
+        "DubbingBottomSheet",
+        `Player ${player} episodes is not valid`,
+        { playerEpisodes }
+      );
       continue;
     }
 
@@ -219,9 +275,10 @@ export function getFullDubbersListOfQueues(episodesList) {
     for (const dubber of dubbers) {
       const dubberEpisodes = playerEpisodes[dubber];
       if (!Array.isArray(dubberEpisodes)) {
-        console.log(
-          `Dubber ${dubber} episodes is not an array:`,
-          dubberEpisodes
+        Logger.warn(
+          "DubbingBottomSheet",
+          `Dubber ${dubber} episodes is not an array`,
+          { dubberEpisodes }
         );
         continue;
       }
@@ -260,7 +317,7 @@ export default function DubbingBottomSheet({
       // Визначаємо, яку вкладку встановити за замовчуванням
       let defaultTab;
 
-      // Спочатку перевіряємо, чи є player в info.watched і чи він присутній в episodesList
+      // Спочатку перевіряємо, чи є player в info?.watched і чи він присутній в episodesList
       if (info?.watched?.player && episodesList[info?.watched?.player]) {
         defaultTab = info?.watched?.player;
       }
@@ -336,7 +393,7 @@ export default function DubbingBottomSheet({
                   onPress={() => {
                     changeDubbing({
                       ...info,
-                      watched: { ...info.watched, player: name },
+                      watched: { ...info?.watched, player: name },
                     });
                     setActiveTab(name);
                   }}

@@ -1,11 +1,12 @@
-import { View, Text, Share, Linking } from "react-native";
+import { View, Text, Share, Linking, StyleSheet } from "react-native";
 import React from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "./Button";
-import { Black, White } from "../Styles/Colors";
-import { H2, H3 } from "../Styles/Fonts";
+import { appColor, Black, white } from "../Styles/Colors";
+import { H3 } from "../Styles/Fonts";
 import MainConfig from "../cfgs/MainConfig";
 import { useNavigation } from "@react-navigation/native";
+import Icon from "../Styles/Icons";
 
 export default function MoreBottomSheet({ sheetRef, anime }) {
   const navigation = useNavigation();
@@ -13,6 +14,7 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
   const elements = [
     {
       title: "Поділитись",
+      icon: <Icon.ShareNetwork size={28} color={white} weight="regular" />,
       onPress: () => {
         Share.share({
           title: anime.title_ua,
@@ -24,6 +26,7 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
     },
     {
       title: "На головну",
+      icon: <Icon.House size={28} color={white} weight="regular" />,
       onPress: () => {
         navigation.navigate("MainTabs", {
           screen: "Home",
@@ -33,14 +36,15 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
     },
     {
       title: "Поскаржитися",
+      icon: <Icon.Info size={28} color={white} weight="regular" />,
       onPress: () => {
         Linking.openURL(`${MainConfig.urls.telegramChannelUrl}`);
         sheetRef.current?.close();
       },
     },
-
     {
-      title: "Відкрити налаштування",
+      title: "Hалаштування",
+      icon: <Icon.Gear size={28} color={white} weight="regular" />,
       onPress: () => {
         navigation.navigate("MainTabs", {
           screen: "Settings",
@@ -53,7 +57,7 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={["28%"]}
+      snapPoints={["32%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: Black(0.8) }}
@@ -66,23 +70,47 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
         />
       )}
     >
-      <BottomSheetView>
+      <BottomSheetView style={styles.container}>
         {elements.map((element, index) => (
           <TouchableOpacity
             activeOpacity={0.6}
             key={index}
-            style={{
-              alignItems: "center",
-              width: "100%",
-              paddingTop: index === 0 ? "1%" : "3%",
-              paddingBottom: index === elements.length - 1 ? "1%" : "3%",
-            }}
+            style={[
+              styles.menuItem,
+              {
+                paddingTop: index === 0 ? 12 : 16,
+                paddingBottom: index === elements.length - 1 ? 12 : 16,
+              },
+            ]}
             onPress={element.onPress}
           >
-            <Text style={[H3, { color: White(0.91) }]}>{element.title}</Text>
+            <View style={styles.iconContainer}>{element.icon}</View>
+            <Text style={[H3, styles.menuText]}>{element.title}</Text>
           </TouchableOpacity>
         ))}
       </BottomSheetView>
     </BottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 16,
+  },
+  iconContainer: {
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuText: {
+    color: white,
+    opacity: 0.91,
+    marginLeft: 16,
+  },
+});

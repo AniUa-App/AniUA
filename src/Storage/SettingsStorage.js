@@ -1,5 +1,6 @@
 import { Storage } from "./Storage";
 import { getDocumentDirectory } from "../FIleSystem/FileSystem";
+import Logger from "../Logger/Logger";
 
 class SettingsStorage extends Storage {
   storageKey = "settingsStorage";
@@ -17,7 +18,7 @@ class SettingsStorage extends Storage {
         pathToSaveEpisodes: path,
       });
     } catch (error) {
-      console.warn("Помилка ініціалізації параметрів SettingsStorage:", error);
+      Logger.warn("SettingsStorage", "Помилка ініціалізації параметрів SettingsStorage", error);
       // Встановлюємо резервні значення
       this.setDefaultParameters({
         pathToSaveEpisodes: "episodes/",
@@ -29,7 +30,7 @@ class SettingsStorage extends Storage {
     try {
       this.setItem(this.storageKey, structure);
     } catch (error) {
-      console.error("Error setting default parameters:", error);
+      Logger.error("SettingsStorage", "Error setting default parameters", error);
     }
   }
 
@@ -38,7 +39,7 @@ class SettingsStorage extends Storage {
       const settings = this.getItem(this.storageKey, {});
       return settings[parameter] || "";
     } catch (error) {
-      console.error("Error getting parameter:", error);
+      Logger.error("SettingsStorage", "Error getting parameter", error);
       return "";
     }
   }
@@ -51,7 +52,7 @@ class SettingsStorage extends Storage {
         [parameter]: value,
       });
     } catch (error) {
-      console.error("Error setting parameter:", error);
+      Logger.error("SettingsStorage", "Error setting parameter", error);
     }
   }
   setDefaultUserConfig() {
@@ -61,7 +62,7 @@ class SettingsStorage extends Storage {
         isDefaultBigBanner: true,
       });
     } catch (error) {
-      console.error("Error setting default parameters:", error);
+      Logger.error("SettingsStorage", "Error setting default parameters", error);
     }
   }
 }

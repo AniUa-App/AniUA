@@ -7,12 +7,12 @@ export default function FiltersScreen() {
   const fontsLoaded = Fonts();
 
   if (!fontsLoaded) {
-    return null; // Или отображение загрузочного экрана
+    return null; // Або відображення екрану завантаження
   }
 
   return (
     <View style={{flex: 1, backgroundColor: '#2F3235', position: 'relative'}}>
-      {/* Заголовок экрана */}
+      {/* Заголовок екрану */}
       <Text
         style={{
           color: '#ffffff',
@@ -87,7 +87,7 @@ export default function FiltersScreen() {
             justifyContent: 'center',
             marginTop: 10,
           }}>
-          {/* Жанры */}
+          {/* Жанри */}
           {Array.from({length: 20}).map((_, index) => (
             <Text
               key={index}
@@ -109,12 +109,12 @@ export default function FiltersScreen() {
         </View>
       </View>
 
-      {/* Кнопка внизу */}
+      {/* Кнопка знизу */}
       <TouchableOpacity
         style={{
-          position: 'absolute', // Размещаем внизу
-          bottom: 20, // Отступ от нижней границы
-          alignSelf: 'center', // Центрируем по горизонтали
+          position: 'absolute', // Розміщуємо знизу
+          bottom: 20, // Відступ від нижньої межі
+          alignSelf: 'center', // Центруємо по горизонталі
           backgroundColor: '#575C81',
           justifyContent: 'center',
           alignItems: 'center',
@@ -127,7 +127,7 @@ export default function FiltersScreen() {
         <Text
           style={{
             fontSize: 29,
-            lineHeight: 50, // Выравниваем текст по высоте кнопки
+            lineHeight: 50, // Вирівнюємо текст по висоті кнопки
             color: '#fff',
             textAlign: 'center', // Текст по центру горизонтально
             fontFamily: 'RobotoCondensed-Black',

@@ -2,6 +2,7 @@ import { PermissionsAndroid, Platform } from "react-native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
 import MainConfig from "../cfgs/MainConfig";
+import Logger from "../Logger/Logger";
 
 export async function AllowTheVideoFolder() {
   if (Platform.OS === "android") {
@@ -17,10 +18,10 @@ export async function AllowTheVideoFolder() {
           await RNFS.mkdir(internalPath);
         }
 
-        console.log("Використовуємо Scoped Storage шлях:", internalPath);
+        Logger.info('Permissions', 'Використовуємо Scoped Storage шлях', { path: internalPath });
         return { success: true, path: internalPath };
       } catch (error) {
-        console.warn("Помилка при створенні Scoped Storage директорії:", error);
+        Logger.warn('Permissions', 'Помилка при створенні Scoped Storage директорії', error);
         // Fallback на DocumentDirectory
         const fallbackPath = RNFS.DocumentDirectoryPath + `/episodes`;
         try {
@@ -28,13 +29,10 @@ export async function AllowTheVideoFolder() {
           if (!dirExists) {
             await RNFS.mkdir(fallbackPath);
           }
-          console.log("Використовуємо резервний шлях:", fallbackPath);
+          Logger.info('Permissions', 'Використовуємо резервний шлях', { path: fallbackPath });
           return { success: true, path: fallbackPath };
         } catch (fallbackError) {
-          console.warn(
-            "Помилка створення резервної директорії:",
-            fallbackError
-          );
+          Logger.warn('Permissions', 'Помилка створення резервної директорії', fallbackError);
           return { success: false, path: "" };
         }
       }
@@ -45,14 +43,14 @@ export async function AllowTheVideoFolder() {
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log("Дозвіл на запис у зовнішнє сховище надано");
+          Logger.info('Permissions', 'Дозвіл на запис у зовнішнє сховище надано');
           return { success: true, path: RNFS.ExternalStorageDirectoryPath };
         } else {
-          console.log("Дозвіл на запис у зовнішнє сховище відхилено");
+          Logger.info('Permissions', 'Дозвіл на запис у зовнішнє сховище відхилено');
           return { success: false, path: "" };
         }
       } catch (error) {
-        console.warn("Помилка при запиті дозволу:", error);
+        Logger.warn('Permissions', 'Помилка при запиті дозволу', error);
         return { success: false, path: "" };
       }
     }

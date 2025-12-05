@@ -1,7 +1,7 @@
-import {Storage} from './Storage';
+import { Storage } from "./Storage";
 
 class AnimeStorage extends Storage {
-  storageKey = 'animeStorage';
+  storageKey = "animeStorage";
   constructor() {
     super();
   }
@@ -18,8 +18,8 @@ class AnimeStorage extends Storage {
     return (
       this.getItem(this.storageKey, {})[slug] || {
         isFavorite: false,
-        watched: {player: '', dubbing: '', episodes: []},
-        bookmark: '',
+        watched: { player: "", dubbing: "", episodes: [] },
+        bookmark: "",
       }
     );
   }
@@ -28,11 +28,11 @@ class AnimeStorage extends Storage {
     slug,
     data = {
       isFavorite: false,
-      watched: {player: '', dubbing: '', episodes: []},
+      watched: { player: "", dubbing: "", episodes: [] },
       downloaded: {
         episodes: [],
       },
-    },
+    }
   ) {
     const animeList = this.getItem(this.storageKey, {});
     const existingInfo = animeList[slug] || {};
@@ -46,7 +46,7 @@ class AnimeStorage extends Storage {
       watched:
         data.watched !== undefined
           ? data.watched
-          : existingInfo.watched || {player: '', dubbing: '', episodes: []},
+          : existinginfo?.watched || { player: "", dubbing: "", episodes: [] },
       downloaded:
         data.downloaded !== undefined
           ? data.downloaded

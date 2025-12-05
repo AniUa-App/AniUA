@@ -34,6 +34,7 @@ import {
 } from "../Sources/CustomSet";
 import { CustomAnimeSet as CustomAnimeSetType } from "../Storage/PersonalRecListStorage";
 import { PreviewAnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
+import Logger from "../Logger/Logger";
 
 const SegmentedControlLabelWidgetAny: any = SegmentedControlLabelWidget;
 const InputPickerWidgetAny: any = InputPickerWidget;
@@ -74,7 +75,7 @@ export function CustomAnimeListsPreviewScreen({
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        console.log(results, "results");
+        Logger.debug('BottomSheetScreens', 'Search results', { results });
       })
       .finally(() => setLoading(false));
   }, [animeList]);
@@ -182,7 +183,7 @@ export function CustomisationAnimeListsScreen({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
-    console.log(size, pages, "size, pages");
+    Logger.debug('BottomSheetScreens', 'Pagination info', { size, pages });
     const payload: CustomAnimeSetType = {
       name: animeListName,
       animeSet: animeSet,

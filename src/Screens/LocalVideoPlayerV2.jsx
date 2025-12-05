@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Pressable,
 } from "react-native";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 // import SystemNavigationBar from "react-native-system-navigation-bar";
 import { BackHandler } from "react-native";
 // import { StatusBar } from "react-native";
@@ -19,6 +19,20 @@ import SystemNavigationBar from "react-native-system-navigation-bar";
 import * as EOrientation from "expo-screen-orientation";
 import { useKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
 import LinearGradient from "react-native-linear-gradient";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SlideInRight,
+  SlideOutRight,
+  ZoomIn,
+  ZoomOut,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSpring,
+  Easing,
+} from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
 import { black, Black, Gray, white, appColor, black_1 } from "../Styles/Colors";
@@ -41,6 +55,7 @@ import FileOpener from "react-native-file-opener";
 import { DownloadVideo } from "../Notifications/VideoDownloader";
 import Toast from "react-native-root-toast";
 import { useThemeColors } from "../Global/useTheme";
+import Logger from "../Logger/Logger";
 
 const { width, height } = Dimensions.get("window");
 
@@ -75,6 +90,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [quality, setQuality] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const qualitiesList = React.useMemo(() => {
     if (!episodeInfo?.qualitys) return [];
     return Object.keys(episodeInfo.qualitys).sort(
@@ -91,8 +107,16 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const pendingVolumeRef = useRef(null);
   const lastTapRef = useRef(null);
   const singleTapTimeoutRef = useRef(null);
+  const isLoadingRef = useRef(false);
+  const lastSeekTimeRef = useRef(0);
+  const lastTimeUpdateRef = useRef(0);
+  const timeUpdateCountRef = useRef(0);
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] = useState(false);
+
+  // Анімаційні значення
+  const loadingRotation = useSharedValue(0);
+  const loadingScale = useSharedValue(1);
 
   // Флаг монтування, щоб не викликати нативні методи після анмаунту/під час ротації
   const isMountedRef = useRef(true);
@@ -110,6 +134,26 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     AnimeStorage.setInfoBySlug(_anime.slug, newInfo);
   };
 
+  // Хелпер для встановлення стану завантаження
+  const setLoadingState = (loading) => {
+    isLoadingRef.current = loading;
+    setIsLoading(loading);
+  };
+
+  // Анімований стиль для індикатора завантаження
+  const animatedLoadingStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          rotate: `${loadingRotation.value}deg`,
+        },
+        {
+          scale: loadingScale.value,
+        },
+      ],
+    };
+  });
+
   // Removed animation values for optimization
 
   // Посилання на bottom sheet швидкості
@@ -126,6 +170,33 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  // Анімація індикатора завантаження
+  useEffect(() => {
+    if (isLoading) {
+      // Spinning анімація
+      loadingRotation.value = withRepeat(
+        withTiming(360, {
+          duration: 1000,
+          easing: Easing.linear,
+        }),
+        -1,
+        false
+      );
+      // Pulsing анімація
+      loadingScale.value = withRepeat(
+        withTiming(1.2, {
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        -1,
+        true
+      );
+    } else {
+      loadingRotation.value = 0;
+      loadingScale.value = 1;
+    }
+  }, [isLoading]);
+
   // Оновлюємо список епізодів, коли змінюються пропси
   useEffect(() => {
     setEpisodes(_episodes || []);
@@ -136,6 +207,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     if (!currentEpisode?.video_url) return;
     const updateEpisode = async () => {
       try {
+        lastSeekTimeRef.current = Date.now();
+        timeUpdateCountRef.current = 0;
+        lastTimeUpdateRef.current = 0;
+        isLoadingRef.current = true;
         setIsLoading(true);
         const episodeInfo = await getEpisodeInfo(currentEpisode.video_url);
         setEpisodeInfo(episodeInfo);
@@ -146,7 +221,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         setQuality(chosenKey || null);
         setCurrentUrl(chosenKey ? episodeInfo.qualitys[chosenKey] : null);
       } catch (e) {
-        console.error("Не вдалося отримати дані епізоду:", e);
+        Logger.error("LocalVideoPlayer", "Не вдалося отримати дані епізоду", e);
+        isLoadingRef.current = false;
         setIsLoading(false);
       }
     };
@@ -156,21 +232,89 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const player = useVideoPlayer(currentUrl, (player) => {
     player.play();
     player.preservesPitch = true;
-    player.timeUpdateEventInterval = 1;
+    player.timeUpdateEventInterval = 0.5;
     player.startsPictureInPictureAutomatically = true;
     // Колбек плеєра
     if (player) {
       player.addListener("statusChange", ({ status }) => {
         if (status === "readyToPlay") {
           setDuration(player.duration);
-          setIsLoading(false);
+          // Зачекаємо трохи перед скиданням, щоб індикатор був видимим
+          setTimeout(() => {
+            isLoadingRef.current = false;
+            setIsLoading(false);
+          }, 300);
+        } else if (status === "loading") {
+          // Показуємо індикатор коли відео буферизується
+          isLoadingRef.current = true;
+          setIsLoading(true);
+        }
+      });
+
+      player.addListener("playingChange", ({ isPlaying: playing, reason }) => {
+        setIsPlaying(playing);
+
+        // Якщо відтворення зупинилось через буферизацію
+        if (!playing && reason === "waitingToPlayAtSpecifiedRate") {
+          isLoadingRef.current = true;
+          setIsLoading(true);
+        } else if (playing && isLoadingRef.current) {
+          // Якщо відтворення відновилось після буферизації
+          setTimeout(() => {
+            isLoadingRef.current = false;
+            setIsLoading(false);
+          }, 300);
         }
       });
 
       player.addListener("timeUpdate", (event) => {
-        setCurrentTime(player.currentTime);
-        if (isLoading && event.currentTime >= 0) {
-          setIsLoading(false);
+        const currentPlayerTime = player.currentTime;
+        setCurrentTime(currentPlayerTime);
+
+        // Перевіряємо чи відео "зависло" (буферизується)
+        if (player.playing) {
+          const timeDiff = Math.abs(
+            currentPlayerTime - lastTimeUpdateRef.current
+          );
+
+          if (timeDiff < 0.1) {
+            // Час не змінюється, хоча має відтворюватися
+            timeUpdateCountRef.current += 1;
+            if (timeUpdateCountRef.current >= 3 && !isLoadingRef.current) {
+              // Відео зависло на 1.5+ секунди (3 * 0.5s)
+              isLoadingRef.current = true;
+              setIsLoading(true);
+            }
+          } else {
+            // Час змінюється - відео нормально відтворюється
+            timeUpdateCountRef.current = 0;
+            if (isLoadingRef.current) {
+              const timeSinceSeek = Date.now() - lastSeekTimeRef.current;
+              if (timeSinceSeek > 200) {
+                isLoadingRef.current = false;
+                setIsLoading(false);
+              }
+            }
+          }
+
+          lastTimeUpdateRef.current = currentPlayerTime;
+        } else {
+          // Якщо пауза, скидаємо лічильник
+          timeUpdateCountRef.current = 0;
+        }
+
+        // Скидаємо завантаження тільки якщо відео почало відтворюватися після seek
+        if (isLoadingRef.current) {
+          const timeSinceSeek = Date.now() - lastSeekTimeRef.current;
+          // Якщо минуло >200мс після seek і відео відтворюється
+          if (
+            timeSinceSeek > 200 &&
+            player.playing &&
+            timeUpdateCountRef.current === 0
+          ) {
+            isLoadingRef.current = false;
+            setIsLoading(false);
+          }
         }
       });
 
@@ -185,7 +329,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       });
 
       player.addListener("error", (error) => {
-        console.error("Video error:", error);
+        Logger.error("LocalVideoPlayer", "Video error", error);
+        isLoadingRef.current = true;
         setIsLoading(true);
       });
     }
@@ -196,9 +341,20 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     latestPlayerRef.current = player;
   }, [player]);
 
+  // Відновлення швидкості відтворення при зміні плеєра
+  useEffect(() => {
+    if (player && rate !== 1.0) {
+      player.playbackRate = rate;
+    }
+  }, [player]);
+
   // Функції керування
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     if (player) {
+      const willPlay = !player.playing;
+      // Оновлюємо стейт негайно для миттєвого відгуку UI
+      setIsPlaying(willPlay);
+
       if (player.playing) {
         player.pause();
       } else {
@@ -208,12 +364,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         startHideControlsTimer();
       }
     }
-  };
+  }, [player, showControls]);
 
   const seekTo = (seconds) => {
     if (player && duration > 0) {
       const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
       setCurrentTime(newTime);
+      lastSeekTimeRef.current = Date.now();
+      timeUpdateCountRef.current = 0;
+      isLoadingRef.current = true;
       setIsLoading(true);
       player.currentTime = newTime;
 
@@ -227,6 +386,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     if (player && duration > 0) {
       const newTime = Math.max(0, Math.min(duration, time));
       setCurrentTime(newTime);
+      lastSeekTimeRef.current = Date.now();
+      timeUpdateCountRef.current = 0;
+      isLoadingRef.current = true;
       setIsLoading(true);
       player.currentTime = newTime;
       if (showControls) {
@@ -280,13 +442,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const setWatchedEpisode = (slug, episode) => {
     const info = AnimeStorage.getInfoBySlug(slug);
-    info.watched.episodes = [...info.watched.episodes, episode.episode];
+    info.watched.episodes = [...info?.watched.episodes, episode.episode];
     AnimeStorage.setInfoBySlug(slug, info);
   };
 
   useEffect(() => {
     const onBackPress = () => {
-      console.log("onBackPress");
+      Logger.debug("LocalVideoPlayer", "onBackPress");
       deactivateKeepAwake();
       navigation.goBack();
       // StatusBar.setHidden(false);
@@ -303,7 +465,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     };
 
     const onOrientationChange = (orientation) => {
-      console.log("Orientation changed:", orientation);
+      Logger.debug("LocalVideoPlayer", "Orientation changed", { orientation });
       if (
         orientation === "LANDSCAPE-LEFT" ||
         orientation === "LANDSCAPE-RIGHT"
@@ -316,7 +478,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         SystemNavigationBar.navigationShow();
         setIsLandscape(false);
       }
-      console.log("isLandscape: ", isLandscape);
+      Logger.debug("LocalVideoPlayer", "isLandscape", { isLandscape });
     };
 
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -342,7 +504,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 SystemNavigationBar.fullScreen(true);
                 SystemNavigationBar.navigationHide();
               } catch (e) {
-                console.warn("SystemNavigationBar landscape error:", e);
+                Logger.warn(
+                  "LocalVideoPlayer",
+                  "SystemNavigationBar landscape error",
+                  e
+                );
               }
               setIsLandscape(true);
             } else {
@@ -350,12 +516,20 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 SystemNavigationBar.fullScreen(false);
                 SystemNavigationBar.navigationShow();
               } catch (e) {
-                console.warn("SystemNavigationBar portrait error:", e);
+                Logger.warn(
+                  "LocalVideoPlayer",
+                  "SystemNavigationBar portrait error",
+                  e
+                );
               }
               setIsLandscape(false);
             }
           } catch (e) {
-            console.warn("Orientation applyChanges error:", e);
+            Logger.warn(
+              "LocalVideoPlayer",
+              "Orientation applyChanges error",
+              e
+            );
           }
         };
         // Дебаунсимо зміни, щоб не торкатись UIManager під час ре-ініціалізації
@@ -398,12 +572,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       try {
         StatusBar.setHidden(false, "slide");
       } catch (e) {
-        console.warn("StatusBar show error:", e);
+        Logger.warn("LocalVideoPlayer", "StatusBar show error", e);
       }
       try {
         SystemNavigationBar.navigationShow();
       } catch (e) {
-        console.warn("SystemNavigationBar show error:", e);
+        Logger.warn("LocalVideoPlayer", "SystemNavigationBar show error", e);
       }
       // SystemNavigationBar.fullScreen(false);
       // Orientation.lockToPortrait();
@@ -440,7 +614,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               await videoViewRef.current.startPictureInPicture();
             }
           } catch (error) {
-            console.warn("Не вдалося запустити PiP автоматично:", error);
+            Logger.warn(
+              "LocalVideoPlayer",
+              "Не вдалося запустити PiP автоматично",
+              error
+            );
           }
         }
       }
@@ -528,7 +706,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               SystemNavigationBar.fullScreen(true);
               SystemNavigationBar.navigationHide();
             } catch (e) {
-              console.warn("SystemNavigationBar toggle->landscape error:", e);
+              Logger.warn(
+                "LocalVideoPlayer",
+                "SystemNavigationBar toggle->landscape error",
+                e
+              );
             }
             setIsLandscape(true);
           } else {
@@ -541,12 +723,16 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               SystemNavigationBar.fullScreen(false);
               SystemNavigationBar.navigationShow();
             } catch (e) {
-              console.warn("SystemNavigationBar toggle->portrait error:", e);
+              Logger.warn(
+                "LocalVideoPlayer",
+                "SystemNavigationBar toggle->portrait error",
+                e
+              );
             }
             setIsLandscape(false);
           }
         } catch (e) {
-          console.warn("toggleOrientation error:", e);
+          Logger.warn("LocalVideoPlayer", "toggleOrientation error", e);
         }
       };
       if (typeof requestAnimationFrame === "function") {
@@ -588,14 +774,16 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       (ep) => ep.episode === currentEpisode?.episode
     );
     if (currentIndex > 0) {
-      setIsLoading(true);
       setCurrentTime(0);
       setDuration(0);
       setCurrentEpisode(episodes[currentIndex - 1]);
       setWatchedEpisode(_anime.slug, episodes[currentIndex - 1]);
-      setIsLoading(false);
     } else if (player) {
       // якщо попереднього немає — перемотати на початок
+      lastSeekTimeRef.current = Date.now();
+      timeUpdateCountRef.current = 0;
+      isLoadingRef.current = true;
+      setIsLoading(true);
       player.currentTime = 0;
       setCurrentTime(0);
     }
@@ -606,12 +794,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       (ep) => ep.episode === currentEpisode?.episode
     );
     if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
-      setIsLoading(true);
       setCurrentTime(0);
       setDuration(0);
       setCurrentEpisode(episodes[currentIndex + 1]);
       setWatchedEpisode(_anime.slug, episodes[currentIndex + 1]);
-      setIsLoading(false);
     }
   };
 
@@ -619,8 +805,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     setCurrentEpisode(episode);
     setCurrentTime(0);
     setDuration(0);
-    setIsLoading(true);
-    player.currentTime = 0;
+    if (player) {
+      player.currentTime = 0;
+    }
     setWatchedEpisode(_anime.slug, episode);
     hideEpisodesPanel();
     if (showControls) {
@@ -647,24 +834,38 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             pointerEvents="none"
             contentFit={isLandscape && isZoomed ? "cover" : "contain"}
             onFirstFrameRender={() => {
+              // Скидаємо завантаження коли перший кадр відрендерився
+              isLoadingRef.current = false;
               setIsLoading(false);
             }}
           />
         </View>
 
         {/* Оверлей завантаження */}
-        {isLoading ? (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={appColor} />
-          </View>
-        ) : null}
+        {isLoading && (
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(200)}
+            style={styles.loadingOverlay}
+          >
+            <Animated.View
+              style={[styles.loadingContainer, animatedLoadingStyle]}
+            >
+              <ActivityIndicator size="large" color={appColor} />
+            </Animated.View>
+          </Animated.View>
+        )}
       </View>
 
       {/* Заголовок */}
       {showControls && (
         <>
           {!isLocked ? (
-            <View style={styles.header}>
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              exiting={FadeOut.duration(200)}
+              style={styles.header}
+            >
               <LinearGradient
                 colors={[
                   themeColors.Black(0.8),
@@ -740,7 +941,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                             startHideControlsTimer();
                           }
                           if (isPictureInPictureSupported()) {
-                            videoViewRef.current.startPictureInPicture();
                             Toast.show(
                               "Якщо PiP не з'явився, дозвольте використання PiP у налаштуваннях",
                               {
@@ -750,6 +950,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                 position: Toast.positions.BOTTOM,
                               }
                             );
+                            videoViewRef.current.startPictureInPicture();
                           }
                         }}
                       >
@@ -777,9 +978,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </View>
                 </View>
               </LinearGradient>
-            </View>
+            </Animated.View>
           ) : (
-            <View style={styles.header} />
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              exiting={FadeOut.duration(200)}
+              style={styles.header}
+            />
           )}
         </>
       )}
@@ -788,7 +993,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       {showControls && (
         <>
           {!isLocked ? (
-            <View style={styles.controlsContainer}>
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              exiting={FadeOut.duration(200)}
+              style={styles.controlsContainer}
+            >
               <LinearGradient
                 colors={[
                   "transparent",
@@ -872,6 +1081,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                               0,
                               Math.min(duration, val)
                             );
+                            lastSeekTimeRef.current = Date.now();
+                            timeUpdateCountRef.current = 0;
+                            isLoadingRef.current = true;
                             setIsLoading(true);
                             setCurrentTime(clamped);
                             player.currentTime = clamped;
@@ -964,21 +1176,19 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       </CustomTouchableOpacity>
                     </View>
 
-                    <CustomTouchableOpacity
+                    <Pressable
                       style={styles.playButtonContainer}
-                      activeOpacity={1}
-                      delayPressIn={0}
-                      delayPressOut={0}
-                      onPress={handlePlayPress}
+                      onPress={togglePlayPause}
+                      android_disableSound
                     >
                       <View style={styles.playButton}>
-                        {player.playing ? (
+                        {isPlaying ? (
                           <Icons.Pause size={32} color={themeColors.white} />
                         ) : (
                           <Icons.Play size={32} color={themeColors.white} />
                         )}
                       </View>
-                    </CustomTouchableOpacity>
+                    </Pressable>
 
                     <View>
                       <CustomTouchableOpacity
@@ -1072,19 +1282,24 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                   episode.video_path &&
                                   (await RNFS.exists(episode.video_path))
                                 ) {
-                                  console.log(
-                                    episode.video_path,
-                                    "episode.video_path"
+                                  Logger.debug(
+                                    "LocalVideoPlayer",
+                                    "episode.video_path",
+                                    { path: episode.video_path }
                                   );
                                   try {
                                     await FileOpener.openFile(
                                       episode.video_path,
                                       "video/*"
                                     );
-                                    console.log("Діалог вибору відкрито");
+                                    Logger.info(
+                                      "LocalVideoPlayer",
+                                      "Діалог вибору відкрито"
+                                    );
                                   } catch (error) {
-                                    console.error(
-                                      "Помилка при відкритті файлу:",
+                                    Logger.error(
+                                      "LocalVideoPlayer",
+                                      "Помилка при відкритті файлу",
                                       error
                                     );
                                   }
@@ -1114,7 +1329,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                     anime: _anime,
                                     info: info,
                                     onStartDownloadCallback: () => {
-                                      console.log("onStartDownloadCallback");
+                                      Logger.debug(
+                                        "LocalVideoPlayer",
+                                        "onStartDownloadCallback"
+                                      );
                                       setIsDownloading(true);
                                     },
                                     progressCallback: (progressCallback) => {
@@ -1127,7 +1345,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                       completionCallback
                                     ) => {
                                       setIsDownloading(false);
-                                      console.log(
+                                      Logger.debug(
+                                        "LocalVideoPlayer",
                                         "completionCallback",
                                         completionCallback
                                       );
@@ -1135,15 +1354,21 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                   });
                                 }
                               } catch (err) {
-                                console.error(
-                                  "Помилка при обробці епізоду:",
+                                Logger.error(
+                                  "LocalVideoPlayer",
+                                  "Помилка при обробці епізоду",
                                   err
                                 );
                                 // Додаткова інформація для дебагу
-                                console.log("Item object:", currentEpisode);
-                                console.log(
-                                  "Episode info:",
-                                  info.downloaded?.episodes
+                                Logger.debug(
+                                  "LocalVideoPlayer",
+                                  "Item object",
+                                  { currentEpisode }
+                                );
+                                Logger.debug(
+                                  "LocalVideoPlayer",
+                                  "Episode info",
+                                  { episodes: info.downloaded?.episodes }
                                 );
                               }
                             }}
@@ -1206,9 +1431,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </CustomTouchableOpacity>
                 </View>
               </LinearGradient>
-            </View>
+            </Animated.View>
           ) : (
-            <View
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              exiting={FadeOut.duration(200)}
               style={{
                 position: "absolute",
                 top: 0,
@@ -1238,14 +1465,18 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   <Icons.Lock type={"disabled"} size={24} color={appColor} />
                 </CustomTouchableOpacity>
               </View>
-            </View>
+            </Animated.View>
           )}
         </>
       )}
 
       {/* Панель епізодів */}
       {showEpisodes && (
-        <View style={styles.episodesPanel}>
+        <Animated.View
+          entering={SlideInRight.duration(300).springify()}
+          exiting={SlideOutRight.duration(250)}
+          style={styles.episodesPanel}
+        >
           <View style={styles.episodesPanelContent}>
             <View style={styles.episodesPanelHeader}>
               <CustomTouchableOpacity
@@ -1277,7 +1508,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               showsVerticalScrollIndicator={false}
             >
               {episodes.map((episode, index) => (
-                <View key={episode.episode}>
+                <Animated.View
+                  key={episode.episode}
+                  entering={FadeIn.delay(index * 50).duration(300)}
+                >
                   <CustomTouchableOpacity
                     style={[
                       styles.episodeItem,
@@ -1320,9 +1554,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         Епізод {episode.episode}
                       </Text>
-                      <Text style={[H6, { color: themeColors.Gray(0.5) }]}>
-                        {episode.duration || "Тривалість невідома"}
-                      </Text>
                     </View>
 
                     {currentEpisode?.episode === episode.episode && (
@@ -1331,11 +1562,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       </View>
                     )}
                   </CustomTouchableOpacity>
-                </View>
+                </Animated.View>
               ))}
             </ScrollView>
           </View>
-        </View>
+        </Animated.View>
       )}
       {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
       <Pressable
@@ -1362,6 +1593,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           setQuality(nextQuality);
           const nextUrl = episodeInfo.qualitys[nextQuality];
           if (nextUrl) {
+            lastSeekTimeRef.current = Date.now();
+            timeUpdateCountRef.current = 0;
+            lastTimeUpdateRef.current = 0;
+            isLoadingRef.current = true;
             setIsLoading(true);
             setCurrentUrl(nextUrl);
           }
@@ -1400,7 +1635,13 @@ const styles = StyleSheet.create({
     right: 0,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     zIndex: 1000,
+  },
+  loadingContainer: {
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
 
   // Стилі заголовка
@@ -1426,6 +1667,7 @@ const styles = StyleSheet.create({
     padding: 8,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 22,
   },
   titleContainer: {
     flex: 1,
@@ -1543,6 +1785,14 @@ const styles = StyleSheet.create({
     backgroundColor: appColor,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: appColor,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
   },
 
   // Додаткові елементи керування
@@ -1557,13 +1807,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   qualityText: {
-    color: Gray(0.6),
-    fontSize: 12,
-    fontFamily: "Nunito-SemiBold",
-    backgroundColor: Gray(0.2),
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    color: white,
+    fontSize: 13,
+    fontFamily: "Nunito-Bold",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    overflow: "hidden",
   },
 
   // Панель епізодів
@@ -1608,12 +1861,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 20,
     paddingHorizontal: 16,
-    marginVertical: 2,
-    borderRadius: 8,
+    marginVertical: 6,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   episodeItemActive: {
-    backgroundColor: Black(0.7),
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: appColor,
   },
   episodeNumber: {
@@ -1632,10 +1885,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nowPlayingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: appColor,
+    shadowColor: appColor,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });
 
@@ -1680,7 +1941,11 @@ async function ___getPlayerDataFrom_ASHDI_Player(url) {
         }
       : null;
   } catch (error) {
-    console.error("Помилка завантаження:", error);
+    Logger.error(
+      "___getPlayerDataFrom_ASHDI_Player",
+      "Помилка завантаження",
+      error
+    );
     return { success: false, error: "no_player_data_found" };
   }
 }
@@ -1727,7 +1992,11 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     // Перевіряємо, чи знайдено хоча б один параметр
     return Object.keys(playerData).length > 0 ? playerData : null;
   } catch (error) {
-    console.error("Помилка при отриманні даних плеєра:", error);
+    Logger.error(
+      "___getPlayerDataFrom_MOON_Player",
+      "Помилка при отриманні даних плеєра",
+      error
+    );
   }
 }
 

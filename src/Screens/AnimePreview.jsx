@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useLayoutEffect,
   useCallback,
+  act,
 } from "react";
 import {
   View,
@@ -16,7 +17,6 @@ import {
   FlatList,
   useWindowDimensions,
 } from "react-native";
-import { GetScreenWidth, GetScreenHeight } from "../Global/Functions";
 import {
   appColor,
   black,
@@ -69,11 +69,12 @@ import Icon from "../Styles/Icons";
 import {
   getFullDubbersListOfQueues,
   playersIcons,
+  sortDubbingsByPartnerStudios,
 } from "../Widgets/DubbingBottomSheetWidget";
 import Toast from "react-native-root-toast";
-import ExpandableNotification from "../Widgets/ExpandableNotification";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { isTabletLandscape, isTablet } from "../Styles/Responsive";
+import { useSnackbar } from "../Widgets/useSnackbar";
 
 function getEpisodeDateOrType(anime) {
   if (
@@ -94,6 +95,7 @@ function getEpisodeDateOrType(anime) {
   }
 }
 export default function AnimePreviewScreen({ route }) {
+  const { snackbar, showSnackbar } = useSnackbar();
   const themeColors = useThemeColors();
   const isFocused = useIsFocused();
   const { width: winWidth, height: winHeight } = useWindowDimensions();
@@ -135,6 +137,9 @@ export default function AnimePreviewScreen({ route }) {
   const [anime, setAnime] = useState(initialAnime || null);
   const [isLoading, setIsLoading] = useState(!initialAnime);
 
+  // Стан для кешування перевірки існування файлів
+  const [existingFiles, setExistingFiles] = useState(new Set());
+
   // Референції для нижніх панелей
   const dubbingSheetRef = useRef(null);
   const episodesSheetRef = useRef(null);
@@ -149,9 +154,6 @@ export default function AnimePreviewScreen({ route }) {
   const [errorCode, setErrorCode] = useState(null);
   const [episodesList, setEpisodesList] = useState([]);
   const [isConnection, setIsConnection] = useState(true);
-  const [isVisibleNotification, setIsVisibleNotification] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState("");
-  const [notificationColor, setNotificationColor] = useState(appColor);
   // Отримуємо інформацію про аніме з локального сховища
   const [info, setInfo_] = useState(() => {
     if (initialAnime?.slug) {
@@ -218,6 +220,36 @@ export default function AnimePreviewScreen({ route }) {
     },
     [anime?.slug]
   );
+
+  // Перевірка існування завантажених файлів
+  useEffect(() => {
+    const checkDownloadedFiles = async () => {
+      if (
+        !info?.downloaded?.episodes ||
+        info.downloaded.episodes.length === 0
+      ) {
+        setExistingFiles(new Set());
+        return;
+      }
+
+      const existing = new Set();
+      for (const episode of info.downloaded.episodes) {
+        if (episode.video_path && typeof episode.video_path === "string") {
+          try {
+            const exists = await RNFS.exists(episode.video_path);
+            if (exists) {
+              existing.add(episode.episode);
+            }
+          } catch (error) {
+            console.error("Error checking file:", episode.video_path, error);
+          }
+        }
+      }
+      setExistingFiles(existing);
+    };
+
+    checkDownloadedFiles();
+  }, [info?.downloaded?.episodes]);
 
   useEffect(() => {
     if (downloadEpisode) {
@@ -323,33 +355,76 @@ export default function AnimePreviewScreen({ route }) {
 
               data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
 
+              // Сортуємо озвучки для кожного плеєра - партнерські студії вгорі
+              const sortedData = {};
+              for (const [player, dubbings] of Object.entries(data)) {
+                if (
+                  typeof dubbings === "object" &&
+                  dubbings !== null &&
+                  !Array.isArray(dubbings)
+                ) {
+                  const sortedDubbingKeys = sortDubbingsByPartnerStudios(
+                    Object.keys(dubbings)
+                  );
+                  const sortedDubbings = {};
+                  sortedDubbingKeys.forEach((key) => {
+                    sortedDubbings[key] = dubbings[key];
+                  });
+                  sortedData[player] = sortedDubbings;
+                } else {
+                  sortedData[player] = dubbings;
+                }
+              }
+
               let infoNeedsUpdate = false;
               let newInfo = { ...currentInfo };
 
               if (!newInfo.watched?.player || !newInfo.watched?.dubbing) {
-                for (const [key, value] of Object.entries(data)) {
-                  if (
-                    key !== "type" &&
-                    key !== "0" &&
-                    Object.keys(value).length > 0
-                  ) {
-                    newInfo.watched = {
-                      ...newInfo.watched,
-                      player: data[
-                        SettingsStorage.getParameter("defaultPlayer")
-                      ]
-                        ? SettingsStorage.getParameter("defaultPlayer")
-                        : key,
-                      dubbing: Object.keys(value)[0],
-                      episodes: newInfo.watched?.episodes || [],
-                    };
-                    infoNeedsUpdate = true;
-                    break;
+                // Визначаємо плеєр
+                let selectedPlayer = null;
+                const defaultPlayerFromSettings =
+                  SettingsStorage.getParameter("defaultPlayer");
+
+                // Перевіряємо, чи є дефолтний плеєр з налаштувань і чи є у нього озвучки
+                if (
+                  defaultPlayerFromSettings &&
+                  sortedData[defaultPlayerFromSettings] &&
+                  typeof sortedData[defaultPlayerFromSettings] === "object" &&
+                  Object.keys(sortedData[defaultPlayerFromSettings]).length > 0
+                ) {
+                  selectedPlayer = defaultPlayerFromSettings;
+                } else {
+                  // Шукаємо перший доступний плеєр
+                  for (const [key, value] of Object.entries(sortedData)) {
+                    if (
+                      key !== "type" &&
+                      key !== "0" &&
+                      typeof value === "object" &&
+                      value !== null &&
+                      Object.keys(value).length > 0
+                    ) {
+                      selectedPlayer = key;
+                      break;
+                    }
                   }
+                }
+
+                // Якщо знайшли плеєр, вибираємо першу озвучку (партнерську, якщо є)
+                if (selectedPlayer) {
+                  const dubbings = sortedData[selectedPlayer];
+                  const dubbingKeys = Object.keys(dubbings);
+
+                  newInfo.watched = {
+                    ...newInfo.watched,
+                    player: selectedPlayer,
+                    dubbing: dubbingKeys[0], // Перша озвучка вже партнерська, бо список відсортований
+                    episodes: newInfo.watched?.episodes || [],
+                  };
+                  infoNeedsUpdate = true;
                 }
               }
 
-              setEpisodesList(data || []);
+              setEpisodesList(sortedData || []);
 
               if (infoNeedsUpdate) {
                 setInfo(newInfo);
@@ -464,17 +539,6 @@ export default function AnimePreviewScreen({ route }) {
               contentContainerStyle={{ flexGrow: 1 }}
               showsVerticalScrollIndicator={false}
             >
-              <ExpandableNotification
-                visible={isVisibleNotification}
-                message={notificationMessage}
-                style={{
-                  paddingTop: 30,
-                  backgroundColor: notificationColor || themeColors.appColor,
-                }}
-                onHide={() => {
-                  setIsVisibleNotification(false);
-                }}
-              />
               {/* Верхній блок з "постером" */}
               <View
                 style={[
@@ -813,7 +877,7 @@ export default function AnimePreviewScreen({ route }) {
                       { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
                     ]}
                   >
-                    {anime.title_ua}
+                    {anime.title_ua || anime.title_en || anime.title_ja}
                   </Text>
                   {/* Відображення вікового обмеження */}
                   <Text style={[H3, { color: themeColors.appColor }]}>
@@ -842,29 +906,27 @@ export default function AnimePreviewScreen({ route }) {
               </TouchableOpacity>
 
               {/* Опис аніме */}
-              <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>
-                {anime?.synopsis_ua ? (
-                  <Markdown
-                    style={{
-                      body: [
-                        H4,
-                        {
-                          marginBottom: anime?.synopsis_ua ? 25 : 0,
-                        },
-                      ],
-                      link: [
-                        H4,
-                        {
-                          marginBottom: anime?.synopsis_ua ? 25 : 0,
-                          color: appColor,
-                          textDecorationLine: "underline",
-                        },
-                      ],
-                    }}
-                  >
-                    {anime?.synopsis_ua}
-                  </Markdown>
-                ) : null}
+              <Text style={[H4, { marginBottom: 25 }]}>
+                <Markdown
+                  style={{
+                    body: [
+                      H4,
+                      {
+                        marginBottom: 25,
+                      },
+                    ],
+                    link: [
+                      H4,
+                      {
+                        marginBottom: 25,
+                        color: appColor,
+                        textDecorationLine: "underline",
+                      },
+                    ],
+                  }}
+                >
+                  {anime?.synopsis_ua || anime?.synopsis_en}
+                </Markdown>{" "}
               </Text>
 
               {/* Секція схожих аніме */}
@@ -906,17 +968,6 @@ export default function AnimePreviewScreen({ route }) {
           showsVerticalScrollIndicator={false}
         >
           <View>
-            <ExpandableNotification
-              visible={isVisibleNotification}
-              message={notificationMessage}
-              style={{
-                paddingTop: 30,
-                backgroundColor: notificationColor || themeColors.appColor,
-              }}
-              onHide={() => {
-                setIsVisibleNotification(false);
-              }}
-            />
             {/* Верхній блок з "постером" */}
             <View
               style={[styles.posterContainer, { height: portraitPosterHeight }]}
@@ -1230,7 +1281,7 @@ export default function AnimePreviewScreen({ route }) {
                       { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
                     ]}
                   >
-                    {anime.title_ua}
+                    {anime.title_ua || anime.title_en || anime.title_ja}
                   </Text>
                   {/* Відображення вікового обмеження */}
                   <Text style={[H3, { color: themeColors.appColor }]}>
@@ -1259,29 +1310,27 @@ export default function AnimePreviewScreen({ route }) {
               </TouchableOpacity>
 
               {/* Опис аніме */}
-              <Text style={[H4, { marginBottom: anime?.synopsis_ua ? 25 : 0 }]}>
-                {anime?.synopsis_ua ? (
-                  <Markdown
-                    style={{
-                      body: [
-                        H4,
-                        {
-                          marginBottom: anime?.synopsis_ua ? 25 : 0,
-                        },
-                      ],
-                      link: [
-                        H4,
-                        {
-                          marginBottom: anime?.synopsis_ua ? 25 : 0,
-                          color: appColor,
-                          textDecorationLine: "underline",
-                        },
-                      ],
-                    }}
-                  >
-                    {anime?.synopsis_ua}
-                  </Markdown>
-                ) : null}
+              <Text style={[H4, { marginBottom: 25 }]}>
+                <Markdown
+                  style={{
+                    body: [
+                      H4,
+                      {
+                        marginBottom: 25,
+                      },
+                    ],
+                    link: [
+                      H4,
+                      {
+                        marginBottom: 25,
+                        color: appColor,
+                        textDecorationLine: "underline",
+                      },
+                    ],
+                  }}
+                >
+                  {anime?.synopsis_ua || anime?.synopsis_en || "Опис відсутній"}
+                </Markdown>
               </Text>
 
               {/* Секція схожих аніме */}
@@ -1364,7 +1413,7 @@ export default function AnimePreviewScreen({ route }) {
                   screen: "WebVideoPlayer",
                   params: {
                     videoUrl: item?.video_url,
-                    title: `${anime?.title_ua} - ${item?.episode} серія`,
+                    title: `${anime?.title_ua || anime?.title_en || anime?.title_ja} - ${item?.episode} серія`,
                   },
                 });
               }
@@ -1382,8 +1431,7 @@ export default function AnimePreviewScreen({ route }) {
             onSwipeEpisode={(item) => {
               episodesSheetRef.current?.close();
               Clipboard.setString(item?.video_url);
-              setIsVisibleNotification(true);
-              setNotificationMessage("Посилання скопійовано");
+              showSnackbar("Посилання на епізод скопійоване в буфер обміну");
             }}
             checkForStyle={(item) =>
               info.watched.episodes.includes(item.episode)
@@ -1397,17 +1445,7 @@ export default function AnimePreviewScreen({ route }) {
             type="download"
             isChanges={null}
             checkForStyle={(item) => {
-              if (!info.downloaded?.episodes) return false;
-
-              const episode = info.downloaded.episodes.find(
-                (ep) => ep.episode === item.episode
-              );
-
-              return (
-                episode &&
-                episode.video_path &&
-                typeof episode.video_path === "string"
-              );
+              return existingFiles.has(item.episode);
             }}
             onSelectEpisode={async function (item) {
               // Асинхронна функція для обробки вибору епізоду
@@ -1450,19 +1488,58 @@ export default function AnimePreviewScreen({ route }) {
                     item: item,
                     anime: anime,
                     info: info,
-                    onStartDownloadCallback: () => {},
-                    progressCallback: (progress) => {},
+                    onStartDownloadCallback: () => {
+                      showSnackbar(
+                        `Розпочато завантаження епізоду ${item.episode}`,
+                        { duration: 1000 }
+                      );
+                    },
+                    progressCallback: () => {},
                     completionCallback: (updatedInfo) => {
                       console.log("completionCallback", updatedInfo);
                       setInfo(updatedInfo);
+                      showSnackbar(
+                        `Завантаження епізоду ${item.episode} завершено`,
+                        {
+                          duration: 5000,
+                          actionLabel: "Відкрити",
+                          onActionPress: async () => {
+                            const downloadedEpisode =
+                              updatedInfo.downloaded.episodes.find(
+                                (ep) => ep.episode === item.episode
+                              );
+                            if (downloadedEpisode) {
+                              try {
+                                await FileOpener.openFile(
+                                  downloadedEpisode.video_path,
+                                  "video/*"
+                                );
+                                console.log("Діалог вибору відкрито");
+                              } catch (error) {
+                                console.error(
+                                  "Помилка при відкритті файлу:",
+                                  error
+                                );
+                              }
+                            }
+                          },
+                        }
+                      );
                     },
                     errorCallback: (error, item) => {
                       console.log("errorCallback", error, item);
-                      setIsVisibleNotification(true);
-                      setNotificationMessage(
-                        STATUSES[error] || error.substring(0, 200)
+                      showSnackbar(
+                        `Помилка при завантаженні епізоду: ${STATUSES[error] || error}`,
+                        {
+                          actionLabel: "Копіювати",
+                          onActionPress: () => {
+                            Clipboard.setString(
+                              `Помилка при завантаженні епізоду: ${error.message || error}`
+                            );
+                          },
+                          duration: 8000,
+                        }
                       );
-                      setNotificationColor(red);
                     },
                   });
                 }
@@ -1477,6 +1554,7 @@ export default function AnimePreviewScreen({ route }) {
         </>
       ) : null}
 
+      {snackbar}
       <MoreBottomSheetMemo sheetRef={moreSheetRef} anime={anime} />
     </DefaultScreenWidget>
   );

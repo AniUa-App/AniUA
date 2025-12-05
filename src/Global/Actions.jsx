@@ -3,6 +3,8 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import * as FileSystem from "expo-file-system";
 import { FFmpegKit } from "ffmpeg-kit-react-native";
 import FileOpener from "./FileOpener";
+import RNFS from "react-native-fs";
+import Logger from "../Logger/Logger";
 
 // Ініціалізуємо обробник для фонових подій
 export function setupBackgroundHandler() {
@@ -20,46 +22,46 @@ export function setupBackgroundHandler() {
     .catch(() => {});
 
   notifee.onBackgroundEvent(async ({ type, detail }) => {
+    Logger.debug('Actions', 'Background event received', { type, detail });
     if (
-      type === EventType.ACTION_PRESS &&
-      detail.pressAction?.id === "cancel_download"
+      (type === EventType.ACTION_PRESS &&
+        detail.pressAction?.id === "cancel_download") ||
+      (type === EventType.PRESS && detail.pressAction?.id === "cancel_download")
     ) {
-      console.log("cancel_download from action press");
+      Logger.info('Actions', 'Скасування завантаження з фонової події');
       const { ffmpegSessionId } = detail.notification.data || {};
-      console.log("ffmpegSessionId ", ffmpegSessionId);
+      Logger.debug('Actions', 'FFmpeg session ID', { ffmpegSessionId });
       if (ffmpegSessionId) {
         try {
-          await FFmpegKit.cancel(ffmpegSessionId);
-          console.log("Завантаження скасовано");
+          await FFmpegKit.cancel(Number(ffmpegSessionId));
+          Logger.info('Actions', 'Завантаження скасовано успішно');
         } catch (error) {
-          console.error("Помилка при скасуванні завантаження:", error);
+          Logger.error('Actions', 'Помилка при скасуванні завантаження', error);
         }
       }
       return Promise.resolve();
     }
 
     if (
-      type === EventType.PRESS &&
-      detail.pressAction.id === "open_downloaded_video"
+      (type === EventType.ACTION_PRESS &&
+        detail.pressAction?.id === "open_downloaded_video") ||
+      (type === EventType.PRESS &&
+        detail.pressAction?.id === "open_downloaded_video")
     ) {
-      console.log("setupBackgroundHandler");
+      Logger.info('Actions', 'Відкриття завантаженого відео з фонової події');
       const { savedEpisodeData } = detail.notification.data;
-      console.log("Background: savedEpisodeData", savedEpisodeData);
+      Logger.debug('Actions', 'Дані епізоду', { savedEpisodeData });
 
       try {
-        // Додати перевірку існування файлу з expo-file-system
-        const fileInfo = await FileSystem.getInfoAsync(
-          savedEpisodeData.video_path
-        );
-        if (!fileInfo.exists) {
-          console.error("Файл не існує:", savedEpisodeData.video_path);
+        if (!(await RNFS.exists(savedEpisodeData.video_path))) {
+          Logger.error('Actions', 'Файл не існує', { path: savedEpisodeData.video_path });
           return Promise.resolve();
         }
 
         await FileOpener.openFile(savedEpisodeData.video_path, "video/*");
-        console.log("Діалог вибору відкрито");
+        Logger.info('Actions', 'Діалог вибору відкрито');
       } catch (error) {
-        console.error("Помилка при відкритті файлу:", error);
+        Logger.error('Actions', 'Помилка при відкритті файлу', error);
       }
       return Promise.resolve();
     }
@@ -82,55 +84,48 @@ export function setupForegroundHandler() {
     .catch(() => {});
 
   const unsubscribe = notifee.onForegroundEvent(async ({ type, detail }) => {
+    Logger.debug('Actions', 'Foreground event received', { type, detail });
     if (
-      type === EventType.ACTION_PRESS &&
-      detail.pressAction?.id === "cancel_download"
+      (type === EventType.ACTION_PRESS &&
+        detail.pressAction?.id === "cancel_download") ||
+      (type === EventType.PRESS && detail.pressAction?.id === "cancel_download")
     ) {
-      console.log("cancel_download from action press");
+      Logger.info('Actions', 'Скасування завантаження з foreground події');
       const { ffmpegSessionId } = detail.notification.data || {};
-      console.log("ffmpegSessionId ", ffmpegSessionId);
+      Logger.debug('Actions', 'FFmpeg session ID', { ffmpegSessionId });
       if (ffmpegSessionId) {
         try {
-          await FFmpegKit.cancel(ffmpegSessionId);
-          console.log("Завантаження скасовано");
+          await FFmpegKit.cancel(Number(ffmpegSessionId));
+          Logger.info('Actions', 'Завантаження скасовано успішно');
         } catch (error) {
-          console.error("Помилка при скасуванні завантаження:", error);
+          Logger.error('Actions', 'Помилка при скасуванні завантаження', error);
         }
       }
-      return;
+      return Promise.resolve();
     }
 
-    if (type === EventType.PRESS && detail.notification) {
-      console.log("setupForegroundHandler");
-      switch (detail.pressAction.id) {
-        case "open_downloaded_video":
-          const { savedEpisodeData } = detail.notification.data;
-          console.log("Foreground: savedEpisodeData", savedEpisodeData);
+    if (
+      (type === EventType.ACTION_PRESS &&
+        detail.pressAction?.id === "open_downloaded_video") ||
+      (type === EventType.PRESS &&
+        detail.pressAction?.id === "open_downloaded_video")
+    ) {
+      Logger.info('Actions', 'Відкриття завантаженого відео з foreground події');
+      const { savedEpisodeData } = detail.notification.data;
+      Logger.debug('Actions', 'Дані епізоду', { savedEpisodeData });
 
-          try {
-            // Додати перевірку існування файлу
-            const fileExists = await FileSystem.getInfoAsync(
-              savedEpisodeData.video_path
-            );
-            if (!fileExists.exists) {
-              console.error("Файл не існує:", savedEpisodeData.video_path);
-              return;
-            }
+      try {
+        if (!(await RNFS.exists(savedEpisodeData.video_path))) {
+          Logger.error('Actions', 'Файл не існує', { path: savedEpisodeData.video_path });
+          return Promise.resolve();
+        }
 
-            await FileOpener.openFile(savedEpisodeData.video_path, "video/*");
-            console.log("Діалог вибору відкрито");
-          } catch (error) {
-            console.error("Помилка при відкритті файлу:", error);
-          }
-          break;
-
-        case "download_video_error":
-          console.log(
-            "Помилка при завантаженні відео:",
-            detail.notification.data
-          );
-          break;
+        await FileOpener.openFile(savedEpisodeData.video_path, "video/*");
+        Logger.info('Actions', 'Діалог вибору відкрито');
+      } catch (error) {
+        Logger.error('Actions', 'Помилка при відкритті файлу', error);
       }
+      return Promise.resolve();
     }
   });
 

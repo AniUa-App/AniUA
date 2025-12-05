@@ -19,6 +19,7 @@ import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
 import { isTabletLandscape, isTablet } from "../Styles/Responsive";
 import { useWindowDimensions } from "react-native";
+import Logger from "../Logger/Logger";
 
 const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   anime,
@@ -37,20 +38,14 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
     HikkaApi.getEpisodes(anime.slug)
       .then((res) => {
         if (res.error) {
-          console.log(
-            `Помилка завантаження епізодів для ${anime.slug}: ${res.error}`
-          );
+          Logger.error('AnimePreviewWidget', 'Помилка завантаження епізодів', { slug: anime.slug, error: res.error });
           setEpisodesList({});
         } else {
           setEpisodesList(res.data);
         }
       })
       .catch((error) => {
-        console.log(
-          `Помилка завантаження епізодів для ${anime.slug}: ${
-            error?.message || error
-          }`
-        );
+        Logger.error('AnimePreviewWidget', 'Помилка завантаження епізодів (exception)', { slug: anime.slug, error: error?.message || error });
         setEpisodesList({});
       });
   }, [anime.slug]);
@@ -116,7 +111,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             ellipsizeMode="tail"
             style={[H3, { marginBottom: maxHeight ? 0 : 20 }]}
           >
-            {anime.title_ua}
+            {anime.title_ua || anime.title_en || anime.title_ja}
           </Text>
           <Text style={[H4, { marginBottom: 8 }]}>
             Рейтинг:{" "}
@@ -187,12 +182,12 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                 episode.video_path
               );
               if (fileInfo.exists) {
-                console.log(episode.video_path, "episode.video_path");
+                Logger.debug('AnimePreviewWidget', 'Відкриття відео файлу', { videoPath: episode.video_path });
 
                 FileOpener.openFile(episode.video_path, "video/*")
-                  .then(() => console.log("Діалог вибору відкрито"))
+                  .then(() => Logger.info('AnimePreviewWidget', 'Діалог вибору відкрито'))
                   .catch((error) =>
-                    console.error("Помилка при відкритті файлу:", error)
+                    Logger.error('AnimePreviewWidget', 'Помилка при відкритті файлу', error)
                   );
               } else {
                 navigation.navigate("HiddenStack", {
@@ -201,7 +196,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                 });
               }
             } catch (error) {
-              console.error("Помилка при відкритті файлу:", error);
+              Logger.error('AnimePreviewWidget', 'Помилка при відкритті файлу', error);
             }
           }
         }}

@@ -43,6 +43,12 @@ export default {
       return undefined;
     }
 
+    // Дозволяємо тільки шляхи що починаються з /anime/
+    if (!path.startsWith("/anime/") && path !== "/anime") {
+      console.warn("LinkingConfig: Only /anime/{slug} URLs are allowed. Ignored:", path);
+      return undefined;
+    }
+
     // Викликаємо стандартну функцію React Navigation
     const {
       getStateFromPath: defaultGetStateFromPath,

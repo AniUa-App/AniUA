@@ -342,7 +342,7 @@ export async function DownloadM3U8Video(
   }
 }
 
-// Функция получения данных плеера
+// Функція отримання даних плеєра
 async function getPlayerDataFrom_ASHDI_Player(url) {
   try {
     const response = await axios.get(url);
@@ -351,7 +351,7 @@ async function getPlayerDataFrom_ASHDI_Player(url) {
     console.log(fileMatch);
     return fileMatch ? {file: fileMatch[1]} : null;
   } catch (error) {
-    console.error('Ошибка загрузки:', error);
+    console.error('Помилка завантаження:', error);
     return null;
   }
 }

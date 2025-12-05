@@ -44,6 +44,7 @@ import RNFS from "react-native-fs";
 import { useNavigation } from "@react-navigation/native";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import { isTablet } from "../Styles/Responsive";
+import Logger from "../Logger/Logger";
 
 export default function СustomisationScreen() {
   const navigation = useNavigation();
@@ -64,7 +65,7 @@ export default function СustomisationScreen() {
   const SET_USER_CONFIG = (newConfig) => {
     _SET_USER_CONFIG(newConfig);
     SettingsStorage.setParameter("userConfig", newConfig);
-    console.log(newConfig, "newConfig");
+    Logger.debug('Customisation', 'Оновлення конфігурації користувача', { newConfig });
     EventBus.emit("userConfig", newConfig);
   };
 
@@ -142,7 +143,7 @@ export default function СustomisationScreen() {
                   segments={[{ label: "Default" }, { label: "MD3" }]}
                   value={USER_CONFIG?.navbar?.style || "Default"}
                   onChange={(value) => {
-                    console.log(value, "value");
+                    Logger.debug('Customisation', 'Зміна стилю навігації', { value });
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
                       navbar: {
@@ -526,16 +527,10 @@ export default function СustomisationScreen() {
                 const safeExt = extension || "png";
                 const destPath = `${RNFS.DocumentDirectoryPath}/background.${safeExt}`;
                 await RNFS.copyFile(uri, destPath);
-                console.log(
-                  "Зображення скопійовано у внутрішню памʼять:",
-                  destPath
-                );
+                Logger.info('Customisation', 'Зображення скопійовано у внутрішню памʼять', { destPath });
                 return destPath;
               } catch (error) {
-                console.error(
-                  "Помилка копіювання зображення у внутрішню памʼять:",
-                  error
-                );
+                Logger.error('Customisation', 'Помилка копіювання зображення у внутрішню памʼять', error);
                 return null;
               }
             };
@@ -570,7 +565,7 @@ export default function СustomisationScreen() {
                       subtitle="Фонове зображення додатка"
                       onPick={async (payload) => {
                         const uriPath = await copyBackgroundImage(payload);
-                        console.log(uriPath, "uriPath");
+                        Logger.debug('Customisation', 'Отримано шлях до фонового зображення', { uriPath });
                         SET_USER_CONFIG({
                           ...USER_CONFIG,
                           background: {
@@ -1179,7 +1174,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
         copyToCacheDirectory: true,
       });
 
-      console.log(result, "result");
+      Logger.debug('Customisation', 'Результат вибору зображення', { result });
 
       const canceled = result?.canceled ?? result?.type === "cancel";
       if (canceled) {
@@ -1191,7 +1186,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
       const name = asset?.name || null;
       const mimeType = asset?.mimeType || null;
       if (!uri) {
-        console.warn("Не вдалося отримати URI вибраного зображення");
+        Logger.warn('Customisation', 'Не вдалося отримати URI вибраного зображення');
         return null;
       }
 
@@ -1200,7 +1195,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
       onPick?.(payload);
       return payload;
     } catch (err) {
-      console.error("Помилка вибору зображення:", err);
+      Logger.error('Customisation', 'Помилка вибору зображення', err);
       return null;
     }
   };

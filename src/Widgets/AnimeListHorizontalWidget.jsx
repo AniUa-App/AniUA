@@ -11,7 +11,6 @@ import Icon from "../Styles/Icons";
 import { appColor, black, white } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
-import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
@@ -27,7 +26,7 @@ export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
     <View style={{ flex: 1 }}>
       <TouchableOpacity
         style={styles.header}
-        activeOpacity={0.9}
+        activeOpacity={1}
         onPress={onClickMore}
       >
         <Text style={[styles.title, H3, { color: themeColors.white }]}>
@@ -44,6 +43,7 @@ export function AnimeListHorizontal({ animeList, title, onClickMore = null }) {
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
+            activeOpacity={1}
             style={[
               styles.imageContainer,
               isTabletLandscape()

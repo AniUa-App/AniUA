@@ -1,3 +1,5 @@
+import Logger from "../Logger/Logger";
+
 // Простий EventEmitter для роботи з глобальними подіями
 const listeners = {};
 
@@ -17,7 +19,7 @@ export const EventBus = {
   },
 
   emit(event, data) {
-    console.log("EventBus emit", event, data);
+    Logger.debug('EventBus', 'emit', { event, data });
     if (listeners[event]) {
       listeners[event].forEach((callback) => callback(data));
     }

@@ -26,7 +26,7 @@ export function Image({ uri, style, onLoad }) {
 
   return (
     <View style={style}>
-      {/* Показываем Skeleton, пока загружается изображение */}
+      {/* Показуємо Skeleton, поки завантажується зображення */}
       {loading && (
         <Skeleton
           LinearGradientComponent={CustomLinearGradient}

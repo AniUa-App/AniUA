@@ -14,20 +14,20 @@ export function GetAnimeGanres() {
     });
 }
 export async function GetAnimes(page = 1) {
-  const baseUrl = "https://animeua.club"; // Замени на свою ссылку
+  const baseUrl = "https://animeua.club"; // Заміни на своє посилання
 
   try {
     const response = await axios.get(`${SourceUrl}/get/animes/${page}`);
     const animes = response.data;
 
-    // Добавляем базовый URL к ключу `image_url`
+    // Додаємо базовий URL до ключа `image_url`
     return animes.map((anime) => ({
       ...anime,
       image_url: `${baseUrl}${anime.image_url}`,
     }));
   } catch (error) {
-    console.error("Ошибка загрузки данных:", error.message);
-    return []; // Возвращаем пустой массив в случае ошибки
+    console.error("Помилка завантаження даних:", error.message);
+    return []; // Повертаємо пустий масив у випадку помилки
   }
 }
 

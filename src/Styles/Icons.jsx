@@ -216,6 +216,23 @@ export function PlayIcon({ fill }) {
   );
 }
 
+export function TelegramIconSVG({ fill }) {
+  return (
+    <Svg
+      width="45"
+      height="45"
+      viewBox="0 0 45 45"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <Path
+        d="M21.8625 8.4375L8.2125 13.6875C7.95 13.7813 7.875 14.0625 8.0625 14.2125L10.875 16.125L19.875 10.3125C20.1 10.125 20.325 10.3125 20.175 10.5L12.9375 17.25V20.625C12.9375 20.925 13.2938 21 13.4438 20.775L15.3 18.5625L19.05 21.3C19.5 21.6 20.0625 21.375 20.1563 20.8125L22.4063 9.1875C22.5 8.625 22.2 8.25 21.8625 8.4375Z"
+        fill={fill}
+      />
+    </Svg>
+  );
+}
+
 export function AshdiIcon({ styles }) {
   return (
     <View

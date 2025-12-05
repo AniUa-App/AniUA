@@ -16,6 +16,7 @@ import { useEffect } from "react";
 // import Orientation from "react-native-orientation-locker";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { BackHandler } from "react-native";
+import Logger from "../Logger/Logger";
 
 // Функція для визначення чи це планшет
 const isTablet = () => {
@@ -30,7 +31,7 @@ export default function WebVideoPlayerScreen({ route }) {
 
   useEffect(() => {
     const onBackPress = () => {
-      console.log("onBackPress");
+      Logger.debug('WebVideoPlayer', 'onBackPress');
       navigation.goBack();
       StatusBar.setHidden(false, "slide");
       // Orientation.lockToPortrait();

@@ -74,6 +74,7 @@ export default {
             {
               scheme: "https",
               host: "aniua.yuzka.site",
+              pathPrefix: "/anime",
             },
           ],
           category: ["BROWSABLE", "DEFAULT"],

@@ -8,6 +8,7 @@ import { TouchableOpacity } from "./Button";
 import AnimeStorage from "../Storage/AnimeStorage";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
+import Logger from "../Logger/Logger";
 
 function goToPlayer(navigation, player, item, episodesList, anime, dubbing) {
   if (player === "Вбудований плеєр") {
@@ -33,7 +34,7 @@ function goToPlayer(navigation, player, item, episodesList, anime, dubbing) {
 // Буде повертати текст для кнопки, нову data та функцію
 export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
   // Перевірка на наявність необхідних даних
-  if (!info || !info.watched || !episodesList) {
+  if (!info || !info?.watched || !episodesList) {
     return {
       text: "Завантаження...",
       data: info || {},
@@ -66,7 +67,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
 
   // Додати в обрані
   if (Math.max(...viewed_episodes) === anime?.episodes_total) {
-    console.log("Додати в обрані");
+    Logger.debug("ForwardButton", "Всі серії переглянуто - додати в обрані");
     if (info?.isFavorite) {
       return {
         text: `Поділитись`,
@@ -88,28 +89,32 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
   //
   // Продовжити перегляд
   else if (viewed_episodes.length > 0) {
-    console.log("Продовжити перегляд");
+    Logger.debug("ForwardButton", "Продовжити перегляд");
 
     const last_episode_index = Math.max(...viewed_episodes);
-    console.log("last_episode_index", last_episode_index);
-    console.log("viewed_episodes", viewed_episodes);
-    console.log("Math.max(...viewed_episodes)", Math.max(...viewed_episodes));
-    console.log("episodes[last_episode_index]", episodes[last_episode_index]);
-    console.log("episodes", episodes);
-    console.log("anime?.episodes_released", anime?.episodes_released);
+    Logger.debug("ForwardButton", "Дані для продовження перегляду", {
+      last_episode_index,
+      viewed_episodes,
+      max_viewed: Math.max(...viewed_episodes),
+      current_episode: episodes[last_episode_index],
+      episodes_count: episodes.length,
+      episodes_released: anime?.episodes_released,
+    });
 
     // якщо доступних перекладених серій більше ніж анонсованих епізодів
 
     if (episodes.length > anime?.episodes_released) {
       if (last_episode_index < episodes.length) {
-        console.log("last_episode_index", last_episode_index);
+        Logger.debug("ForwardButton", "Наступна серія доступна", {
+          last_episode_index,
+        });
         const last_episode = episodes[last_episode_index];
 
         return {
           text: `Дивитись ${last_episode_index + 1} серію`,
           data: {
             ...info,
-            watched: { ...info.watched, episodes: viewed_episodes },
+            watched: { ...info?.watched, episodes: viewed_episodes },
           },
           function: () => {
             // navigation.navigate('HiddenStack', {
@@ -131,7 +136,10 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
           },
         };
       } else {
-        console.log("Додати в обрані");
+        Logger.debug(
+          "ForwardButton",
+          "Всі доступні серії переглянуто - додати в обрані"
+        );
         if (info?.isFavorite) {
           return {
             text: `Поділитись`,
@@ -160,7 +168,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
         text: `Дивитись ${last_episode.episode} серію`,
         data: {
           ...info,
-          watched: { ...info.watched, episodes: viewed_episodes },
+          watched: { ...info?.watched, episodes: viewed_episodes },
         },
         function: () => {
           goToPlayer(
@@ -199,7 +207,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
   //
   // Почати перегляд
   else if (viewed_episodes.length === 0) {
-    console.log("Почати перегляд");
+    Logger.debug("ForwardButton", "Почати перегляд");
     if (!episodes[0]) {
       return {
         text: "Серії недоступні",
@@ -214,7 +222,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
       text: `Почати перегляд`,
       data: {
         ...info,
-        watched: { ...info.watched, episodes: viewed_episodes },
+        watched: { ...info?.watched, episodes: viewed_episodes },
       },
       function: () => {
         goToPlayer(
@@ -300,7 +308,7 @@ export function ForwardButton({
         });
       }
     } catch (error) {
-      console.error("Помилка у ForwardButton:", error);
+      Logger.error("ForwardButton", "Помилка у ForwardButton", error);
       setIsData(false);
     }
   }, [data, episodesList, errorCode]);

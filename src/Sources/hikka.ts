@@ -1,6 +1,12 @@
 import axios from "axios";
 import { TransformToCompactJson } from "../Global/Functions";
+import Logger from "../Logger/Logger";
 
+/**
+ * API клас для роботи з Hikka API (api.hikka.io)
+ * Надає методи для отримання аніме, пошуку, фільтрації та роботи з епізодами
+ * Всі запити кешуються на 5 хвилин для оптимізації продуктивності
+ */
 export class HikkaApi {
   protected static apiUrl = "https://api.hikka.io/";
   protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
@@ -16,6 +22,13 @@ export class HikkaApi {
     },
   });
 
+  /**
+   * Виконує запит з кешуванням результату
+   * @param {string} cacheKey - Унікальний ключ для кешу
+   * @param {Function} requestFn - Функція що виконує запит
+   * @param {number} [ttl] - Час життя кешу в мс (за замовчуванням 5 хвилин)
+   * @returns {Promise<any>} Результат запиту з кешу або з сервера
+   */
   protected static async cachedRequest(
     cacheKey: string,
     requestFn: () => Promise<any>,
@@ -39,11 +52,15 @@ export class HikkaApi {
       };
       return result;
     } catch (error: any) {
-      console.error(`Помилка у запиті ${cacheKey}:`, error?.message || error);
+      Logger.error("HikkaApi", `Помилка у запиті ${cacheKey}`, error);
       throw error;
     }
   }
 
+  /**
+   * Отримує список всіх жанрів аніме
+   * @returns {Promise<Array>} Масив об'єктів жанрів
+   */
   public static async getGenres() {
     const cacheKey = `genres`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -54,6 +71,12 @@ export class HikkaApi {
     });
   }
 
+  /**
+   * Отримує найпопулярніші аніме поточного року (2025)
+   * @param {number} [page=1] - Номер сторінки
+   * @param {number} [size=1] - Кількість елементів на сторінці
+   * @returns {Promise<Array>} Масив аніме відсортованих за популярністю
+   */
   public static async getMostPopularAnimeOfTheYear(
     page: number = 1,
     size: number = 1
@@ -74,6 +97,11 @@ export class HikkaApi {
     }).catch(() => []);
   }
 
+  /**
+   * Отримує детальну інформацію про аніме за slug
+   * @param {string} slug - Унікальний slug аніме
+   * @returns {Promise<Object|null>} Об'єкт з деталями аніме або null
+   */
   public static async getAnimeDetails(slug: string) {
     const cacheKey = `anime_details_${slug}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -84,6 +112,12 @@ export class HikkaApi {
     }).catch(() => null);
   }
 
+  /**
+   * Отримує найпопулярніші аніме з 2020 по 2025 рік
+   * @param {number} [page=1] - Номер сторінки
+   * @param {number} [size=1] - Кількість елементів
+   * @returns {Promise<Array>} Масив популярних аніме
+   */
   public static async getMostPopularAnime(page: number = 1, size: number = 1) {
     const cacheKey = `popular_${page}_${size}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -101,6 +135,12 @@ export class HikkaApi {
     }).catch(() => []);
   }
 
+  /**
+   * Отримує франшизу (пов'язані аніме) за slug
+   * @param {string} slug - Slug аніме
+   * @param {string} [filter=""] - Фільтр для результатів
+   * @returns {Promise<Array>} Масив аніме з франшизи, відсортованих за роком
+   */
   public static async getAnimeFranchiseByFilter(
     slug: string,
     filter: string = ""
@@ -118,47 +158,35 @@ export class HikkaApi {
         if (error?.response?.status === 400) {
           return [];
         } else {
-          console.error(
-            "Помилка при завантаженні франшизи:",
-            error?.message || error
-          );
+          Logger.error("HikkaApi", "Помилка при завантаженні франшизи", error);
           return [];
         }
       }
     }).catch(() => []);
   }
 
+  /**
+   * Отримує список епізодів аніме з озвучками від різних провайдерів
+   * @param {string} slug - Slug аніме
+   * @returns {Promise<Object>} Об'єкт з епізодами по озвучкам та провайдерам або помилкою
+   */
   public static async getEpisodes(slug: string) {
     const cacheKey = `episodes_${slug}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
       try {
-        console.log("episodes1data slugggg:", slug);
+        Logger.debug("HikkaApi", "Завантаження епізодів для slug", slug);
 
         const response = await HikkaApi.axiosInstance.get(
           `${HikkaApi.apiEpisodesUrl}watch/${slug}`
         );
 
-        console.log("episodes1data response:", response.data);
+        Logger.debug("HikkaApi", "Отримано епізоди", response.data);
 
-        // Check if the response is empty or has an error structure
-        // if (!response.data || Object.keys(response.data).length === 0) {
-        //   return { data: [], code: 404 };
-        // }
-
-        // Check if response doesn't have ashdi or moon
-        // if (!response.data.ashdi || !response.data.moon) {
-        //   return { data: [], code: 404 };
-        // }
-
-        // Remove type property from response if it exists
         const { type, ...rest } = response.data;
 
         return { data: rest, code: response.status };
       } catch (error: any) {
-        console.error(
-          "Помилка при завантаженні епізодів:",
-          error?.message || error
-        );
+        Logger.error("HikkaApi", "Помилка при завантаженні епізодів", error);
         return {
           data: [],
           code: error?.response?.status || 500,
@@ -167,6 +195,11 @@ export class HikkaApi {
     });
   }
 
+  /**
+   * Пошук аніме за текстовим запитом
+   * @param {string} query - Текст пошуку
+   * @returns {Promise<Array>} Масив знайдених аніме (до 30 елементів)
+   */
   public static async searchAnime(query: string) {
     const cacheKey = `search_${query}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -180,6 +213,11 @@ export class HikkaApi {
     }).catch(() => []);
   }
 
+  /**
+   * Отримує повну інформацію про аніме (деталі + франшиза + епізоди)
+   * @param {string} slug - Slug аніме
+   * @returns {Promise<Object>} Об'єкт з повною інформацією про аніме
+   */
   public static async getAnimeFullInfo(slug: string) {
     const cacheKey = `full_info_${slug}`;
     return HikkaApi.cachedRequest(cacheKey, async () => {
@@ -201,6 +239,10 @@ export class HikkaApi {
     }));
   }
 
+  /**
+   * Повертає базову URL для Hikka API
+   * @returns {string} Базова URL API
+   */
   public static getApiUrl() {
     return `${HikkaApi.apiUrl}`;
   }

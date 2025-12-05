@@ -1,4 +1,5 @@
-import FileOpener from 'react-native-file-opener';
+import FileOpener from "react-native-file-opener";
+import Logger from "../Logger/Logger";
 
 /**
  * Обгортка для роботи з файлами
@@ -14,19 +15,19 @@ class FileOpenerHelper {
       // Спочатку перевіряємо чи існує файл
       const exists = await FileOpener.checkFileExists(filePath);
       if (!exists) {
-        throw new Error(`Файл не існує: ${filePath}`);
+        throw new Error(`!Файл не існує: ${filePath}`);
       }
 
       // Отримуємо інформацію про файл
       const fileInfo = await FileOpener.getFileInfo(filePath);
-      console.log('Інформація про файл:', fileInfo);
+      Logger.debug('FileOpener', 'Інформація про файл', { fileInfo });
 
       // Відкриваємо файл з автоматичним визначенням типу
       const result = await FileOpener.openFileAuto(filePath);
-      console.log('Файл відкрито успішно:', result);
+      Logger.info('FileOpener', 'Файл відкрито успішно', { result });
       return result;
     } catch (error) {
-      console.error('Помилка відкриття файлу:', error);
+      Logger.error('FileOpener', 'Помилка відкриття файлу', error);
       throw error;
     }
   }
@@ -40,10 +41,10 @@ class FileOpenerHelper {
   static async openFileWithMimeType(filePath, mimeType) {
     try {
       const result = await FileOpener.openFile(filePath, mimeType);
-      console.log('Файл відкрито успішно:', result);
+      Logger.info('FileOpener', 'Файл відкрито успішно', { result });
       return result;
     } catch (error) {
-      console.error('Помилка відкриття файлу:', error);
+      Logger.error('FileOpener', 'Помилка відкриття файлу', error);
       throw error;
     }
   }
@@ -55,17 +56,17 @@ class FileOpenerHelper {
    */
   static async openVideo(filePath) {
     const videoMimeTypes = {
-      'mp4': 'video/mp4',
-      'avi': 'video/x-msvideo',
-      'mkv': 'video/x-matroska',
-      'mov': 'video/quicktime',
-      'wmv': 'video/x-ms-wmv',
-      'flv': 'video/x-flv',
-      'webm': 'video/webm'
+      mp4: "video/mp4",
+      avi: "video/x-msvideo",
+      mkv: "video/x-matroska",
+      mov: "video/quicktime",
+      wmv: "video/x-ms-wmv",
+      flv: "video/x-flv",
+      webm: "video/webm",
     };
 
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    const mimeType = videoMimeTypes[extension] || 'video/mp4';
+    const extension = filePath.split(".").pop()?.toLowerCase();
+    const mimeType = videoMimeTypes[extension] || "video/mp4";
 
     return this.openFileWithMimeType(filePath, mimeType);
   }
@@ -77,16 +78,16 @@ class FileOpenerHelper {
    */
   static async openAudio(filePath) {
     const audioMimeTypes = {
-      'mp3': 'audio/mpeg',
-      'wav': 'audio/wav',
-      'ogg': 'audio/ogg',
-      'aac': 'audio/aac',
-      'flac': 'audio/flac',
-      'm4a': 'audio/mp4'
+      mp3: "audio/mpeg",
+      wav: "audio/wav",
+      ogg: "audio/ogg",
+      aac: "audio/aac",
+      flac: "audio/flac",
+      m4a: "audio/mp4",
     };
 
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    const mimeType = audioMimeTypes[extension] || 'audio/mpeg';
+    const extension = filePath.split(".").pop()?.toLowerCase();
+    const mimeType = audioMimeTypes[extension] || "audio/mpeg";
 
     return this.openFileWithMimeType(filePath, mimeType);
   }
@@ -98,17 +99,17 @@ class FileOpenerHelper {
    */
   static async openImage(filePath) {
     const imageMimeTypes = {
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'gif': 'image/gif',
-      'bmp': 'image/bmp',
-      'webp': 'image/webp',
-      'svg': 'image/svg+xml'
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      bmp: "image/bmp",
+      webp: "image/webp",
+      svg: "image/svg+xml",
     };
 
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    const mimeType = imageMimeTypes[extension] || 'image/jpeg';
+    const extension = filePath.split(".").pop()?.toLowerCase();
+    const mimeType = imageMimeTypes[extension] || "image/jpeg";
 
     return this.openFileWithMimeType(filePath, mimeType);
   }
@@ -120,19 +121,19 @@ class FileOpenerHelper {
    */
   static async openDocument(filePath) {
     const documentMimeTypes = {
-      'pdf': 'application/pdf',
-      'doc': 'application/msword',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'xls': 'application/vnd.ms-excel',
-      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'ppt': 'application/vnd.ms-powerpoint',
-      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'txt': 'text/plain',
-      'rtf': 'application/rtf'
+      pdf: "application/pdf",
+      doc: "application/msword",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      xls: "application/vnd.ms-excel",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ppt: "application/vnd.ms-powerpoint",
+      pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      txt: "text/plain",
+      rtf: "application/rtf",
     };
 
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    const mimeType = documentMimeTypes[extension] || 'application/octet-stream';
+    const extension = filePath.split(".").pop()?.toLowerCase();
+    const mimeType = documentMimeTypes[extension] || "application/octet-stream";
 
     return this.openFileWithMimeType(filePath, mimeType);
   }
@@ -146,7 +147,7 @@ class FileOpenerHelper {
     try {
       return await FileOpener.checkFileExists(filePath);
     } catch (error) {
-      console.error('Помилка перевірки файлу:', error);
+      Logger.error('FileOpener', 'Помилка перевірки файлу', error);
       return false;
     }
   }
@@ -160,7 +161,7 @@ class FileOpenerHelper {
     try {
       return await FileOpener.getFileInfo(filePath);
     } catch (error) {
-      console.error('Помилка отримання інформації про файл:', error);
+      Logger.error('FileOpener', 'Помилка отримання інформації про файл', error);
       throw error;
     }
   }
@@ -174,7 +175,7 @@ class FileOpenerHelper {
     try {
       return await FileOpener.getMimeType(filePath);
     } catch (error) {
-      console.error('Помилка отримання MIME типу:', error);
+      Logger.error('FileOpener', 'Помилка отримання MIME типу', error);
       throw error;
     }
   }
@@ -185,16 +186,34 @@ class FileOpenerHelper {
    * @returns {Promise<string>} - результат операції
    */
   static async openFileByType(filePath) {
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    
+    const extension = filePath.split(".").pop()?.toLowerCase();
+
     // Визначаємо тип файлу за розширенням
-    if (['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm'].includes(extension)) {
+    if (
+      ["mp4", "avi", "mkv", "mov", "wmv", "flv", "webm"].includes(extension)
+    ) {
       return this.openVideo(filePath);
-    } else if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(extension)) {
+    } else if (
+      ["mp3", "wav", "ogg", "aac", "flac", "m4a"].includes(extension)
+    ) {
       return this.openAudio(filePath);
-    } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension)) {
+    } else if (
+      ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(extension)
+    ) {
       return this.openImage(filePath);
-    } else if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf'].includes(extension)) {
+    } else if (
+      [
+        "pdf",
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "ppt",
+        "pptx",
+        "txt",
+        "rtf",
+      ].includes(extension)
+    ) {
       return this.openDocument(filePath);
     } else {
       // Для невідомих типів використовуємо автоматичне визначення
@@ -203,4 +222,4 @@ class FileOpenerHelper {
   }
 }
 
-export default FileOpenerHelper; 
+export default FileOpenerHelper;

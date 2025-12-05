@@ -8,11 +8,12 @@ import {
   ActivityIndicator,
   StatusBar,
 } from "react-native";
+import Logger from "../Logger/Logger";
 import BigBannerWidget from "../Widgets/BigBannerWidget";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SearchLine from "../Widgets/SearchLineWidget";
 import AnimeListVertical from "../Widgets/AnimeListVerticalWidget";
-import { appColor } from "../Styles/Colors";
+import { appColor, black, Black, Black_1 } from "../Styles/Colors";
 import { useFocusEffect } from "@react-navigation/native";
 import { InternetError } from "../Widgets/ErrorsWidgets";
 import { HikkaSets } from "../Sources/HikkaSets";
@@ -26,7 +27,6 @@ import { useIsTabletLandscape } from "../Styles/Responsive";
 
 export default function HomeScreen() {
   const isTL = useIsTabletLandscape();
-  // Стан для аніме, відсортованих за популярністю за поточний рік
   const [animeList_popularity_this_year, setAnimeList_popularity_this_year] =
     useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,13 +36,18 @@ export default function HomeScreen() {
     SettingsStorage.getParameter("userConfig.recommendations")
   );
 
+  /**
+   * Підписка на зміни налаштувань рекомендацій через EventBus
+   */
   useEffect(() => {
     EventBus.on("recommendations", (newRecommendations) => {
       setRecommendations(newRecommendations);
     });
   }, []);
 
-  // Отримання найпопулярніших аніме за поточний рік при першому завантаженні
+  /**
+   * Завантаження найпопулярніших аніме поточного року для BigBanner
+   */
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -51,7 +56,7 @@ export default function HomeScreen() {
         const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
         setAnimeList_popularity_this_year(yearData);
       } catch (error) {
-        console.error("Помилка при завантаженні даних:", error);
+        Logger.error("Home", "Помилка при завантаженні даних", error);
         setHasInternetError(true);
       } finally {
         setIsLoading(false);
@@ -61,14 +66,13 @@ export default function HomeScreen() {
     fetchData();
   }, []);
 
-  // Додаємо useFocusEffect для оновлення статус бару при фокусі
+  /**
+   * Налаштовує прозорий статус-бар при фокусі на екрані
+   */
   useFocusEffect(
     useCallback(() => {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor("transparent");
-      return () => {
-        // Очищення при втраті фокусу не потрібно, оскільки інші екрани встановлюють свої налаштування
-      };
     }, [])
   );
 
@@ -81,7 +85,7 @@ export default function HomeScreen() {
           const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
           setAnimeList_popularity_this_year(yearData);
         } catch (error) {
-          console.error("Помилка при повторному завантаженні:", error);
+          Logger.error("Home", "Помилка при повторному завантаженні", error);
           setHasInternetError(true);
         } finally {
           setIsLoading(false);
@@ -96,7 +100,6 @@ export default function HomeScreen() {
   }
 
   return (
-    // Основний компонент екрану
     <DefaultScreenWidget isNavBarPadding={true}>
       <View
         style={{
@@ -108,7 +111,6 @@ export default function HomeScreen() {
       >
         {isTL ? (
           <>
-            {/* Ліва колонка: банер на повну висоту */}
             {recommendations?.isDefaultBigBanner === true && (
               <View style={{ width: "40%", height: "100%" }}>
                 <BigBannerWidget.Tablet
@@ -117,7 +119,6 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* Права колонка: пошук + контент */}
             <SearchLine />
 
             <View style={{ flex: 1, height: "100%" }}>
@@ -159,7 +160,6 @@ export default function HomeScreen() {
             </View>
           </>
         ) : (
-          // Портрет/телефон: стара структура
           <>
             <SearchLine />
             <ScrollView
@@ -207,42 +207,47 @@ export default function HomeScreen() {
   );
 }
 
+/**
+ * Компонент для відображення персоналізованих списків рекомендацій
+ * Завантажує списки з PersonalRecListStorage та відображає їх горизонтально
+ */
 const CustomPersonalRecList = React.memo(() => {
   const [personalRecList, setPersonalRecList] = useState([]);
   const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
 
-  // Load list from storage once (or on mount)
   useEffect(() => {
     try {
       setIsLoading(true);
       const data = PersonalRecListStorage.getSettingsList();
       setPersonalRecList(data);
     } catch (error) {
-      console.error("Помилка при завантаженні популярних аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Subscribe to personal rec list updates
+  /**
+   * Підписка на оновлення персональних списків через EventBus
+   */
   useEffect(() => {
     const unsubscribe = EventBus.on("personalRecListUpdated", () => {
       try {
         const data = PersonalRecListStorage.getSettingsList();
         setPersonalRecList(data);
       } catch (e) {
-        console.error("Помилка при оновленні персональних списків:", e);
+        Logger.error("Home", "Помилка при оновленні персональних списків", e);
       }
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
 
-  // When list changes, fetch previews
+  /**
+   * Завантажує превью аніме для кожного персонального списку
+   */
   useEffect(() => {
     if (!personalRecList || personalRecList.length === 0) {
       setLoadedAnimeLists([]);
@@ -261,7 +266,7 @@ const CustomPersonalRecList = React.memo(() => {
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        console.log(JSON.parse(results), "results");
+        Logger.debug("Home", "Results", JSON.parse(results));
       })
       .finally(() => setIsLoading(false));
   }, [personalRecList]);
@@ -306,7 +311,9 @@ const CustomPersonalRecList = React.memo(() => {
   );
 });
 
-// Компонент для відображення популярних аніме
+/**
+ * Компонент для відображення найпопулярніших аніме з 2020 року
+ */
 const PopularAnimeList = React.memo(() => {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -318,7 +325,7 @@ const PopularAnimeList = React.memo(() => {
         const data = await HikkaSets.getMostPopularAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
+        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
       } finally {
         setIsLoading(false);
       }
@@ -338,7 +345,7 @@ const PopularAnimeList = React.memo(() => {
         },
       });
     } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні аніме", error);
     }
   }, [navigation]);
 
@@ -359,7 +366,9 @@ const PopularAnimeList = React.memo(() => {
   );
 });
 
-// Компонент для відображення популярних аніме
+/**
+ * Компонент для відображення аніме, що виходять зараз (онгоїнги)
+ */
 const OngoingAnimeList = React.memo(() => {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -371,7 +380,7 @@ const OngoingAnimeList = React.memo(() => {
         const data = await HikkaSets.getOngoingAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
+        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
       } finally {
         setIsLoading(false);
       }
@@ -391,7 +400,7 @@ const OngoingAnimeList = React.memo(() => {
         },
       });
     } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні аніме", error);
     }
   }, [navigation]);
 
@@ -412,6 +421,9 @@ const OngoingAnimeList = React.memo(() => {
   );
 });
 
+/**
+ * Компонент для відображення аніме жанру "Бойовик"
+ */
 const ActionAnimeList = React.memo(() => {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -423,7 +435,7 @@ const ActionAnimeList = React.memo(() => {
         const data = await HikkaSets.getActionAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
+        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
       } finally {
         setIsLoading(false);
       }
@@ -443,7 +455,7 @@ const ActionAnimeList = React.memo(() => {
         },
       });
     } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні аніме", error);
     }
   }, [navigation]);
 
@@ -464,6 +476,9 @@ const ActionAnimeList = React.memo(() => {
   );
 });
 
+/**
+ * Компонент для відображення аніме жанру "Фантастика"
+ */
 const SciFiAnimeList = React.memo(() => {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -475,7 +490,7 @@ const SciFiAnimeList = React.memo(() => {
         const data = await HikkaSets.getSciFiAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
+        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
       } finally {
         setIsLoading(false);
       }
@@ -495,7 +510,7 @@ const SciFiAnimeList = React.memo(() => {
         },
       });
     } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні аніме", error);
     }
   }, [navigation]);
 
@@ -516,6 +531,9 @@ const SciFiAnimeList = React.memo(() => {
   );
 });
 
+/**
+ * Компонент для відображення аніме жанру "Романтика"
+ */
 const RomanceAnimeList = React.memo(() => {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -527,7 +545,7 @@ const RomanceAnimeList = React.memo(() => {
         const data = await HikkaSets.getRomanceAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        console.error("Помилка при завантаженні популярних аніме:", error);
+        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
       } finally {
         setIsLoading(false);
       }
@@ -547,7 +565,7 @@ const RomanceAnimeList = React.memo(() => {
         },
       });
     } catch (error) {
-      console.error("Помилка при завантаженні аніме:", error);
+      Logger.error("Home", "Помилка при завантаженні аніме", error);
     }
   }, [navigation]);
 
@@ -573,6 +591,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 30,
-    height: 200, // Фіксована висота для індикатора завантаження
+    height: 200,
   },
 });

@@ -15,6 +15,7 @@ import {
   FlatList,
   PanResponder,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "./Button";
@@ -29,7 +30,6 @@ import {
 import { HikkaApi } from "../Sources/hikka";
 import { H3, H4 } from "../Styles/Fonts";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { GetScreenHeight } from "../Global/Functions";
 import { EventBus } from "../Global/EventBus";
 import Icon from "../Styles/Icons";
 
@@ -225,6 +225,7 @@ export default function EpisodesBottomSheet({
   type = "list",
 }) {
   const navigation = useNavigation();
+  const { height } = useWindowDimensions();
   const [episodesData, setEpisodesData] = useState([]);
   const [info, setInfo_] = useState(storage_data || {});
   const [isLoading, setIsLoading] = useState(true);
@@ -318,7 +319,7 @@ export default function EpisodesBottomSheet({
               renderItem={renderItem}
               keyExtractor={keyExtractor}
               showsVerticalScrollIndicator={false}
-              style={{ maxHeight: GetScreenHeight() * 0.6 }}
+              style={{ maxHeight: height * 0.6 }}
             />
           </View>
         )}

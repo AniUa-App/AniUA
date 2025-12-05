@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, Linking } from "react-native";
 import ScreenController from "./src/Screens/ScreenController/ScreenController";
-import { black, white } from "./src/Styles/Colors";
+import { black, white, appColor } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Loader from "./src/Widgets/LoaderWidget";
-// import Orientation from "react-native-orientation-locker";
 import * as ScreenOrientation from "expo-screen-orientation";
-// import SystemNavigationBar from 'react-native-system-navigation-bar';
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import Color from "color";
 import SettingsStorage from "./src/Storage/SettingsStorage";
@@ -17,28 +15,46 @@ import ErrorBoundary from "./src/Global/ErrorBoundary";
 import { ErrorTestComponent } from "./src/Global/ErrorTestComponent";
 import MainConfig from "./src/cfgs/MainConfig";
 import AndroidHelper from "./src/Global/AndroidHelper";
-import AppLogger from "./src/Logger/AppLogger";
+import Logger from "./src/Logger/Logger";
 import AllowTheVideoFolder, {
   getDocumentDirectory,
   getVideoDir,
 } from "./src/FIleSystem/FileSystem";
-import { useCustomFonts } from "./src/Styles/Fonts";
+import { H2, H3, H5, H6, useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
-import Api, { getUniqueAccountId, getMetadata } from "./src/Api/api";
+import Api, {
+  getUniqueAccountId,
+  getMetadata,
+  getGithubRaw,
+} from "./src/Api/api";
 import { isTablet } from "./src/Styles/Responsive";
+import { useSnackbar } from "./src/Widgets/useSnackbar";
+import { SnackbarLink } from "./src/Widgets/SnackbarWidget";
+import { set } from "date-fns";
+import { se } from "date-fns/locale";
+import Markdown from "react-native-markdown-display";
+import { fonts } from "@rneui/base";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isErrorBoundary, setIsErrorBoundary] = useState(false);
   const [isActivityReady, setIsActivityReady] = useState(false);
+  const { snackbar, showSnackbar, snackbarTop, showSnackbarTop } =
+    useSnackbar();
+  const [currentAppVersion, setCurrentAppVersion] = useState(
+    SettingsStorage.getParameter("currentVersion") || "0"
+  );
   const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
     SettingsStorage.getParameter("isNotFirstLaunch") || false
   );
 
-  // Завантажуємо кастомні шрифти (хук має бути на верхньому рівні!)
+  /**
+   * Хук завантаження шрифтів повинен викликатися на верхньому рівні компонента
+   * для коректної роботи React правил хуків
+   */
   const fontsLoaded = useCustomFonts();
 
   MainConfig.debug.isDebug = __DEV__;
@@ -53,12 +69,18 @@ export default function App() {
     SettingsStorage.setParameter("isDebug", MainConfig.debug.isDebug);
   }
 
-  // Функція для синхронізації стану з MainConfig
+  /**
+   * Зворотний виклик для оновлення стану ErrorBoundary з MainConfig
+   * @param {boolean} value - новий стан ErrorBoundary
+   */
   MainConfig.updateErrorBoundaryState = (value) => {
     setIsErrorBoundary(value);
   };
 
-  // Функція для безпечного виконання операцій з SystemNavigationBar
+  /**
+   * Налаштовує системну навігаційну панель відповідно до збережених налаштувань
+   * Підтримує режими: hidden, dark, light
+   */
   const setupNavigationBar = async () => {
     return AndroidHelper.safeExecute(async () => {
       const navBarType = SettingsStorage.getParameter(
@@ -81,9 +103,37 @@ export default function App() {
     }, "Помилка налаштування навігаційної панелі");
   };
 
+  /**
+   * Відображає повідомлення про згоду з правилами при першому запуску
+   */
+  useEffect(() => {
+    if (!isLoading && !isNotFirstLaunch) {
+      showSnackbar(
+        <Text style={H6}>
+          Використовуючи додаток, ви погоджуєтесь з нашими{" "}
+          <SnackbarLink
+            url={MainConfig.urls.appUrl + `#terms`}
+            color={appColor}
+          >
+            правилами
+          </SnackbarLink>
+          .
+        </Text>,
+        { duration: 5000, actionLabel: "ОК" }
+      );
+    }
+  }, [isLoading, isNotFirstLaunch]);
+
+  /**
+   * Основна ініціалізація додатку:
+   * - Налаштовує DeviceId та отримує унікальний ID користувача
+   * - Завантажує метадані з сервера
+   * - Ініціалізує дефолтні налаштування користувача
+   * - Налаштовує ErrorBoundary
+   */
   useEffect(() => {
     MainConfig.devInfo.deviceId = MainConfig.devInfo.getUniqueId();
-    console.log(MainConfig.devInfo.deviceId, "MainConfig.devInfo.deviceId");
+    Logger.debug("App", "Device ID отримано", MainConfig.devInfo.deviceId);
     const isUser = async () => {
       const isUser = await getUniqueAccountId();
       SettingsStorage.setParameter("accountId", isUser);
@@ -95,6 +145,7 @@ export default function App() {
       MainConfig.urls.appUrl = metadata.website_url;
       MainConfig.urls.telegramChannelUrl = metadata.telegram_channel;
       MainConfig.urls.donateUrl = metadata.donation_url;
+      MainConfig.urls.github = metadata.github;
       MainConfig.urls.supportTelegramBotUrl = metadata.support_telegram_bot;
     };
     fetchMetadata();
@@ -114,13 +165,17 @@ export default function App() {
         false
     );
 
+    /**
+     * Асинхронна функція ініціалізації додатка:
+     * - Налаштовує орієнтацію екрану (portrait для телефонів, вільна для планшетів)
+     * - Запитує необхідні дозволи (notifications, storage)
+     * - Налаштовує навігаційну панель
+     * - Встановлює дефолтні налаштування
+     */
     const initApp = async () => {
       try {
-        AppLogger.logAppInit("Початок ініціалізації додатка");
+        Logger.logAppInit("Початок ініціалізації додатка");
 
-        // Базова ініціалізація без залежності від activity
-
-        // Блокування орієнтації глобально: телефони — лише портрет, планшети — вільно
         try {
           if (isTablet()) {
             await ScreenOrientation.unlockAsync();
@@ -137,66 +192,113 @@ export default function App() {
             await ScreenOrientation.lockAsync(
               ScreenOrientation.OrientationLock.PORTRAIT_UP
             );
+            SettingsStorage.setParameter("userConfig", {
+              navbar: {
+                style: "MD3",
+              },
+            });
           }
         } catch (e) {
-          AppLogger.logAppInit("Помилка блокування орієнтації", false, e);
+          Logger.logAppInit("Помилка блокування орієнтації", false, e);
         }
 
-        AppLogger.logAppInit("Перевірка дозволів.");
+        Logger.logAppInit("Перевірка дозволів.");
         await NotificationPermission();
         await AllowTheVideoFolder();
-        console.log("video folder ", await getVideoDir());
+        Logger.debug("FileSystem", "Video folder", await getVideoDir());
 
-        // Додаткова затримка для забезпечення готовності activity
-        AppLogger.logAppInit("Очікування готовності Android activity");
+        // Затримка необхідна для повної ініціалізації Android Activity перед взаємодією з UI
+        Logger.logAppInit("Очікування готовності Android activity");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Позначаємо activity як готову
         setIsActivityReady(true);
-        AppLogger.logAppInit("Android activity готова");
+        Logger.logAppInit("Android activity готова");
 
-        // Виконуємо операції, що потребують activity, асинхронно
-        AppLogger.logAppInit("Запуск асинхронних налаштувань");
+        // Налаштування навігаційної панелі виконується асинхронно після готовності activity
+        Logger.logAppInit("Запуск асинхронних налаштувань");
         Promise.all([setupNavigationBar()])
           .then(() => {
-            AppLogger.logAppInit("Всі налаштування успішно застосовані");
+            Logger.logAppInit("Всі налаштування успішно застосовані");
           })
           .catch((error) => {
-            AppLogger.logAppInit(
+            Logger.logAppInit(
               "Деякі налаштування не вдалося застосувати",
               false,
               error
             );
           });
       } catch (error) {
-        AppLogger.logAppInit("Критична помилка ініціалізації", false, error);
+        Logger.logAppInit("Критична помилка ініціалізації", false, error);
       } finally {
         setTimeout(
           () => {
-            if (isNotFirstLaunch === false){
+            if (isNotFirstLaunch === false) {
               SettingsStorage.setParameter("isNotFirstLaunch", true);
-              SettingsStorage.setParameter("defaultPlayer", MainConfig.players[1]);
+              SettingsStorage.setParameter(
+                "defaultPlayer",
+                MainConfig.players[1]
+              );
             }
 
-
-            AppLogger.logAppInit("Завершення завантаження");
+            Logger.logAppInit("Завершення завантаження");
 
             setIsLoading(false);
           },
           isNotFirstLaunch ? 1200 : 2500
         );
+        Logger.debug("App", "Setting currentAppVersion", currentAppVersion);
+
+        const _curAppVer = `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`;
+
+        if (currentAppVersion !== _curAppVer || MainConfig.debug.isDebug) {
+          showSnackbar(
+            <View style={{ flexDirection: "column" }}>
+              <Text style={H6}>Додаток оновлено!</Text>
+              <Text style={H6} numberOfLines={1} ellipsizeMode="tail">
+                {(
+                  await getGithubRaw(
+                    MainConfig.devInfo.gitShortHash,
+                    "CHANGELOG.MD"
+                  )
+                )
+                  .replace("# CHANGELOG", "")
+                  .trim()}
+              </Text>
+            </View>,
+            {
+              actionLabel: "Деталі",
+              onActionPress: () => {
+                Linking.openURL(
+                  `${MainConfig.urls.github}/AniUA/blob/${MainConfig.devInfo.gitShortHash}/CHANGELOG.MD`
+                );
+              },
+              duration: 3000,
+            }
+          );
+          SettingsStorage.setParameter("currentVersion", _curAppVer);
+          setCurrentAppVersion(_curAppVer);
+        }
       }
     };
 
     initApp();
   }, []);
-  console.log("App render:", { isLoading, isErrorBoundary, isActivityReady });
 
-  // Показуємо завантаження поки не завантажені шрифти або додаток ще ініціалізується
+  Logger.debug("App", "App render", {
+    isLoading,
+    isErrorBoundary,
+    isActivityReady,
+  });
+
+  /**
+   * Відображаємо екран завантаження до повної готовності додатка:
+   * - Завантаження шрифтів
+   * - Завершення ініціалізації
+   */
   if (!fontsLoaded || isLoading) {
     return (
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: black }}>
-        <BottomSheetModalProvider style={{ flex: 1, backgroundColor: black }}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider style={{ flex: 1 }}>
           <Loader isNotFirstLaunch={isNotFirstLaunch} />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
@@ -204,12 +306,14 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: black }}>
-      <BottomSheetModalProvider style={{ flex: 1, backgroundColor: black }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider style={{ flex: 1 }}>
         <RootSiblingParent>
           <ThemeProvider>
             <ScreenController />
             {isErrorBoundary && <ErrorTestComponent />}
+            {snackbar}
+            {snackbarTop}
           </ThemeProvider>
         </RootSiblingParent>
       </BottomSheetModalProvider>

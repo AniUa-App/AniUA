@@ -15,18 +15,18 @@ import MainConfig from '../cfgs/MainConfig';
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
 /**
- * Перетаскиваемая панель тестирования ошибок
+ * Перетягувана панель тестування помилок
  */
 export const ErrorTestComponent = () => {
   const [shouldThrowError, setShouldThrowError] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [side, setSide] = useState('right'); // 'left', 'right', 'top-left', 'top-right'
 
-  // Анимированные позиции
+  // Анімовані позиції
   const pan = useRef(
     new Animated.ValueXY({
-      x: screenWidth - 210, // Увеличил отступ для ширины 200px
-      y: screenHeight - 280, // Увеличил отступ для высоты 270px
+      x: screenWidth - 210, // Збільшено відступ для ширини 200px
+      y: screenHeight - 280, // Збільшено відступ для висоти 270px
     }),
   ).current;
 
@@ -35,18 +35,18 @@ export const ErrorTestComponent = () => {
     return null;
   }
 
-  // Функция привязки к ближайшей стороне
+  // Функція прив'язки до найближчої сторони
   const snapToSide = gestureState => {
     const {dx, dy} = gestureState;
     const currentX = pan.x._value + dx;
     const currentY = pan.y._value + dy;
 
-    // Скорректированные размеры панели с учетом иконки 30x30
-    const panelWidth = isMinimized ? 140 : 200; // Увеличил для иконки 30px
-    const panelHeight = isMinimized ? 80 : 270; // Увеличил высоту заголовка
+    // Скориговані розміри панелі з урахуванням іконки 30x30
+    const panelWidth = isMinimized ? 140 : 200; // Збільшено для іконки 30px
+    const panelHeight = isMinimized ? 80 : 270; // Збільшено висоту заголовка
     const margin = 10;
 
-    // Определяем к какой стороне ближе
+    // Визначаємо до якої сторони ближче
     const centerX = currentX + panelWidth / 2;
     const centerY = currentY + panelHeight / 2;
 
@@ -56,8 +56,8 @@ export const ErrorTestComponent = () => {
     let newX, newY, newSide;
 
     if (isTop) {
-      // Верхняя половина экрана
-      newY = 50; // Отступ от верха
+      // Верхня половина екрану
+      newY = 50; // Відступ від верху
       if (isLeft) {
         newX = margin;
         newSide = 'top-left';
@@ -66,8 +66,8 @@ export const ErrorTestComponent = () => {
         newSide = 'top-right';
       }
     } else {
-      // Нижняя половина экрана
-      newY = screenHeight - panelHeight - 50; // Отступ от низа
+      // Нижня половина екрану
+      newY = screenHeight - panelHeight - 50; // Відступ від низу
       if (isLeft) {
         newX = margin;
         newSide = 'left';
@@ -77,22 +77,22 @@ export const ErrorTestComponent = () => {
       }
     }
 
-    // Дополнительная проверка границ экрана
+    // Додаткова перевірка меж екрану
     newX = Math.max(margin, Math.min(newX, screenWidth - panelWidth - margin));
     newY = Math.max(50, Math.min(newY, screenHeight - panelHeight - 50));
 
     setSide(newSide);
 
-    // Анимируем к новой позиции
+    // Анімуємо до нової позиції
     Animated.spring(pan, {
       toValue: {x: newX, y: newY},
       useNativeDriver: false,
-      tension: 120, // Увеличил tension для более быстрой анимации
-      friction: 9, // Увеличил friction для более мягкой остановки
+      tension: 120, // Збільшено tension для швидшої анімації
+      friction: 9, // Збільшено friction для м'якшої зупинки
     }).start();
   };
 
-  // PanResponder для перетаскивания
+  // PanResponder для перетягування
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => {
@@ -113,9 +113,9 @@ export const ErrorTestComponent = () => {
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
 
-    // Пересчитываем позицию после изменения размера
+    // Перераховуємо позицію після зміни розміру
     setTimeout(() => {
-      snapToSide({dx: 0, dy: 0}); // Пересчитываем для текущей позиции
+      snapToSide({dx: 0, dy: 0}); // Перераховуємо для поточної позиції
     }, 100);
   };
 
@@ -160,7 +160,7 @@ export const ErrorTestComponent = () => {
         <Icon.Bug size={30} color={appColor} />
       </TouchableOpacity>
 
-      {/* Кнопки тестирования */}
+      {/* Кнопки тестування */}
       {!isMinimized && (
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.button} onPress={throwRenderError}>
@@ -198,10 +198,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
-    width: 200, // Финальная ширина с учетом иконки 30px
+    width: 200, // Фінальна ширина з урахуванням іконки 30px
   },
   containerMinimized: {
-    width: 140, // Финальная ширина минимизированной версии
+    width: 140, // Фінальна ширина мінімізованої версії
   },
   header: {
     flexDirection: 'row',
@@ -210,14 +210,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: black,
-    minHeight: 50, // Увеличил для комфортного размещения иконки 30px
+    minHeight: 50, // Збільшено для комфортного розміщення іконки 30px
   },
   title: {
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
     flex: 1,
-    marginRight: 10, // Увеличил отступ от иконки 30px
+    marginRight: 10, // Збільшено відступ від іконки 30px
   },
   sideIndicator: {
     fontSize: 16,

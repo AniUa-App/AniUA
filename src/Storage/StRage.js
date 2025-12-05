@@ -1,4 +1,4 @@
-import {Storage} from './Storage';
+import { Storage } from "./Storage";
 
 class AnimeStorage_ {
   constructor() {
@@ -17,17 +17,17 @@ class AnimeStorage_ {
     return (
       this.storage[slug] || {
         isFavorite: false,
-        watched: {player: '', dubbing: '', episodes: []},
+        watched: { player: "", dubbing: "", episodes: [] },
         downloaded: {
           episodes: [
             {
               episode: 0,
-              player: '',
-              dubbing: '',
-              quality: '',
-              url: '',
-              video_path: '',
-              video_type: '',
+              player: "",
+              dubbing: "",
+              quality: "",
+              url: "",
+              video_path: "",
+              video_type: "",
             },
           ],
         },
@@ -39,21 +39,21 @@ class AnimeStorage_ {
     slug,
     data = {
       isFavorite: false,
-      watched: {player: '', dubbing: '', episodes: []},
+      watched: { player: "", dubbing: "", episodes: [] },
       downloaded: {
         episodes: [
           {
             episode: 0,
-            player: '',
-            dubbing: '',
-            quality: '',
-            url: '',
-            video_path: '',
-            video_type: '',
+            player: "",
+            dubbing: "",
+            quality: "",
+            url: "",
+            video_path: "",
+            video_type: "",
           },
         ],
       },
-    },
+    }
   ) {
     const existingInfo = this.storage[slug] || {};
 
@@ -66,7 +66,7 @@ class AnimeStorage_ {
       watched:
         data.watched !== undefined
           ? data.watched
-          : existingInfo.watched || {player: '', dubbing: '', episodes: []},
+          : existinginfo?.watched || { player: "", dubbing: "", episodes: [] },
       downloaded:
         data.downloaded !== undefined
           ? data.downloaded
@@ -74,12 +74,12 @@ class AnimeStorage_ {
               episodes: [
                 {
                   episode: 0,
-                  player: '',
-                  dubbing: '',
-                  quality: '',
-                  url: '',
-                  video_path: '',
-                  video_type: '',
+                  player: "",
+                  dubbing: "",
+                  quality: "",
+                  url: "",
+                  video_path: "",
+                  video_type: "",
                 },
               ],
             },

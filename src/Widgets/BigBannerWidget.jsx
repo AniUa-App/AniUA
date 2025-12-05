@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, StyleSheet, FlatList, useWindowDimensions } from "react-native";
 import { TouchableOpacity } from "./Button";
 import LinearGradient from "react-native-linear-gradient";
-import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "./LoadersWidgets";
 
@@ -49,29 +48,28 @@ const Mobile = React.memo(({ animes }) => {
 
   const renderItem = useCallback(
     ({ item }) => (
-      <TouchableOpacity
-        style={[
-          styles.imageContainer,
-          { width: winWidth, height: bannerHeight },
-        ]}
-        onPress={() =>
-          navigation.navigate("HiddenStack", {
-            screen: "AnimePreview",
-            params: { anime: item },
-          })
-        }
-      >
-        <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
+      <View style={{ width: winWidth, height: bannerHeight }}>
+        <TouchableOpacity
+          style={styles.imageContainer}
+          onPress={() =>
+            navigation.navigate("HiddenStack", {
+              screen: "AnimePreview",
+              params: { anime: item },
+            })
+          }
+        >
+          <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
 
-        <LinearGradient
-          colors={["rgba(255,249,249,0)", "rgba(24,28,20,0.9)"]}
-          style={styles.bottomGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      </TouchableOpacity>
+          <LinearGradient
+            colors={["rgba(255,249,249,0)", "rgba(24,28,20,0.9)"]}
+            style={styles.bottomGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+        </TouchableOpacity>
+      </View>
     ),
-    [navigation]
+    [navigation, winWidth, bannerHeight]
   );
 
   const keyExtractor = useCallback(
@@ -151,30 +149,28 @@ const Tablet = React.memo(({ animes }) => {
 
   const renderItem = useCallback(
     ({ item }) => (
-      <TouchableOpacity
-        style={{
-          width: cardWidth,
-          height: "100%",
-          position: "relative",
-        }}
-        onPress={() =>
-          navigation.navigate("HiddenStack", {
-            screen: "AnimePreview",
-            params: { anime: item },
-          })
-        }
-      >
-        <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
+      <View style={{ width: cardWidth, height: "100%" }}>
+        <TouchableOpacity
+          style={styles.imageContainer}
+          onPress={() =>
+            navigation.navigate("HiddenStack", {
+              screen: "AnimePreview",
+              params: { anime: item },
+            })
+          }
+        >
+          <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
 
-        <LinearGradient
-          colors={["rgba(255,249,249,0)", "rgba(24,28,20,0.9)"]}
-          style={styles.bottomGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      </TouchableOpacity>
+          <LinearGradient
+            colors={["rgba(255,249,249,0)", "rgba(24,28,20,0.9)"]}
+            style={styles.bottomGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+        </TouchableOpacity>
+      </View>
     ),
-    [navigation]
+    [navigation, cardWidth]
   );
 
   const keyExtractor = useCallback(
@@ -218,7 +214,8 @@ const styles = StyleSheet.create({
     // dynamic height is applied inline
   },
   imageContainer: {
-    // dynamic width/height are applied inline
+    width: "100%",
+    height: "100%",
     position: "relative",
   },
 

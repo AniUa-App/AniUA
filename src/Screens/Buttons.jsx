@@ -7,6 +7,7 @@ import { H3, H4, H5 } from "../Styles/Fonts";
 import { appColor } from "../Styles/Colors";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import SettingsStorage from "../Storage/SettingsStorage";
+import Logger from "../Logger/Logger";
 
 export default function ButtonsScreen({ route }) {
   const navigation = useNavigation();
@@ -59,7 +60,7 @@ export default function ButtonsScreen({ route }) {
             }))}
             value={_value}
             onChange={(_item) => {
-              console.log(_item);
+              Logger.debug('ButtonsScreen', 'Item changed', { item: _item });
               setValue(_item);
               list.find((item) => item.title === _item)?.onPress();
             }}

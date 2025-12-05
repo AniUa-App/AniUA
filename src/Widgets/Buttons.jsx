@@ -6,15 +6,16 @@ import { useFocusEffect } from "@react-navigation/native";
 import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
 import { appColor, white, black_1, red } from "../Styles/Colors";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import Logger from "../Logger/Logger";
 
 export default function ButtonsScreen({ route }) {
   const { list, title, buttonStyle } = route.params;
   useEffect(() => {
-    console.log(list);
+    Logger.debug('ButtonsScreen', 'List changed', { list });
   }, [list]);
   useFocusEffect(
     useCallback(() => {
-      console.log(list);
+      Logger.debug('ButtonsScreen', 'Screen focused', { list });
     }, [list])
   );
   return (

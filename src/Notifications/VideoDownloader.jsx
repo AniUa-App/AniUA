@@ -16,6 +16,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
 import { EventBus } from "../Global/EventBus";
 import { hasAtLeastOneGBFree } from "../FIleSystem/FileSystem";
+import Logger from "../Logger/Logger";
 
 // Налаштування FFmpeg для відключення логів
 FFmpegKitConfig.setLogLevel(FFmpegKitConfig.LEVEL_QUIET);
@@ -40,28 +41,47 @@ export default async function DownloadVideoNotification({
   progress = 0,
   typeOfProgress = "",
 }) {
+  Logger.debug("DownloadVideoNotification", "Called with params", {
+    animeName,
+    episodeNumber,
+    progress,
+    typeOfProgress,
+  });
+
   // Create a channel (required for Android)
   const activeChannelId =
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
   const appColorHex = Color(appColor).hex();
+
+  Logger.debug("DownloadVideoNotification", "Using channel ID", {
+    activeChannelId,
+  });
+
   const channelId = await notifee.createChannel({
     id: activeChannelId,
     name: "AniUA",
     importance: 3, // HIGH
   });
 
+  Logger.debug("DownloadVideoNotification", "Channel created", { channelId });
+
   // Оголошуємо змінну поза блоком try
   let notificationId = null;
 
   // Display a notification
   try {
+    Logger.debug(
+      "DownloadVideoNotification",
+      "Attempting to display notification"
+    );
     notificationId = await notifee.displayNotification({
       title: `Завантаження ${animeName} - ${episodeNumber}`,
       body: `${typeOfProgress} - ${progress}%`,
       android: {
         channelId: activeChannelId,
+        asForegroundService: true,
         pressAction: {
           id: "default",
         },
@@ -79,12 +99,24 @@ export default async function DownloadVideoNotification({
         },
       },
     });
+    Logger.info(
+      "DownloadVideoNotification",
+      "Notification displayed successfully",
+      { notificationId }
+    );
   } catch (error) {
-    console.log(`error: ${error}`);
+    Logger.error(
+      "DownloadVideoNotification",
+      "Error displaying notification",
+      error
+    );
     notificationId = null;
   }
 
   // Єдиний return в кінці функції
+  Logger.debug("DownloadVideoNotification", "Returning notification ID", {
+    notificationId,
+  });
   return notificationId;
 }
 
@@ -97,43 +129,62 @@ export async function updateDownloadProgress({
   typeOfProgress = "",
   ffmpegSessionId,
 }) {
+  Logger.debug("updateDownloadProgress", "Called with params", {
+    notificationId,
+    animeName,
+    episodeNumber,
+    progress,
+    typeOfProgress,
+  });
+
   const activeChannelId =
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
   const appColorHex = Color(appColor).hex();
-  await notifee.displayNotification({
-    id: notificationId,
-    title: `Завантаження ${animeName} - ${episodeNumber} серія`,
-    body: `${typeOfProgress} - ${progress}%`,
-    data: {
-      ffmpegSessionId: ffmpegSessionId || null,
-      action: "cancel_download",
-    },
-    android: {
-      channelId: activeChannelId,
-      progress: {
-        max: 100,
-        current: progress,
-        indeterminate: progress === 0,
-      },
-      smallIcon: "ic_stat_aniua",
-      color: appColorHex,
-      ongoing: true,
 
-      pressAction: {
-        id: "cancel_download",
+  try {
+    await notifee.displayNotification({
+      id: notificationId,
+      title: `Завантаження ${animeName} - ${episodeNumber} серія`,
+      body: `${typeOfProgress} - ${progress}%`,
+      data: {
+        ffmpegSessionId: ffmpegSessionId ? String(ffmpegSessionId) : "",
+        action: "cancel_download",
       },
-      actions: [
-        {
-          title: "Скасувати",
-          pressAction: {
-            id: "cancel_download",
-          },
+      android: {
+        channelId: activeChannelId,
+        asForegroundService: true,
+        progress: {
+          max: 100,
+          current: progress,
+          indeterminate: progress === 0,
         },
-      ],
-    },
-  });
+        smallIcon: "ic_stat_aniua",
+        color: appColorHex,
+        ongoing: true,
+
+        pressAction: {
+          id: "cancel_download",
+        },
+        actions: [
+          {
+            title: "Скасувати",
+            pressAction: {
+              id: "cancel_download",
+            },
+          },
+        ],
+      },
+    });
+    Logger.debug("updateDownloadProgress", "Notification updated successfully");
+  } catch (error) {
+    Logger.error(
+      "updateDownloadProgress",
+      "Error updating notification",
+      error
+    );
+  }
 }
 
 // Додаємо нову функцію для завершення завантаження
@@ -252,6 +303,14 @@ export async function DownloadVideo({
     typeOfProgress: STATUSES.downloading,
   });
 
+  Logger.info("DownloadVideo", "Initial notification created", {
+    notificationId,
+  });
+
+  if (!notificationId) {
+    Logger.error("DownloadVideo", "Failed to create initial notification");
+  }
+
   function updateStatus(status, data = {}) {
     if (progressCallback) {
       progressInfo.status = status;
@@ -277,8 +336,8 @@ export async function DownloadVideo({
     if (notificationId) {
       var savedEpisodeData = {
         episode: item.episode,
-        player: info.watched.player,
-        dubbing: info.watched.dubbing,
+        player: info?.watched.player,
+        dubbing: info?.watched.dubbing,
         quality: data.quality,
         url: { homeUrl: item.video_url, playerUrl: data.url },
         video_path: data.path,
@@ -389,6 +448,27 @@ export async function DownloadVideo({
     let playerResponse = item.video_url.includes("moon")
       ? await getPlayerDataFrom_MOON_Player(item.video_url)
       : await getPlayerDataFrom_ASHDI_Player(item.video_url);
+
+    // Перевірка на помилки або відсутність даних плеєра
+    if (!playerResponse || playerResponse.success === false) {
+      updateStatus("error", {
+        progress: -1,
+        data: [playerResponse?.error || "no_player_data_found"],
+      });
+      return {
+        success: false,
+        error: playerResponse?.error || "no_player_data_found",
+      };
+    }
+
+    if (!playerResponse.file) {
+      updateStatus("error", {
+        progress: -1,
+        data: ["no_video_file_found"],
+      });
+      return { success: false, error: "no_video_file_found" };
+    }
+
     if (
       Object.values(playerResponse.file).some((url) => url.includes("webm"))
     ) {
@@ -479,7 +559,7 @@ export async function DownloadVideo({
       command,
       async (session) => {
         if (!session) {
-          console.error("FFmpegKit session is null");
+          Logger.error("DownloadVideo", "FFmpegKit session is null");
           updateStatus("error", {
             progress: -1,
             data: ["FFmpegKit session is null"],
@@ -508,9 +588,9 @@ export async function DownloadVideo({
           });
           return { success: false, error: "Помилка при завантаженні серії" };
         } else if (!returnCode.isValueSuccess()) {
-          console.error(
-            `FFmpeg завершився з помилкою: ${returnCode.getValue()}`
-          );
+          Logger.error("DownloadVideo", "FFmpeg завершився з помилкою", {
+            returnCode: returnCode.getValue(),
+          });
           const logs = await session.getAllLogs();
           updateStatus("error", {
             progress: -1,
@@ -578,10 +658,7 @@ export async function DownloadVideo({
       data: [error && error.message ? error.message : String(error)],
     });
 
-    console.error(
-      "Помилка завантаження відео:",
-      error && error.message ? error.message : String(error)
-    );
+    Logger.error("DownloadVideo", "Помилка завантаження відео", error);
     return {
       success: false,
       error: error && error.message ? error.message : String(error),
@@ -589,15 +666,61 @@ export async function DownloadVideo({
   }
 }
 
-// Функция получения данных плеера
+// Функція отримання даних плеєра
 async function getPlayerDataFrom_ASHDI_Player(url) {
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
+      },
+      decompress: true,
+    });
     const htmlContent = response.data;
-    const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
-    return fileMatch ? { file: fileMatch[1] } : null;
+
+    // Спробуємо різні патерни для пошуку файлу
+    let fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
+
+    // Альтернативний патерн з одинарними лапками
+    if (!fileMatch) {
+      fileMatch = htmlContent.match(/file:\s*'([^']+)'/);
+    }
+
+    // Альтернативний патерн без пробілів
+    if (!fileMatch) {
+      fileMatch = htmlContent.match(/file:"([^"]+)"/);
+    }
+
+    if (!fileMatch) {
+      if (DEBUGCONFIG.isDebug) {
+        Logger.error(
+          "ASHDI_Player",
+          "Не знайдено файл у відповіді ashdi плеєра"
+        );
+        Logger.debug("ASHDI_Player", "HTML content preview", {
+          preview: htmlContent.substring(0, 500),
+        });
+      }
+      return { success: false, error: "no_player_data_found" };
+    }
+
+    let file = fileMatch[1];
+
+    // Обробка формату webm (як у moon плеєрі)
+    if (file.includes("webm")) {
+      const data = {};
+      const temp_ = file.split(",");
+      temp_.forEach((item) => {
+        const quality = item.match(/\[(.*?)\]/)?.[1];
+        if (quality) data[quality] = item.split("]")[1];
+      });
+      file = data;
+    }
+
+    return { file };
   } catch (error) {
-    console.error("Ошибка загрузки:", error);
+    if (DEBUGCONFIG.isDebug) {
+      Logger.error("ASHDI_Player", "Помилка завантаження ashdi плеєра", error);
+    }
     return { success: false, error: "no_player_data_found" };
   }
 }
@@ -650,7 +773,7 @@ export async function getPlayerDataFrom_MOON_Player(url) {
     // Перевіряємо, чи знайдено хоча б один параметр
     return Object.keys(playerData).length > 0 ? playerData : null;
   } catch (error) {
-    console.error("Помилка при отриманні даних плеєра:", error);
+    Logger.error("MOON_Player", "Помилка при отриманні даних плеєра", error);
     return { success: false, error: "no_player_data_found" };
   }
 }
@@ -706,7 +829,11 @@ class FFprobe {
       const output = await session.getOutput();
       this.#jsonData = JSON.parse(output || "{}");
     } catch (error) {
-      console.error("Помилка при отриманні інформації про медіа:", error);
+      Logger.error(
+        "FFprobe",
+        "Помилка при отриманні інформації про медіа",
+        error
+      );
       this.#jsonData = {};
     }
   }

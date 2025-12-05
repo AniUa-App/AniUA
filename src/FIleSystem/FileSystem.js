@@ -3,6 +3,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
 import { PermissionsAndroid, Platform } from "react-native";
 import { AllowTheVideoFolder as AllowTheVideoFolderPermisions } from "../Permissions/Permissions";
+import Logger from "../Logger/Logger";
 
 export default async function AllowTheVideoFolder() {
   const result = await AllowTheVideoFolderPermisions();
@@ -30,7 +31,7 @@ export async function getAvailableSpace() {
       };
     }
   } catch (error) {
-    console.warn("Помилка отримання інформації про простір:", error);
+    Logger.warn('FileSystem', 'Помилка отримання інформації про простір', error);
   }
   return null;
 }
@@ -53,7 +54,7 @@ export async function checkVideoDirectory() {
       };
     }
   } catch (error) {
-    console.warn("Помилка перевірки директорії:", error);
+    Logger.warn('FileSystem', 'Помилка перевірки директорії', error);
   }
   return null;
 }
@@ -68,7 +69,7 @@ async function testDirectoryWrite(path) {
     await RNFS.unlink(testFile);
     return true;
   } catch (error) {
-    console.warn("Не вдається записати в директорію:", path, error);
+    Logger.warn('FileSystem', 'Не вдається записати в директорію', { path, error });
     return false;
   }
 }
@@ -93,7 +94,7 @@ export async function hasAtLeastOneGBFree() {
     const ONE_GB = 1024 * 1024 * 1024;
     return typeof freeSpace === "number" && freeSpace >= ONE_GB;
   } catch (error) {
-    console.warn("Не вдалося перевірити вільне місце:", error);
+    Logger.warn('FileSystem', 'Не вдалося перевірити вільне місце', error);
     return false;
   }
 }

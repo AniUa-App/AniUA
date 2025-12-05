@@ -1,6 +1,7 @@
 import { HikkaApi } from "./hikka";
 import axios from "axios";
 import { CustomAnimeSet } from "../Storage/PersonalRecListStorage";
+import Logger from "../Logger/Logger";
 
 export var Genres: Record<string, string> = {};
 
@@ -143,7 +144,7 @@ async function _sendRequest(
     genres: genres || [],
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };
-  console.log(body, "body");
+  Logger.debug('CustomSet', 'Відправка запиту аніме', { body });
   const response = await axios.post(query, body);
   return response.data;
 }
@@ -185,9 +186,9 @@ export async function getPagesAndSizes(
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };
   const response = await axios.post(query, body);
-  console.log(response.data, "response.data");
+  Logger.debug('CustomSet', 'Отримано відповідь про пагінацію', { data: response.data });
   if (response.data.pagination.pages === response.data.pagination.total) {
-    console.log(response.data, "response.data");
+    Logger.debug('CustomSet', 'Всі результати на одній сторінці', { data: response.data });
     return { pages: 1, size: response.data.pagination.total };
   }
   const pages = response.data.pagination.pages;
@@ -209,15 +210,12 @@ const testSets: ReqCustomSet[] = [
 ];
 
 export async function test() {
-  console.log("[CustomSet.test] start");
+  Logger.debug('CustomSet', 'Тест функція запущена');
   try {
     const { pages, size } = await getPagesAndSizes(testSets[0]);
-    console.log("[CustomSet.test] pages,size:", pages, size);
+    Logger.debug('CustomSet', 'Результат тесту getPagesAndSizes', { pages, size });
   } catch (error: any) {
-    console.error(
-      "[CustomSet.test] getPagesAndSizes error:",
-      error?.response?.data || error?.message || error
-    );
+    Logger.error('CustomSet', 'Помилка getPagesAndSizes', error?.response?.data || error?.message || error);
   }
 }
 

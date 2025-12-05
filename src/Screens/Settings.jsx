@@ -19,6 +19,7 @@ import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
 import Api from "../Api/api";
 import * as Expo from "expo";
+import Logger from "../Logger/Logger";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -88,7 +89,7 @@ export default function SettingsScreen() {
 
       showNotification("Кеш успішно очищено");
     } catch (error) {
-      console.warn("Помилка очищення кешу:", error);
+      Logger.warn('Settings', 'Помилка очищення кешу', error);
       showNotification("Частково очищено кеш");
     }
   };
@@ -207,7 +208,7 @@ export default function SettingsScreen() {
       title: "Посилання на сайт",
       subtitle: "Інша інформація про додаток.",
       button: {
-        Icon: <AppIcon styles={{ width: 46, height: 46 }} />,
+        Icon: <AppIcon styles={{ width: 41, height: 41 }} />,
       },
       onPress: () => {
         Linking.openURL(MainConfig.urls.appUrl);
@@ -217,7 +218,7 @@ export default function SettingsScreen() {
       title: "Новини",
       subtitle: "У телеграм каналі ви знайдете новини.",
       button: {
-        Icon: <Icon.TelegramLogo size={45} color={Black(0.8)} />,
+        Icon: <Icon.TelegramLogo size={41} color={white} />,
       },
       onPress: () => {
         Linking.openURL(MainConfig.urls.telegramChannelUrl);
@@ -227,7 +228,7 @@ export default function SettingsScreen() {
       title: "Кастомізація",
       subtitle: "Налаштування вигляду додатку.",
       button: {
-        Icon: <Icons.PaintBrushBroad size={44} color={themeColors.white} />,
+        Icon: <Icons.PaintBrushBroad size={40} color={themeColors.white} />,
       },
       onPress: () => {
         navigation.navigate("HiddenStack", {
@@ -242,7 +243,7 @@ export default function SettingsScreen() {
       title: "Інформація про застосунок",
       subtitle: "Версія, хеш та ін.",
       button: {
-        Icon: <Icons.Info size={42} color={Black(0.8)} />,
+        Icon: <Icons.Info size={38} color={white} />,
       },
       onPress: () => {
         navigation.navigate("HiddenStack", {
@@ -277,10 +278,10 @@ export default function SettingsScreen() {
           visible={isRatingVisible}
           onClose={() => setIsRatingVisible(false)}
           onRatingSubmit={(rating, feedback) => {
-            console.log("Користувач поставив оцінку:", rating);
-            console.log("Користувач залишив відгук:", feedback);
+            Logger.info('Settings', 'Користувач поставив оцінку', { rating });
+            Logger.info('Settings', 'Користувач залишив відгук', { feedback });
             Api.sendFeedback(rating, feedback).then((saved) => {
-              console.log("Відгук успішно відправлено:", saved);
+              Logger.info('Settings', 'Відгук відправлено', { saved });
               if (saved) {
                 showNotification("Відгук успішно відправлено.");
               } else {

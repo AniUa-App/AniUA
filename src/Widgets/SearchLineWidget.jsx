@@ -7,18 +7,20 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
 import { appColor, Black, black, white } from "../Styles/Colors";
-import { GetScreenWidth, GetScreenHeight } from "../Global/Functions";
 import { TouchableOpacity } from "./Button";
 import { HikkaApi } from "../Sources/hikka";
 import ExpandableNotification from "./ExpandableNotification";
 import AnimePreviewWidget from "./AnimePreviewWidget";
+import Logger from "../Logger/Logger";
 
 export default function SearchLine() {
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
   const [isFocused, setIsFocused] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [isVisibleNotification, setIsVisibleNotification] = useState(false);
@@ -35,7 +37,7 @@ export default function SearchLine() {
       setIsLoading(true);
 
       const anime = await HikkaApi.searchAnime(query);
-      console.log(anime, "anime");
+      Logger.debug('SearchLine', 'Search results', { anime });
 
       if (!anime || anime.length === 0) {
         setIsVisibleNotification(true);
@@ -52,7 +54,7 @@ export default function SearchLine() {
         setIsVisibleNotification(true);
       }
     } catch (error) {
-      console.error("Помилка пошуку:", error);
+      Logger.error('SearchLine', 'Помилка пошуку', error);
       setIsVisibleNotification(true);
     } finally {
       setIsLoading(false);
@@ -78,7 +80,7 @@ export default function SearchLine() {
           useNativeDriver: false,
         }),
         Animated.timing(inputWidth, {
-          toValue: GetScreenWidth() * 0.85,
+          toValue: width * 0.85,
           duration: 300,
           useNativeDriver: false,
         }),
@@ -97,7 +99,7 @@ export default function SearchLine() {
         }),
       ]).start();
     }
-  }, [isFocused]);
+  }, [isFocused, width]);
 
   const animatedColor = animationValue.interpolate({
     inputRange: [0, 1],
@@ -119,7 +121,7 @@ export default function SearchLine() {
           }}
         />
       )}
-      <View style={styles.container}>
+      <View style={[styles.container, { top: height * 0.06 }]}>
         <View style={styles.row}>
           <Animated.View
             style={[
@@ -208,7 +210,7 @@ export default function SearchLine() {
                   updateInfo={() => {}}
                   type="Search"
                   maxHeight={190 / 2}
-                  maxWidth={GetScreenWidth() * 0.85}
+                  maxWidth={width * 0.85}
                 />
               )}
               ListEmptyComponent={
@@ -265,10 +267,8 @@ function SearchIcon({ fill }) {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    zIndex: 1,
-    top: GetScreenHeight() * 0.06,
-    left: 10,
     zIndex: 1000,
+    left: 10,
   },
   row: {
     flexDirection: "row",

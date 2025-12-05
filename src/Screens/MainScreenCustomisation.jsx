@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
 import { ActivityIndicator } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
+import Logger from "../Logger/Logger";
 
 import {
   appColor,
@@ -69,10 +70,7 @@ export default function MainScreenCustomisationScreen() {
     setRecommendations(newRecommendations);
     EventBus.emit("recommendations", newRecommendations);
 
-    console.log(
-      "[MainScreenCustomisationScreen] SET_RECOMMENDATIONS",
-      newRecommendations
-    );
+    Logger.debug('MainScreenCustomisation', 'SET_RECOMMENDATIONS', { newRecommendations });
     SettingsStorage.setParameter(
       "userConfig.recommendations",
       newRecommendations
@@ -81,19 +79,19 @@ export default function MainScreenCustomisationScreen() {
   function addList(list) {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    console.log("addList", list);
+    Logger.debug('MainScreenCustomisation', 'Додано новий список', { list });
     EventBus.emit("personalRecListUpdated", list);
   }
   function editList(name, list) {
     PersonalRecListStorage.editSettingsList(name, list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    console.log("editList", list);
+    Logger.debug('MainScreenCustomisation', 'Відредаговано список', { name, list });
     EventBus.emit("personalRecListUpdated", list);
   }
   function deleteList(list) {
     PersonalRecListStorage.deleteSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    console.log("deleteList", list);
+    Logger.debug('MainScreenCustomisation', 'Видалено список', { list });
     EventBus.emit("personalRecListUpdated", list);
   }
 
@@ -168,29 +166,28 @@ export default function MainScreenCustomisationScreen() {
         sheetRef={RecListRef}
         value={value}
         onPressOk={(payload) => {
-          console.log(payload, "payload");
+          Logger.debug('MainScreenCustomisation', 'onPressOk', { payload });
           RecListRef.current?.close();
-          console.log(value?.name, "value.name");
-          console.log(payload.name, "payload.name");
+          Logger.debug('MainScreenCustomisation', 'Дані для обробки', { valueName: value?.name, payloadName: payload.name });
           try {
             const existingItem = !!PerRecList.find(
               (item) => item.name === payload?.name || item.name === value?.name
             );
-            console.log(existingItem, "existingItem");
+            Logger.debug('MainScreenCustomisation', 'Перевірка існуючого елемента', { existingItem });
             if (existingItem) {
               editList(value?.name, payload);
             } else {
               addList(payload);
             }
           } catch (error) {
-            console.error(error);
+            Logger.error('MainScreenCustomisation', 'Помилка при обробці onPressOk', error);
           }
         }}
         onPressCancel={() => {
           RecListRef.current?.close();
         }}
         onPressDelete={() => {
-          console.log(value.name, "value.name");
+          Logger.debug('MainScreenCustomisation', 'Видалення списку', { name: value.name });
           deleteList(value);
           RecListRef.current?.close();
         }}
@@ -231,7 +228,7 @@ function PersonalRecList({
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        console.log(results, "results");
+        Logger.debug('MainScreenCustomisation', 'Завантажено списки аніме', { results });
       })
       .finally(() => setLoading(false));
   }, [personalRecList]);
@@ -361,7 +358,7 @@ export function PersonalRecListFilter({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
-    console.log(pages, size, "pages, size");
+    Logger.debug('MainScreenCustomisation', 'Отримано розміри списку', { pages, size });
     const payload = {
       name: animeListName,
       animeSet: animeSet,
@@ -370,7 +367,7 @@ export function PersonalRecListFilter({
       size: size,
       isArrow: null,
     };
-    console.log(payload, "payload");
+    Logger.debug('MainScreenCustomisation', 'Створено payload', { payload });
     onPressOk(payload);
   }
 
