@@ -101,7 +101,10 @@ class ServerApi {
       clearTimeout(timeoutId);
 
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-      Logger.info("ServerApi", `API запит "${endpoint}" виконано за ${executionTime}с`);
+      Logger.info(
+        "ServerApi",
+        `API запит "${endpoint}" виконано за ${executionTime}с`
+      );
 
       this.logResponseDetails(endpoint, response);
 
@@ -133,16 +136,12 @@ class ServerApi {
       const getHeader = (key: string) =>
         headers.get(key) || headers.get(key.toUpperCase()) || "-";
 
-      Logger.debug(
-        "ServerApi",
-        `${endpoint} → Статус: ${response.status}`,
-        {
-          cfRay: getHeader("cf-ray"),
-          serverTiming: getHeader("server-timing"),
-          cacheStatus: getHeader("cf-cache-status"),
-          contentLength: getHeader("content-length")
-        }
-      );
+      Logger.debug("ServerApi", `${endpoint} → Статус: ${response.status}`, {
+        cfRay: getHeader("cf-ray"),
+        serverTiming: getHeader("server-timing"),
+        cacheStatus: getHeader("cf-cache-status"),
+        contentLength: getHeader("content-length"),
+      });
     } catch (error) {
       // Ігноруємо помилки, щоб не блокувати основний процес
     }
@@ -180,7 +179,10 @@ class ServerApi {
   public static async isUser(): Promise<boolean> {
     try {
       const userId = await this.getUserId();
-      Logger.debug("ServerApi", "Перевірка користувача", { userId, version: MainConfig.devInfo.version });
+      Logger.debug("ServerApi", "Перевірка користувача", {
+        userId,
+        version: MainConfig.devInfo.version,
+      });
       const response = await this.callEdge<{ isUser?: boolean }>("isUser", {
         unique_device_id: userId,
         user_version: MainConfig.devInfo.version,
@@ -247,10 +249,18 @@ class ServerApi {
           response.unique_account_id) ||
         "";
       this.uniqueAccountId = accountId as string;
-      Logger.info("ServerApi", "Зареєстровано нового користувача з ID", accountId);
+      Logger.info(
+        "ServerApi",
+        "Зареєстровано нового користувача з ID",
+        accountId
+      );
       return accountId as string;
     } catch (error: any) {
-      Logger.error("ServerApi", "Помилка при реєстрації нового користувача", error);
+      Logger.error(
+        "ServerApi",
+        "Помилка при реєстрації нового користувача",
+        error
+      );
       return "";
     }
   }
@@ -291,7 +301,8 @@ class ServerApi {
 
       return response;
     } catch (error: any) {
-      Logger.error("getGithubRaw", 
+      Logger.error(
+        "getGithubRaw",
         "Помилка при отриманні метаданів:",
         error?.message || error
       );
@@ -327,7 +338,11 @@ export const getGithubRaw = async (
     );
     return await response.text();
   } catch (error: any) {
-    Logger.error("getGithubRaw", "Помилка при отриманні raw файлу з Github", error);
+    Logger.error(
+      "getGithubRaw",
+      "Помилка при отриманні raw файлу з Github",
+      error
+    );
   }
 };
 
@@ -341,14 +356,24 @@ export const getUniqueAccountId = async (): Promise<string> => {
     const isExistingUser = await ServerApi.isUser();
 
     if (isExistingUser) {
-      Logger.debug("getUniqueAccountId", "Користувач існує, отримуємо ID акаунту");
+      Logger.debug(
+        "getUniqueAccountId",
+        "Користувач існує, отримуємо ID акаунту"
+      );
       return await ServerApi.getUniqueAccountId();
     } else {
-      Logger.debug("getUniqueAccountId", "Користувач не існує, реєструємо нового");
+      Logger.debug(
+        "getUniqueAccountId",
+        "Користувач не існує, реєструємо нового"
+      );
       return await ServerApi.newUser();
     }
   } catch (error) {
-    Logger.error("getUniqueAccountId", "Помилка при отриманні унікального ID акаунту", error);
+    Logger.error(
+      "getUniqueAccountId",
+      "Помилка при отриманні унікального ID акаунту",
+      error
+    );
     return "";
   }
 };

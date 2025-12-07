@@ -622,7 +622,7 @@ export default function AnimePreviewScreen({ route }) {
                   {info?.watched?.player && (
                     <>
                       <Text style={[H3, { color: themeColors.white }]}>
-                        Дубляж:
+                        Озвучення:
                       </Text>
                       <TouchableOpacity
                         style={{
@@ -1042,7 +1042,7 @@ export default function AnimePreviewScreen({ route }) {
                 {info?.watched?.player && (
                   <>
                     <Text style={[H3, { color: themeColors.white }]}>
-                      Дубляж:
+                      Озвучення:
                     </Text>
                     <TouchableOpacity
                       style={{
@@ -1067,7 +1067,7 @@ export default function AnimePreviewScreen({ route }) {
                           },
                         ]}
                       >
-                        {(info?.watched?.dubbing || "Вибрати дубляж").slice(
+                        {(info?.watched?.dubbing || "Вибрати озвучення").slice(
                           0,
                           15
                         )}

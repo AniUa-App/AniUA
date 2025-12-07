@@ -14,7 +14,10 @@ export const getBuildExtra = () => {
     const extraFromManifest = Updates?.manifest?.extra || {};
     // Перевага віддається runtime-даним OTA (маніфест), потім expoConfig
     if (__DEV__) {
-      Logger.debug('MainConfig', 'Build extra', { extraFromConstants, extraFromManifest });
+      Logger.debug("MainConfig", "Build extra", {
+        extraFromConstants,
+        extraFromManifest,
+      });
     }
     return { ...extraFromConstants, ...extraFromManifest };
   } catch (_e) {
@@ -37,7 +40,7 @@ const getSafeVersion = () => {
     const version = Constants?.expoConfig?.version;
     return String(version ?? "0.0.1");
   } catch (error) {
-    Logger.error('MainConfig', 'Error getting version', error);
+    Logger.error("MainConfig", "Error getting version", error);
     return "1.0.0";
   }
 };
@@ -87,6 +90,8 @@ export default {
     key: toSafeString(buildExtra.expoPublickSupabaseKey || null),
   },
   partnerStudios: {
+    "Glass Moon": "https://t.me/gwean_maslinka",
+    GlassMoon: "https://t.me/gwean_maslinka",
     "Didko Studio": "https://t.me/didko_studio",
   },
   urls: {
@@ -149,7 +154,7 @@ export default {
       const resolvedId = Application.getAndroidId();
       this.devInfo.deviceId = resolvedId;
     } catch (error) {
-      Logger.error('MainConfig', 'Failed to initialize device ID', error);
+      Logger.error("MainConfig", "Failed to initialize device ID", error);
       this.devInfo.deviceId = "unknown";
     }
 
@@ -159,7 +164,7 @@ export default {
         SettingsStorage.getParameter("isErrorBoundary");
       this.debug.isErrorBoundary = Boolean(savedErrorBoundary);
     } catch (error) {
-      Logger.error('MainConfig', 'Failed to initialize debug settings', error);
+      Logger.error("MainConfig", "Failed to initialize debug settings", error);
       this.debug.isErrorBoundary = false;
     }
   },

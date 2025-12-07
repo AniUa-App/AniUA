@@ -86,6 +86,9 @@ test*
 /google-services.json
 assetlinks.json
 
+# ai
+.promts
+
 *.aar
 *.jar
 # Local env files

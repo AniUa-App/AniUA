@@ -45,7 +45,8 @@ export default function App() {
   const { snackbar, showSnackbar, snackbarTop, showSnackbarTop } =
     useSnackbar();
   const [currentAppVersion, setCurrentAppVersion] = useState(
-    SettingsStorage.getParameter("currentVersion") || "0"
+    SettingsStorage.getParameter("currentVersion") ||
+      `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`
   );
   const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
     SettingsStorage.getParameter("isNotFirstLaunch") || false
@@ -250,11 +251,15 @@ export default function App() {
 
         const _curAppVer = `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`;
 
-        if (currentAppVersion !== _curAppVer || MainConfig.debug.isDebug) {
+        if (currentAppVersion !== _curAppVer && isNotFirstLaunch) {
           showSnackbar(
             <View style={{ flexDirection: "column" }}>
               <Text style={H6}>Додаток оновлено!</Text>
-              <Text style={H6} numberOfLines={1} ellipsizeMode="tail">
+              <Markdown
+                style={{
+                  body: H6,
+                }}
+              >
                 {(
                   await getGithubRaw(
                     MainConfig.devInfo.gitShortHash,
@@ -262,8 +267,9 @@ export default function App() {
                   )
                 )
                   .replace("# CHANGELOG", "")
-                  .trim()}
-              </Text>
+                  .trim()
+                  .split("\n")[2] + "..."}
+              </Markdown>
             </View>,
             {
               actionLabel: "Деталі",

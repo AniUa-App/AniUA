@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Linking } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
 import React, { useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4 } from "../Styles/Fonts";
-import { appColor } from "../Styles/Colors";
+import { appColor, white } from "../Styles/Colors";
 import Config from "../cfgs/MainConfig";
 import Clipboard from "@react-native-clipboard/clipboard";
 import Toast from "react-native-root-toast";
@@ -12,6 +12,9 @@ import { AppIcon } from "../Styles/Icons";
 import * as Updates from "expo-updates";
 import Constants from "expo-constants";
 import SettingsStorage from "../Storage/SettingsStorage";
+import { getGithubRaw } from "../Api/api.ts";
+import Icon from "../Styles/Icons";
+import Logger from "../Logger/Logger";
 
 export default function AppInfoScreen() {
   const expoChannel =
@@ -30,6 +33,14 @@ export default function AppInfoScreen() {
       ),
     },
     { title: "Git (full)", value: String(Config.devInfo.gitHash || "unknown") },
+    {
+      title: "Changelog",
+      value:
+        `${Config.urls.github}/AniUA/${Config.devInfo.gitHash}/CHANGELOG.MD`.replace(
+          "github.com",
+          "raw.githubusercontent.com"
+        ),
+    },
     {
       title: "Дата збірки",
       value: String(Config.devInfo.buildDate || "unknown"),
@@ -121,14 +132,50 @@ function Header() {
   const themeColors = useThemeColors();
   return (
     <View style={styles.header}>
-      <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
-      <View style={{ marginLeft: 12 }}>
-        <Text style={[H3, { color: themeColors.white, fontWeight: "700" }]}>
-          Про застосунок
-        </Text>
-        <Text style={[H4, { color: themeColors.white, opacity: 0.7 }]}>
-          AniUA • {String(Config.devInfo.version || "unknown")}
-        </Text>
+      <View style={{ flexDirection: "row" }}>
+        <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
+        <View style={{ marginLeft: 12 }}>
+          <Text style={[H3, { color: themeColors.white, fontWeight: "700" }]}>
+            Про застосунок
+          </Text>
+          <Text style={[H4, { color: themeColors.white, opacity: 0.7 }]}>
+            AniUA • {String(Config.devInfo.version || "unknown")}
+          </Text>
+        </View>
+      </View>
+      <View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={[
+            styles.row,
+            {
+              justifyContent: "center",
+              paddingVertical: 20,
+            },
+          ]}
+          onPress={async () => {
+            const changelogUrl =
+              `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace(
+                "github.com",
+                "raw.githubusercontent.com"
+              );
+            Logger.info(
+              "AppInfoScreen",
+              "Opening changelog URL:",
+              changelogUrl
+            );
+            Linking.openURL(changelogUrl);
+          }}
+        >
+          <View
+            style={[
+              styles.valuePill,
+              { backgroundColor: themeColors.appColor },
+            ]}
+          >
+            <Icon.GitPullRequest size={24} color={white} style={{}} />
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
