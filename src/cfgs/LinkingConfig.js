@@ -1,4 +1,5 @@
 import MainConfig from "./MainConfig";
+import Logger from "../Logger/Logger";
 
 const config = {
   screens: {
@@ -43,9 +44,12 @@ export default {
       return undefined;
     }
 
+    // Нормалізуємо path - додаємо слеш на початку якщо його немає
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
     // Дозволяємо тільки шляхи що починаються з /anime/
-    if (!path.startsWith("/anime/") && path !== "/anime") {
-      console.warn("LinkingConfig: Only /anime/{slug} URLs are allowed. Ignored:", path);
+    if (!normalizedPath.startsWith("/anime/") && normalizedPath !== "/anime") {
+      Logger.warn("LinkingConfig", "Only /anime/{slug} URLs are allowed. Ignored:", path);
       return undefined;
     }
 
@@ -55,9 +59,9 @@ export default {
     } = require("@react-navigation/native");
 
     try {
-      return defaultGetStateFromPath(path, options);
+      return defaultGetStateFromPath(normalizedPath, options);
     } catch (error) {
-      console.warn("LinkingConfig: Invalid URL path ignored:", path, error);
+      Logger.warn("LinkingConfig", "Invalid URL path ignored:", { path: normalizedPath, error });
       // Navigate to a friendly InvalidLink screen when the path can't be parsed
       return {
         routes: [

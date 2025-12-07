@@ -1,8 +1,7 @@
 # CHANGELOG
 
-### Технічні зміни
+### Виправлені помилки
 
-- ✅ Зміна "Дубляж" на "Озвучення",
-- ✅ Додана команда Glass Moon як партнерський дубляж
+- ✅Полагодив Deep Liknking
 
-Інщі зміни: https://raw.githubusercontent.com/AniUa-App/AniUA/c893ae6/CHANGELOG.MD
+Попередня зміна: https://raw.githubusercontent.com/AniUa-App/AniUA/04a53a1/CHANGELOG.MD
