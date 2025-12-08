@@ -56,6 +56,7 @@ import { DownloadVideo } from "../Notifications/VideoDownloader";
 import Toast from "react-native-root-toast";
 import { useThemeColors } from "../Global/useTheme";
 import Logger from "../Logger/Logger";
+import { setupNavigationBar } from "../../App";
 
 const { width, height } = Dimensions.get("window");
 
@@ -461,6 +462,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       } else {
         EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
       }
+      setupNavigationBar();
+      SystemNavigationBar.fullScreen(false);
+      SystemNavigationBar.navigationShow();
       return true;
     };
 
@@ -837,6 +841,13 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               // Скидаємо завантаження коли перший кадр відрендерився
               isLoadingRef.current = false;
               setIsLoading(false);
+            }}
+            onPictureInPictureStop={() => {
+              setTimeout(async () => {
+                await SystemNavigationBar.fullScreen(true);
+                StatusBar.setHidden(true);
+                Logger.debug("LocalVideoPlayer", "PiP is stopped");
+              }, 1000);
             }}
           />
         </View>

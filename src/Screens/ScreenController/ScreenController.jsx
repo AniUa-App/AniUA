@@ -9,6 +9,7 @@ import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,
 } from "@react-navigation/native";
+import { navigationRef } from "../../Global/NavigationService";
 import Animated, {
   FadeIn,
   FadeOut,
@@ -654,6 +655,7 @@ export default function ScreenController() {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       linking={LinkingConfig}
       onUnhandledAction={handleNavigationError}
       fallback={null}

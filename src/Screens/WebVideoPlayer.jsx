@@ -17,6 +17,7 @@ import { useEffect } from "react";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { BackHandler } from "react-native";
 import Logger from "../Logger/Logger";
+import { setupNavigationBar } from "../../App";
 
 // Функція для визначення чи це планшет
 const isTablet = () => {
@@ -31,7 +32,7 @@ export default function WebVideoPlayerScreen({ route }) {
 
   useEffect(() => {
     const onBackPress = () => {
-      Logger.debug('WebVideoPlayer', 'onBackPress');
+      Logger.debug("WebVideoPlayer", "onBackPress");
       navigation.goBack();
       StatusBar.setHidden(false, "slide");
       // Orientation.lockToPortrait();
@@ -42,6 +43,10 @@ export default function WebVideoPlayerScreen({ route }) {
           ScreenOrientation.OrientationLock.PORTRAIT_UP
         ); // На телефонах блокуємо портретну
       }
+
+      setupNavigationBar();
+      SystemNavigationBar.fullScreen(false);
+      SystemNavigationBar.navigationShow();
       return true;
     };
 
@@ -49,7 +54,8 @@ export default function WebVideoPlayerScreen({ route }) {
       "hardwareBackPress",
       onBackPress
     );
-
+    SystemNavigationBar.fullScreen(true);
+    SystemNavigationBar.navigationHide();
     StatusBar.setHidden(true, "slide");
     // Orientation.unlockAllOrientations();
     ScreenOrientation.unlockAsync();

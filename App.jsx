@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Linking } from "react-native";
+import React, { useState, useEffect, use } from "react";
+import { View, Text, Linking, AppState } from "react-native";
 import ScreenController from "./src/Screens/ScreenController/ScreenController";
 import { black, white, appColor } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -23,6 +23,7 @@ import AllowTheVideoFolder, {
 import { H2, H3, H5, H6, useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
 import Api, {
@@ -37,6 +38,8 @@ import { set } from "date-fns";
 import { se } from "date-fns/locale";
 import Markdown from "react-native-markdown-display";
 import { fonts } from "@rneui/base";
+import { getCurrentRouteName } from "./src/Global/NavigationService";
+import { Log } from "ffmpeg-kit-react-native";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -79,32 +82,6 @@ export default function App() {
   };
 
   /**
-   * Налаштовує системну навігаційну панель відповідно до збережених налаштувань
-   * Підтримує режими: hidden, dark, light
-   */
-  const setupNavigationBar = async () => {
-    return AndroidHelper.safeExecute(async () => {
-      const navBarType = SettingsStorage.getParameter(
-        "SystemNavigationBar_type"
-      );
-
-      if (navBarType === "hidden") {
-        SystemNavigationBar.navigationHide();
-      } else if (navBarType === "dark" || !navBarType) {
-        SystemNavigationBar.navigationShow();
-        const blackHex = Color(black).hex();
-        SystemNavigationBar.setNavigationColor(blackHex, "dark", "navigation");
-        SystemNavigationBar.setBarMode("dark", "navigation");
-      } else if (navBarType === "light") {
-        SystemNavigationBar.navigationShow();
-        const whiteHex = Color(white).hex();
-        SystemNavigationBar.setNavigationColor(whiteHex, "light", "navigation");
-        SystemNavigationBar.setBarMode("light", "navigation");
-      }
-    }, "Помилка налаштування навігаційної панелі");
-  };
-
-  /**
    * Відображає повідомлення про згоду з правилами при першому запуску
    */
   useEffect(() => {
@@ -124,6 +101,40 @@ export default function App() {
       );
     }
   }, [isLoading, isNotFirstLaunch]);
+
+  /**
+   * Глобальний обробник зміни стану додатку (AppState)
+   * Логує кожну зміну стану: active, background, inactive
+   */
+  useEffect(function () {
+    const subscription = AppState.addEventListener(
+      "change",
+      async (nextAppState) => {
+        const _curRouName = getCurrentRouteName();
+        if (
+          _curRouName === "WebVideoPlayer" ||
+          _curRouName === "LocalVideoPlayer"
+        ) {
+          SystemNavigationBar.navigationHide();
+          SystemNavigationBar.fullScreen(true);
+          Logger.debug(
+            "AppState",
+            "Приховано навігаційну панель для відеоплеєра"
+          );
+        } else {
+          await setupNavigationBar();
+        }
+        Logger.debug("AppState", "Стан додатку змінено", {
+          nextAppState,
+          currentScreen: getCurrentRouteName(),
+        });
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   /**
    * Основна ініціалізація додатку:
@@ -326,3 +337,26 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+/**
+ * Налаштовує системну навігаційну панель відповідно до збережених налаштувань
+ * Підтримує режими: hidden, dark, light
+ */
+export const setupNavigationBar = async () => {
+  return AndroidHelper.safeExecute(async () => {
+    const navBarType = SettingsStorage.getParameter("SystemNavigationBar_type");
+
+    if (navBarType === "hidяden") {
+      SystemNavigationBar.navigationHide();
+    } else if (navBarType === "dark" || !navBarType) {
+      SystemNavigationBar.navigationShow();
+      const blackHex = Color(black).hex();
+      SystemNavigationBar.setNavigationColor(blackHex, "dark", "navigation");
+      SystemNavigationBar.setBarMode("dark", "navigation");
+    } else if (navBarType === "light") {
+      SystemNavigationBar.navigationShow();
+      const whiteHex = Color(white).hex();
+      SystemNavigationBar.setNavigationColor(whiteHex, "light", "navigation");
+      SystemNavigationBar.setBarMode("light", "navigation");
+    }
+  }, "Помилка налаштування навігаційної панелі");
+};
