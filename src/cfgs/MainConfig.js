@@ -93,6 +93,10 @@ export default {
     "Glass Moon": "https://t.me/gwean_maslinka",
     GlassMoon: "https://t.me/gwean_maslinka",
     "Didko Studio": "https://t.me/didko_studio",
+    "Субтитри Цукіхана": "https://t.me/Tsukihana_ua",
+    "Цукіхана | Cубтитри": "https://t.me/Tsukihana_ua",
+    "Робота Голосом": "https://t.me/robotaholosem",
+    "субтитри | Робота Голосом": "https://t.me/robotaholosem",
   },
   urls: {
     appUrl: "https://aniua.yuzka.site/",
