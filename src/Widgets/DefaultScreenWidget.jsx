@@ -10,6 +10,7 @@ import { BlurView } from "expo-blur";
 import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsTabletLandscape } from "../Styles/Responsive";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function DefaultScreenWidget({
   children,
@@ -19,6 +20,7 @@ export default function DefaultScreenWidget({
 }) {
   const isTL = useIsTabletLandscape();
   const themeColors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const [isConnected, setIsConnected_] = useState(true);
   const [userConfig, setUserConfig] = useState(null);
 
@@ -26,22 +28,23 @@ export default function DefaultScreenWidget({
 
   const isCustomisation = userConfig?.background?.isCustomisation ?? false;
 
-  // Визначаємо padding для navbar
+  // Визначаємо padding для navbar з урахуванням системного навбару
   const getNavbarPadding = () => {
     const placedAt = userConfig?.navbar?.placedAt || "Внизу";
     const navbarStyle = userConfig?.navbar?.style || "MD3";
+    const bottomInset = Math.max(insets.bottom, 8);
 
     if (navbarStyle !== "MD3") {
-      return { paddingBottom: 80 };
+      return { paddingBottom: 80 + bottomInset };
     }
 
     switch (placedAt) {
       case "Праворуч":
-        return { paddingRight: 70 };
+        return { paddingRight: 70, paddingBottom: bottomInset };
       case "Ліворуч":
-        return { paddingLeft: 70 };
+        return { paddingLeft: 70, paddingBottom: bottomInset };
       default:
-        return {};
+        return { paddingBottom: bottomInset };
     }
   };
 

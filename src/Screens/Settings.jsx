@@ -89,7 +89,7 @@ export default function SettingsScreen() {
 
       showNotification("Кеш успішно очищено");
     } catch (error) {
-      Logger.warn('Settings', 'Помилка очищення кешу', error);
+      Logger.warn("Settings", "Помилка очищення кешу", error);
       showNotification("Частково очищено кеш");
     }
   };
@@ -145,7 +145,7 @@ export default function SettingsScreen() {
     },
     {
       title: "Підтримка",
-      subtitle: "Зворотній зв'язок з розробниками.",
+      subtitle: "Зворотний зв'язок з розробниками.",
       button: {
         Text: "Відкрити",
       },
@@ -171,16 +171,34 @@ export default function SettingsScreen() {
         Text: "Дивитись",
       },
       onPress: () => {
+        // Збираємо партнерів з MainConfig.partners
+        const partnersList = Object.values(MainConfig.partners).map((partner) => ({
+          title: partner.name,
+          onPress: () => {
+            Linking.openURL(partner.url);
+          },
+        }));
+
+        // Збираємо студії озвучення з MainConfig.partnerStudios (без дублікатів)
+        const seenUrls = new Set();
+        const studiosList = Object.entries(MainConfig.partnerStudios)
+          .filter(([name, url]) => {
+            if (seenUrls.has(url)) return false;
+            seenUrls.add(url);
+            return true;
+          })
+          .map(([name, url]) => ({
+            title: name,
+            onPress: () => {
+              Linking.openURL(url);
+            },
+          }));
+
         navigation.navigate("HiddenStack", {
           screen: "ButtonsScreen",
           params: {
             title: "Наші партнери.",
-            list: Object.values(MainConfig.partners).map((partner) => ({
-              title: partner.name,
-              onPress: () => {
-                Linking.openURL(partner.url);
-              },
-            })),
+            list: [...partnersList, ...studiosList],
             buttonStyle: {
               minWidth: "20%",
               alignItems: "center",
@@ -196,7 +214,7 @@ export default function SettingsScreen() {
     },
     {
       title: "Донат",
-      subtitle: "Ви можете зробити добровольне пожертвування.",
+      subtitle: "Ви можете зробити пожертву.",
       button: {
         Text: "Відкрити",
       },
@@ -278,10 +296,10 @@ export default function SettingsScreen() {
           visible={isRatingVisible}
           onClose={() => setIsRatingVisible(false)}
           onRatingSubmit={(rating, feedback) => {
-            Logger.info('Settings', 'Користувач поставив оцінку', { rating });
-            Logger.info('Settings', 'Користувач залишив відгук', { feedback });
+            Logger.info("Settings", "Користувач поставив оцінку", { rating });
+            Logger.info("Settings", "Користувач залишив відгук", { feedback });
             Api.sendFeedback(rating, feedback).then((saved) => {
-              Logger.info('Settings', 'Відгук відправлено', { saved });
+              Logger.info("Settings", "Відгук відправлено", { saved });
               if (saved) {
                 showNotification("Відгук успішно відправлено.");
               } else {

@@ -1,6 +1,7 @@
 import { View, Text, Share, Linking, StyleSheet } from "react-native";
 import React from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TouchableOpacity } from "./Button";
 import { appColor, Black, white } from "../Styles/Colors";
 import { H3 } from "../Styles/Fonts";
@@ -10,6 +11,7 @@ import Icon from "../Styles/Icons";
 
 export default function MoreBottomSheet({ sheetRef, anime }) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const elements = [
     {
@@ -70,7 +72,7 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
         />
       )}
     >
-      <BottomSheetView style={styles.container}>
+      <BottomSheetView style={[styles.container, { paddingBottom: insets.bottom }]}>
         {elements.map((element, index) => (
           <TouchableOpacity
             activeOpacity={0.6}

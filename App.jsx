@@ -204,11 +204,14 @@ export default function App() {
             await ScreenOrientation.lockAsync(
               ScreenOrientation.OrientationLock.PORTRAIT_UP
             );
-            SettingsStorage.setParameter("userConfig", {
-              navbar: {
-                style: "MD3",
-              },
-            });
+            const existingMobileConfig = SettingsStorage.getParameter("userConfig");
+            if (!existingMobileConfig || Object.keys(existingMobileConfig).length === 0) {
+              SettingsStorage.setParameter("userConfig", {
+                navbar: {
+                  style: "MD3",
+                },
+              });
+            }
           }
         } catch (e) {
           Logger.logAppInit("Помилка блокування орієнтації", false, e);

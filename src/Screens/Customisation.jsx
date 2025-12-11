@@ -65,7 +65,9 @@ export default function СustomisationScreen() {
   const SET_USER_CONFIG = (newConfig) => {
     _SET_USER_CONFIG(newConfig);
     SettingsStorage.setParameter("userConfig", newConfig);
-    Logger.debug('Customisation', 'Оновлення конфігурації користувача', { newConfig });
+    Logger.debug("Customisation", "Оновлення конфігурації користувача", {
+      newConfig,
+    });
     EventBus.emit("userConfig", newConfig);
   };
 
@@ -143,7 +145,9 @@ export default function СustomisationScreen() {
                   segments={[{ label: "Default" }, { label: "MD3" }]}
                   value={USER_CONFIG?.navbar?.style || "Default"}
                   onChange={(value) => {
-                    Logger.debug('Customisation', 'Зміна стилю навігації', { value });
+                    Logger.debug("Customisation", "Зміна стилю навігації", {
+                      value,
+                    });
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
                       navbar: {
@@ -187,7 +191,7 @@ export default function СustomisationScreen() {
                   title="Закруглення панелі"
                   value={USER_CONFIG?.navbar?.borderRadius ?? 8}
                   minimumValue={0}
-                  maximumValue={100}
+                  maximumValue={50}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
@@ -383,6 +387,30 @@ export default function СustomisationScreen() {
   ];
   const CROSS_PLATFORM_CUSTOMISATION_SETTINGS = [
     {
+      slug: "effects",
+      body: [
+        {
+          title: "Сніжинки",
+          description: "Падаючі сніжинки на екрані",
+          value: USER_CONFIG?.effects?.snowflakes || false,
+          button: USER_CONFIG?.effects?.snowflakes ? (
+            <Icons.ToggleRight size={34} color={white} />
+          ) : (
+            <Icons.ToggleLeft size={34} color={black} />
+          ),
+          onPress: () => {
+            SET_USER_CONFIG({
+              ...USER_CONFIG,
+              effects: {
+                ...USER_CONFIG?.effects,
+                snowflakes: !USER_CONFIG?.effects?.snowflakes,
+              },
+            });
+          },
+        },
+      ],
+    },
+    {
       slug: "colors",
       body: [
         {
@@ -527,10 +555,18 @@ export default function СustomisationScreen() {
                 const safeExt = extension || "png";
                 const destPath = `${RNFS.DocumentDirectoryPath}/background.${safeExt}`;
                 await RNFS.copyFile(uri, destPath);
-                Logger.info('Customisation', 'Зображення скопійовано у внутрішню памʼять', { destPath });
+                Logger.info(
+                  "Customisation",
+                  "Зображення скопійовано у внутрішню памʼять",
+                  { destPath }
+                );
                 return destPath;
               } catch (error) {
-                Logger.error('Customisation', 'Помилка копіювання зображення у внутрішню памʼять', error);
+                Logger.error(
+                  "Customisation",
+                  "Помилка копіювання зображення у внутрішню памʼять",
+                  error
+                );
                 return null;
               }
             };
@@ -565,7 +601,11 @@ export default function СustomisationScreen() {
                       subtitle="Фонове зображення додатка"
                       onPick={async (payload) => {
                         const uriPath = await copyBackgroundImage(payload);
-                        Logger.debug('Customisation', 'Отримано шлях до фонового зображення', { uriPath });
+                        Logger.debug(
+                          "Customisation",
+                          "Отримано шлях до фонового зображення",
+                          { uriPath }
+                        );
                         SET_USER_CONFIG({
                           ...USER_CONFIG,
                           background: {
@@ -1174,7 +1214,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
         copyToCacheDirectory: true,
       });
 
-      Logger.debug('Customisation', 'Результат вибору зображення', { result });
+      Logger.debug("Customisation", "Результат вибору зображення", { result });
 
       const canceled = result?.canceled ?? result?.type === "cancel";
       if (canceled) {
@@ -1186,7 +1226,10 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
       const name = asset?.name || null;
       const mimeType = asset?.mimeType || null;
       if (!uri) {
-        Logger.warn('Customisation', 'Не вдалося отримати URI вибраного зображення');
+        Logger.warn(
+          "Customisation",
+          "Не вдалося отримати URI вибраного зображення"
+        );
         return null;
       }
 
@@ -1195,7 +1238,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
       onPick?.(payload);
       return payload;
     } catch (err) {
-      Logger.error('Customisation', 'Помилка вибору зображення', err);
+      Logger.error("Customisation", "Помилка вибору зображення", err);
       return null;
     }
   };

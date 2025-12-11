@@ -57,7 +57,6 @@ export default function WebVideoPlayerScreen({ route }) {
     SystemNavigationBar.fullScreen(true);
     SystemNavigationBar.navigationHide();
     StatusBar.setHidden(true, "slide");
-    // Orientation.unlockAllOrientations();
     ScreenOrientation.unlockAsync();
 
     return () => {

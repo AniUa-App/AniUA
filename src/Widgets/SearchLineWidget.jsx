@@ -37,7 +37,7 @@ export default function SearchLine() {
       setIsLoading(true);
 
       const anime = await HikkaApi.searchAnime(query);
-      Logger.debug('SearchLine', 'Search results', { anime });
+      Logger.debug("SearchLine", "Search results", { anime });
 
       if (!anime || anime.length === 0) {
         setIsVisibleNotification(true);
@@ -54,7 +54,7 @@ export default function SearchLine() {
         setIsVisibleNotification(true);
       }
     } catch (error) {
-      Logger.error('SearchLine', 'Помилка пошуку', error);
+      Logger.error("SearchLine", "Помилка пошуку", error);
       setIsVisibleNotification(true);
     } finally {
       setIsLoading(false);
@@ -191,11 +191,11 @@ export default function SearchLine() {
         {loadedAnimeList.length > 0 && isFocused && (
           <View
             style={{
-              maxHeight: 400, // або інша бажана висота для скролу
+              maxHeight: 500,
               backgroundColor: Black(0.7),
               borderTopLeftRadius: 0,
               borderTopRightRadius: 0,
-              borderBottomLeftRadius: 0,
+              borderBottomLeftRadius: 10,
               borderBottomRightRadius: 10,
             }}
           >

@@ -75,6 +75,7 @@ import Toast from "react-native-root-toast";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { isTabletLandscape, isTablet } from "../Styles/Responsive";
 import { useSnackbar } from "../Widgets/useSnackbar";
+import Logger from "../Logger/Logger";
 
 function getEpisodeDateOrType(anime) {
   if (
@@ -347,8 +348,11 @@ export default function AnimePreviewScreen({ route }) {
                 setEpisodesList([]);
                 return;
               }
-              if (data["vidsrc"]) {
-                delete data["vidsrc"];
+              if (data["vidking"]) {
+                delete data["vidking"];
+              }
+              if (data["Main"]) {
+                delete data["Main"];
               }
 
               console.log(JSON.stringify(data), "data");
@@ -491,7 +495,7 @@ export default function AnimePreviewScreen({ route }) {
                 ? { width: winWidth * 0.12, height: winHeight * 0.3 }
                 : isTablet()
                   ? { width: winWidth * 0.2, height: winHeight * 0.2 }
-                  : { width: winWidth * 0.38, height: winHeight * 0.25 },
+                  : { width: winWidth * 0.4, height: winHeight * 0.3 },
             ]}
             uri={item.image}
           />
@@ -554,28 +558,41 @@ export default function AnimePreviewScreen({ route }) {
 
                 {/* Кнопка "Назад" або іконка (за потреби) */}
                 <TouchableOpacity
-                  style={[styles.backButton]}
+                  style={[
+                    styles.backButton,
+
+                    { backgroundColor: themeColors.appColor },
+                  ]}
                   onPress={() => {
                     console.log("back");
-                    navigation.goBack();
+                    try {
+                      navigation.goBack();
+                    } catch {
+                      navigation.navigate("MainTabs", {
+                        screen: "Home",
+                        params: { anime },
+                      });
+                    }
                   }}
                 >
-                  <Icon.ArrowLeft size={35} color={themeColors.appColor} />
+                  <Icon.ArrowLeft size={35} color={themeColors.white} />
                 </TouchableOpacity>
 
                 {/* Оцінка та зірочка у верхньому правому куті */}
-                <View style={styles.ratingContainer}>
+                <View
+                  style={[
+                    styles.ratingContainer,
+                    { backgroundColor: themeColors.black_1 },
+                  ]}
+                >
+                  <Icon.Star size={24} color={themeColors.yellow} />
+
                   <Text
-                    style={[
-                      H3,
-                      { color: themeColors.appColor, marginRight: 10 },
-                    ]}
+                    style={[H3, { color: themeColors.white, paddingRight: 10 }]}
                   >
                     {anime?.score || 0}
                   </Text>
-                  <Icon.Star size={30} color={themeColors.yellow} />
                 </View>
-
                 {/* Кнопка "Дивитися трейлер" посередині */}
                 {anime?.videos?.find((v) => v.video_type === "video_promo")
                   ?.url && (
@@ -723,14 +740,15 @@ export default function AnimePreviewScreen({ route }) {
                     }}
                   >
                     {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
-                    <Icon.Heart
-                      size={34}
-                      color={
-                        info.isFavorite
-                          ? themeColors.appColor
-                          : themeColors.white
-                      }
-                    />
+                    {info.isFavorite ? (
+                      <Icon.Heart
+                        size={34}
+                        color={themeColors.appColor}
+                        rating={"fill"}
+                      />
+                    ) : (
+                      <Icon.Heart size={34} color={themeColors.white} />
+                    )}
                   </TouchableOpacity>
 
                   {episodesList.length === 0 ? (
@@ -978,23 +996,39 @@ export default function AnimePreviewScreen({ route }) {
 
               {/* Кнопка "Назад" або іконка (за потреби) */}
               <TouchableOpacity
-                style={[styles.backButton]}
+                style={[
+                  styles.backButton,
+                  { backgroundColor: themeColors.appColor },
+                ]}
                 onPress={() => {
-                  console.log("back");
-                  navigation.goBack();
+                  Logger.debug("goBack", "canGoBack", navigation.canGoBack());
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  } else {
+                    navigation.navigate("MainTabs", {
+                      screen: "Home",
+                      params: { anime },
+                    });
+                  }
                 }}
               >
-                <Icon.ArrowLeft size={35} color={themeColors.appColor} />
+                <Icon.ArrowLeft size={35} color={themeColors.white} />
               </TouchableOpacity>
 
               {/* Оцінка та зірочка у верхньому правому куті */}
-              <View style={styles.ratingContainer}>
+              <View
+                style={[
+                  styles.ratingContainer,
+                  { backgroundColor: themeColors.black_1 },
+                ]}
+              >
+                <Icon.Star size={24} color={themeColors.yellow} />
+
                 <Text
-                  style={[H3, { color: themeColors.appColor, marginRight: 10 }]}
+                  style={[H3, { color: themeColors.white, paddingRight: 10 }]}
                 >
                   {anime?.score || 0}
                 </Text>
-                <Icon.Star size={30} color={themeColors.yellow} />
               </View>
 
               {/* Кнопка "Дивитися трейлер" посередині */}
@@ -1143,12 +1177,15 @@ export default function AnimePreviewScreen({ route }) {
                   }}
                 >
                   {/* <LikeIcon fill={info.isFavorite ? appColor : white} /> */}
-                  <Icon.Heart
-                    size={34}
-                    color={
-                      info.isFavorite ? themeColors.appColor : themeColors.white
-                    }
-                  />
+                  {info.isFavorite ? (
+                    <Icon.Heart
+                      size={34}
+                      color={themeColors.appColor}
+                      weight={"fill"}
+                    />
+                  ) : (
+                    <Icon.Heart size={34} color={themeColors.white} />
+                  )}
                 </TouchableOpacity>
 
                 {episodesList.length === 0 ? (
@@ -1392,7 +1429,7 @@ export default function AnimePreviewScreen({ route }) {
                 ...info,
                 watched: { ...info.watched, episodes: watched_episodes },
               });
-              // SystemNavigationBar.navigationHide();
+
               NavigationBar.setVisibilityAsync("hidden");
               episodesSheetRef.current?.close();
 
@@ -1597,15 +1634,21 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, // орієнтовно під статус-бар
+    top: 50,
     left: 10,
     zIndex: 10,
-    padding: 5,
+    padding: 4,
+    borderRadius: 8,
   },
   ratingContainer: {
     position: "absolute",
-    top: 40,
-    right: 10,
+    top: 50,
+    right: 0,
+    padding: 8,
+    paddingRight: 10,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    gap: 6,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -1704,8 +1747,8 @@ const styles = StyleSheet.create({
   },
   similarImage: {
     // size is applied dynamically per-orientation
-    borderRadius: 4,
     marginBottom: 4,
+    borderRadius: 16,
   },
   similarText: {
     color: "#ccc",

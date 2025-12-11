@@ -2,6 +2,7 @@ import { View, StyleSheet, Linking, useWindowDimensions } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
 import HomeScreen from "../Home";
 import AnimeListScreen from "../AnimeList";
@@ -50,6 +51,7 @@ import PrivilegesScreen from "../Privileges";
 import DonateScreen from "../Donate";
 import InvalidLinkScreen from "../InvalidLink";
 import Logger from "../../Logger/Logger";
+import SnowflakesWidget from "../../Widgets/SnowflakesWidget";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -201,6 +203,7 @@ function AnimatedIconContainer({ focused, themeColors, children }) {
 // Кастомна панель навігації з підписом під іконками
 export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
   const themeColors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
@@ -229,6 +232,8 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
 
   // Визначаємо позиціонування та орієнтацію
   const isVertical = placedAt === "Праворуч" || placedAt === "Ліворуч";
+  // Використовуємо insets.bottom для правильного відступу від системного навбару
+  const bottomInset = Math.max(insets.bottom, 8);
   const positionStyles = {
     Внизу: {
       bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 0 : 0,
@@ -240,7 +245,9 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
       flexDirection: "row",
       paddingVertical: 8,
       paddingBottom:
-        isCustomisation && userConfig?.navbar?.bottomOffset > 20 ? 0 : 25,
+        isCustomisation && userConfig?.navbar?.bottomOffset > 20
+          ? 0
+          : bottomInset,
     },
     Праворуч: {
       right: 0,
@@ -270,7 +277,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
             ? userConfig?.navbar?.backgroundColor || themeColors.black
             : themeColors.black,
           borderRadius: isCustomisation
-            ? userConfig?.navbar?.borderRadius || 8
+            ? userConfig?.navbar?.borderRadius
             : isVertical
               ? 16
               : 0,
@@ -413,10 +420,13 @@ export function ThemedNavBar({ state, navigation, isPreview = false }) {
 export function CustomNavBar({ state, navigation, isPreview = false }) {
   const themeColors = useThemeColors();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
   const isCustomisation = userConfig?.navbar?.isCustomisation;
+  // Використовуємо insets.bottom для правильного відступу від системного навбару
+  const bottomOffset = Math.max(insets.bottom, 10);
 
   useEffect(() => {
     EventBus.on("userConfig", (newConfig) => {
@@ -446,10 +456,10 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
           backgroundColor: isCustomisation
             ? userConfig?.navbar?.backgroundColor || themeColors.black
             : themeColors.black,
-          borderRadius: isCustomisation
-            ? userConfig?.navbar?.borderRadius || 8
-            : 8,
-          bottom: isCustomisation ? userConfig?.navbar?.bottomOffset || 25 : 25,
+          borderRadius: isCustomisation ? userConfig?.navbar?.borderRadius : 8,
+          bottom: isCustomisation
+            ? userConfig?.navbar?.bottomOffset || bottomOffset
+            : bottomOffset,
           width: isCustomisation
             ? `${userConfig?.navbar?.width || 80}%`
             : "80%",
@@ -481,7 +491,9 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
             key={route.key}
             onPress={() => {
               if (!isFocused) {
-                Logger.debug('ScreenController', 'Route changed', { route: route.name });
+                Logger.debug("ScreenController", "Route changed", {
+                  route: route.name,
+                });
                 if (isPreview) {
                   setPreviewIndex(index);
                 } else {
@@ -649,27 +661,30 @@ function HiddenStack() {
 
 export default function ScreenController() {
   const handleNavigationError = (error) => {
-    Logger.warn('ScreenController', 'Navigation linking error', error);
+    Logger.warn("ScreenController", "Navigation linking error", error);
     // Не показуємо error користувачу, просто логуємо
   };
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      linking={LinkingConfig}
-      onUnhandledAction={handleNavigationError}
-      fallback={null}
-    >
-      <RootStack.Navigator
-        screenOptions={{
-          headerShown: false,
-          presentation: "modal",
-        }}
+    <View style={{ flex: 1 }}>
+      <NavigationContainer
+        ref={navigationRef}
+        linking={LinkingConfig}
+        onUnhandledAction={handleNavigationError}
+        fallback={null}
       >
-        <RootStack.Screen name="MainTabs" component={MainTabs} />
-        <RootStack.Screen name="HiddenStack" component={HiddenStack} />
-      </RootStack.Navigator>
-    </NavigationContainer>
+        <RootStack.Navigator
+          screenOptions={{
+            headerShown: false,
+            presentation: "modal",
+          }}
+        >
+          <RootStack.Screen name="MainTabs" component={MainTabs} />
+          <RootStack.Screen name="HiddenStack" component={HiddenStack} />
+        </RootStack.Navigator>
+      </NavigationContainer>
+      <SnowflakesWidget />
+    </View>
   );
 }
 

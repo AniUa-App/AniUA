@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   AppColor,
   Black,
@@ -29,13 +30,15 @@ export const playersIcons = {
   ashdi: <AshdiIcon styles={{ width: 40, height: 40 }} />,
 };
 
-// Функція для сортування студій - партнерські студії вгорі
+// Функція для сортування студій - партнерські студії вгорі у порядку з MainConfig.partnerStudios
 export const sortDubbingsByPartnerStudios = (dubbingsList) => {
   if (!dubbingsList || dubbingsList.length === 0) return [];
 
   const partnerStudios = Object.keys(MainConfig.partnerStudios);
-  const partners = dubbingsList.filter((dubbing) =>
-    partnerStudios.includes(dubbing)
+
+  // Сортуємо партнерів у тому ж порядку, як вони розташовані у partnerStudios
+  const partners = partnerStudios.filter((studio) =>
+    dubbingsList.includes(studio)
   );
   const others = dubbingsList.filter(
     (dubbing) => !partnerStudios.includes(dubbing)
@@ -89,20 +92,40 @@ function MoonPlayerContent({ dubbings, data, changeDubbing }) {
               });
             }}
           >
-            <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, width: "55%" },
+                { marginLeft: 10, flex: 1 },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
-            {MainConfig.partnerStudios[item] && (
-              <Icon.TelegramLogo size={30} fill={appColor} />
+            <Text style={[H3, { color: white, marginRight: 10 }]}>
+              {dubbings[item]?.length || 0} серій
+            </Text>
+
+            {MainConfig.partnerStudios[item] ? (
+              <TouchableOpacity
+                onPress={() => {
+                  const tgLink = MainConfig.partnerStudios[item];
+                  if (tgLink) {
+                    Linking.openURL(tgLink).catch((err) =>
+                      Logger.error(
+                        "DubbingBottomSheet",
+                        "Failed to open URL",
+                        err
+                      )
+                    );
+                  }
+                }}
+              >
+                <Icon.TelegramLogo size={30} fill={appColor} />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 30 }} />
             )}
           </TouchableOpacity>
         )}
@@ -156,20 +179,40 @@ function AshdiPlayerContent({ dubbings, data, changeDubbing }) {
               });
             }}
           >
-            <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, width: "55%" },
+                { marginLeft: 10, flex: 1 },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
-            {MainConfig.partnerStudios[item] && (
-              <Icon.TelegramLogo size={30} fill={appColor} />
+            <Text style={[H3, { color: white, marginRight: 10 }]}>
+              {dubbings[item]?.length || 0} серій
+            </Text>
+
+            {MainConfig.partnerStudios[item] ? (
+              <TouchableOpacity
+                onPress={() => {
+                  const tgLink = MainConfig.partnerStudios[item];
+                  if (tgLink) {
+                    Linking.openURL(tgLink).catch((err) =>
+                      Logger.error(
+                        "DubbingBottomSheet",
+                        "Failed to open URL",
+                        err
+                      )
+                    );
+                  }
+                }}
+              >
+                <Icon.TelegramLogo size={30} fill={appColor} />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 30 }} />
             )}
           </TouchableOpacity>
         )}
@@ -212,19 +255,21 @@ function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
               });
             }}
           >
-            <Text style={H3}>Переклад:</Text>
             <Text
               style={[
                 H3,
                 { color: selectedDubbing === item ? AppColor() : Gray() },
-                { marginLeft: 10, width: "55%" },
+                { marginLeft: 10, flex: 1 },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {item}
             </Text>
-            {MainConfig.partnerStudios[item] && (
+            <Text style={[H3, { color: white, marginRight: 10 }]}>
+              {dubbings[item]?.length || 0} серій
+            </Text>
+            {MainConfig.partnerStudios[item] ? (
               <TouchableOpacity
                 onPress={() => {
                   const tgLink = MainConfig.partnerStudios[item];
@@ -241,6 +286,8 @@ function DefaultPlayerContent({ dubbings, data, changeDubbing }) {
               >
                 <Icon.TelegramLogo size={30} fill={appColor} />
               </TouchableOpacity>
+            ) : (
+              <View style={{ width: 30 }} />
             )}
           </TouchableOpacity>
         )}
@@ -303,6 +350,7 @@ export default function DubbingBottomSheet({
   storage_data,
   isChanges,
 }) {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(null);
   const [info, setInfo] = useState(storage_data);
 
@@ -351,7 +399,7 @@ export default function DubbingBottomSheet({
       animationDuration={300}
       enableContentPanningGesture={false}
     >
-      <BottomSheetView style={[styles.container]}>
+      <BottomSheetView style={[styles.container, { paddingBottom: insets.bottom }]}>
         <View style={styles.contentContainer}>
           {(() => {
             if (activeTab === "Вбудований плеєр") {

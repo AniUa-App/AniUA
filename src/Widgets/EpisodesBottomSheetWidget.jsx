@@ -18,12 +18,14 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TouchableOpacity } from "./Button";
 import {
   AppColor,
   appColor,
   Black,
   black,
+  black_1,
   White,
   white,
 } from "../Styles/Colors";
@@ -166,7 +168,14 @@ const EpisodeItem = React.memo(
           ]}
         >
           <TouchableHighlight
-            style={styles.rowFront}
+            style={[
+              styles.rowFront,
+              {
+                backgroundColor: checkForStyle(item)
+                  ? Black(0.4)
+                  : "transparent",
+              },
+            ]}
             underlayColor={"transparent"}
             onLongPress={() => {
               onLongSelectEpisode(item);
@@ -185,7 +194,7 @@ const EpisodeItem = React.memo(
                 alignItems: "center",
                 justifyContent: "space-between",
                 flexDirection: "row",
-                width: "90%",
+                width: "100%",
                 opacity: isDownloading && type === "download" ? 0.8 : 1,
               }}
             >
@@ -226,9 +235,114 @@ export default function EpisodesBottomSheet({
 }) {
   const navigation = useNavigation();
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [episodesData, setEpisodesData] = useState([]);
   const [info, setInfo_] = useState(storage_data || {});
   const [isLoading, setIsLoading] = useState(true);
+  const flatListRef = useRef(null);
+  const scrollButtonScale = useRef(new Animated.Value(1)).current;
+  const scrollButtonRotation = useRef(new Animated.Value(0)).current;
+  const isAtEndRef = useRef(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isAtEnd, setIsAtEnd] = useState(false);
+
+  const scrollStep = useMemo(() => {
+    if (episodesData.length > 500) return 100;
+    if (episodesData.length > 100) return 50;
+    return 50;
+  }, [episodesData.length]);
+
+  const ITEM_HEIGHT = 70;
+
+  useEffect(() => {
+    setShowScrollButton(episodesData.length > 50);
+    setIsAtEnd(false);
+    isAtEndRef.current = false;
+    scrollButtonRotation.setValue(0);
+  }, [episodesData.length]);
+
+  const handleScrollButton = () => {
+    if (!flatListRef.current) return;
+
+    // Анімація натискання кнопки
+    Animated.sequence([
+      Animated.timing(scrollButtonScale, {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scrollButtonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (isAtEnd) {
+      // Прокрутка вгору на scrollStep елементів
+      const currentOffset =
+        flatListRef.current._listRef?._scrollMetrics?.offset || 0;
+      const newOffset = Math.max(0, currentOffset - scrollStep * ITEM_HEIGHT);
+
+      flatListRef.current.scrollToOffset({
+        offset: newOffset,
+        animated: true,
+      });
+
+      // Якщо дійшли до початку - перевертаємо стрілку
+      if (newOffset === 0) {
+        setIsAtEnd(false);
+        isAtEndRef.current = false;
+        Animated.timing(scrollButtonRotation, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    } else {
+      // Прокрутка вниз на scrollStep елементів
+      const currentOffset =
+        flatListRef.current._listRef?._scrollMetrics?.offset || 0;
+      flatListRef.current.scrollToOffset({
+        offset: currentOffset + scrollStep * ITEM_HEIGHT,
+        animated: true,
+      });
+    }
+  };
+
+  const handleScroll = (event) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const isNearEnd =
+      contentOffset.y + layoutMeasurement.height >= contentSize.height - 50;
+    const isNearStart = contentOffset.y <= 50;
+
+    // Перевертаємо стрілку коли досягли кінця
+    if (isNearEnd && !isAtEndRef.current) {
+      setIsAtEnd(true);
+      isAtEndRef.current = true;
+      Animated.timing(scrollButtonRotation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    // Перевертаємо стрілку назад коли дійшли до початку
+    if (isNearStart && isAtEndRef.current) {
+      setIsAtEnd(false);
+      isAtEndRef.current = false;
+      Animated.timing(scrollButtonRotation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const rotateInterpolation = scrollButtonRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
 
   const setInfo = (info) => {
     setInfo_(info);
@@ -299,7 +413,9 @@ export default function EpisodesBottomSheet({
       animationDuration={300}
       enableContentPanningGesture={false}
     >
-      <BottomSheetView style={styles.container}>
+      <BottomSheetView
+        style={[styles.container, { paddingBottom: insets.bottom }]}
+      >
         {isLoading ? (
           <ActivityIndicator
             size="large"
@@ -315,12 +431,43 @@ export default function EpisodesBottomSheet({
         ) : (
           <View style={styles.content}>
             <FlatList
+              ref={flatListRef}
               data={episodesData}
               renderItem={renderItem}
               keyExtractor={keyExtractor}
               showsVerticalScrollIndicator={false}
               style={{ maxHeight: height * 0.6 }}
+              getItemLayout={(data, index) => ({
+                length: ITEM_HEIGHT,
+                offset: ITEM_HEIGHT * index,
+                index,
+              })}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             />
+            {showScrollButton && (
+              <Animated.View
+                style={[
+                  styles.scrollDownButton,
+                  {
+                    transform: [
+                      { scale: scrollButtonScale },
+                      { rotate: rotateInterpolation },
+                    ],
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={handleScrollButton}
+                  style={[
+                    styles.scrollDownButtonInner,
+                    { backgroundColor: black_1 },
+                  ]}
+                >
+                  <Icon.CaretDown size={28} color={white} weight="bold" />
+                </TouchableOpacity>
+              </Animated.View>
+            )}
           </View>
         )}
       </BottomSheetView>
@@ -350,5 +497,21 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 70,
     justifyContent: "center",
+  },
+  scrollDownButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Black(0.6),
+  },
+  scrollDownButtonInner: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
   },
 });
