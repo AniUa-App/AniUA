@@ -40,6 +40,7 @@ import Markdown from "react-native-markdown-display";
 import { fonts } from "@rneui/base";
 import { getCurrentRouteName } from "./src/Global/NavigationService";
 import { Log } from "ffmpeg-kit-react-native";
+import { HikkaAuthService } from "./src/Services/HikkaAuthService";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -146,6 +147,11 @@ export default function App() {
   useEffect(() => {
     MainConfig.devInfo.deviceId = MainConfig.devInfo.getUniqueId();
     Logger.debug("App", "Device ID отримано", MainConfig.devInfo.deviceId);
+
+    // Ініціалізація Hikka Auth
+    HikkaAuthService.initialize();
+    Logger.debug("App", "Hikka Auth ініціалізовано");
+
     const isUser = async () => {
       const isUser = await getUniqueAccountId();
       SettingsStorage.setParameter("accountId", isUser);

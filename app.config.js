@@ -8,7 +8,7 @@ export default {
   expo: {
     name: "AniUA",
     slug: "AniUA",
-    version: "0.0.1",
+    version: "0.0.2",
     orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
@@ -19,7 +19,7 @@ export default {
       checkAutomatically: "ON_LOAD",
       channel: "alpha",
     },
-    runtimeVersion: "0.0.1",
+    runtimeVersion: "0.0.2",
     extra: {
       hermes: true,
       eas: {
@@ -32,6 +32,10 @@ export default {
       expoPublickSupabaseKey: process.env.EXPO_PUBLIC_SUPABASE_KEY || null,
       expoPrivateMoonApiKey: process.env.EXPO_PUBLIC_MOON_KEY || null,
       appUri: process.env.APP_URI || null,
+      hikkaClientId: process.env.EXPO_PUBLIC_HIKKA_CLIENT_ID || null,
+      hikkaClientSecret: process.env.HIKKA_CLIENT_SECRET || null,
+      hikkaRedirectUrl:
+        process.env.EXPO_PUBLIC_HIKKA_REDIRECT_URL || "aniua://hikka-callback",
     },
     splash: {
       image: "./assets/AniUA-Logo.png",
@@ -75,6 +79,16 @@ export default {
               scheme: "https",
               host: "aniua.yuzka.site",
               pathPrefix: "/anime",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme: "aniua",
+              host: "hikka-callback",
             },
           ],
           category: ["BROWSABLE", "DEFAULT"],

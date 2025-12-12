@@ -38,7 +38,7 @@ const getSafeValue = (value, fallback = "Unknown") => {
 const getSafeVersion = () => {
   try {
     const version = Constants?.expoConfig?.version;
-    return String(version ?? "0.0.1");
+    return String(version ?? "0.0.2");
   } catch (error) {
     Logger.error("MainConfig", "Error getting version", error);
     return "1.0.0";
