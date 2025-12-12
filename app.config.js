@@ -17,7 +17,7 @@ export default {
       url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       enabled: true,
       checkAutomatically: "ON_LOAD",
-      channel: "alpha",
+      channel: "beta",
     },
     runtimeVersion: "0.0.2",
     extra: {

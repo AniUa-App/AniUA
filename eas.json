@@ -3,14 +3,14 @@
     "version": ">= 5.9.1"
   },
   "build": {
-    "alpha": {
-      "channel": "alpha",
+    "beta": {
+      "channel": "beta",
       "android": {
         "buildType": "apk"
       }
     },
-    "aab-alpha": {
-      "channel": "alpha",
+    "aab-beta": {
+      "channel": "beta",
       "android": {
         "buildType": "app-bundle"
       }

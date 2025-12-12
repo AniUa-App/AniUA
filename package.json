@@ -14,7 +14,7 @@
     "postinstall": "patch-package",
     "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
     "set-env": "node ./scripts/set-environment.js",
-    "update-alpha": "npm run set-env && npx eas update --branch alpha -m 'Update!'"
+    "update-beta": "npm run set-env && npx eas update --branch beta -m 'Update!'"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.1.8",
