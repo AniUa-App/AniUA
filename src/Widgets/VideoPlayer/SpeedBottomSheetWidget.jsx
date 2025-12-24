@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Button";
-import { appColor } from "../../Styles/Colors";
+import { primary } from "../../Styles/Colors";
 import { H3, H4, H5 } from "../../Styles/Fonts";
 import Slider from "@react-native-community/slider";
 import { useThemeColors } from "../../Global/useTheme";
@@ -49,8 +49,8 @@ export default function SpeedBottomSheet({
       snapPoints={orientation === "horizontal" ? ["50%"] : ["20%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: themeColors.Black(0.95) }}
-      handleIndicatorStyle={{ backgroundColor: themeColors.Gray(0.5) }}
+      backgroundStyle={{ backgroundColor: themeColors.Background(0.95) }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.InActiveText(0.5) }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -63,16 +63,18 @@ export default function SpeedBottomSheet({
     >
       <BottomSheetView style={styles.container}>
         <View style={styles.header}>
-          <Text style={[H3, { color: themeColors.white, marginBottom: 8 }]}>
+          <Text style={[H3, { color: themeColors.text, marginBottom: 8 }]}>
             Швидкість відтворення
           </Text>
-          <Text style={[H4, { color: appColor, textAlign: "center" }]}>
+          <Text style={[H4, { color: primary, textAlign: "center" }]}>
             {tempRate.toFixed(2)}x
           </Text>
         </View>
 
         <View style={styles.sliderContainer}>
-          <Text style={[H5, { color: themeColors.Gray(0.7), minWidth: 40 }]}>
+          <Text
+            style={[H5, { color: themeColors.InActiveText(0.7), minWidth: 40 }]}
+          >
             0.25x
           </Text>
           <Slider
@@ -81,9 +83,9 @@ export default function SpeedBottomSheet({
             minimumValue={0.25}
             maximumValue={3.0}
             step={0.05}
-            minimumTrackTintColor={appColor}
-            maximumTrackTintColor={themeColors.Gray(0.5)}
-            thumbTintColor={appColor}
+            minimumTrackTintColor={primary}
+            maximumTrackTintColor={themeColors.InActiveText(0.5)}
+            thumbTintColor={primary}
             onValueChange={(value) => {
               setTempRate(value);
               onRateChange(value);
@@ -93,7 +95,7 @@ export default function SpeedBottomSheet({
             style={[
               H5,
               {
-                color: themeColors.Gray(0.7),
+                color: themeColors.InActiveText(0.7),
                 minWidth: 40,
                 textAlign: "right",
               },
@@ -144,6 +146,5 @@ const styles = StyleSheet.create({
   },
   presetButtonActive: {
     borderWidth: 2,
-    borderColor: appColor,
   },
 });

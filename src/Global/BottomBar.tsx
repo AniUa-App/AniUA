@@ -124,7 +124,7 @@ const BottomBar = () => (
               <Ionicons
                 name={focused ? tab.icon : tab.iconActive}
                 size={24}
-                color={focused ? "#2E1F57" : "black"}
+                color={focused ? "#2E1F57" : "background"}
               />
             ),
             tabBarLabel,

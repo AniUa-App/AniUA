@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, Dimensions, Linking } from "react-native";
-import { black, Black_1, white, AppColor } from "../Styles/Colors";
+import { background, Subtle, text, Primary } from "../Styles/Colors";
 import { H2, H3, H4 } from "../Styles/Fonts";
 import { TouchableOpacity } from "./Button";
 import Icon from "../Styles/Icons";
-
 import MainConfig from "../cfgs/MainConfig";
 
 export const ErrorWidget = ({ title = "Помилка", message, onRetry }) => {
@@ -51,7 +50,7 @@ const { width, height } = Dimensions.get("screen");
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: black,
+    backgroundColor: background,
     zIndex: 1000,
   },
   container: {
@@ -99,19 +98,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryButton: {
-    backgroundColor: Black_1(1),
+    backgroundColor: Subtle(1),
   },
   primaryButtonText: {
-    color: white,
     fontWeight: "600",
     fontSize: 16,
   },
   secondaryButton: {
-    backgroundColor: AppColor(0.9),
+    backgroundColor: Primary(0.9),
     borderWidth: 1,
   },
   secondaryButtonText: {
-    color: white,
     fontWeight: "500",
     fontSize: 16,
   },
@@ -122,7 +119,7 @@ export function InternetError({ onPress }) {
     <View style={styles.overlay}>
       <View style={styles.container}>
         <View style={styles.errorIcon}>
-          <WiFiIcon color={white} width={48} height={48} />
+          <WiFiIcon color={text} width={48} height={48} />
         </View>
         <Text style={[H2, styles.title]}>Проблеми з мережею</Text>
         <Text style={[H4, styles.subtitle]}>
@@ -134,7 +131,7 @@ export function InternetError({ onPress }) {
           onPress={onPress}
         >
           <View style={styles.refreshButtonContent}>
-            <Icon.ArrowClockwise size={20} color={white} />
+            <Icon.ArrowClockwise size={20} color={text} />
             <Text style={[H4, styles.primaryButtonText, { marginLeft: 8 }]}>
               Спробувати знову
             </Text>

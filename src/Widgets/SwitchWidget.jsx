@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
 import { H4, H3, H6 } from "../Styles/Fonts";
-import { appColor, white, White, black } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import React from "react";
 import { TouchableOpacity } from "./Button";
@@ -23,12 +22,12 @@ export default function SwitchWidget({
     <TouchableOpacity onPress={onPressBody} style={styles.cacheBox}>
       <View style={styles.textContainer}>
         {len > 1 && (
-          <Text style={[H4, { color: themeColors.white, fontWeight: "600" }]}>
+          <Text style={[H4, { color: themeColors.text, fontWeight: "600" }]}>
             {title}
           </Text>
         )}
         {lenSub > 1 && (
-          <Text style={[H6, { color: White(0.7) }]}>{subtitle}</Text>
+          <Text style={[H6, { color: themeColors.Text(0.7) }]}>{subtitle}</Text>
         )}
       </View>
       <TouchableOpacity
@@ -36,15 +35,15 @@ export default function SwitchWidget({
           styles.button,
           {
             padding: 10,
-            backgroundColor: appColor,
+            backgroundColor: themeColors.primary,
           },
         ]}
         onPress={onPress}
       >
         {value ? (
-          <Icons.ToggleRight size={34} color={white} />
+          <Icons.ToggleRight size={34} color={themeColors.text} />
         ) : (
-          <Icons.ToggleLeft size={34} color={black} />
+          <Icons.ToggleLeft size={34} color={themeColors.background} />
         )}
       </TouchableOpacity>
     </TouchableOpacity>
@@ -67,7 +66,6 @@ const styles = StyleSheet.create({
   title: {},
   subtitle: {},
   button: {
-    backgroundColor: appColor,
     borderRadius: 8,
   },
 });

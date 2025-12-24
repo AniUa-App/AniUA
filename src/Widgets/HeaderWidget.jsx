@@ -2,7 +2,6 @@ import { View, Text, StatusBar } from "react-native";
 import { TouchableOpacity } from "./Button";
 import { createStackNavigator } from "@react-navigation/stack";
 import Icons from "../Styles/Icons";
-import { appColor, Black, black, white } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
 import SettingsStorage from "../Storage/SettingsStorage";
@@ -47,7 +46,7 @@ export default function Header({
           userConfig?.background?.isCustomisation &&
           userConfig?.background?.image
             ? "transparent"
-            : themeColors.black,
+            : themeColors.background,
         // Respect safe area on all platforms
         paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
         paddingVertical: 10,
@@ -66,7 +65,7 @@ export default function Header({
     >
       {arrowSide === "left" && isArrow && (
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icons.ArrowLeft fill={themeColors.appColor} size={34} />
+          <Icons.ArrowLeft fill={themeColors.primary} size={34} />
         </TouchableOpacity>
       )}
 
@@ -74,7 +73,7 @@ export default function Header({
         style={[
           H3,
           {
-            color: themeColors.white,
+            color: themeColors.text,
             paddingLeft: 10,
             flex: 1,
           },
@@ -95,7 +94,7 @@ export default function Header({
       {/* Кнопка "Назад" справа */}
       {arrowSide === "right" && isArrow && (
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icons.ArrowLeft fill={themeColors.appColor} size={34} />
+          <Icons.ArrowLeft fill={themeColors.primary} size={34} />
         </TouchableOpacity>
       )}
     </View>

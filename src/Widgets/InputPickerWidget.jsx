@@ -129,11 +129,11 @@ export default function InputPickerWidget({
             justifyContent: "space-between",
           }}
         >
-          <Text style={[H5, { color: colors.white }]}>{item.label}</Text>
+          <Text style={[H5, { color: colors.text }]}>{item.label}</Text>
           {active ? (
-            <Icons.Check size={18} color={colors.appColor} />
+            <Icons.Check size={18} color={colors.primary} />
           ) : (
-            <Icons.Plus size={18} color={colors.white} />
+            <Icons.Plus size={18} color={colors.text} />
           )}
         </TouchableOpacity>
       );
@@ -174,7 +174,7 @@ export default function InputPickerWidget({
             style={{
               height: 48,
               borderRadius: 10,
-              backgroundColor: colors.black_1,
+              backgroundColor: colors.subtle,
               paddingHorizontal: 14,
               alignItems: "center",
               flexDirection: "row",
@@ -186,10 +186,10 @@ export default function InputPickerWidget({
               editable={false}
               pointerEvents="none"
               placeholder={placeholder}
-              placeholderTextColor={colors.white}
-              style={[H4, { color: colors.white, flex: 1 }]}
+              placeholderTextColor={colors.text}
+              style={[H4, { color: colors.text, flex: 1 }]}
             />
-            <Icons.CaretDown size={18} color={colors.white} />
+            <Icons.CaretDown size={18} color={colors.text} />
           </View>
         </TouchableOpacity>
       </View>
@@ -222,7 +222,7 @@ export default function InputPickerWidget({
                 style={{
                   height: 48,
                   borderRadius: 10,
-                  backgroundColor: colors.black_1,
+                  backgroundColor: colors.subtle,
                   paddingHorizontal: 14,
                   alignItems: "center",
                   flexDirection: "row",
@@ -234,14 +234,14 @@ export default function InputPickerWidget({
                   value={query}
                   onChangeText={setQuery}
                   placeholder={placeholder}
-                  placeholderTextColor={colors.white}
-                  style={[H4, { color: colors.white, flex: 1 }]}
+                  placeholderTextColor={colors.text}
+                  style={[H4, { color: colors.text, flex: 1 }]}
                 />
                 <TouchableOpacity
                   onPress={() => setIsOpen(false)}
                   activeOpacity={0.7}
                 >
-                  <Icons.CaretUp size={18} color={colors.white} />
+                  <Icons.CaretUp size={18} color={colors.text} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -253,8 +253,8 @@ export default function InputPickerWidget({
                   left: anchor.x,
                   top: anchor.y + 52,
                   width: anchor.width,
-                  backgroundColor: colors.black,
-                  borderColor: colors.black_1,
+                  backgroundColor: colors.background,
+                  borderColor: colors.subtle,
                   maxHeight: maxDropdownHeight,
                 },
                 dropdownStyle,
@@ -282,7 +282,7 @@ export default function InputPickerWidget({
               key={value}
               style={[
                 styles.chip,
-                { backgroundColor: colors.appColor },
+                { backgroundColor: colors.primary },
                 chipStyle,
               ]}
             >
@@ -291,9 +291,9 @@ export default function InputPickerWidget({
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 style={{ marginRight: 6 }}
               >
-                <Icons.XCircle size={16} color={colors.white} />
+                <Icons.XCircle size={16} color={colors.text} />
               </TouchableOpacity>
-              <Text style={[H5, { color: colors.white }]}>{value}</Text>
+              <Text style={[H5, { color: colors.text }]}>{value}</Text>
             </View>
           ))}
         </View>

@@ -1,5 +1,4 @@
 import { StyleSheet, Text } from "react-native";
-import { appColor, loaderColor, white } from "../Styles/Colors";
 import { H3 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
 import { useState, useEffect } from "react";
@@ -57,7 +56,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
       data: info,
       function: () => {},
       style: {
-        backgroundColor: (theme && theme.loaderColor) || loaderColor,
+        backgroundColor: theme && theme.primary,
       },
     };
   }
@@ -188,7 +187,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
         data: info,
         function: () => {},
         style: {
-          backgroundColor: (theme && theme.loaderColor) || loaderColor,
+          backgroundColor: theme && theme.Primary(0.5),
         },
       };
     } else {
@@ -197,7 +196,7 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
         data: info,
         function: () => {},
         style: {
-          backgroundColor: (theme && theme.loaderColor) || loaderColor,
+          backgroundColor: theme && theme.Primary(0.5),
         },
       };
     }
@@ -267,6 +266,7 @@ export function ForwardButton({
 }) {
   const [isData, setIsData] = useState(null);
   const [data_, setData_] = useState(null);
+  const themeColors = useThemeColors();
 
   useEffect(() => {
     setIsData(data?.watched?.player && data?.watched?.dubbing ? true : null);
@@ -285,6 +285,7 @@ export function ForwardButton({
         episodesList,
         info: data,
         anime: anime,
+        theme: themeColors,
       });
 
       if (result) {
@@ -311,7 +312,7 @@ export function ForwardButton({
       Logger.error("ForwardButton", "Помилка у ForwardButton", error);
       setIsData(false);
     }
-  }, [data, episodesList, errorCode]);
+  }, [data, episodesList, errorCode, themeColors]);
 
   return (
     <>
@@ -323,7 +324,7 @@ export function ForwardButton({
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: useThemeColors()?.loaderColor || loaderColor,
+              backgroundColor: themeColors?.Primary?.(0.5) || themeColors?.primary,
             },
           ]}
           disabled={disabled}
@@ -332,7 +333,7 @@ export function ForwardButton({
         >
           <ActivityIndicator
             size="31"
-            color={useThemeColors()?.appColor || appColor}
+            color={themeColors?.primary}
           />
         </TouchableOpacity>
       ) : isData === true && data_ ? (
@@ -351,12 +352,12 @@ export function ForwardButton({
           activeOpacity={0.7}
           {...props}
         >
-          <Icon.PlayCircle size={34} color={useThemeColors()?.white || white} />
+          <Icon.PlayCircle size={34} color={themeColors?.text} />
           <Text
             style={[
               H3,
               {
-                color: useThemeColors()?.white || white,
+                color: themeColors?.text,
                 paddingLeft: 15,
                 fontSize: data_.text.length > 15 ? 18 : 20,
               },
@@ -373,14 +374,14 @@ export function ForwardButton({
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: useThemeColors()?.loaderColor || loaderColor,
+              backgroundColor: themeColors?.Primary?.(0.5) || themeColors?.primary,
             },
           ]}
           disabled={disabled}
           activeOpacity={0.7}
           {...props}
         >
-          <Text style={[H3, { color: useThemeColors()?.white || white }]}>
+          <Text style={[H3, { color: themeColors?.text }]}>
             Немає перекладу
           </Text>
         </TouchableOpacity>

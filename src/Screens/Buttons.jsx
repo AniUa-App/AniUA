@@ -4,10 +4,11 @@ import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { H3, H4, H5 } from "../Styles/Fonts";
-import { appColor } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import SettingsStorage from "../Storage/SettingsStorage";
 import Logger from "../Logger/Logger";
+import { primary } from "../Styles/Colors";
 
 export default function ButtonsScreen({ route }) {
   const navigation = useNavigation();
@@ -35,7 +36,7 @@ export default function ButtonsScreen({ route }) {
                     minWidth: "20%",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: appColor,
+                    backgroundColor: primary,
                     borderRadius: 8,
                     padding: 10,
                     minHeight: 50,
@@ -60,7 +61,7 @@ export default function ButtonsScreen({ route }) {
             }))}
             value={_value}
             onChange={(_item) => {
-              Logger.debug('ButtonsScreen', 'Item changed', { item: _item });
+              Logger.debug("ButtonsScreen", "Item changed", { item: _item });
               setValue(_item);
               list.find((item) => item.title === _item)?.onPress();
             }}

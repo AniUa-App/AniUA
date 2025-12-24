@@ -1,20 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { View, StyleSheet, Animated, Image, Text } from "react-native";
 import { StatusBar } from "react-native";
-import {
-  AppColor,
-  appColor,
-  black,
-  Black_1,
-  loaderColor,
-  White,
-} from "../Styles/Colors";
-import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
+import { useThemeColors } from "../Global/useTheme";
+import { H2, H4 } from "../Styles/Fonts";
 import FastImage from "react-native-fast-image";
 import MainConfig from "../cfgs/MainConfig";
-import SettingsStorage from "../Storage/SettingsStorage";
 
 export default function Loader({ isNotFirstLaunch = false }) {
+  const colors = useThemeColors();
   const [fadeAnim] = useState(new Animated.Value(0));
   const translateYAnim = useRef(new Animated.Value(50)).current;
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -78,6 +71,24 @@ export default function Loader({ isNotFirstLaunch = false }) {
     }, 2000);
   }, []);
 
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    logo: {
+      width: 300,
+      height: 300,
+    },
+    versionContainer: {
+      position: "absolute",
+      bottom: 20,
+      alignItems: "center",
+    },
+  }), [colors]);
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -120,7 +131,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
             style={[
               H2,
               {
-                color: White(1),
+                color: colors.text,
                 fontSize: 64,
               },
             ]}
@@ -138,36 +149,10 @@ export default function Loader({ isNotFirstLaunch = false }) {
           },
         ]}
       >
-        <Text style={[H4, { color: White(1) }]}>
+        <Text style={[H4, { color: colors.text }]}>
           {`${appVersion || "1.0.0"}-${gitHash || "unknown"}`}
         </Text>
       </Animated.View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: black,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  content: {
-    alignItems: "center",
-  },
-  logo: {
-    width: 300,
-    height: 300,
-  },
-  versionContainer: {
-    position: "absolute",
-    bottom: 20,
-    alignItems: "center",
-  },
-  versionText: {
-    color: appColor,
-    fontSize: 14,
-    opacity: 0.8,
-  },
-});

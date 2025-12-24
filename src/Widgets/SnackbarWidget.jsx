@@ -56,13 +56,18 @@ export default function Snackbar({
 
   // Рендер повідомлення (підтримка як строк, так і React компонентів)
   const renderMessage = () => {
-    if (typeof message === "string") {
+    if (typeof message === "string" || typeof message === "number") {
       return (
-        <Text style={[H6, styles.message, { color: themeColors.white }]}>
-          {message}
+        <Text style={[H6, styles.message, { color: themeColors.text }]}>
+          {String(message)}
         </Text>
       );
     }
+
+    if (message == null || typeof message === "boolean") {
+      return null;
+    }
+
     return <View style={styles.message}>{message}</View>;
   };
 
@@ -144,7 +149,7 @@ export default function Snackbar({
   if (!visible) return null;
 
   const isTop = position === "top";
-  const backgroundColor = isTop ? themeColors.appColor : themeColors.black_1;
+  const backgroundColor = isTop ? themeColors.primary : themeColors.subtle;
 
   return (
     <Animated.View
@@ -180,7 +185,7 @@ export default function Snackbar({
                       H6,
                       styles.actionText,
                       {
-                        color: isTop ? themeColors.white : themeColors.appColor,
+                        color: isTop ? themeColors.text : themeColors.primary,
                       },
                     ]}
                   >
@@ -192,7 +197,7 @@ export default function Snackbar({
               <Pressable onPress={handleClose} style={styles.closeButton}>
                 <Icons.X
                   size={24}
-                  color={isTop ? themeColors.white : themeColors.appColor}
+                  color={isTop ? themeColors.text : themeColors.primary}
                 />
               </Pressable>
             )}

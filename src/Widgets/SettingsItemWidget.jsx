@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
 import { H4, H3, H6 } from "../Styles/Fonts";
-import { appColor, white, White } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import React from "react";
 import { TouchableOpacity } from "./Button";
@@ -11,21 +10,25 @@ export default function SettingsItem({
   button = null,
   onPress,
   onPressBody = () => {},
-  color = appColor,
+  color,
 }) {
   const themeColors = useThemeColors();
+  color = color || themeColors.primary;
   let len = title.length;
   let lenSub = subtitle.length;
   return (
-    <TouchableOpacity onPress={onPressBody} style={styles.cacheBox}>
+    <TouchableOpacity
+      onPress={onPressBody}
+      style={[styles.cacheBox, { backgroundColor: themeColors.subtle }]}
+    >
       <View style={styles.textContainer}>
         {len > 1 && (
-          <Text style={[H4, { color: themeColors.white, fontWeight: "600" }]}>
+          <Text style={[H4, { color: themeColors.text, fontWeight: "600" }]}>
             {title}
           </Text>
         )}
         {lenSub > 1 && (
-          <Text style={[H6, { color: White(0.7) }]}>{subtitle}</Text>
+          <Text style={[H6, { color: themeColors.Text(0.7) }]}>{subtitle}</Text>
         )}
       </View>
       {button?.Icon !== null || button?.Text !== null ? (
@@ -43,7 +46,7 @@ export default function SettingsItem({
             button?.Icon
           ) : (
             <Text
-              style={[H4, { color: themeColors.white, textAlign: "center" }]}
+              style={[H4, { color: themeColors.text, textAlign: "center" }]}
             >
               {button.Text}
             </Text>
@@ -58,9 +61,12 @@ const styles = StyleSheet.create({
   cacheBox: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    width: "100%",
+    marginHorizontal: 8,
+    marginVertical: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+
+    borderRadius: 16,
     justifyContent: "space-between",
   },
   textContainer: {
@@ -70,7 +76,6 @@ const styles = StyleSheet.create({
   title: {},
   subtitle: {},
   button: {
-    backgroundColor: appColor,
     borderRadius: 8,
   },
 });

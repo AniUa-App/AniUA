@@ -89,6 +89,8 @@ assetlinks.json
 # ai
 .promts
 
+.anime/
+
 *.aar
 *.jar
 # Local env files

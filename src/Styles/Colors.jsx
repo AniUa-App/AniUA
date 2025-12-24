@@ -2,78 +2,154 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import Color from "color";
 import { EventBus } from "../Global/EventBus";
 
-export const defaultColors = {
-  black: "rgb(24, 28, 20)",
-  black_1: "rgb(33, 37, 29)",
-  white: "rgb(217, 217, 217)",
-  appColor: "rgb(44, 124, 116)",
-  loaderColor: "rgb(41, 91, 80)",
+export const orange_whiteThemeColors = {
+  background: "#F4F2EF",
+  primary: "#C55E53",
+  subtle: "#D9D9D9",
+  accent: "#FFFFFF",
+  text: "#000000",
+  icon: "#000000",
   yellow: "rgb(238, 201, 0)",
-  gray: "rgb(96, 96, 96)",
-  red: "rgb(124, 44, 44)",
+  inActiveText: "rgb(96, 96, 96)",
+  activeIcon: "#C55E53",
+  inActiveIcon: "rgb(96, 96, 96)",
+  redBookmark: "rgb(124, 44, 44)",
+  orangeBookmark: "rgb(179, 81, 7)",
+  yellowBookmark: "rgb(199, 167, 91)",
+};
+export const orange_darkThemeColors = {
+  background: "#181818",
+  primary: "#C55E53",
+  subtle: "#252525",
+  accent: "#252525",
+  text: "#FFFFFF",
+  icon: "#FFFFFF",
+  yellow: "rgb(238, 201, 0)",
+  inActiveText: "rgb(96, 96, 96)",
+  activeIcon: "#C55E53",
+  inActiveIcon: "rgb(96, 96, 96)",
+  redBookmark: "rgb(124, 44, 44)",
+  orangeBookmark: "rgb(179, 81, 7)",
+  yellowBookmark: "rgb(199, 167, 91)",
 };
 
+export const greenApple_blackThemeColors = {
+  background: "rgb(24, 28, 20)",
+  primary: "rgb(44, 124, 116)",
+  subtle: "rgb(33, 37, 29)",
+  accent: "rgb(33, 37, 29)",
+  text: "#FFFFFF",
+  icon: "#FFFFFF",
+  yellow: "rgb(238, 201, 0)",
+  inActiveText: "rgb(96, 96, 96)",
+  activeIcon: "rgb(44, 124, 116)",
+  inActiveIcon: "rgb(96, 96, 96)",
+  redBookmark: "rgb(124, 44, 44)",
+  orangeBookmark: "rgb(179, 81, 7)",
+  yellowBookmark: "rgb(199, 167, 91)",
+};
+
+export const themes = {
+  greenApple: greenApple_blackThemeColors,
+  orange_white: orange_whiteThemeColors,
+  orange_dark: orange_darkThemeColors,
+};
+
+// defaultColors тепер є alias на greenApple тему
+export const defaultColors = greenApple_blackThemeColors;
+
 function resolveColorsFromStorage() {
-  const userConfig = SettingsStorage.getParameter("userConfig") || {};
-  const isCustom = Boolean(userConfig?.colors?.isCustomisation);
-  const userColors = userConfig?.colors || {};
-  const merged = { ...defaultColors, ...userColors };
-  return isCustom ? merged : defaultColors;
+  try {
+    const userConfig = SettingsStorage.getParameter("userConfig") || {};
+    const isCustom = Boolean(userConfig?.colors?.isCustomisation);
+    const userColors = userConfig?.colors || {};
+    const merged = { ...defaultColors, ...userColors };
+    return isCustom ? merged : defaultColors;
+  } catch (e) {
+    // Fallback to defaults if storage not ready
+    return defaultColors;
+  }
 }
 
-let current = resolveColorsFromStorage();
+// Ініціалізуємо з defaultColors щоб уникнути проблем з циклічними залежностями
+export let background = defaultColors.background;
+export let subtle = defaultColors.subtle;
+export let accent = defaultColors.accent;
+export let primary = defaultColors.primary;
+export let text = defaultColors.text;
+export let yellow = defaultColors.yellow;
+export let inActiveText = defaultColors.inActiveText;
+export let inActiveIcon = defaultColors.inActiveIcon;
+export let activeIcon = defaultColors.activeIcon;
+export let redBookmark = defaultColors.redBookmark;
+export let orangeBookmark = defaultColors.orangeBookmark;
+export let yellowBookmark = defaultColors.yellowBookmark;
 
-export let black = current.black ?? defaultColors.black;
-export let black_1 = current.black_1 ?? defaultColors.black_1;
-export let appColor = current.appColor ?? defaultColors.appColor;
-export let white = current.white ?? defaultColors.white;
-export let loaderColor = current.loaderColor ?? defaultColors.loaderColor;
-export let yellow = current.yellow ?? defaultColors.yellow;
-export let gray = current.gray ?? defaultColors.gray;
-export let red = current.red ?? defaultColors.red;
+// Відкладаємо завантаження з storage після ініціалізації модуля
+setTimeout(() => {
+  const current = resolveColorsFromStorage();
+  if (current) {
+    background = current.background ?? defaultColors.background;
+    subtle = current.subtle ?? defaultColors.subtle;
+    accent = current.accent ?? defaultColors.accent;
+    primary = current.primary ?? defaultColors.primary;
+    text = current.text ?? defaultColors.text;
+    yellow = current.yellow ?? defaultColors.yellow;
+    inActiveText = current.inActiveText ?? defaultColors.inActiveText;
+    inActiveIcon = current.inActiveIcon ?? defaultColors.inActiveIcon;
+    activeIcon = current.activeIcon ?? defaultColors.activeIcon;
+    redBookmark = current.redBookmark ?? defaultColors.redBookmark;
+    orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
+    yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
+  }
+}, 0);
 
 function refreshExportedColors() {
-  current = resolveColorsFromStorage();
-  black = current.black ?? defaultColors.black;
-  black_1 = current.black_1 ?? defaultColors.black_1;
-  appColor = current.appColor ?? defaultColors.appColor;
-  white = current.white ?? defaultColors.white;
-  loaderColor = current.loaderColor ?? defaultColors.loaderColor;
+  const current = resolveColorsFromStorage();
+  background = current.background ?? defaultColors.background;
+  subtle = current.subtle ?? defaultColors.subtle;
+  accent = current.accent ?? defaultColors.accent;
+  primary = current.primary ?? defaultColors.primary;
+  text = current.text ?? defaultColors.text;
   yellow = current.yellow ?? defaultColors.yellow;
-  gray = current.gray ?? defaultColors.gray;
-  red = current.red ?? defaultColors.red;
+  inActiveText = current.inActiveText ?? defaultColors.inActiveText;
+  inActiveIcon = current.inActiveIcon ?? defaultColors.inActiveIcon;
+  activeIcon = current.activeIcon ?? defaultColors.activeIcon;
+  redBookmark = current.redBookmark ?? defaultColors.redBookmark;
+  orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
+  yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
 }
 
 // Підписуємось на зміни конфігурації, щоб оновлювати експортовані значення на льоту
-EventBus.on("userConfig", refreshExportedColors);
+// Відкладаємо підписку щоб уникнути проблем з циклічними залежностями при ініціалізації
+setTimeout(() => {
+  EventBus.on("userConfig", refreshExportedColors);
+}, 0);
 
 function toRgbaString(hexOrRgb, opacity) {
   const c = Color(hexOrRgb);
   return `rgba(${c.red()}, ${c.green()}, ${c.blue()}, ${opacity})`;
 }
 
-export function Black(opacity = 1) {
-  return toRgbaString(black, opacity);
+export function Background(opacity = 1) {
+  return toRgbaString(background, opacity);
 }
 
-export function Black_1(opacity = 1) {
-  return toRgbaString(black_1, opacity);
+export function Subtle(opacity = 1) {
+  return toRgbaString(subtle, opacity);
 }
 
-export function White(opacity = 1) {
-  return toRgbaString(white, opacity);
+export function Text(opacity = 1) {
+  return toRgbaString(text, opacity);
 }
 
-export function AppColor(opacity = 1) {
-  return toRgbaString(appColor, opacity);
+export function Primary(opacity = 1) {
+  return toRgbaString(primary, opacity);
+}
+export function Accent(opacity = 1) {
+  return toRgbaString(accent, opacity);
 }
 
-export function Gray(opacity = 1) {
-  return toRgbaString(gray, opacity);
+export function InActiveText(opacity = 1) {
+  return toRgbaString(inActiveText, opacity);
 }
-
-defaultColors.Black = Black;
-defaultColors.Black_1 = Black_1;
-defaultColors.White = White;
-defaultColors.AppColor = AppColor;
-defaultColors.Gray = Gray;

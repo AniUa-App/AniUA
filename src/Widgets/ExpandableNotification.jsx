@@ -69,7 +69,7 @@ function ExpandableNotification({
       style={[
         styles.container,
         {
-          backgroundColor: themeColors.appColor,
+          backgroundColor: themeColors.primary,
           maxHeight: heightAnim,
           opacity: heightAnim.interpolate({
             inputRange: [0, NOTIFICATION_HEIGHT],
@@ -85,7 +85,7 @@ function ExpandableNotification({
           styles.text,
           {
             opacity: textOpacity,
-            color: themeColors.white,
+            color: themeColors.text,
           },
           textStyle,
         ]}

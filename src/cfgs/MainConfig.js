@@ -89,7 +89,7 @@ export default {
     url: toSafeString(buildExtra.expoPublickSupabaseUrl || null),
     key: toSafeString(buildExtra.expoPublickSupabaseKey || null),
   },
-  partnerStudios: {
+  partnerStudios_old: {
     Togarashi: "https://t.me/Togarashidub",
     "Didko Studio": "https://t.me/didko_studio",
     "Робота Голосом": "https://t.me/robotaholosom",
@@ -104,6 +104,8 @@ export default {
     "субтитри | Робота Голосом": "https://t.me/robotaholosom",
     "Робота Субтитрами": "https://t.me/robotaholosom",
   },
+  partnerStudios: [],
+
   urls: {
     appUrl: "https://aniua.yuzka.site/",
     appUri: appUri || "aniua://",

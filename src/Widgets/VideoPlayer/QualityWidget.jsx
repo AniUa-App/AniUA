@@ -2,7 +2,7 @@ import { View, Text, Dimensions, StyleSheet, FlatList } from "react-native";
 import React, { useEffect } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Button";
-import { Black, white, appColor, Gray } from "../../Styles/Colors";
+import { Background, text, primary, InActiveText } from "../../Styles/Colors";
 import { H3, H4 } from "../../Styles/Fonts";
 import Icons from "../../Styles/Icons";
 
@@ -48,8 +48,8 @@ export default function QualityWidget({
       snapPoints={orientation === "horizontal" ? ["45%"] : ["20%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Black(0.95) }}
-      handleIndicatorStyle={{ backgroundColor: Gray(0.5) }}
+      backgroundStyle={{ backgroundColor: Background(0.95) }}
+      handleIndicatorStyle={{ backgroundColor: InActiveText(0.5) }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -62,9 +62,7 @@ export default function QualityWidget({
     >
       <BottomSheetView style={styles.container}>
         <View style={styles.header}>
-          <Text
-            style={[H3, { color: white, textAlign: "left", marginBottom: 12 }]}
-          >
+          <Text style={[H3, { textAlign: "left", marginBottom: 12 }]}>
             Якість відтворення
           </Text>
         </View>
@@ -91,7 +89,7 @@ export default function QualityWidget({
                   style={[
                     H4,
                     {
-                      color: currentQuality === quality ? appColor : white,
+                      color: currentQuality === quality ? primary : text,
                       textAlign: "center",
                     },
                   ]}
@@ -100,7 +98,7 @@ export default function QualityWidget({
                 </Text>
                 {currentQuality === quality && (
                   <View style={styles.checkIcon}>
-                    <Icons.Check size={16} color={appColor} />
+                    <Icons.Check size={16} color={primary} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -130,9 +128,9 @@ const styles = StyleSheet.create({
     minWidth: 80,
     height: 60,
     borderRadius: 12,
-    backgroundColor: Black(0.5),
+    backgroundColor: Background(0.5),
     borderWidth: 1,
-    borderColor: Gray(0.5),
+    borderColor: InActiveText(0.5),
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -140,9 +138,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   speedOptionActive: {
-    backgroundColor: Black(0.8),
+    backgroundColor: Background(0.8),
     borderWidth: 2,
-    borderColor: appColor,
   },
   checkIcon: {
     position: "absolute",

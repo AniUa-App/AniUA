@@ -9,7 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import {DEBUGCONFIG} from '../cfgs/DebugConfig';
-import {appColor, black, Black_1} from '../Styles/Colors';
+import {primary, background, Subtle} from '../Styles/Colors';
 import Icon from '../Styles/Icons';
 import MainConfig from '../cfgs/MainConfig';
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
@@ -157,7 +157,7 @@ export const ErrorTestComponent = () => {
         <Text style={styles.title}>
           {isMinimized ? 'Продв. фун.' : 'Продвинуті функції'}
         </Text>
-        <Icon.Bug size={30} color={appColor} />
+        <Icon.Bug size={30} color={primary} />
       </TouchableOpacity>
 
       {/* Кнопки тестування */}
@@ -187,7 +187,7 @@ export const ErrorTestComponent = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    backgroundColor: Black_1(0.95),
+    backgroundColor: Subtle(0.95),
     borderRadius: 12,
     zIndex: 1000,
     shadowColor: '#000',
@@ -209,11 +209,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: black,
+    borderBottomColor: background,
     minHeight: 50, // Збільшено для комфортного розміщення іконки 30px
   },
   title: {
-    color: 'white',
+    color: 'text',
     fontSize: 12,
     fontWeight: 'bold',
     flex: 1,
@@ -227,14 +227,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    backgroundColor: black,
+    backgroundColor: background,
     padding: 10,
     borderRadius: 6,
     marginVertical: 3,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: 'text',
     fontSize: 11,
     fontWeight: '500',
     textAlign: 'center',

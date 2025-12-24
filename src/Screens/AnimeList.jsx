@@ -9,10 +9,10 @@ import {
 // import {TouchableOpacity} from '../Widgets/Button'; // Видалено невикористаний імпорт
 import React, { useState, useEffect, useCallback } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-// import {appColor, white} from '../Styles/Colors'; // Видалено невикористаний імпорт 'white'
-import { appColor } from "../Styles/Colors"; // Залишено тільки appColor
+import { useThemeColors } from "../Global/useTheme";
 import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
 import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AnimeStorage from "../Storage/AnimeStorage";
 import { H2 } from "../Styles/Fonts";
@@ -23,10 +23,10 @@ const MAX_CONCURRENT_REQUESTS = 10;
 // Видалено невикористану константу WidgetsForAnimeList
 // const WidgetsForAnimeList = {
 //   Liked: {
-//     widget: <LikeIcon fill={appColor} />,
+//     widget: <LikeIcon fill={primary} />,
 //   },
 //   Downloaded: {
-//     widget: <DownloadIcon fill={appColor} />,
+//     widget: <DownloadIcon fill={primary} />,
 //   },
 // };
 
@@ -34,6 +34,7 @@ const MAX_CONCURRENT_REQUESTS = 10;
 export default function AnimeListScreen({ route, isNavBarPadding }) {
   const { type, initialData, title } = route.params;
   const { height } = useWindowDimensions();
+  const themeColors = useThemeColors();
 
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,9 +45,9 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     try {
       const storedInfos = AnimeStorage.getInfos();
       setInfo(storedInfos || {});
-      Logger.debug('AnimeList', 'Інформація завантажена', { storedInfos });
+      Logger.debug("AnimeList", "Інформація завантажена", { storedInfos });
     } catch (error) {
-      Logger.error('AnimeList', 'Помилка при завантаженні інформації', error);
+      Logger.error("AnimeList", "Помилка при завантаженні інформації", error);
       setInfo({}); // Встановлюємо пустий об'єкт у випадку помилки
     }
   }, []);
@@ -58,7 +59,10 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
           ...prevInfo,
           [slug]: { ...(prevInfo[slug] || {}), ...newInfoData },
         };
-        Logger.debug('AnimeList', 'Оновлення інформації', { slug, newInfoData });
+        Logger.debug("AnimeList", "Оновлення інформації", {
+          slug,
+          newInfoData,
+        });
         AnimeStorage.setInfoBySlug(slug, newInfoData); // Зберігаємо оновлення
         return updatedInfo;
       });
@@ -78,7 +82,10 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     try {
       return await HikkaApi.getAnimeDetails(animeSlug);
     } catch (error) {
-      Logger.error('AnimeList', 'Помилка при отриманні деталей аніме', { animeSlug, error });
+      Logger.error("AnimeList", "Помилка при отриманні деталей аніме", {
+        animeSlug,
+        error,
+      });
       return null;
     }
   }, []);
@@ -121,25 +128,33 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
         dataToFetch = Object.keys(currentInfo).filter(
           (slug) => currentInfo[slug]?.isFavorite
         );
-        Logger.debug('AnimeList', 'Завантаження улюбленого', { slugs: dataToFetch });
+        Logger.debug("AnimeList", "Завантаження улюбленого", {
+          slugs: dataToFetch,
+        });
         setIsCheckingInternet(false);
         break;
       case "Downloaded":
         dataToFetch = Object.keys(currentInfo).filter(
           (slug) => (currentInfo[slug]?.downloaded?.episodes?.length || 0) > 0 // Трохи спрощено
         );
-        Logger.debug('AnimeList', 'Завантаження завантаженого', { slugs: dataToFetch });
+        Logger.debug("AnimeList", "Завантаження завантаженого", {
+          slugs: dataToFetch,
+        });
         setIsCheckingInternet(false);
         break;
       default:
         dataToFetch = initialData; // Використовуємо initialData для інших типів
-        Logger.debug('AnimeList', 'Завантаження початкових даних', { data: dataToFetch });
+        Logger.debug("AnimeList", "Завантаження початкових даних", {
+          data: dataToFetch,
+        });
         setIsCheckingInternet(true);
     }
 
     // Перевіряємо дані, використовуючи dataToFetch
     if (!Array.isArray(dataToFetch) || dataToFetch.length === 0) {
-      Logger.debug('AnimeList', 'Немає даних для завантаження', { dataToFetch });
+      Logger.debug("AnimeList", "Немає даних для завантаження", {
+        dataToFetch,
+      });
       setIsLoading(false);
       return;
     }
@@ -157,7 +172,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
         return async () => await fetchAnimeDetails(item);
       }
       // Логуємо невалідний елемент і повертаємо функцію, що повертає null
-      Logger.warn('AnimeList', 'Невалідний елемент в dataToFetch', { item });
+      Logger.warn("AnimeList", "Невалідний елемент в dataToFetch", { item });
       return async () => null;
     });
 
@@ -165,7 +180,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     await fetchWithConcurrencyLimit(tasks);
 
     setIsLoading(false);
-    Logger.debug('AnimeList', 'Завантаження аніме завершено');
+    Logger.debug("AnimeList", "Завантаження аніме завершено");
   }, [type, initialData, fetchAnimeDetails, fetchWithConcurrencyLimit]); // Видалено info з залежностей
 
   // Використовуємо useFocusEffect для завантаження/оновлення даних при фокусі екрану
@@ -186,7 +201,9 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
       // Перевіряємо чи є взагалі item та item.slug
       if (!item?.slug) {
         // Трохи спрощена перевірка
-        Logger.warn('AnimeList', 'RenderItem отримав невалідний елемент', { item });
+        Logger.warn("AnimeList", "RenderItem отримав невалідний елемент", {
+          item,
+        });
         return null;
       }
 
@@ -221,7 +238,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
           {/* Додано контейнер для кращого центрування */}
-          <Text style={[styles.emptyMessage, H2]}>
+          <Text style={[styles.emptyMessage, H2, {}]}>
             {type === "Liked"
               ? "Список улюбленого порожній"
               : type === "Downloaded"
@@ -239,7 +256,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     () =>
       isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={appColor} />
+          <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : null,
     [isLoading]
@@ -284,7 +301,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     padding: "5%",
     // marginTop: '55%', // Видалено, щоб центрування працювало краще
-    color: "grey", // Можна додати колір для кращої видимості
   },
   // Додано стиль для контейнера порожнього списку
   emptyContainer: {

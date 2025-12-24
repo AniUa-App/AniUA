@@ -9,7 +9,8 @@ import Logger from "../Logger/Logger";
 export class HikkaApiComplete {
   protected static apiUrl = "https://api.hikka.io/";
   protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
-  protected static apiCache: Record<string, { data: any; timestamp: number }> = {};
+  protected static apiCache: Record<string, { data: any; timestamp: number }> =
+    {};
   protected static CACHE_TTL = 5 * 60 * 1000;
   protected static currentYear = new Date().getFullYear();
   protected static authToken: string | null = null;
@@ -352,7 +353,8 @@ export class HikkaApiComplete {
     years?: number[];
     score?: number[];
     status?: string[];
-    genres?: string[];
+    season?: string[];
+    genres: string[];
     studios?: string[];
     only_translated?: boolean;
     sort?: string[];
@@ -460,7 +462,11 @@ export class HikkaApiComplete {
         if (error?.response?.status === 400) {
           return [];
         }
-        Logger.error("HikkaApiComplete", "Помилка при завантаженні франшизи", error);
+        Logger.error(
+          "HikkaApiComplete",
+          "Помилка при завантаженні франшизи",
+          error
+        );
         return [];
       }
     }).catch(() => []);
@@ -658,12 +664,18 @@ export class HikkaApiComplete {
    * Отримання списку перегляду користувача
    * @param {string} username - Ім'я користувача
    * @param {Object} params - Параметри фільтрації
+   * @param {number} [params.page=1] - Номер сторінки
+   * @param {number} [params.size=15] - Кількість елементів на сторінці
    * @returns {Promise<Object>}
    */
   public static async getUserWatchList(username: string, params: any = {}) {
+    const { page = 1, size = 15, ...bodyParams } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}watch/${username}/list`,
-      params
+      `${HikkaApiComplete.apiUrl}watch/${username}/list?page=${page}&size=${size}`,
+      bodyParams
+    );
+    console.log(
+      `${HikkaApiComplete.apiUrl}watch/${username}/list?page=${page}&size=${size}`
     );
     return response.data;
   }
@@ -754,13 +766,18 @@ export class HikkaApiComplete {
   /**
    * Пошук персонажів
    * @param {Object} params - Параметри пошуку
+   * @param {string} [params.query] - Текст пошуку
+   * @param {number} [params.page=1] - Номер сторінки
+   * @param {number} [params.size=20] - Кількість елементів
    * @returns {Promise<Object>}
    */
   public static async searchCharacters(params: any) {
+    const { page = 1, size = 20, ...rest } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}characters`,
-      params
+      `${HikkaApiComplete.apiUrl}characters?page=${page}&size=${size}`,
+      rest
     );
+
     return response.data;
   }
 
@@ -797,12 +814,16 @@ export class HikkaApiComplete {
   /**
    * Пошук осіб
    * @param {Object} params - Параметри пошуку
+   * @param {string} [params.query] - Текст пошуку
+   * @param {number} [params.page=1] - Номер сторінки
+   * @param {number} [params.size=20] - Кількість елементів
    * @returns {Promise<Object>}
    */
   public static async searchPeople(params: any) {
+    const { page = 1, size = 20, ...rest } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}people`,
-      params
+      `${HikkaApiComplete.apiUrl}people?page=${page}&size=${size}`,
+      rest
     );
     return response.data;
   }
@@ -1028,7 +1049,7 @@ export class HikkaApiComplete {
     const response = await HikkaApiComplete.axiosInstance.get(
       `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`
     );
-    return response.data;
+    return response.status;
   }
 
   /**
@@ -1062,6 +1083,8 @@ export class HikkaApiComplete {
    * @param {string} contentType - Тип контенту
    * @param {string} username - Ім'я користувача
    * @param {Object} params - Параметри фільтрації
+   * @param {number} [params.page=1] - Номер сторінки
+   * @param {number} [params.size=15] - Кількість елементів на сторінці
    * @returns {Promise<Object>}
    */
   public static async getUserFavorites(
@@ -1069,9 +1092,10 @@ export class HikkaApiComplete {
     username: string,
     params: any = {}
   ) {
+    const { page = 1, size = 15, ...bodyParams } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${username}/list`,
-      params
+      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${username}/list?page=${page}&size=${size}`,
+      bodyParams
     );
     return response.data;
   }
@@ -1268,7 +1292,11 @@ export class HikkaApiComplete {
     const cacheKey = `episodes_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       try {
-        Logger.debug("HikkaApiComplete", "Завантаження епізодів для slug", slug);
+        Logger.debug(
+          "HikkaApiComplete",
+          "Завантаження епізодів для slug",
+          slug
+        );
 
         const response = await HikkaApiComplete.axiosInstance.get(
           `${HikkaApiComplete.apiEpisodesUrl}watch/${slug}`
@@ -1280,7 +1308,11 @@ export class HikkaApiComplete {
 
         return { data: rest, code: response.status };
       } catch (error: any) {
-        Logger.error("HikkaApiComplete", "Помилка при завантаженні епізодів", error);
+        Logger.error(
+          "HikkaApiComplete",
+          "Помилка при завантаженні епізодів",
+          error
+        );
         return {
           data: [],
           code: error?.response?.status || 500,

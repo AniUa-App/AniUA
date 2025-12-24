@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Text, View, PixelRatio, useWindowDimensions } from "react-native";
-import { white } from "./Colors";
+import { text } from "./Colors";
 import { useFonts } from "expo-font";
 import { useThemeColors } from "../Global/useTheme";
 import { isTablet, isTabletLandscape } from "./Responsive";
@@ -36,7 +36,7 @@ export function Fonts() {
   if (!fontsLoaded) {
     return (
       <View>
-        <Text style={{ color: white }}>Завантаження шрифтів...</Text>
+        <Text style={{ color: text }}>Завантаження шрифтів...</Text>
       </View>
     );
   }
@@ -72,41 +72,42 @@ const getStaticFontSize = (size, width, height) => {
 // Статичні стилі заголовків (для зворотної сумісності)
 // УВАГА: ці стилі не будуть оновлюватися при зміні розміру екрану!
 // Використовуйте useDynamicTextStyles() для адаптивних стилів
-const { width: staticWidth, height: staticHeight } = require("react-native").Dimensions.get("window");
+const { width: staticWidth, height: staticHeight } =
+  require("react-native").Dimensions.get("window");
 
 export const H2 = {
   fontSize: getStaticFontSize(24, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
 export const H3 = {
   fontSize: getStaticFontSize(20, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
 export const H4 = {
   fontSize: getStaticFontSize(16, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
 export const H5 = {
   fontSize: getStaticFontSize(15, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
 export const H6 = {
   fontSize: getStaticFontSize(14, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
 export const H7 = {
   fontSize: getStaticFontSize(13, staticWidth, staticHeight),
-  color: white,
+  color: text,
   fontFamily: "Nunito-SemiBold",
 };
 
@@ -118,32 +119,32 @@ export function useDynamicTextStyles() {
     () => ({
       H2: {
         fontSize: scaleFontSize(24),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
       H3: {
         fontSize: scaleFontSize(20),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
       H4: {
         fontSize: scaleFontSize(16),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
       H5: {
         fontSize: scaleFontSize(15),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
       H6: {
         fontSize: scaleFontSize(14),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
       H7: {
         fontSize: scaleFontSize(13),
-        color: white,
+        color: text,
         fontFamily: "Nunito-SemiBold",
       },
     }),
@@ -160,35 +161,35 @@ export function useThemedTextStyles() {
     () => ({
       H2: {
         fontSize: scaleFontSize(24),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
       H3: {
         fontSize: scaleFontSize(20),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
       H4: {
         fontSize: scaleFontSize(16),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
       H5: {
         fontSize: scaleFontSize(15),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
       H6: {
         fontSize: scaleFontSize(14),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
       H7: {
         fontSize: scaleFontSize(13),
-        color: themeColors.white,
+        color: themeColors.text,
         fontFamily: "Nunito-SemiBold",
       },
     }),
-    [themeColors.white, scaleFontSize]
+    [themeColors.text, scaleFontSize]
   );
 }

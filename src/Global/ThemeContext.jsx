@@ -31,11 +31,36 @@ export function ThemeProvider({ children }) {
     }
   };
 
+  // Створює функцію для кольору з прозорістю
+  const createColorFunction = (colorValue) => {
+    return (opacity = 1) => {
+      try {
+        const c = Color(colorValue);
+        return `rgba(${c.red()}, ${c.green()}, ${c.blue()}, ${opacity})`;
+      } catch {
+        return colorValue;
+      }
+    };
+  };
+
+  // Додає функції для прозорості до об'єкту кольорів
+  const addColorFunctions = (colors) => {
+    return {
+      ...colors,
+      Background: createColorFunction(colors.background),
+      Primary: createColorFunction(colors.primary),
+      Text: createColorFunction(colors.text),
+      Subtle: createColorFunction(colors.subtle),
+      Accent: createColorFunction(colors.accent),
+      InActiveText: createColorFunction(colors.inActiveText),
+    };
+  };
+
   const getColorsFromConfig = useCallback(() => {
     const userConfig = SettingsStorage.getParameter("userConfig") || {};
     const isCustomisation = Boolean(userConfig?.colors?.isCustomisation);
     const rawUserColors = userConfig?.colors || {};
-    // Sanitize only color-like string values; leave functions (e.g. Black()) and non-strings untouched
+    // Sanitize only color-like string values; leave functions (e.g. Background()) and non-strings untouched
     const userColors = Object.fromEntries(
       Object.entries(rawUserColors).map(([k, v]) => [
         k,
@@ -43,8 +68,9 @@ export function ThemeProvider({ children }) {
       ])
     );
     const merged = { ...defaultColors, ...userColors };
+    const baseColors = isCustomisation ? merged : defaultColors;
     return {
-      colors: isCustomisation ? merged : defaultColors,
+      colors: addColorFunctions(baseColors),
       isCustomisation,
     };
   }, []);

@@ -10,7 +10,7 @@ import {
 import { StatusBar } from "react-native";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import { WebView } from "react-native-webview";
-import { Black } from "../Styles/Colors";
+import { Background } from "../Styles/Colors";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 // import Orientation from "react-native-orientation-locker";
@@ -80,7 +80,7 @@ export default function WebVideoPlayerScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Black(1),
+    backgroundColor: Background(1),
   },
   video: {
     flex: 1,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     left: 20,
-    backgroundColor: Black(0.7),
+    backgroundColor: Background(0.7),
     borderRadius: 8,
     padding: 10,
     flexDirection: "row",
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   title: {
-    color: "white",
+    color: "text",
     marginLeft: 10,
     maxWidth: "80%",
   },

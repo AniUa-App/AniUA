@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity as TouchableOpacity_,
 } from 'react-native';
-import {appColor, loaderColor, white} from '../Styles/Colors';
 import {H3} from '../Styles/Fonts';
 import {useState, useEffect} from 'react';
 import {ActivityIndicator} from 'react-native';

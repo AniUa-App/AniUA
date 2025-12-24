@@ -18,16 +18,15 @@ import { TouchableOpacity } from "../Widgets/Button";
 import Logger from "../Logger/Logger";
 
 import {
-  appColor,
-  white,
-  black_1,
-  White,
-  Black,
-  Black_1,
-  black,
-  AppColor,
-  gray,
-  Gray,
+  primary,
+  text,
+  subtle,
+  Background,
+  Subtle,
+  background,
+  Primary,
+  inActiveText,
+  InActiveText,
 } from "../Styles/Colors";
 import { H4 } from "../Styles/Fonts";
 import SettingsStorage from "../Storage/SettingsStorage";
@@ -70,7 +69,9 @@ export default function MainScreenCustomisationScreen() {
     setRecommendations(newRecommendations);
     EventBus.emit("recommendations", newRecommendations);
 
-    Logger.debug('MainScreenCustomisation', 'SET_RECOMMENDATIONS', { newRecommendations });
+    Logger.debug("MainScreenCustomisation", "SET_RECOMMENDATIONS", {
+      newRecommendations,
+    });
     SettingsStorage.setParameter(
       "userConfig.recommendations",
       newRecommendations
@@ -79,19 +80,22 @@ export default function MainScreenCustomisationScreen() {
   function addList(list) {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    Logger.debug('MainScreenCustomisation', 'Додано новий список', { list });
+    Logger.debug("MainScreenCustomisation", "Додано новий список", { list });
     EventBus.emit("personalRecListUpdated", list);
   }
   function editList(name, list) {
     PersonalRecListStorage.editSettingsList(name, list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    Logger.debug('MainScreenCustomisation', 'Відредаговано список', { name, list });
+    Logger.debug("MainScreenCustomisation", "Відредаговано список", {
+      name,
+      list,
+    });
     EventBus.emit("personalRecListUpdated", list);
   }
   function deleteList(list) {
     PersonalRecListStorage.deleteSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
-    Logger.debug('MainScreenCustomisation', 'Видалено список', { list });
+    Logger.debug("MainScreenCustomisation", "Видалено список", { list });
     EventBus.emit("personalRecListUpdated", list);
   }
 
@@ -166,28 +170,41 @@ export default function MainScreenCustomisationScreen() {
         sheetRef={RecListRef}
         value={value}
         onPressOk={(payload) => {
-          Logger.debug('MainScreenCustomisation', 'onPressOk', { payload });
+          Logger.debug("MainScreenCustomisation", "onPressOk", { payload });
           RecListRef.current?.close();
-          Logger.debug('MainScreenCustomisation', 'Дані для обробки', { valueName: value?.name, payloadName: payload.name });
+          Logger.debug("MainScreenCustomisation", "Дані для обробки", {
+            valueName: value?.name,
+            payloadName: payload.name,
+          });
           try {
             const existingItem = !!PerRecList.find(
               (item) => item.name === payload?.name || item.name === value?.name
             );
-            Logger.debug('MainScreenCustomisation', 'Перевірка існуючого елемента', { existingItem });
+            Logger.debug(
+              "MainScreenCustomisation",
+              "Перевірка існуючого елемента",
+              { existingItem }
+            );
             if (existingItem) {
               editList(value?.name, payload);
             } else {
               addList(payload);
             }
           } catch (error) {
-            Logger.error('MainScreenCustomisation', 'Помилка при обробці onPressOk', error);
+            Logger.error(
+              "MainScreenCustomisation",
+              "Помилка при обробці onPressOk",
+              error
+            );
           }
         }}
         onPressCancel={() => {
           RecListRef.current?.close();
         }}
         onPressDelete={() => {
-          Logger.debug('MainScreenCustomisation', 'Видалення списку', { name: value.name });
+          Logger.debug("MainScreenCustomisation", "Видалення списку", {
+            name: value.name,
+          });
           deleteList(value);
           RecListRef.current?.close();
         }}
@@ -228,7 +245,9 @@ function PersonalRecList({
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        Logger.debug('MainScreenCustomisation', 'Завантажено списки аніме', { results });
+        Logger.debug("MainScreenCustomisation", "Завантажено списки аніме", {
+          results,
+        });
       })
       .finally(() => setLoading(false));
   }, [personalRecList]);
@@ -253,29 +272,29 @@ function PersonalRecList({
           style={{
             width: 44,
             height: 44,
-            backgroundColor: appColor,
+            backgroundColor: primary,
             borderRadius: 8,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Icons.Trash size={24} color={white} />
+          <Icons.Trash size={24} color={text} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onPressAdd}
           style={{
             width: 44,
             height: 44,
-            backgroundColor: appColor,
+            backgroundColor: primary,
             borderRadius: 8,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Icons.Plus size={24} color={white} />
+          <Icons.Plus size={24} color={text} />
         </TouchableOpacity>
       </View>
-      {loading && <ActivityIndicator size="large" color={appColor} />}
+      {loading && <ActivityIndicator size="large" color={primary} />}
       {!loading &&
         loadedAnimeLists?.map((anime, index) => (
           <PreviewAnimeListHorizontal
@@ -358,7 +377,10 @@ export function PersonalRecListFilter({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
-    Logger.debug('MainScreenCustomisation', 'Отримано розміри списку', { pages, size });
+    Logger.debug("MainScreenCustomisation", "Отримано розміри списку", {
+      pages,
+      size,
+    });
     const payload = {
       name: animeListName,
       animeSet: animeSet,
@@ -367,7 +389,7 @@ export function PersonalRecListFilter({
       size: size,
       isArrow: null,
     };
-    Logger.debug('MainScreenCustomisation', 'Створено payload', { payload });
+    Logger.debug("MainScreenCustomisation", "Створено payload", { payload });
     onPressOk(payload);
   }
 
@@ -417,8 +439,8 @@ export function PersonalRecListFilter({
       snapPoints={["60%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Black_1(0.8) }}
-      handleIndicatorStyle={{ backgroundColor: black }}
+      backgroundStyle={{ backgroundColor: Subtle(0.8) }}
+      handleIndicatorStyle={{ backgroundColor: background }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -470,7 +492,7 @@ export function PersonalRecListFilter({
               style={{
                 width: 44,
                 height: 44,
-                backgroundColor: appColor,
+                backgroundColor: primary,
                 borderRadius: 8,
                 alignItems: "center",
                 justifyContent: "center",
@@ -478,14 +500,14 @@ export function PersonalRecListFilter({
             >
               {isEditMode ? (
                 hasChanges ? (
-                  <Icons.Check size={24} color={white} />
+                  <Icons.Check size={24} color={text} />
                 ) : (
-                  <Icons.Trash size={24} color={white} />
+                  <Icons.Trash size={24} color={text} />
                 )
               ) : animeListName.length > 0 ? (
-                <Icons.Check size={24} color={white} />
+                <Icons.Check size={24} color={text} />
               ) : (
-                <Icons.X size={24} color={white} />
+                <Icons.X size={24} color={text} />
               )}
             </TouchableOpacity>
           </View>
@@ -499,7 +521,7 @@ export function PersonalRecListFilter({
             <SegmentedControlLabelWidget
               segments={[
                 { label: "Анонс" },
-                { label: "Онґоінґ" },
+                { label: "Онґоінг" },
                 { label: "Завершено" },
                 { label: "Байдуже" },
               ]}
@@ -562,7 +584,6 @@ const styles = StyleSheet.create({
   segmentContainer: {
     flexDirection: "row",
     gap: 12,
-    backgroundColor: black_1,
     borderRadius: 8,
     padding: 4,
     alignSelf: "center",
@@ -574,13 +595,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   segmentButtonActive: {
-    backgroundColor: appColor,
+    backgroundColor: primary,
   },
   segmentIndicator: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    backgroundColor: appColor,
+    backgroundColor: primary,
     borderRadius: 8,
   },
   loaderContainer: {
@@ -645,7 +666,7 @@ export function TabWidget({ segments, onSelect = () => {}, style }) {
             }}
             style={[styles.segmentButton, {}]}
           >
-            <Text style={[H4, { color: isActive ? white : White(0.8) }]}>
+            <Text style={[H4, { color: isActive ? text : Text(0.8) }]}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -669,13 +690,12 @@ export function TextInputWidget({
           onChangeText(text);
         }}
         placeholder={placeholder}
-        placeholderTextColor={gray}
+        placeholderTextColor={inActiveText}
         style={{
           height: 45,
           width: "100%",
           paddingHorizontal: 16,
-          color: white,
-          backgroundColor: Black_1(1),
+          backgroundColor: Subtle(1),
           borderRadius: 8,
         }}
       />

@@ -12,7 +12,7 @@ function Row({ icon, label, color }) {
   return (
     <View style={styles.row}>
       <View style={[styles.iconBox, {}]}>{icon}</View>
-      <Text style={[H4, { color: color ?? theme.White(0.7) }]}>{label}</Text>
+      <Text style={[H4, { color: color ?? theme.Text(0.7) }]}>{label}</Text>
     </View>
   );
 }
@@ -36,21 +36,21 @@ export default function PrivilegesScreen() {
         <View style={[styles.card]}>
           <Row
             label="Перегляд аніме"
-            icon={<Icons.Eye size={34} color={theme.gray} />}
+            icon={<Icons.Eye size={34} color={theme.inActiveText} />}
           />
           <Row
             label="Реклама в вбудованому плеєрі"
-            icon={<Icons.Video size={34} color={theme.gray} />}
+            icon={<Icons.Video size={34} color={theme.inActiveText} />}
           />
           <Row
             label="Завантаження за рекламу"
-            icon={<Icons.DownloadSimple size={34} color={theme.gray} />}
+            icon={<Icons.DownloadSimple size={34} color={theme.inActiveText} />}
           />
         </View>
 
         {/* Divider */}
         <View
-          style={[styles.divider, { backgroundColor: theme.White(0.12) }]}
+          style={[styles.divider, { backgroundColor: theme.Text(0.12) }]}
         />
 
         {/* Сенпай */}
@@ -58,40 +58,40 @@ export default function PrivilegesScreen() {
         <View style={[styles.card, {}]}>
           <Row
             label="Кастомізація головного меню"
-            color={theme.white}
-            icon={<Icons.PaintBrush size={34} color={theme.appColor} />}
+            color={theme.text}
+            icon={<Icons.PaintBrush size={34} color={theme.primary} />}
           />
           <Row
             label="Бета оновлення"
-            color={theme.white}
-            icon={<Icons.BoxArrowDown size={34} color={theme.appColor} />}
+            color={theme.text}
+            icon={<Icons.BoxArrowDown size={34} color={theme.primary} />}
           />
           <Row
             label="Внутрішній плеєр без реклами"
-            color={theme.white}
+            color={theme.text}
             icon={
               <Icons.DeviceMobileSpeaker
                 size={34}
-                color={theme.appColor}
+                color={theme.primary}
                 style={{ transform: [{ rotate: "180deg" }] }}
               />
             }
           />
           <Row
             label="Завантаження без обмежень"
-            color={theme.white}
-            icon={<Icons.DownloadSimple size={34} color={theme.appColor} />}
+            color={theme.text}
+            icon={<Icons.DownloadSimple size={34} color={theme.primary} />}
           />
-          <Text style={[H6, { alignSelf: "center", color: theme.White(0.3) }]}>
+          <Text style={[H6, { alignSelf: "center", color: theme.Text(0.3) }]}>
             Лише за пожертву від 30 ₴
           </Text>
         </View>
 
         <TouchableOpacity
           onPress={goDonate}
-          style={[styles.primaryBtn, { backgroundColor: theme.appColor }]}
+          style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
         >
-          <Text style={[H4, { color: theme.white }]}>Пожертвувати</Text>
+          <Text style={[H4, { color: theme.text }]}>Пожертвувати</Text>
         </TouchableOpacity>
       </View>
     </DefaultScreenWidget>

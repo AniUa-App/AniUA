@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { appColor, white } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
 import Animated, {
   useSharedValue,
@@ -52,6 +52,7 @@ export function CustomAnimeListsPreviewScreen({
   onPressEdit?: (anime: any) => void;
   animeList?: CustomAnimeSetType[];
 }) {
+  const colors = useThemeColors();
   const [loading, setLoading] = useState(false);
   const [loadedAnimeLists, setLoadedAnimeLists] =
     useState<{ name: string; animeList: any[] }[]>();
@@ -75,7 +76,7 @@ export function CustomAnimeListsPreviewScreen({
     )
       .then((results) => {
         setLoadedAnimeLists(results);
-        Logger.debug('BottomSheetScreens', 'Search results', { results });
+        Logger.debug("BottomSheetScreens", "Search results", { results });
       })
       .finally(() => setLoading(false));
   }, [animeList]);
@@ -97,17 +98,17 @@ export function CustomAnimeListsPreviewScreen({
           style={{
             width: 44,
             height: 44,
-            backgroundColor: appColor,
+            backgroundColor: colors.primary,
             borderRadius: 8,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Icons.Plus size={24} color={white} />
+          <Icons.Plus size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
       <View style={{ paddingHorizontal: 16 }}>
-        {loading && <ActivityIndicator size="large" color={appColor} />}
+        {loading && <ActivityIndicator size="large" color={colors.primary} />}
         {!loading &&
           loadedAnimeLists?.map((anime, index) => (
             <PreviewAnimeListHorizontal
@@ -127,7 +128,7 @@ export function CustomAnimeListsPreviewScreen({
 function createDefaultReqCustomSet(): ReqCustomSet {
   return {
     Genres: [],
-    Statuses: "Онґоінґ",
+    Statuses: "Онґоінг",
     Seasons: "Зима",
     IsUkrainianised: true,
     Sort: "Загальна оцінка",
@@ -155,6 +156,7 @@ export function CustomisationAnimeListsScreen({
   onPressCheck?: (payload: CustomAnimeSet) => void;
   onPressCancel?: () => void;
 }) {
+  const colors = useThemeColors();
   const [LoadedGenres, setLoadedGenres] = useState<string[]>([]);
 
   const [status, setStatus] = useState<string>("Анонс");
@@ -183,7 +185,7 @@ export function CustomisationAnimeListsScreen({
     };
 
     const { size, pages } = await getPagesAndSizes(animeSet);
-    Logger.debug('BottomSheetScreens', 'Pagination info', { size, pages });
+    Logger.debug("BottomSheetScreens", "Pagination info", { size, pages });
     const payload: CustomAnimeSetType = {
       name: animeListName,
       animeSet: animeSet,
@@ -230,16 +232,16 @@ export function CustomisationAnimeListsScreen({
           style={{
             width: 44,
             height: 44,
-            backgroundColor: appColor,
+            backgroundColor: colors.primary,
             borderRadius: 8,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           {animeListName.length > 0 ? (
-            <Icons.Check size={24} color={white} />
+            <Icons.Check size={24} color={colors.text} />
           ) : (
-            <Icons.X size={24} color={white} />
+            <Icons.X size={24} color={colors.text} />
           )}
         </TouchableOpacity>
       </View>
@@ -253,7 +255,7 @@ export function CustomisationAnimeListsScreen({
         <SegmentedControlLabelWidgetAny
           segments={[
             { label: "Анонс" },
-            { label: "Онґоінґ" },
+            { label: "Онґоінг" },
             { label: "Завершено" },
             { label: "Байдуже" },
           ]}

@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { TouchableOpacity } from "./Button";
-import React from "react";
+import React, { useMemo } from "react";
 import Icon from "../Styles/Icons";
-import { appColor, black, white } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
-
+import { Background, background } from "../Styles/Colors";
 export default function AnimeListVertical({
   title,
   animeList,
@@ -30,7 +30,7 @@ export default function AnimeListVertical({
       >
         <Text style={[styles.title, H3]}>{title}</Text>
         <View style={styles.arrowRightIcon}>
-          {onClickMore && <Icon.ArrowRight size={34} color={appColor} />}
+          {onClickMore && <Icon.ArrowRight size={34} color={primary} />}
         </View>
       </TouchableOpacity>
 
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: black,
+    backgroundColor: background,
     width: "100%",
   },
   title: {

@@ -20,6 +20,7 @@ class AnimeStorage extends Storage {
         isFavorite: false,
         watched: { player: "", dubbing: "", episodes: [] },
         bookmark: "",
+        watchStatus: null, // "planned" | "watching" | "completed" | "dropped" | null
       }
     );
   }
@@ -32,6 +33,7 @@ class AnimeStorage extends Storage {
       downloaded: {
         episodes: [],
       },
+      watchStatus: null,
     }
   ) {
     const animeList = this.getItem(this.storageKey, {});
@@ -53,6 +55,10 @@ class AnimeStorage extends Storage {
           : existingInfo.downloaded || {
               episodes: [],
             },
+      watchStatus:
+        data.watchStatus !== undefined
+          ? data.watchStatus
+          : existingInfo.watchStatus || null,
     };
 
     this.setItem(this.storageKey, animeList);

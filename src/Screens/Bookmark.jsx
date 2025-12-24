@@ -1,143 +1,241 @@
-import React from 'react';
-import DefaultScreenWidget from '../Widgets/DefaultScreenWidget';
-import {NavigationContainer} from '@react-navigation/native';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import {View, Text} from 'react-native';
-import {TouchableOpacity} from '../Widgets/Button';
-import BookmarkTabsScreen from './BookmarkTabs';
-import SearchLine from '../Widgets/SearchLineWidget';
-import {TabBookmark} from './ScreenController/Navigators';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import Header from "../Widgets/HeaderWidget";
+import AnimeStatusFAB from "../Widgets/AnimeStatusFAB";
+import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
+import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
+import Logger from "../Logger/Logger";
+import { useFocusEffect } from "@react-navigation/native";
+import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import LoginScreen from "./LoginScreen";
+import { useThemeColors } from "../Global/useTheme";
+import { H2 } from "../Styles/Fonts";
 
-// Создаём навигатор
-
-const styles = {
-  screenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+// Мапінг статусів FAB до назв для заголовка
+const STATUS_TITLES = {
+  favourite: "Улюблене",
+  watching: "Дивлюсь",
+  completed: "Переглянуто",
+  planned: "Заплановано",
+  dropped: "Закинуто",
 };
 
-//*  Кольори вкладок та лінії
-const routeColors = {
-  Plans: '#5F77B6', // колір фону "У планах"
-  Watching: '#D6AA63', // колір фону "Дивлюсь"
-  Viewed: '#ADD8E6', // колір фону "Переглянуто"
-  Dropped: '#E4837A', // колір фону "Покинуто"
-};
+export default function BookmarkScreen({ ...props }) {
+  const colors = useThemeColors();
+  const [currentStatus, setCurrentStatus] = useState("favourite");
+  const [animeList, setAnimeList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const { height } = useWindowDimensions();
 
-//* Темніші відтінки для нижньої лінії
-const routeBorderColors = {
-  Plans: '#384A79', // темніший синій
-  Watching: '#FFEA4F', // темніший золотистий
-  Viewed: '#00B0E9', // темніший блакитно-зелений
-  Dropped: '#FF2511', // темніший червоний
-};
+  Logger.debug("BookmarkScreen", "props", { ...props });
 
-const textColor = {
-  Plans: '#6691FD',
-  Watching: '#FFE5AE',
-  Viewed: '#ADD8E6',
-  Dropped: '#FF897E',
-};
+  // Функція для завантаження аніме з API
+  const fetchAnimeList = useCallback(
+    async (statusToFetch, pageToFetch = 1, append = false) => {
+      const user = HikkaAuthStorage.getUser();
+      if (!user?.username) {
+        Logger.error("BookmarkScreen", "Користувач не знайдений");
+        setIsLoading(false);
+        return;
+      }
 
-//* Кастомний таб-бар
-function CustomTabBar({state, descriptors, navigation}) {
-  return (
-    <View style={{flexDirection: 'row'}}>
-      {state.routes.map((route, index) => {
-        const isFocused = state.index === index;
-        const {options} = descriptors[route.key];
+      setIsLoading(true);
 
-        // Визначаємо фон вкладки
-        const backgroundColor = isFocused
-          ? routeColors[route.name] // колір вкладки, якщо активна
-          : '#4A4B4D'; // сірий, якщо не активна
+      try {
+        let response;
 
-        // Лінія знизу — темніший колір, якщо активна; "прозора", якщо ні
-        const borderBottomColor = isFocused
-          ? routeBorderColors[route.name]
-          : 'transparent';
-
-        const color = isFocused ? textColor[route.name] : '#B5B5B5';
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
+        if (statusToFetch === "favourite") {
+          // Завантаження улюблених
+          response = await HikkaApiComplete.getUserFavorites(
+            "anime",
+            user.username,
+            { page: pageToFetch, size: 15 }
+          );
+          Logger.debug("BookmarkScreen", "Отримано улюблені", response);
+        } else {
+          // Завантаження watch list з фільтром по статусу
+          response = await HikkaApiComplete.getUserWatchList(user.username, {
+            watch_status: statusToFetch,
+            page: pageToFetch,
+            size: 15,
           });
-          if (!event.defaultPrevented) {
-            navigation.navigate(route.name);
+          Logger.debug("BookmarkScreen", "Отримано watch list", response);
+        }
+
+        if (response?.list) {
+          // Для favourite list - дані аніме в полі anime
+          // Для watch list - дані аніме також в полі anime
+          const animeData = response.list.map((item) => item.anime || item);
+
+          if (append) {
+            setAnimeList((prev) => [...prev, ...animeData]);
+          } else {
+            setAnimeList(animeData);
           }
-        };
 
-        return (
-          <TouchableOpacity
-            key={route.name}
-            onPress={onPress}
-            activeOpacity={1} // <-- додаємо це
-            style={{
-              flex: 1,
-              borderBottomColor,
-              backgroundColor,
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: 50,
-              borderBottomWidth: 3,
-            }}>
-            <Text
-              style={{
-                color,
-                fontSize: 12,
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                textShadowColor: '#474747',
-                fontWeight: 'bold',
-                textShadowRadius: 5,
-                marginTop: 10,
-              }}>
-              {options.title || route.name}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+          // Оновлення пагінації
+          const pagination = response.pagination;
+          if (pagination) {
+            setHasMore(pageToFetch < (pagination.pages || 1));
+          } else {
+            setHasMore(false);
+          }
+        } else {
+          if (!append) {
+            setAnimeList([]);
+          }
+          setHasMore(false);
+        }
+      } catch (error) {
+        Logger.error("BookmarkScreen", "Помилка завантаження", error);
+        if (!append) {
+          setAnimeList([]);
+        }
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
   );
+
+  // Завантаження при зміні статусу
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchAnimeList(currentStatus, 1, false);
+  }, [currentStatus, fetchAnimeList]);
+
+  // Оновлення при фокусі екрану
+  useFocusEffect(
+    useCallback(() => {
+      setPage(1);
+      fetchAnimeList(currentStatus, 1, false);
+    }, [currentStatus, fetchAnimeList])
+  );
+
+  // Завантаження наступної сторінки
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchAnimeList(currentStatus, nextPage, true);
+    }
+  }, [isLoading, hasMore, page, currentStatus, fetchAnimeList]);
+
+  // Рендер елемента списку
+  const renderItem = useCallback(
+    ({ item }) => {
+      if (!item?.slug) {
+        Logger.warn("BookmarkScreen", "Невалідний елемент", { item });
+        return null;
+      }
+
+      return <AnimePreviewWidget anime={item} info={{}} type={currentStatus} />;
+    },
+    [currentStatus]
+  );
+
+  // Ключ для елемента
+  const keyExtractor = useCallback((item, index) => item?.slug || `${index}`, []);
+
+  // Компонент порожнього списку
+  const ListEmptyComponent = useCallback(
+    () =>
+      !isLoading ? (
+        <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
+          <Text style={[styles.emptyMessage, H2]}>
+            {`Список "${STATUS_TITLES[currentStatus] || "аніме"}" порожній`}
+          </Text>
+        </View>
+      ) : null,
+    [isLoading, currentStatus, height]
+  );
+
+  // Індикатор завантаження
+  const ListFooterComponent = useCallback(
+    () =>
+      isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : null,
+    [isLoading]
+  );
+
+  if (HikkaAuthStorage.isAuthenticated()) {
+    return (
+      <View style={{ flex: 1 }}>
+        <Header
+          navigation={props.navigation}
+          route={props.route}
+          isArrow={false}
+          title={STATUS_TITLES[currentStatus] || "Обрані"}
+          arrowSide="right"
+        />
+        <DefaultScreenWidget isCheckInternet={true} isNavBarPadding={true}>
+          <FlatList
+            data={animeList}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={5}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={true}
+            ListEmptyComponent={ListEmptyComponent}
+            ListFooterComponent={ListFooterComponent}
+            contentContainerStyle={styles.listContentContainer}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+          />
+        </DefaultScreenWidget>
+        <AnimeStatusFAB
+          bottomOffset={80}
+          onStatusChange={(item) => {
+            Logger.debug("BookmarkScreen", "FAB", { item });
+            if (item !== currentStatus) {
+              setCurrentStatus(item || "favourite");
+            }
+          }}
+          currentStatus={currentStatus}
+          isFavoritesTab={true}
+        />
+      </View>
+    );
+  } else {
+    return <LoginScreen isCanSkip={false} />;
+  }
 }
 
-// Основний навігатор з нашим кастомним таб-баром
-export default function BookmarkScreen() {
-  return (
-    <View style={{flex: 1}}>
-      <SearchLine />
-      <TabBookmark.Navigator
-        tabBar={props => <CustomTabBar {...props} />}
-        screenOptions={{
-          swipeEnabled: false,
-          indicatorStyle: {backgroundColor: 'transparent'},
-        }}>
-        <TabBookmark.Screen
-          name="Plans"
-          component={BookmarkTabsScreen}
-          options={{title: 'У планах'}}
-        />
-        <TabBookmark.Screen
-          name="Watching"
-          component={BookmarkTabsScreen}
-          options={{title: 'Дивлюсь'}}
-        />
-        <TabBookmark.Screen
-          name="Viewed"
-          component={BookmarkTabsScreen}
-          options={{title: 'Оглянуто'}}
-        />
-        <TabBookmark.Screen
-          name="Dropped"
-          component={BookmarkTabsScreen}
-          options={{title: 'Покинуто'}}
-        />
-      </TabBookmark.Navigator>
-    </View>
-  );
-}
+const styles = StyleSheet.create({
+  loaderContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  emptyMessage: {
+    textAlign: "center",
+    padding: "5%",
+    color: "grey",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  listContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+});

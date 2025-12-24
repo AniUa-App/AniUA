@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import { useThemeColors } from "../Global/useTheme";
 import { H4, H5 } from "../Styles/Fonts";
 
@@ -31,6 +36,14 @@ export default function SliderWidget({
 }) {
   const colors = useThemeColors();
 
+  // Жест для блокування BottomSheet при взаємодії зі слайдером
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-20, 20])
+    .onStart(() => {})
+    .onUpdate(() => {})
+    .onEnd(() => {});
+
   const initial = useMemo(() => {
     if (typeof value === "number") return value;
     if (typeof defaultValue === "number") return defaultValue;
@@ -53,28 +66,30 @@ export default function SliderWidget({
 
   return (
     <View
-      style={[styles.container, { backgroundColor: colors.black_1 }, style]}
+      style={[styles.container, { backgroundColor: colors.subtle }, style]}
     >
-      <Text style={[H5, { color: colors.gray, marginBottom: 12 }]}>
+      <Text style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}>
         {label}
       </Text>
 
       <View style={styles.row}>
-        <Text style={[H4, { color: colors.white }]}>{internal}</Text>
-        <View style={styles.sliderWrap}>
-          <Slider
-            minimumValue={min}
-            maximumValue={max}
-            value={internal}
-            step={step}
-            onValueChange={setValue}
-            onSlidingComplete={onChangeEnd}
-            minimumTrackTintColor={colors.appColor}
-            maximumTrackTintColor={colors.black}
-            thumbTintColor={colors.appColor}
-          />
-        </View>
-        <Text style={[H4, { color: colors.white }]}>{max}</Text>
+        <Text style={[H4, { color: colors.text }]}>{internal}</Text>
+        <GestureDetector gesture={Gesture.Simultaneous(panGesture, Gesture.Native())}>
+          <View style={styles.sliderWrap}>
+            <Slider
+              minimumValue={min}
+              maximumValue={max}
+              value={internal}
+              step={step}
+              onValueChange={setValue}
+              onSlidingComplete={onChangeEnd}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.background}
+              thumbTintColor={colors.primary}
+            />
+          </View>
+        </GestureDetector>
+        <Text style={[H4, { color: colors.text }]}>{max}</Text>
       </View>
     </View>
   );

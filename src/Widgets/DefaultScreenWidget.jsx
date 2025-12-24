@@ -90,8 +90,8 @@ export default function DefaultScreenWidget({
       style={[
         Styles.defaultScreenWidget,
         {
-          // Always keep an opaque background to avoid white flashes during transitions
-          backgroundColor: themeColors.black,
+          // Always keep an opaque background to avoid text flashes during transitions
+          backgroundColor: themeColors.background,
           flexDirection: isTL ? "row" : "column",
         },
       ]}

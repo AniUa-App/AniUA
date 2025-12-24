@@ -35,7 +35,14 @@ import Animated, {
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
-import { black, Black, Gray, white, appColor, black_1 } from "../Styles/Colors";
+import {
+  background,
+  Background,
+  InActiveText,
+  text,
+  primary,
+  subtle,
+} from "../Styles/Colors";
 import { H3, H4, H5, H6 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity as CustomTouchableOpacity } from "../Widgets/Button";
@@ -862,7 +869,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             <Animated.View
               style={[styles.loadingContainer, animatedLoadingStyle]}
             >
-              <ActivityIndicator size="large" color={appColor} />
+              <ActivityIndicator size="large" color={primary} />
             </Animated.View>
           </Animated.View>
         )}
@@ -879,8 +886,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             >
               <LinearGradient
                 colors={[
-                  themeColors.Black(0.8),
-                  themeColors.Black(0.4),
+                  themeColors.Background(0.8),
+                  themeColors.Background(0.4),
                   "transparent",
                 ]}
                 style={styles.headerGradient}
@@ -909,18 +916,20 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         }, 100);
                       }}
                     >
-                      <Icons.ArrowLeft size={32} color={appColor} />
+                      <Icons.ArrowLeft size={32} color={primary} />
                     </CustomTouchableOpacity>
                   </View>
 
                   <View style={styles.titleContainer}>
                     <Text
-                      style={[H4, { color: themeColors.white }]}
+                      style={[H4, { color: themeColors.text }]}
                       numberOfLines={1}
                     >
                       {title || "Відео"}
                     </Text>
-                    <Text style={[H6, { color: themeColors.Gray(0.7) }]}>
+                    <Text
+                      style={[H6, { color: themeColors.InActiveText(0.7) }]}
+                    >
                       Епізод {currentEpisode?.episode || "1"}
                     </Text>
                   </View>
@@ -934,10 +943,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         delayPressOut={0}
                         onPress={openSpeedBottomSheet}
                       >
-                        <Icons.Speedometer
-                          size={24}
-                          color={themeColors.white}
-                        />
+                        <Icons.Speedometer size={24} color={themeColors.text} />
                       </CustomTouchableOpacity>
                     </View>
 
@@ -956,7 +962,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                               "Якщо PiP не з'явився, дозвольте використання PiP у налаштуваннях",
                               {
                                 duration: Toast.durations.SHORT,
-                                backgroundColor: themeColors.black_1,
+                                backgroundColor: themeColors.subtle,
                                 shadow: false,
                                 position: Toast.positions.BOTTOM,
                               }
@@ -967,7 +973,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.PictureInPicture
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -982,7 +988,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.Queue
                           size={24}
-                          color={showEpisodes ? appColor : themeColors.white}
+                          color={showEpisodes ? primary : themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -1012,8 +1018,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               <LinearGradient
                 colors={[
                   "transparent",
-                  themeColors.Black(0.4),
-                  themeColors.Black(0.9),
+                  themeColors.Background(0.4),
+                  themeColors.Background(0.9),
                 ]}
                 style={styles.controlsGradient}
               >
@@ -1044,7 +1050,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <Icons.Lock
                           type={"enabled"}
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -1054,7 +1060,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       style={[
                         H6,
                         {
-                          color: themeColors.white,
+                          color: themeColors.text,
                           minWidth: 50,
                           textAlign: "center",
                         },
@@ -1073,9 +1079,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         minimumValue={0}
                         maximumValue={duration || 0}
                         step={0.1}
-                        minimumTrackTintColor={appColor}
-                        maximumTrackTintColor={themeColors.white}
-                        thumbTintColor={appColor}
+                        minimumTrackTintColor={primary}
+                        maximumTrackTintColor={themeColors.text}
+                        thumbTintColor={primary}
                         disabled={!duration || duration <= 0}
                         onSlidingStart={() => {
                           if (hideControlsTimerRef.current) {
@@ -1110,7 +1116,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       style={[
                         H6,
                         {
-                          color: themeColors.white,
+                          color: themeColors.text,
                           minWidth: 50,
                           textAlign: "center",
                         },
@@ -1141,7 +1147,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         <Icons.Volume
                           volume={volume * 100}
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                         <VolumeWidget
                           visible={volumeTooltipVisible}
@@ -1166,7 +1172,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.ArrowCounterClockwise
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     )}
@@ -1183,7 +1189,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           }
                         }}
                       >
-                        <Icons.SkipBack size={24} color={themeColors.white} />
+                        <Icons.SkipBack size={24} color={themeColors.text} />
                       </CustomTouchableOpacity>
                     </View>
 
@@ -1194,9 +1200,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     >
                       <View style={styles.playButton}>
                         {isPlaying ? (
-                          <Icons.Pause size={32} color={themeColors.white} />
+                          <Icons.Pause size={32} color={themeColors.text} />
                         ) : (
-                          <Icons.Play size={32} color={themeColors.white} />
+                          <Icons.Play size={32} color={themeColors.text} />
                         )}
                       </View>
                     </Pressable>
@@ -1214,10 +1220,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           }
                         }}
                       >
-                        <Icons.SkipForward
-                          size={24}
-                          color={themeColors.white}
-                        />
+                        <Icons.SkipForward size={24} color={themeColors.text} />
                       </CustomTouchableOpacity>
                     </View>
 
@@ -1232,7 +1235,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.ArrowClockwise
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     )}
@@ -1257,7 +1260,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           >
                             <Icons.FrameCorners
                               size={24}
-                              color={isZoomed ? appColor : themeColors.white}
+                              color={isZoomed ? primary : themeColors.text}
                             />
                           </CustomTouchableOpacity>
                         </View>
@@ -1387,7 +1390,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                             {isDownloading ? (
                               <Icons.DownloadAnimated
                                 size={24}
-                                color={themeColors.appColor}
+                                color={themeColors.primary}
                               />
                             ) : (
                               <Icons.DownloadSimple
@@ -1398,8 +1401,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                     (ep) =>
                                       ep.episode === currentEpisode?.episode
                                   )
-                                    ? themeColors.appColor
-                                    : themeColors.white
+                                    ? themeColors.primary
+                                    : themeColors.text
                                 }
                               />
                             )}
@@ -1418,7 +1421,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.DeviceRotate
                           size={24}
-                          color={themeColors.white}
+                          color={themeColors.text}
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -1473,7 +1476,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     }
                   }}
                 >
-                  <Icons.Lock type={"disabled"} size={24} color={appColor} />
+                  <Icons.Lock type={"disabled"} size={24} color={primary} />
                 </CustomTouchableOpacity>
               </View>
             </Animated.View>
@@ -1497,18 +1500,18 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 delayPressOut={0}
                 onPress={hideEpisodesPanel}
               >
-                <Icons.ArrowLeft size={34} color={themeColors.appColor} />
+                <Icons.ArrowLeft size={34} color={themeColors.primary} />
               </CustomTouchableOpacity>
               <Text
                 style={[
                   H4,
-                  { color: themeColors.white, flex: 1, marginLeft: 12 },
+                  { color: themeColors.text, flex: 1, marginLeft: 12 },
                 ]}
               >
                 Епізоди
               </Text>
               <View style={styles.episodeCount}>
-                <Text style={[H6, { color: themeColors.appColor }]}>
+                <Text style={[H6, { color: themeColors.primary }]}>
                   {episodes.length}
                 </Text>
               </View>
@@ -1541,8 +1544,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           {
                             color:
                               currentEpisode?.episode === episode.episode
-                                ? themeColors.appColor
-                                : themeColors.Gray(0.7),
+                                ? themeColors.primary
+                                : themeColors.InActiveText(0.7),
                           },
                         ]}
                       >
@@ -1557,8 +1560,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           {
                             color:
                               currentEpisode?.episode === episode.episode
-                                ? themeColors.appColor
-                                : themeColors.white,
+                                ? themeColors.primary
+                                : themeColors.text,
                             marginBottom: 4,
                           },
                         ]}
@@ -1628,7 +1631,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: black,
+    backgroundColor: background,
   },
   videoTouchArea: {
     flex: 1,
@@ -1636,7 +1639,7 @@ const styles = StyleSheet.create({
   video: {
     flex: 1,
     width: "100%",
-    backgroundColor: black,
+    backgroundColor: background,
   },
   loadingOverlay: {
     position: "absolute",
@@ -1716,13 +1719,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 4,
-    backgroundColor: Gray(0.3),
+    backgroundColor: InActiveText(0.3),
     borderRadius: 2,
     position: "relative",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: appColor,
+    backgroundColor: primary,
     borderRadius: 2,
     position: "absolute",
   },
@@ -1731,7 +1734,7 @@ const styles = StyleSheet.create({
     top: -6,
     width: 16,
     height: 16,
-    backgroundColor: appColor,
+    backgroundColor: primary,
     borderRadius: 8,
     marginLeft: -8,
     shadowColor: "#000",
@@ -1793,10 +1796,10 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: appColor,
+    backgroundColor: primary,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: appColor,
+    shadowColor: primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -1818,7 +1821,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   qualityText: {
-    color: white,
     fontSize: 13,
     fontFamily: "Nunito-Bold",
     backgroundColor: "rgba(255, 255, 255, 0.15)",
@@ -1841,7 +1843,7 @@ const styles = StyleSheet.create({
   },
   episodesPanelContent: {
     flex: 1,
-    backgroundColor: Black(0.95),
+    backgroundColor: Background(0.95),
   },
   episodesPanelHeader: {
     flexDirection: "row",
@@ -1850,18 +1852,18 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingTop: 50,
     borderBottomWidth: 1,
-    borderBottomColor: Gray(0.2),
+    borderBottomColor: InActiveText(0.2),
   },
   episodesBackButton: {
     padding: 8,
   },
   episodeCount: {
-    backgroundColor: Black(0.5),
+    backgroundColor: Background(0.5),
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: appColor,
+    borderColor: primary,
   },
   episodesList: {
     flex: 1,
@@ -1878,13 +1880,13 @@ const styles = StyleSheet.create({
   },
   episodeItemActive: {
     borderWidth: 2,
-    borderColor: appColor,
+    borderColor: primary,
   },
   episodeNumber: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Gray(0.2),
+    backgroundColor: InActiveText(0.2),
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -1899,8 +1901,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: appColor,
-    shadowColor: appColor,
+    backgroundColor: primary,
+    shadowColor: primary,
     shadowOffset: {
       width: 0,
       height: 0,

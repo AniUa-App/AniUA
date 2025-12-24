@@ -5,7 +5,6 @@ import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 import Icons, { AppIcon, TelegramIcon } from "../Styles/Icons";
 import Icon from "../Styles/Icons";
 import { useNavigation } from "@react-navigation/native";
-import { appColor, Black, black, Black_1, white } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import ExpandableNotification from "../Widgets/ExpandableNotification";
 import ConfirmationWidget from "../Widgets/ConfirmationWidget";
@@ -172,25 +171,29 @@ export default function SettingsScreen() {
       },
       onPress: () => {
         // Збираємо партнерів з MainConfig.partners
-        const partnersList = Object.values(MainConfig.partners).map((partner) => ({
-          title: partner.name,
-          onPress: () => {
-            Linking.openURL(partner.url);
-          },
-        }));
+        const partnersList = Object.values(MainConfig.partners).map(
+          (partner) => ({
+            title: partner.name,
+            onPress: () => {
+              Linking.openURL(partner.url);
+            },
+          })
+        );
 
         // Збираємо студії озвучення з MainConfig.partnerStudios (без дублікатів)
         const seenUrls = new Set();
-        const studiosList = Object.entries(MainConfig.partnerStudios)
-          .filter(([name, url]) => {
-            if (seenUrls.has(url)) return false;
-            seenUrls.add(url);
+        const partnerStudiosArray = MainConfig.partnerStudios || [];
+        const studiosList = partnerStudiosArray
+          .filter((team) => {
+            if (!team.telegram) return false;
+            if (seenUrls.has(team.telegram)) return false;
+            seenUrls.add(team.telegram);
             return true;
           })
-          .map(([name, url]) => ({
-            title: name,
+          .map((team) => ({
+            title: team.name,
             onPress: () => {
-              Linking.openURL(url);
+              Linking.openURL(team.telegram);
             },
           }));
 
@@ -203,7 +206,7 @@ export default function SettingsScreen() {
               minWidth: "20%",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: themeColors.appColor,
+              backgroundColor: themeColors.primary,
               borderRadius: 8,
               padding: 10,
               minHeight: 50,
@@ -236,7 +239,7 @@ export default function SettingsScreen() {
       title: "Новини",
       subtitle: "У телеграм каналі ви знайдете новини.",
       button: {
-        Icon: <Icon.TelegramLogo size={41} color={white} />,
+        Icon: <Icon.TelegramLogo size={41} color={themeColors.text} />,
       },
       onPress: () => {
         Linking.openURL(MainConfig.urls.telegramChannelUrl);
@@ -246,7 +249,7 @@ export default function SettingsScreen() {
       title: "Кастомізація",
       subtitle: "Налаштування вигляду додатку.",
       button: {
-        Icon: <Icons.PaintBrushBroad size={40} color={themeColors.white} />,
+        Icon: <Icons.PaintBrushBroad size={40} color={themeColors.text} />,
       },
       onPress: () => {
         navigation.navigate("HiddenStack", {
@@ -261,7 +264,7 @@ export default function SettingsScreen() {
       title: "Інформація про застосунок",
       subtitle: "Версія, хеш та ін.",
       button: {
-        Icon: <Icons.Info size={38} color={white} />,
+        Icon: <Icons.Info size={38} color={themeColors.text} />,
       },
       onPress: () => {
         navigation.navigate("HiddenStack", {

@@ -7,7 +7,7 @@ export var Genres: Record<string, string> = {};
 
 export const Statuses: Record<string, string> = {
   Байдуже: "",
-  Онґоінґ: "ongoing",
+  Онґоінг: "ongoing",
   Завершено: "finished",
   Анонс: "announced",
 };

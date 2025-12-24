@@ -3,12 +3,13 @@ import React, { useEffect, useCallback, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
-import { H2, H3, H4, H5, H7 } from "../Styles/Fonts";
-import { appColor, white, black_1, red } from "../Styles/Colors";
+import { H4, H5, H7 } from "../Styles/Fonts";
+import { useThemeColors } from "../Global/useTheme";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import Logger from "../Logger/Logger";
 
 export default function ButtonsScreen({ route }) {
+  const colors = useThemeColors();
   const { list, title, buttonStyle } = route.params;
   useEffect(() => {
     Logger.debug('ButtonsScreen', 'List changed', { list });
@@ -34,10 +35,10 @@ export default function ButtonsScreen({ route }) {
             key={index}
             style={[
               {
-                minWidth: "20%", // Мінімальна ширина елемента
+                minWidth: "20%",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: appColor,
+                backgroundColor: colors.primary,
                 borderRadius: 8,
                 padding: 10,
                 minHeight: 50,
@@ -59,6 +60,8 @@ export function SegmentedControlLabelWidget({
   onChange = () => {},
   value = "",
 }) {
+  const colors = useThemeColors();
+
   if (!segments || segments.length === 0) {
     return null;
   }
@@ -68,7 +71,6 @@ export function SegmentedControlLabelWidget({
     label: segment.label,
   }));
 
-  // Compute a safe initial index based on value and available segments
   const selectedIndex = useMemo(() => {
     if (!value) return 0;
     const idx = segments.findIndex((segment) => segment.label === value);
@@ -78,7 +80,6 @@ export function SegmentedControlLabelWidget({
   function onChangeIndex(index) {
     if (index >= 0 && index < segments.length) {
       const nextLabel = segments[index].label;
-      // Avoid redundant updates that can trigger render loops
       if (nextLabel !== value) {
         onChange(nextLabel);
       }
@@ -92,8 +93,8 @@ export function SegmentedControlLabelWidget({
       onChange={(event) =>
         onChangeIndex(event.nativeEvent.selectedSegmentIndex)
       }
-      tintColor={appColor}
-      backgroundColor={black_1}
+      tintColor={colors.primary}
+      backgroundColor={colors.subtle}
       sliderStyle={{ top: 0, bottom: 0, left: 0, right: 0 }}
       style={{
         width: "100%",
@@ -105,28 +106,27 @@ export function SegmentedControlLabelWidget({
       }}
       fontStyle={{
         ...H7,
-        color: white,
+        color: colors.text,
       }}
       activeFontStyle={{
         ...H5,
-
         textAlign: "center",
-        color: white,
+        color: colors.text,
         lineHeight: (H7?.fontSize ?? 13) + 2,
       }}
     />
   );
 }
 
-// Icon/Image-based segmented control with sliding highlight
 export function SegmentedControlImageWidget({
-  segments = [], // [{ icon: <JSX />, value?: string, label?: string }]
+  segments = [],
   onChange = () => {},
   value = "",
 }) {
+  const colors = useThemeColors();
+
   if (!segments || segments.length === 0) return null;
 
-  // Normalize segments: ensure each has label and value for internal mapping
   const normalized = useMemo(
     () =>
       segments.map((s, idx) => ({
@@ -162,12 +162,11 @@ export function SegmentedControlImageWidget({
         height: 50,
         borderRadius: 8,
         overflow: "hidden",
-        backgroundColor: black_1,
+        backgroundColor: colors.subtle,
         position: "relative",
         flexDirection: "row",
       }}
     >
-      {/* slider */}
       <View
         style={{
           position: "absolute",
@@ -175,7 +174,7 @@ export function SegmentedControlImageWidget({
           bottom: 0,
           left: `${selectedIndex * itemWidthPct}%`,
           width: `${itemWidthPct}%`,
-          backgroundColor: appColor,
+          backgroundColor: colors.primary,
           opacity: 0.25,
           borderRadius: 8,
         }}
@@ -194,7 +193,7 @@ export function SegmentedControlImageWidget({
           activeOpacity={0.8}
         >
           {seg.icon ?? (
-            <Text style={{ color: white }}>{String(seg.label)}</Text>
+            <Text style={{ color: colors.text }}>{String(seg.label)}</Text>
           )}
         </TouchableOpacity>
       ))}

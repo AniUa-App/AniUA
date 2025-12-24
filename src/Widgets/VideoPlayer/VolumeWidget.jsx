@@ -7,7 +7,13 @@ import {
   Easing,
   PanResponder,
 } from "react-native";
-import { appColor, white, Black, Gray, black } from "../../Styles/Colors";
+import {
+  primary,
+  text,
+  Background,
+  InActiveText,
+  background,
+} from "../../Styles/Colors";
 import Icons from "../../Styles/Icons";
 
 // Vertical volume tooltip with auto-hide and icon arrow pointer
@@ -217,7 +223,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: Black(0.95),
+    backgroundColor: Background(0.95),
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -227,7 +233,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   valueLabel: {
-    color: white,
     fontFamily: "Nunito-SemiBold",
     fontSize: 12,
     marginBottom: 10,
@@ -243,7 +248,7 @@ const styles = StyleSheet.create({
     height: "100%",
     width: 6,
     borderRadius: 3,
-    backgroundColor: Gray(0.3),
+    backgroundColor: InActiveText(0.3),
     alignItems: "center",
     justifyContent: "flex-end",
   },
@@ -252,7 +257,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: appColor,
     borderRadius: 3,
   },
   sliderThumb: {
@@ -260,7 +264,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: appColor,
     left: -3,
     elevation: 3,
   },
@@ -275,6 +278,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: Black(0.95),
+    borderTopColor: Background(0.95),
   },
 });

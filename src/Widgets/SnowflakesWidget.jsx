@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Dimensions, Animated, Easing } from "react-native";
-import { white } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
 import { Snowflake as SnowflakeIcon } from "phosphor-react-native";
@@ -148,7 +148,7 @@ const Snowflake = React.memo(({ config }) => {
         },
       ]}
     >
-      <SnowflakeIcon size={config.size} color={white} weight="regular" />
+      <SnowflakeIcon size={config.size} color={text} weight="regular" />
     </AnimatedSnowflakeIcon>
   );
 });

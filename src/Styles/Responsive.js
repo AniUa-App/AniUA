@@ -73,3 +73,46 @@ export function useIsTabletLandscape() {
   const landscape = useIsLandscape();
   return tablet && landscape;
 }
+
+// TV detection - Android TV typically has uiMode set to 'tv'
+// Also check for large landscape screens without touch
+export function isTV() {
+  const { width, height } = getDims();
+  const longest = Math.max(width, height);
+  const shortest = Math.min(width, height);
+
+  // Android TV detection via Platform
+  if (Platform.isTV) return true;
+
+  // Heuristic: Large screen (1080p+) with wide aspect ratio
+  // TVs typically have 16:9 or wider ratio and 1920+ width
+  const aspectRatio = longest / shortest;
+  return longest >= 1920 && aspectRatio >= 1.7;
+}
+
+export function useIsTV() {
+  const { width, height } = useWindowDimensions();
+  const longest = Math.max(width, height);
+  const shortest = Math.min(width, height);
+
+  if (Platform.isTV) return true;
+
+  const aspectRatio = longest / shortest;
+  return longest >= 1920 && aspectRatio >= 1.7;
+}
+
+// Get device type for component selection
+export function getDeviceType() {
+  if (isTV()) return 'tv';
+  if (isTabletLandscape()) return 'tablet';
+  return 'phone';
+}
+
+export function useDeviceType() {
+  const tv = useIsTV();
+  const tabletLandscape = useIsTabletLandscape();
+
+  if (tv) return 'tv';
+  if (tabletLandscape) return 'tablet';
+  return 'phone';
+}

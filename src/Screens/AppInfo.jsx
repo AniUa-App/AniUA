@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4 } from "../Styles/Fonts";
-import { appColor, white } from "../Styles/Colors";
 import Config from "../cfgs/MainConfig";
 import Clipboard from "@react-native-clipboard/clipboard";
 import Toast from "react-native-root-toast";
@@ -98,8 +97,8 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
     Toast.show("Скопійовано", {
       duration: Toast.durations.SHORT,
       position: Toast.positions.BOTTOM,
-      backgroundColor: themeColors.black,
-      textColor: themeColors.white,
+      backgroundColor: themeColors.background,
+      textColor: themeColors.text,
       shadow: false,
     });
   };
@@ -108,18 +107,18 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
     <TouchableOpacity onPress={onCopy} activeOpacity={0.8} style={styles.row}>
       <View style={styles.rowTextContainer}>
         {title?.length > 0 && (
-          <Text style={[H4, { color: themeColors.white, opacity: 0.9 }]}>
+          <Text style={[H4, { color: themeColors.text, opacity: 0.9 }]}>
             {title}
           </Text>
         )}
       </View>
       <View
-        style={[styles.valuePill, { backgroundColor: themeColors.appColor }]}
+        style={[styles.valuePill, { backgroundColor: themeColors.primary }]}
       >
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={[H4, { color: themeColors.white, maxWidth: 220 }]}
+          style={[H4, { color: themeColors.text, maxWidth: 220 }]}
         >
           {String(value)}
         </Text>
@@ -135,10 +134,10 @@ function Header() {
       <View style={{ flexDirection: "row" }}>
         <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
         <View style={{ marginLeft: 12 }}>
-          <Text style={[H3, { color: themeColors.white, fontWeight: "700" }]}>
+          <Text style={[H3, { color: themeColors.text, fontWeight: "700" }]}>
             Про застосунок
           </Text>
-          <Text style={[H4, { color: themeColors.white, opacity: 0.7 }]}>
+          <Text style={[H4, { color: themeColors.text, opacity: 0.7 }]}>
             AniUA • {String(Config.devInfo.version || "unknown")}
           </Text>
         </View>
@@ -170,10 +169,10 @@ function Header() {
           <View
             style={[
               styles.valuePill,
-              { backgroundColor: themeColors.appColor },
+              { backgroundColor: themeColors.primary },
             ]}
           >
-            <Icon.GitPullRequest size={24} color={white} style={{}} />
+            <Icon.GitPullRequest size={24} color={text} style={{}} />
           </View>
         </TouchableOpacity>
       </View>

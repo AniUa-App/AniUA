@@ -1,7 +1,7 @@
 import React, { useState, useEffect, use } from "react";
 import { View, Text, Linking, AppState } from "react-native";
 import ScreenController from "./src/Screens/ScreenController/ScreenController";
-import { black, white, appColor } from "./src/Styles/Colors";
+import { background, text, primary } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Loader from "./src/Widgets/LoaderWidget";
@@ -41,6 +41,7 @@ import { fonts } from "@rneui/base";
 import { getCurrentRouteName } from "./src/Global/NavigationService";
 import { Log } from "ffmpeg-kit-react-native";
 import { HikkaAuthService } from "./src/Services/HikkaAuthService";
+import AniuaApi from "./src/Sources/AniuaApi";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -90,10 +91,7 @@ export default function App() {
       showSnackbar(
         <Text style={H6}>
           Використовуючи додаток, ви погоджуєтесь з нашими{" "}
-          <SnackbarLink
-            url={MainConfig.urls.appUrl + `#terms`}
-            color={appColor}
-          >
+          <SnackbarLink url={MainConfig.urls.appUrl + `#terms`} color={primary}>
             правилами
           </SnackbarLink>
           .
@@ -210,8 +208,12 @@ export default function App() {
             await ScreenOrientation.lockAsync(
               ScreenOrientation.OrientationLock.PORTRAIT_UP
             );
-            const existingMobileConfig = SettingsStorage.getParameter("userConfig");
-            if (!existingMobileConfig || Object.keys(existingMobileConfig).length === 0) {
+            const existingMobileConfig =
+              SettingsStorage.getParameter("userConfig");
+            if (
+              !existingMobileConfig ||
+              Object.keys(existingMobileConfig).length === 0
+            ) {
               SettingsStorage.setParameter("userConfig", {
                 navbar: {
                   style: "MD3",
@@ -248,6 +250,23 @@ export default function App() {
               error
             );
           });
+        const fetchMetadata_2 = async () => {
+          try {
+            MainConfig.partnerStudios = await AniuaApi.getAllTeams();
+            Logger.debug(
+              "App",
+              "Дані про команди завантажено",
+              MainConfig.partnerStudios
+            );
+          } catch (error) {
+            Logger.error(
+              "App",
+              "Помилка завантаження даних про команди",
+              error
+            );
+          }
+        };
+        fetchMetadata_2();
       } catch (error) {
         Logger.logAppInit("Критична помилка ініціалізації", false, error);
       } finally {
@@ -259,6 +278,14 @@ export default function App() {
                 "defaultPlayer",
                 MainConfig.players[1]
               );
+            }
+
+            // Для існуючих користувачів автоматично встановлюємо hasCompletedOnboarding
+            if (
+              isNotFirstLaunch &&
+              !SettingsStorage.getParameter("hasCompletedOnboarding")
+            ) {
+              SettingsStorage.setParameter("hasCompletedOnboarding", true);
             }
 
             Logger.logAppInit("Завершення завантаження");
@@ -358,12 +385,12 @@ export const setupNavigationBar = async () => {
       SystemNavigationBar.navigationHide();
     } else if (navBarType === "dark" || !navBarType) {
       SystemNavigationBar.navigationShow();
-      const blackHex = Color(black).hex();
+      const blackHex = Color(background).hex();
       SystemNavigationBar.setNavigationColor(blackHex, "dark", "navigation");
       SystemNavigationBar.setBarMode("dark", "navigation");
     } else if (navBarType === "light") {
       SystemNavigationBar.navigationShow();
-      const whiteHex = Color(white).hex();
+      const whiteHex = Color(text).hex();
       SystemNavigationBar.setNavigationColor(whiteHex, "light", "navigation");
       SystemNavigationBar.setBarMode("light", "navigation");
     }

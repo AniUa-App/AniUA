@@ -10,7 +10,7 @@ import { getVideoDir } from "../FIleSystem/FileSystem";
 import { sanitizeFileName } from "../Global/Functions";
 import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 import notifee from "@notifee/react-native";
-import { appColor } from "../Styles/Colors";
+import { primary } from "../Styles/Colors";
 import Color from "color";
 import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
@@ -53,7 +53,7 @@ export default async function DownloadVideoNotification({
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
-  const appColorHex = Color(appColor).hex();
+  const appColorHex = Color(primary).hex();
 
   Logger.debug("DownloadVideoNotification", "Using channel ID", {
     activeChannelId,
@@ -141,7 +141,7 @@ export async function updateDownloadProgress({
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
-  const appColorHex = Color(appColor).hex();
+  const appColorHex = Color(primary).hex();
 
   try {
     await notifee.displayNotification({
@@ -198,7 +198,7 @@ export async function completeDownloadNotification({
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
-  const appColorHex = Color(appColor).hex();
+  const appColorHex = Color(primary).hex();
   await notifee.displayNotification({
     id: notificationId,
     title: `Завантаження завершено`,
@@ -245,7 +245,7 @@ export async function errorDownloadNotification({
     (SettingsStorage.getParameter &&
       SettingsStorage.getParameter("notificationsChannelId")) ||
     "AniUA";
-  const appColorHex = Color(appColor).hex();
+  const appColorHex = Color(primary).hex();
   await notifee.displayNotification({
     id: notificationId,
     title: `Помилка завантаження: ${animeName} - ${episodeNumber} серія`,

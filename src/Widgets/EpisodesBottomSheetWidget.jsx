@@ -21,19 +21,20 @@ import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TouchableOpacity } from "./Button";
 import {
-  AppColor,
-  appColor,
-  Black,
-  black,
-  black_1,
-  White,
-  white,
+  Primary,
+  primary,
+  Background,
+  background,
+  Subtle,
+  subtle,
+  text,
 } from "../Styles/Colors";
 import { HikkaApi } from "../Sources/hikka";
 import { H3, H4 } from "../Styles/Fonts";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { EventBus } from "../Global/EventBus";
 import Icon from "../Styles/Icons";
+import { useThemeColors } from "../Global/useTheme";
 
 // Окремий компонент для елемента серії
 const EpisodeItem = React.memo(
@@ -50,6 +51,7 @@ const EpisodeItem = React.memo(
   }) => {
     const translateX = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(1)).current;
+    const themeColors = useThemeColors();
 
     const resetAnimation = () => {
       Animated.parallel([
@@ -172,7 +174,7 @@ const EpisodeItem = React.memo(
               styles.rowFront,
               {
                 backgroundColor: checkForStyle(item)
-                  ? Black(0.4)
+                  ? themeColors.Background(0.4)
                   : "transparent",
               },
             ]}
@@ -202,14 +204,16 @@ const EpisodeItem = React.memo(
                 style={[
                   H3,
                   {
-                    color: checkForStyle(item) ? appColor : white,
+                    color: checkForStyle(item)
+                      ? themeColors.primary
+                      : themeColors.text,
                   },
                 ]}
               >
                 Серія {item.episode}
               </Text>
               {isDownloading && type === "download" ? (
-                <Icon.DownloadAnimated size={34} color={appColor} />
+                <Icon.DownloadAnimated size={34} color={themeColors.primary} />
               ) : customIcon ? (
                 customIcon
               ) : null}
@@ -245,6 +249,7 @@ export default function EpisodesBottomSheet({
   const isAtEndRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isAtEnd, setIsAtEnd] = useState(false);
+  const themeColors = useThemeColors();
 
   const scrollStep = useMemo(() => {
     if (episodesData.length > 500) return 100;
@@ -402,8 +407,8 @@ export default function EpisodesBottomSheet({
       snapPoints={["50%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Black(0.8) }}
-      handleIndicatorStyle={{ backgroundColor: Black(1) }}
+      backgroundStyle={{ backgroundColor: themeColors.background }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.inActiveIcon }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -419,7 +424,7 @@ export default function EpisodesBottomSheet({
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color={appColor}
+            color={themeColors.primary}
             style={styles.loader}
           />
         ) : episodesData.length === 0 ? (
@@ -461,10 +466,14 @@ export default function EpisodesBottomSheet({
                   onPress={handleScrollButton}
                   style={[
                     styles.scrollDownButtonInner,
-                    { backgroundColor: black_1 },
+                    { backgroundColor: themeColors.subtle },
                   ]}
                 >
-                  <Icon.CaretDown size={28} color={white} weight="bold" />
+                  <Icon.CaretDown
+                    size={28}
+                    color={themeColors.text}
+                    weight="bold"
+                  />
                 </TouchableOpacity>
               </Animated.View>
             )}
@@ -505,7 +514,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Black(0.6),
   },
   scrollDownButtonInner: {
     width: "100%",

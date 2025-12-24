@@ -14,13 +14,55 @@ export class HikkaAuthService {
   private static readonly OAUTH_URL = "https://hikka.io/oauth";
   private static readonly TOKEN_URL = "https://api.hikka.io/auth/token";
   private static readonly DEFAULT_SCOPES = [
-    "read",
-    "write",
-    "comments:write",
-    "follow:write",
-    "favourite:write",
-    "watch:write",
-    "read:write",
+    "read:user-details",
+    "update:user-details:email",
+    "delete:user-details:image",
+    "delete:user-details:cover",
+    "update:user-details:username",
+    "update:user-details:password",
+    "update:user-details:description",
+    "read:watchlist",
+    "update:watchlist",
+    "read:readlist",
+    "update:readlist",
+    "read:export-list",
+    "read:client:list",
+    "create:client",
+    "read:client",
+    "update:client",
+    "verify:client",
+    "delete:client",
+    "read:collection",
+    "create:collection",
+    "update:collection",
+    "delete:collection",
+    "create:article",
+    "update:article",
+    "delete:article",
+    "read:articles",
+    "read:articles_top",
+    "read:comment:score",
+    "create:comment",
+    "update:comment",
+    "delete:comment",
+    "create:edit",
+    "update:edit",
+    "close:edit",
+    "accept:edit",
+    "deny:edit",
+    "read:favourite",
+    "create:favourite",
+    "delete:favourite",
+    "read:favourite:list",
+    "read:follow",
+    "follow",
+    "unfollow",
+    "read:history",
+    "read:notification",
+    "seen:notification",
+    "read:vote",
+    "set:vote",
+    "upload",
   ];
 
   /**
@@ -148,9 +190,7 @@ export class HikkaAuthService {
    * @param requestReference - Референс з callback URL
    * @returns Дані токену
    */
-  private static async exchangeToken(
-    requestReference: string
-  ): Promise<{
+  private static async exchangeToken(requestReference: string): Promise<{
     secret: string;
     created: number;
     expiration: number;
@@ -259,7 +299,11 @@ export class HikkaAuthService {
 
       return userData;
     } catch (error) {
-      Logger.error("HikkaAuthService", "Помилка оновлення даних користувача", error);
+      Logger.error(
+        "HikkaAuthService",
+        "Помилка оновлення даних користувача",
+        error
+      );
       return null;
     }
   }

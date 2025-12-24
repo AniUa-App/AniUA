@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
-import { useTheme } from "../Global/useTheme";
+import { useThemeColors } from "../Global/useTheme";
 
 interface HikkaAuthButtonProps {
   onAuthSuccess?: (user: any) => void;
@@ -30,7 +30,7 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const theme = useTheme();
+  const theme = useThemeColors();
 
   useEffect(() => {
     checkAuthStatus();

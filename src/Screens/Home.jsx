@@ -13,7 +13,7 @@ import BigBannerWidget from "../Widgets/BigBannerWidget";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SearchLine from "../Widgets/SearchLineWidget";
 import AnimeListVertical from "../Widgets/AnimeListVerticalWidget";
-import { appColor, black, Black, Black_1 } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 import { useFocusEffect } from "@react-navigation/native";
 import { InternetError } from "../Widgets/ErrorsWidgets";
 import { HikkaSets } from "../Sources/HikkaSets";
@@ -26,7 +26,9 @@ import { sendRequest } from "../Sources/CustomSet";
 import { useIsTabletLandscape } from "../Styles/Responsive";
 
 export default function HomeScreen() {
+  const colors = useThemeColors();
   const isTL = useIsTabletLandscape();
+  const navigation = useNavigation();
   const [animeList_popularity_this_year, setAnimeList_popularity_this_year] =
     useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +130,7 @@ export default function HomeScreen() {
               >
                 {isLoading ? (
                   <View style={styles.loaderContainer}>
-                    <ActivityIndicator size="large" color={appColor} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                   </View>
                 ) : (
                   <View
@@ -173,7 +175,7 @@ export default function HomeScreen() {
               )}
               {isLoading ? (
                 <View style={styles.loaderContainer}>
-                  <ActivityIndicator size="large" color={appColor} />
+                  <ActivityIndicator size="large" color={colors.primary} />
                 </View>
               ) : (
                 <View
@@ -213,6 +215,7 @@ export default function HomeScreen() {
  */
 const CustomPersonalRecList = React.memo(() => {
   const [personalRecList, setPersonalRecList] = useState([]);
+  const colors = useThemeColors();
   const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -274,7 +277,7 @@ const CustomPersonalRecList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -315,6 +318,7 @@ const CustomPersonalRecList = React.memo(() => {
  * Компонент для відображення найпопулярніших аніме з 2020 року
  */
 const PopularAnimeList = React.memo(() => {
+  const colors = useThemeColors();
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -325,7 +329,11 @@ const PopularAnimeList = React.memo(() => {
         const data = await HikkaSets.getMostPopularAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -352,7 +360,7 @@ const PopularAnimeList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -370,6 +378,7 @@ const PopularAnimeList = React.memo(() => {
  * Компонент для відображення аніме, що виходять зараз (онгоїнги)
  */
 const OngoingAnimeList = React.memo(() => {
+  const colors = useThemeColors();
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -380,7 +389,11 @@ const OngoingAnimeList = React.memo(() => {
         const data = await HikkaSets.getOngoingAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -407,7 +420,7 @@ const OngoingAnimeList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -425,6 +438,7 @@ const OngoingAnimeList = React.memo(() => {
  * Компонент для відображення аніме жанру "Бойовик"
  */
 const ActionAnimeList = React.memo(() => {
+  const colors = useThemeColors();
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -435,7 +449,11 @@ const ActionAnimeList = React.memo(() => {
         const data = await HikkaSets.getActionAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -462,7 +480,7 @@ const ActionAnimeList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -480,6 +498,7 @@ const ActionAnimeList = React.memo(() => {
  * Компонент для відображення аніме жанру "Фантастика"
  */
 const SciFiAnimeList = React.memo(() => {
+  const colors = useThemeColors();
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -490,7 +509,11 @@ const SciFiAnimeList = React.memo(() => {
         const data = await HikkaSets.getSciFiAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -517,7 +540,7 @@ const SciFiAnimeList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -535,6 +558,7 @@ const SciFiAnimeList = React.memo(() => {
  * Компонент для відображення аніме жанру "Романтика"
  */
 const RomanceAnimeList = React.memo(() => {
+  const colors = useThemeColors();
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -545,7 +569,11 @@ const RomanceAnimeList = React.memo(() => {
         const data = await HikkaSets.getRomanceAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -572,7 +600,7 @@ const RomanceAnimeList = React.memo(() => {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={appColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }

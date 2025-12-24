@@ -13,7 +13,7 @@ export const adBlockScript = `
                 top: 20px;
                 right: 20px;
                 background: rgba(0, 0, 0, 0.85);
-                color: white;
+                color: text;
                 padding: 15px 20px;
                 border-radius: 12px;
                 font-size: 16px;
@@ -36,7 +36,7 @@ export const adBlockScript = `
                 width: 50%;
                 height: 100%;
                 background: rgba(0, 0, 0, 0.95);
-                color: white;
+                color: text;
                 padding: 20px;
                 box-sizing: border-box;
                 overflow-y: auto;
@@ -71,7 +71,7 @@ export const adBlockScript = `
                             right: 0;
                             background: none;
                             border: none;
-                            color: white;
+                            color: text;
                             font-size: 24px;
                             cursor: pointer;
                             padding: 5px;
@@ -350,7 +350,7 @@ export const requestVisualizerScript = `
             width: 60%;
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
-            color: white;
+            color: text;
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
@@ -368,7 +368,7 @@ export const requestVisualizerScript = `
             bottom: 20px;
             right: 20px;
             background: rgba(0, 0, 0, 0.85);
-            color: white;
+            color: text;
             padding: 15px 20px;
             border-radius: 12px;
             font-size: 16px;
@@ -394,7 +394,7 @@ export const requestVisualizerScript = `
                         right: 40px;
                         background: none;
                         border: none;
-                        color: white;
+                        color: text;
                         font-size: 16px;
                         cursor: pointer;
                         padding: 5px;
@@ -405,7 +405,7 @@ export const requestVisualizerScript = `
                         right: 0;
                         background: none;
                         border: none;
-                        color: white;
+                        color: text;
                         font-size: 24px;
                         cursor: pointer;
                         padding: 5px;

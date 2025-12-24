@@ -12,6 +12,7 @@ export default {
     orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
+    scheme: "aniua",
     newArchEnabled: true,
     updates: {
       url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
@@ -85,6 +86,18 @@ export default {
         },
         {
           action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "aniua.yuzka.site",
+              pathPrefix: "/characters",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
           data: [
             {
               scheme: "aniua",
@@ -126,6 +139,7 @@ export default {
           supportsPictureInPicture: true,
         },
       ],
+      "expo-web-browser",
     ],
   },
 };

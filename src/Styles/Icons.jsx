@@ -1,5 +1,15 @@
 import FilterIcon from "./../../assets/Filter.svg";
-import { Path, Svg, Circle, Line, Rect, G, Polyline } from "react-native-svg";
+import {
+  Path,
+  Svg,
+  Circle,
+  Line,
+  Rect,
+  G,
+  Polyline,
+  Mask,
+  Defs,
+} from "react-native-svg";
 import { View, Text, Image, Animated, Easing } from "react-native";
 import { useRef, useEffect } from "react";
 import LoadingIcon from "./../../assets/Loading.svg";
@@ -13,123 +23,16 @@ import EpisodesIcon from "./../../assets/Episodes.svg";
 import BottomArrowIcon from "./../../assets/BottomArrow.svg";
 import MoonIcon_ from "./../../assets/Moon.png";
 import { H3, H4 } from "./Fonts";
-import { appColor, Black, white } from "./Colors";
+import { primary, Background, text, background } from "./Colors";
 import FastImage from "react-native-fast-image";
 import TelegramIcon from "./../../assets/Telegram.svg";
 import RefreshIcon from "./../../assets/Refresh.svg";
 import * as PhosphorIcons from "phosphor-react-native";
+import { useThemeColors } from "../Global/useTheme";
 
 export const TYPE = "regular";
 
 const AnimatedSvg = Animated.createAnimatedComponent(G);
-
-export function BookmarkIcon({
-  width,
-  height,
-  color,
-  borderColor,
-  styles,
-  type,
-  opacity = 0,
-}) {
-  if (type == "home" || type == "Home") {
-    color = "#FFFF11";
-    borderColor = "#000000";
-  } else if (type == "Plans" || type == "plans") {
-    color = "#5F77B6";
-    borderColor = "#5F77B6";
-  } else if (type == "Watching" || type == "watching") {
-    color = "#FFEA4F";
-    borderColor = "#D6AA63";
-  } else if (type == "Viewed" || type == "viewed") {
-    color = "#ADD8E6";
-    borderColor = "#00B0E9";
-  } else if (type == "Dropped" || type == "dropped") {
-    color = "#FF2511";
-    borderColor = "#E4837A";
-  } else {
-    color = "#9E9E9E";
-    borderColor = "#9E9E9E";
-    opacity = 0.5;
-  }
-  if (opacity != 0) {
-    styles = { ...styles };
-  }
-  return (
-    <Svg
-      width={width}
-      height={height}
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={styles}
-    >
-      <Path
-        d="M16 15.9998C16 13.0543 18.3878 10.6665 21.3333 10.6665H42.6667C45.6122 10.6665 48 13.0543 48 15.9998V55.9998L32 39.9998L16 55.9998V15.9998Z"
-        fill={color}
-        fill-opacity="0.15"
-        opacity={opacity}
-      />
-      <Path
-        d="M16 15.9998C16 13.0543 18.3878 10.6665 21.3333 10.6665H42.6667C45.6122 10.6665 48 13.0543 48 15.9998V55.9998L32 39.9998L16 55.9998V15.9998Z"
-        stroke={borderColor}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </Svg>
-  );
-}
-export function SearchIcon({ fill }) {
-  return (
-    <Svg
-      width="28"
-      height="28"
-      viewBox="0 0 28 28"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <Path
-        d="M0.498281 25.9983L7.1482 19.3497C5.22079 17.0357 4.25968 14.0677 4.46481 11.0632C4.66995 8.0586 6.02553 5.24879 8.24956 3.21824C10.4736 1.18769 13.3949 0.0927414 16.4056 0.161166C19.4164 0.229591 22.2849 1.45612 24.4144 3.58561C26.5439 5.7151 27.7704 8.5836 27.8388 11.5944C27.9073 14.6051 26.8123 17.5264 24.7818 19.7504C22.7512 21.9745 19.9414 23.3301 16.9368 23.5352C13.9323 23.7403 10.9643 22.7792 8.65031 20.8518L2.00172 27.5017C1.903 27.6004 1.78581 27.6787 1.65683 27.7322C1.52785 27.7856 1.38961 27.8131 1.25 27.8131C1.11039 27.8131 0.972155 27.7856 0.843174 27.7322C0.714193 27.6787 0.596998 27.6004 0.498281 27.5017C0.399565 27.403 0.321259 27.2858 0.267834 27.1568C0.214409 27.0278 0.186909 26.8896 0.186909 26.75C0.186909 26.6104 0.214409 26.4722 0.267834 26.3432C0.321259 26.2142 0.399565 26.097 0.498281 25.9983ZM25.6875 11.875C25.6875 9.98371 25.1267 8.1349 24.0759 6.56236C23.0252 4.98981 21.5317 3.76416 19.7844 3.0404C18.0371 2.31664 16.1144 2.12727 14.2595 2.49624C12.4045 2.86521 10.7006 3.77595 9.36329 5.11329C8.02595 6.45063 7.11521 8.1545 6.74624 10.0094C6.37727 11.8644 6.56664 13.7871 7.2904 15.5344C8.01417 17.2817 9.23982 18.7752 10.8124 19.8259C12.3849 20.8767 14.2337 21.4375 16.125 21.4375C18.6603 21.4347 21.0909 20.4263 22.8836 18.6336C24.6763 16.8409 25.6847 14.4103 25.6875 11.875Z"
-        fill={fill}
-      />
-    </Svg>
-  );
-}
-
-export function ArrowRightIcon({ width = 30, height = 30, fill = "#3DD8C6" }) {
-  return (
-    <Svg
-      width={width}
-      height={height}
-      viewBox="0 0 30 30"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <Path
-        d="M15 0.375C12.1074 0.375 9.27985 1.23274 6.87478 2.83976C4.46972 4.44677 2.59519 6.73089 1.48826 9.40325C0.381329 12.0756 0.0917054 15.0162 0.656014 17.8532C1.22032 20.6902 2.61322 23.2961 4.65856 25.3414C6.70391 27.3868 9.30983 28.7797 12.1468 29.344C14.9838 29.9083 17.9244 29.6187 20.5967 28.5117C23.2691 27.4048 25.5532 25.5303 27.1602 23.1252C28.7673 20.7201 29.625 17.8926 29.625 15C29.6209 11.1225 28.0787 7.40492 25.3369 4.66309C22.5951 1.92125 18.8775 0.379095 15 0.375ZM15 27.375C12.5525 27.375 10.1599 26.6492 8.12482 25.2894C6.08976 23.9297 4.50362 21.9969 3.56699 19.7357C2.63036 17.4745 2.38529 14.9863 2.86278 12.5858C3.34027 10.1852 4.51888 7.98023 6.24955 6.24955C7.98023 4.51888 10.1852 3.34027 12.5858 2.86278C14.9863 2.38529 17.4745 2.63036 19.7357 3.56699C21.9969 4.50363 23.9297 6.08976 25.2894 8.12482C26.6492 10.1599 27.375 12.5525 27.375 15C27.3713 18.2809 26.0663 21.4264 23.7463 23.7463C21.4264 26.0663 18.2809 27.3713 15 27.375ZM21.4209 14.2041C21.5255 14.3085 21.6085 14.4326 21.6651 14.5692C21.7217 14.7058 21.7509 14.8522 21.7509 15C21.7509 15.1478 21.7217 15.2942 21.6651 15.4308C21.6085 15.5674 21.5255 15.6915 21.4209 15.7959L16.9209 20.2959C16.7098 20.507 16.4235 20.6256 16.125 20.6256C15.8265 20.6256 15.5402 20.507 15.3291 20.2959C15.118 20.0848 14.9994 19.7985 14.9994 19.5C14.9994 19.2015 15.118 18.9152 15.3291 18.7041L17.9095 16.125H9.375C9.07663 16.125 8.79048 16.0065 8.5795 15.7955C8.36853 15.5845 8.25 15.2984 8.25 15C8.25 14.7016 8.36853 14.4155 8.5795 14.2045C8.79048 13.9935 9.07663 13.875 9.375 13.875H17.9095L15.3291 11.2959C15.118 11.0848 14.9994 10.7985 14.9994 10.5C14.9994 10.2015 15.118 9.91516 15.3291 9.70406C15.5402 9.49297 15.8265 9.37437 16.125 9.37437C16.4235 9.37437 16.7098 9.49297 16.9209 9.70406L21.4209 14.2041Z"
-        fill={fill}
-      />
-    </Svg>
-  );
-}
-
-export function LikeIcon({ fill }) {
-  return (
-    <Svg
-      width="32"
-      height="28"
-      viewBox="0 0 32 28"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <Path
-        d="M23.0312 0.625C20.1273 0.625 17.5848 1.87375 16 3.98453C14.4152 1.87375 11.8727 0.625 8.96875 0.625C6.65719 0.627605 4.44106 1.54702 2.80654 3.18154C1.17202 4.81606 0.252605 7.03219 0.25 9.34375C0.25 19.1875 14.8455 27.1553 15.467 27.4844C15.6309 27.5725 15.814 27.6186 16 27.6186C16.186 27.6186 16.3691 27.5725 16.533 27.4844C17.1545 27.1553 31.75 19.1875 31.75 9.34375C31.7474 7.03219 30.828 4.81606 29.1935 3.18154C27.5589 1.54702 25.3428 0.627605 23.0312 0.625ZM16 25.2063C13.4322 23.71 2.5 16.8939 2.5 9.34375C2.50223 7.62882 3.18448 5.98476 4.39712 4.77212C5.60976 3.55948 7.25382 2.87723 8.96875 2.875C11.7039 2.875 14.0003 4.33188 14.9594 6.67188C15.0441 6.87821 15.1883 7.05469 15.3736 7.1789C15.5589 7.3031 15.7769 7.36941 16 7.36941C16.2231 7.36941 16.4411 7.3031 16.6264 7.1789C16.8117 7.05469 16.9559 6.87821 17.0406 6.67188C17.9997 4.32766 20.2961 2.875 23.0312 2.875C24.7462 2.87723 26.3902 3.55948 27.6029 4.77212C28.8155 5.98476 29.4978 7.62882 29.5 9.34375C29.5 16.8827 18.565 23.7086 16 25.2063Z"
-        fill={fill}
-      />
-    </Svg>
-  );
-}
 
 export function HomeIcon({ fill }) {
   return (
@@ -234,21 +137,20 @@ export function TelegramIconSVG({ fill }) {
 }
 
 export function AshdiIcon({ styles }) {
+  const colors = useThemeColors();
   return (
     <View
       style={[
         {
-          width: 30,
-          height: 30,
-          backgroundColor: Black(),
-          borderRadius: 15,
+          backgroundColor: colors.background,
+          borderRadius: 32,
           justifyContent: "center",
           alignItems: "center",
         },
         styles,
       ]}
     >
-      <Text style={[H3, { color: appColor, fontSize: 30 }]}>A</Text>
+      <Text style={[H3, { fontSize: 23 }]}>A</Text>
     </View>
   );
 }
@@ -267,7 +169,7 @@ export function MoonIcon({ styles }) {
   return <Image source={MoonIcon_} style={styles} />;
 }
 
-export function DebugIcon({ color = white }) {
+export function DebugIcon({ color = text }) {
   return (
     <Svg
       width="30"
@@ -374,7 +276,7 @@ export function DebugIcon({ color = white }) {
   );
 }
 
-export function WiFiIcon({ color = white, width = 30, height = 30 }) {
+export function WiFiIcon({ color = text, width = 30, height = 30 }) {
   return (
     <Svg
       width={width}
@@ -435,7 +337,7 @@ export function WiFiIcon({ color = white, width = 30, height = 30 }) {
   );
 }
 
-export function SpeedometerIcon({ color = white, width = 30, height = 30 }) {
+export function SpeedometerIcon({ color = text, width = 30, height = 30 }) {
   return (
     <Svg
       width={width}
@@ -477,7 +379,7 @@ export function SpeedometerIcon({ color = white, width = 30, height = 30 }) {
 }
 
 export function SubtitlesIcon({
-  color = white,
+  color = text,
   size = 30,
   type = "disabled",
   weight = TYPE,
@@ -507,7 +409,7 @@ export function SubtitlesIcon({
 }
 
 export function LockIcon({
-  color = white,
+  color = text,
   size = 30,
   weight = TYPE,
   type = "disabled",
@@ -537,7 +439,7 @@ export function LockIcon({
 }
 
 export function VolumeIcon({
-  color = white,
+  color = text,
   size = 30,
   weight = TYPE,
   volume = 0,
@@ -585,7 +487,7 @@ export function VolumeIcon({
   }
 }
 
-function DownloadAnimatedIcon({ color = white, size = 30 }) {
+function DownloadAnimatedIcon({ color = text, size = 30 }) {
   const translateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -657,7 +559,7 @@ export function NavbarPositionIcon({
   cornerRadius = 12,
   pillRadius = 6,
   padding = 10,
-  baseColor = white,
+  baseColor = text,
   baseOpacity = 0.07,
   pillOpacity = 0.24,
 }) {
@@ -709,6 +611,34 @@ export function NavbarPositionIcon({
   );
 }
 
+function CircleTrash({ weight = "regular", color = "#fff", size = 32 }) {
+  if (weight == "regular") {
+    return (
+      <Svg
+        xmlns="http://www.w3.org/2000/svg"
+        height={size}
+        viewBox="0 -960 960 960"
+        width={size}
+        fill={color}
+      >
+        <Path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q54 0 104-17.5t92-50.5L228-676q-33 42-50.5 92T160-480q0 134 93 227t227 93Zm252-124q33-42 50.5-92T800-480q0-134-93-227t-227-93q-54 0-104 17.5T284-732l448 448ZM480-480Z" />
+      </Svg>
+    );
+  } else if ((weight = "fill")) {
+    return (
+      <Svg
+        xmlns="http://www.w3.org/2000/svg"
+        height={size}
+        viewBox="0 -960 960 960"
+        width={size}
+        fill={color}
+      >
+        <Path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm197-147q16-12 30-26t26-30L283-733q-16 12-30 26t-26 30l450 450Z" />
+      </Svg>
+    );
+  }
+}
+
 export default {
   ...PhosphorIcons,
   ArrowLeft: PhosphorIcons.ArrowCircleLeft,
@@ -719,6 +649,7 @@ export default {
   DownloadAnimated: DownloadAnimatedIcon,
   NavbarPosition: NavbarPositionIcon,
   NavbarPositionIcon,
+  CircleTrash,
 };
 
 export {

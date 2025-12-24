@@ -1,0 +1,251 @@
+import React, { RefObject } from "react";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
+import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TouchableOpacity } from "../Widgets/Button";
+import { useThemeColors } from "../Global/useTheme";
+import { H3, H4, useScaleFontSize } from "../Styles/Fonts";
+import { Image } from "../Widgets/LoadersWidgets";
+import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
+import LinearGradient from "react-native-linear-gradient";
+import { isTablet, isTabletLandscape } from "../Styles/Responsive";
+import { Shadow } from "react-native-shadow-2";
+import Markdown from "react-native-markdown-display";
+import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
+import { Linking } from "react-native";
+
+interface Character {
+  slug?: string;
+  name_ua?: string;
+  name_en?: string;
+  name_ja?: string;
+  name?: string;
+  image?: string;
+  description_ua?: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
+interface Anime {
+  slug: string;
+  title_ua?: string;
+  title_en?: string;
+  image?: string;
+  [key: string]: unknown;
+}
+
+interface CharacterDetailBottomSheetProps {
+  sheetRef: RefObject<BottomSheetModal>;
+  character: Character | null;
+  animeList: Anime[];
+  isLoading: boolean;
+  navigation: any;
+}
+
+export default function CharacterDetailBottomSheet({
+  sheetRef,
+  character,
+  animeList,
+  isLoading,
+  navigation,
+}: CharacterDetailBottomSheetProps) {
+  const themeColors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const scaleFontSize = useScaleFontSize();
+
+  const name =
+    character?.name_ua ||
+    character?.name_en ||
+    character?.name_ja ||
+    character?.name ||
+    "";
+  const image = character?.image;
+  const description = (
+    character?.description_ua ||
+    character?.description ||
+    ""
+  ).replaceAll("hikka.io", "aniua.yuzka.site");
+
+  const imageSize = (() => {
+    if (isTabletLandscape()) {
+      return { width: width * 0.2, height: height * 0.4 };
+    }
+    if (isTablet()) {
+      return { width: width * 0.35, height: height * 0.3 };
+    }
+    return { width: width * 0.45, height: height * 0.28 };
+  })();
+
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={["85%"]}
+      enableDynamicSizing={false}
+      enablePanDownToClose={true}
+      backgroundStyle={{ backgroundColor: themeColors.background }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.inActiveIcon }}
+      backdropComponent={(props) => (
+        <TouchableOpacity
+          onPress={() => sheetRef.current?.close()}
+          activeOpacity={1}
+          style={[props.style as object]}
+        />
+      )}
+    >
+      <BottomSheetScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: insets.top, paddingBottom: insets.bottom + 20 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Character Image with Gradient Shadow */}
+
+        {image && (
+          <Shadow distance={12} startColor={"#252525"}>
+            <View style={[styles.imageContainer, imageSize]}>
+              <Image
+                uri={image}
+                style={[styles.characterImage, imageSize]}
+                onLoad={() => {}}
+              />
+            </View>
+          </Shadow>
+        )}
+
+        {/* Character Name Pill */}
+        <View
+          style={[styles.namePill, { backgroundColor: themeColors.primary }]}
+        >
+          <Text
+            style={[
+              styles.nameText,
+              { fontSize: scaleFontSize(18), color: themeColors.text },
+            ]}
+            numberOfLines={1}
+          >
+            {name}
+          </Text>
+        </View>
+
+        {/* Description */}
+        {description ? (
+          <Markdown
+            style={{
+              body: {
+                ...H4,
+                ...styles.description,
+              },
+              link: {
+                ...H4,
+                color: themeColors.primary,
+                textDecorationLine: "underline",
+              },
+            }}
+            onLinkPress={(link) => {
+              sheetRef.current?.close();
+              Linking.openURL(link);
+              return true;
+            }}
+          >
+            {description}
+          </Markdown>
+        ) : null}
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={themeColors.primary} />
+          </View>
+        ) : animeList.length > 0 ? (
+          <>
+            {/* Anime Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={[H3, { color: themeColors.text }]}>Аніме</Text>
+            </View>
+            <AnimeListHorizontal
+              animeList={animeList}
+              title=""
+              onClickMore={null}
+              navigation={navigation}
+              onAnimePress={() => {
+                sheetRef.current?.close();
+              }}
+            />
+          </>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={[H4, { color: themeColors.inActiveText }]}>
+              Немає пов'язаного аніме
+            </Text>
+          </View>
+        )}
+      </BottomSheetScrollView>
+    </BottomSheetModal>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    alignItems: "center",
+  },
+  imageContainer: {
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  characterImage: {
+    borderRadius: 16,
+  },
+  imageGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
+  namePill: {
+    paddingHorizontal: "10%",
+    paddingVertical: 10,
+    borderRadius: 16,
+    marginTop: 20,
+    zIndex: 1,
+    minWidth: 120,
+    alignItems: "center",
+  },
+  nameText: {
+    fontFamily: "Nunito-SemiBold",
+    textAlign: "center",
+  },
+  description: {
+    marginTop: 20,
+    marginHorizontal: 20,
+    textAlign: "left",
+    lineHeight: 24,
+  },
+  sectionHeader: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  loadingContainer: {
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

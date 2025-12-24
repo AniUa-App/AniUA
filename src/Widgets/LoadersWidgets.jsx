@@ -3,17 +3,17 @@ import { View, ActivityIndicator, Text } from "react-native";
 import { TouchableOpacity } from "./Button";
 import FastImage from "react-native-fast-image";
 import { Skeleton } from "@rneui/themed";
-import { black, appColor, loaderColor } from "../Styles/Colors";
+import { background, primary } from "../Styles/Colors";
 import LinearGradient from "react-native-linear-gradient";
 import { Text as RNText } from "react-native";
-import { white } from "../Styles/Colors";
+import { text } from "../Styles/Colors";
 import { H3 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
 const CustomLinearGradient = (props) => {
   return (
     <LinearGradient
       {...props}
-      colors={[black, appColor, black]}
+      colors={[background, primary, background]}
       start={{ x: 0, y: 0 }}
       end={{ x: 8, y: 1 }}
       style={{ flex: 1 }}
@@ -33,7 +33,7 @@ export function Image({ uri, style, onLoad }) {
           animation="wave"
           width="100%"
           height="100%"
-          style={{ backgroundColor: black }}
+          style={{ backgroundColor: background }}
         />
       )}
 
@@ -67,21 +67,21 @@ const TextSkeleton = (props) => {
         animation="wave"
         width="100%"
         height={20}
-        style={{ backgroundColor: black }}
+        style={{ backgroundColor: background }}
       />
       <Skeleton
         LinearGradientComponent={CustomLinearGradient}
         animation="wave"
         width="90%"
         height={20}
-        style={{ backgroundColor: black }}
+        style={{ backgroundColor: background }}
       />
       <Skeleton
         LinearGradientComponent={CustomLinearGradient}
         animation="wave"
         width="80%"
         height={20}
-        style={{ backgroundColor: black }}
+        style={{ backgroundColor: background }}
       />
     </View>
   );
@@ -132,7 +132,7 @@ const ButtonSkeleton = (props) => {
       animation="wave"
       width="100%"
       height="100%"
-      style={{ backgroundColor: black }}
+      style={{ backgroundColor: background }}
     />
   );
 };

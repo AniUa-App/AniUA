@@ -9,14 +9,13 @@ import React, { useState, useRef, useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsStorage from "../Storage/SettingsStorage";
 import {
-  appColor,
-  black,
-  White,
-  white,
-  Black,
-  Black_1,
-  black_1,
-  gray,
+  primary,
+  background,
+  text,
+  Background,
+  Subtle,
+  subtle,
+  inActiveText,
 } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
 import { ScrollView } from "react-native-gesture-handler";
@@ -129,7 +128,7 @@ export default function СustomisationScreen() {
           title: "Стиль навігаційної панелі",
           description: ``,
           value: USER_CONFIG?.navbar?.style || "default",
-          button: <Icons.CaretDown size={34} color={white} />,
+          button: <Icons.CaretDown size={34} color={text} />,
           onPress: () => {},
           body: () => {
             return (
@@ -171,9 +170,9 @@ export default function СustomisationScreen() {
           description: ``,
           value: USER_CONFIG?.navbar?.isCustomisation || false,
           button: USER_CONFIG?.navbar?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={white} />
+            <Icons.ToggleRight size={34} color={text} />
           ) : (
-            <Icons.ToggleLeft size={34} color={black} />
+            <Icons.ToggleLeft size={34} color={background} />
           ),
           onPress: () => {
             SET_USER_CONFIG({
@@ -234,7 +233,7 @@ export default function СustomisationScreen() {
                 />
                 <ColorPickerWidget
                   title="Колір панелі"
-                  value={USER_CONFIG?.navbar?.backgroundColor || black}
+                  value={USER_CONFIG?.navbar?.backgroundColor || background}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
@@ -261,9 +260,9 @@ export default function СustomisationScreen() {
                   }}
                   button={{
                     Icon: USER_CONFIG?.navbar?.isBlurBackground ? (
-                      <Icons.ToggleRight size={34} color={white} />
+                      <Icons.ToggleRight size={34} color={text} />
                     ) : (
-                      <Icons.ToggleLeft size={34} color={black} />
+                      <Icons.ToggleLeft size={34} color={background} />
                     ),
                   }}
                 />
@@ -314,7 +313,7 @@ export default function СustomisationScreen() {
                   <SettingsItemWidget
                     title="Скинути налаштування"
                     button={{
-                      Icon: <Icons.ArrowsClockwise size={34} color={white} />,
+                      Icon: <Icons.ArrowsClockwise size={34} color={text} />,
                     }}
                     onPress={() => {
                       SET_USER_CONFIG({
@@ -342,7 +341,7 @@ export default function СustomisationScreen() {
           title: "Розташування панелі",
           description: ``,
           value: USER_CONFIG?.navbar?.placedAt || "Внизу",
-          button: <Icons.CaretDown size={34} color={white} />,
+          button: <Icons.CaretDown size={34} color={text} />,
           onPress: () => {},
           body: () => {
             return (
@@ -394,9 +393,9 @@ export default function СustomisationScreen() {
           description: "Падаючі сніжинки на екрані",
           value: USER_CONFIG?.effects?.snowflakes || false,
           button: USER_CONFIG?.effects?.snowflakes ? (
-            <Icons.ToggleRight size={34} color={white} />
+            <Icons.ToggleRight size={34} color={text} />
           ) : (
-            <Icons.ToggleLeft size={34} color={black} />
+            <Icons.ToggleLeft size={34} color={background} />
           ),
           onPress: () => {
             SET_USER_CONFIG({
@@ -418,9 +417,9 @@ export default function СustomisationScreen() {
           description: ``,
           value: USER_CONFIG?.colors?.isCustomisation || false,
           button: USER_CONFIG?.colors?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={white} />
+            <Icons.ToggleRight size={34} color={text} />
           ) : (
-            <Icons.ToggleLeft size={34} color={black} />
+            <Icons.ToggleLeft size={34} color={background} />
           ),
           onPress: () => {
             SET_USER_CONFIG({
@@ -436,41 +435,46 @@ export default function СustomisationScreen() {
               <ScrollView style={styles.bsContainer}>
                 <ColorPickerWidget
                   title="Основний колір додатка"
-                  value={USER_CONFIG?.colors?.appColor || themeColors.appColor}
+                  value={USER_CONFIG?.colors?.primary || themeColors.primary}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, appColor: value.rgba },
+                      colors: { ...USER_CONFIG?.colors, primary: value.rgba },
                     });
                   }}
                 />
                 <ColorPickerWidget
                   title="Колір для фону"
-                  value={USER_CONFIG?.colors?.black || themeColors.black}
+                  value={
+                    USER_CONFIG?.colors?.background || themeColors.background
+                  }
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, black: value.rgba },
+                      colors: {
+                        ...USER_CONFIG?.colors,
+                        background: value.rgba,
+                      },
                     });
                   }}
                 />
                 <ColorPickerWidget
                   title="Допоміжний колір"
-                  value={USER_CONFIG?.colors?.black_1 || themeColors.black_1}
+                  value={USER_CONFIG?.colors?.subtle || themeColors.subtle}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, black_1: value.rgba },
+                      colors: { ...USER_CONFIG?.colors, subtle: value.rgba },
                     });
                   }}
                 />
                 <ColorPickerWidget
                   title="Колір для тексту"
-                  value={USER_CONFIG?.colors?.white || themeColors.white}
+                  value={USER_CONFIG?.colors?.text || themeColors.text}
                   onValueChange={(value) => {
                     SET_USER_CONFIG({
                       ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, white: value.rgba },
+                      colors: { ...USER_CONFIG?.colors, text: value.rgba },
                     });
                   }}
                 />
@@ -485,15 +489,10 @@ export default function СustomisationScreen() {
                     });
                   }}
                   button={{
-                    Icon: <Icons.ArrowsClockwise size={34} color={white} />,
+                    Icon: <Icons.ArrowsClockwise size={34} color={text} />,
                   }}
                 />
-                <Text
-                  style={[
-                    H6,
-                    { padding: 20, textAlign: "center", color: gray },
-                  ]}
-                >
+                <Text style={[H6, { padding: 20, textAlign: "center" }]}>
                   Можливо буде потрібно перезапуск додатку
                 </Text>
               </ScrollView>
@@ -510,9 +509,9 @@ export default function СustomisationScreen() {
           description: ``,
           value: USER_CONFIG?.background?.isCustomisation || false,
           button: USER_CONFIG?.background?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={white} />
+            <Icons.ToggleRight size={34} color={text} />
           ) : (
-            <Icons.ToggleLeft size={34} color={black} />
+            <Icons.ToggleLeft size={34} color={background} />
           ),
           onPress: () => {
             SET_USER_CONFIG({
@@ -588,9 +587,9 @@ export default function СustomisationScreen() {
                   }}
                   button={{
                     Icon: USER_CONFIG?.background?.isImageBackground ? (
-                      <Icons.ToggleRight size={34} color={white} />
+                      <Icons.ToggleRight size={34} color={text} />
                     ) : (
-                      <Icons.ToggleLeft size={34} color={black} />
+                      <Icons.ToggleLeft size={34} color={background} />
                     ),
                   }}
                 />
@@ -633,9 +632,9 @@ export default function СustomisationScreen() {
                   }}
                   button={{
                     Icon: USER_CONFIG?.background?.isBlurBackground ? (
-                      <Icons.ToggleRight size={34} color={white} />
+                      <Icons.ToggleRight size={34} color={text} />
                     ) : (
-                      <Icons.ToggleLeft size={34} color={black} />
+                      <Icons.ToggleLeft size={34} color={background} />
                     ),
                   }}
                 />
@@ -698,7 +697,7 @@ export default function СustomisationScreen() {
         {
           title: "Налаштування головного екрану",
           value: USER_CONFIG?.mainScreen?.isCustomisation || false,
-          button: <Icons.CaretRight size={34} color={white} />,
+          button: <Icons.CaretRight size={34} color={text} />,
           onPress: () => {
             navigation.navigate("HiddenStack", {
               screen: "MainScreenCustomisation",
@@ -881,11 +880,10 @@ const styles = StyleSheet.create({
     width: "70%",
   },
   title: {
-    color: white,
     fontWeight: "600",
   },
   button: {
-    backgroundColor: appColor,
+    backgroundColor: primary,
     borderRadius: 8,
   },
   // Стилі для SliderWidget
@@ -896,7 +894,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: White(0.15),
   },
   sliderHeader: {
     flexDirection: "row",
@@ -908,7 +905,7 @@ const styles = StyleSheet.create({
   valueContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    backgroundColor: appColor,
+    backgroundColor: primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -921,9 +918,8 @@ const styles = StyleSheet.create({
     height: 40,
   },
   sliderThumb: {
-    backgroundColor: appColor,
+    backgroundColor: primary,
     borderWidth: 3,
-    borderColor: white,
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -939,7 +935,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   rangeText: {
-    color: White(0.6),
     fontSize: 12,
     fontWeight: "500",
   },
@@ -1017,7 +1012,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: White(0.15),
   },
 
   previewStyle: {
@@ -1044,24 +1038,24 @@ const styles = StyleSheet.create({
 //     case "button":
 //       return specialParams
 //         ? {
-//             Icon: <Icons.ToggleRight size={34} color={white} />,
+//             Icon: <Icons.ToggleRight size={34} color={text} />,
 //           }
-//         : { Icon: <Icons.ToggleLeft size={34} color={black} /> };
+//         : { Icon: <Icons.ToggleLeft size={34} color={background} /> };
 //     case "colorPicker":
 //       return {
-//         Icon: <Icons.Eyedropper size={34} color={specialParams || white} />,
+//         Icon: <Icons.Eyedropper size={34} color={specialParams || text} />,
 //       };
 //     case "photoPicker":
 //       return {
-//         Icon: <Icons.Image size={34} color={white} />,
+//         Icon: <Icons.Image size={34} color={text} />,
 //       };
 //     case "slider":
 //       return {
-//         Icon: <Icons.SlidersHorizontal size={34} color={white} />,
+//         Icon: <Icons.SlidersHorizontal size={34} color={text} />,
 //       };
 //     default:
 //       return {
-//         Icon: <Icons.Empty size={34} color={white} />,
+//         Icon: <Icons.Empty size={34} color={text} />,
 //       };
 //   }
 // }
@@ -1096,8 +1090,8 @@ export function SliderWidget({
           maximumValue={maximumValue}
           step={1}
           value={sliderValue}
-          minimumTrackTintColor={appColor}
-          maximumTrackTintColor={White(0.2)}
+          minimumTrackTintColor={primary}
+          maximumTrackTintColor={Text(0.2)}
           thumbStyle={styles.sliderThumb}
           trackStyle={styles.sliderTrack}
           onValueChange={(value) => {
@@ -1121,7 +1115,7 @@ export function ColorPickerWidget({
   title,
   onValueChange = () => {},
   onComplete = () => {},
-  value = appColor,
+  value = primary,
 }) {
   const [pickerColor, setPickerColor] = useState(
     typeof value === "string" ? value : customSwatches[0]
@@ -1137,7 +1131,7 @@ export function ColorPickerWidget({
           Icon: <Icons.PaintBrush size={34} color={value} />,
         }}
         onPress={() => setIsOpened(true)}
-        color={value === appColor ? black : appColor}
+        color={value === primary ? background : primary}
       />
     );
   } else {
@@ -1159,7 +1153,7 @@ export function ColorPickerWidget({
             }}
             onPress={() => setIsOpened(false)}
           >
-            <Icons.CaretDown size={34} color={appColor} />
+            <Icons.CaretDown size={34} color={primary} />
           </TouchableOpacity>
         </View>
 
@@ -1259,7 +1253,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
           {
             width: 40,
             height: 40,
-            backgroundColor: appColor,
+            backgroundColor: primary,
             borderRadius: 8,
             alignItems: "center",
             justifyContent: "center",
@@ -1270,7 +1264,7 @@ export function PhotoPickerWidget({ title, subtitle, onPick }) {
           if (!picked) return;
         }}
       >
-        <Icons.FilePng size={34} color={white} />
+        <Icons.FilePng size={34} color={text} />
       </TouchableOpacity>
     </TouchableOpacity>
   );

@@ -1,7 +1,8 @@
-import React, {useEffect, useRef, useCallback} from 'react';
-import {Animated, StyleSheet, TouchableOpacity, View} from 'react-native';
-import {appColor, white} from '../Styles/Colors';
-import {H4, H5, H6, H7} from '../Styles/Fonts';
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useThemeColors } from "../Global/useTheme";
+import { H6, H7 } from "../Styles/Fonts";
+import { Primary, primary } from "../Styles/Colors";
 
 const WIDGET_HEIGHT = 70;
 const ANIMATION_DURATION = 250;
@@ -12,14 +13,14 @@ function ConfirmationWidget({
   onConfirm,
   onDecline,
   onHide,
-  confirmText = 'Так',
-  declineText = 'Ні',
+  confirmText = "Так",
+  declineText = "Ні",
 }) {
   const heightAnim = useRef(new Animated.Value(0)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
 
   const animate = useCallback(
-    toValue => {
+    (toValue) => {
       Animated.sequence([
         Animated.timing(heightAnim, {
           toValue: toValue ? WIDGET_HEIGHT : 0,
@@ -33,7 +34,7 @@ function ConfirmationWidget({
         }),
       ]).start();
     },
-    [heightAnim, contentOpacity],
+    [heightAnim, contentOpacity]
   );
 
   const hide = useCallback(() => {
@@ -84,14 +85,16 @@ function ConfirmationWidget({
             outputRange: [0, 1],
           }),
         },
-      ]}>
+      ]}
+    >
       <Animated.View
         style={[
           styles.content,
           {
             opacity: contentOpacity,
           },
-        ]}>
+        ]}
+      >
         <View style={styles.messageContainer}>
           <Animated.Text style={[H6, styles.message]} numberOfLines={2}>
             {message}
@@ -99,16 +102,19 @@ function ConfirmationWidget({
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
-              onPress={handleConfirm}>
+              onPress={handleConfirm}
+            >
               <Animated.Text style={[H7, styles.buttonText]}>
                 {confirmText}
               </Animated.Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.declineButton]}
-              onPress={handleDecline}>
+              onPress={handleDecline}
+            >
               <Animated.Text
-                style={[H7, styles.buttonText, styles.declineText]}>
+                style={[H7, styles.buttonText, styles.declineText]}
+              >
                 {declineText}
               </Animated.Text>
             </TouchableOpacity>
@@ -121,24 +127,23 @@ function ConfirmationWidget({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    backgroundColor: appColor,
-    overflow: 'hidden',
+    width: "100%",
+    overflow: "hidden",
   },
   content: {
     padding: 12,
   },
   messageContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   message: {
     flex: 1,
     paddingRight: 16,
   },
   buttonsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   button: {
@@ -147,20 +152,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     minWidth: 60,
   },
-  confirmButton: {
-    backgroundColor: white,
-  },
+  confirmButton: {},
   declineButton: {
     borderWidth: 1,
-    borderColor: white,
   },
   buttonText: {
-    textAlign: 'center',
-    color: appColor,
+    textAlign: "center",
   },
-  declineText: {
-    color: white,
-  },
+  declineText: {},
 });
 
 export default ConfirmationWidget;

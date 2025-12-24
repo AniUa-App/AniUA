@@ -19,7 +19,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { black, appColor, white, AppColor } from "../../Styles/Colors";
 import { useThemeColors } from "../../Global/useTheme";
 import {
   HomeIcon,
@@ -31,7 +30,6 @@ import {
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
-import { Black } from "../../Styles/Colors";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import SettingsScreen from "../Settings";
 import ButtonsScreen from "../Buttons";
@@ -52,6 +50,11 @@ import DonateScreen from "../Donate";
 import InvalidLinkScreen from "../InvalidLink";
 import Logger from "../../Logger/Logger";
 import SnowflakesWidget from "../../Widgets/SnowflakesWidget";
+import LoginScreen from "../LoginScreen";
+import BookmarkScreen from "../Bookmark";
+import SearchScreen from "../SearchScreen";
+import CharacterScreen from "../CharacterScreen";
+import { Background, background } from "../../Styles/Colors";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -71,73 +74,49 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
       screenOptions={{
-        headerShown: false,
+        swipeEnabled: true,
+        animationEnabled: true,
+        lazy: true,
+        lazyPreloadDistance: 1,
       }}
       tabBar={(props) => <ThemedNavBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
 
       <Tab.Screen
-        name="Liked"
-        initialParams={{ type: "Liked" }}
+        name="Bookmarks"
+        initialParams={{ type: "Bookmarks" }}
         options={{
-          headerShown: true,
-          headerTransparent: true,
-          headerStyle: { backgroundColor: "transparent" },
-          headerShadowVisible: true,
-          headerTitle: "Обрані",
-          header: ({ navigation, route, options }) => (
-            <Header
-              navigation={navigation}
-              route={route}
-              isArrow={false}
-              title={options?.headerTitle}
-              arrowSide={
-                options?.arrowSide ?? route?.params?.arrowSide ?? "right"
-              }
-            />
-          ),
+          title: "Обрані",
         }}
       >
-        {(props) => <AnimeListScreen {...props} isNavBarPadding={true} />}
+        {(props) => <BookmarkScreen {...props} />}
       </Tab.Screen>
 
       <Tab.Screen
         name="Download"
         initialParams={{ type: "Downloaded" }}
         options={{
-          headerShown: true,
-          headerTransparent: true,
-          headerStyle: { backgroundColor: "transparent" },
-          headerShadowVisible: false,
-          headerTitle: "Завантажені",
-          header: ({ navigation, route, options }) => (
-            <Header
-              navigation={navigation}
-              route={route}
-              isArrow={false}
-              title={options?.headerTitle}
-              arrowSide={
-                options?.arrowSide ?? route?.params?.arrowSide ?? "right"
-              }
-            />
-          ),
+          title: "Завантажені",
         }}
       >
-        {(props) => <AnimeListScreen {...props} isNavBarPadding={true} />}
+        {(props) => (
+          <View style={{ flex: 1 }}>
+            <Header
+              navigation={props.navigation}
+              route={props.route}
+              isArrow={false}
+              title="Завантажені"
+              arrowSide="right"
+            />
+            <AnimeListScreen {...props} isNavBarPadding={true} />
+          </View>
+        )}
       </Tab.Screen>
 
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarButton: () => null }}
-      />
-      <Tab.Screen
-        name="AnimeList"
-        component={AnimeListScreen}
-        options={{ tabBarButton: () => null }}
-      />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
@@ -188,7 +167,7 @@ function AnimatedIconContainer({ focused, themeColors, children }) {
             right: 0,
             top: 0,
             bottom: 0,
-            backgroundColor: themeColors.AppColor(0.3),
+            backgroundColor: themeColors.Primary(0.3),
             borderRadius: 16,
           },
 
@@ -216,19 +195,9 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
     });
   }, []);
 
-  const [previewIndex, setPreviewIndex] = useState(
-    state.routes.findIndex(
-      (route) => route.key === state.routes[state.index].key
-    )
-  );
-  const visibleRoutes = state.routes.filter(
-    (route) => route.name !== "AnimeList"
-  );
-  const visibleStateIndex = isPreview
-    ? previewIndex
-    : state.routes.findIndex(
-        (route) => route.key === state.routes[state.index].key
-      );
+  const [previewIndex, setPreviewIndex] = useState(state.index);
+  const visibleRoutes = state.routes;
+  const visibleStateIndex = isPreview ? previewIndex : state.index;
 
   // Визначаємо позиціонування та орієнтацію
   const isVertical = placedAt === "Праворуч" || placedAt === "Ліворуч";
@@ -274,8 +243,8 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
         positionStyles[placedAt],
         {
           backgroundColor: isCustomisation
-            ? userConfig?.navbar?.backgroundColor || themeColors.black
-            : themeColors.black,
+            ? userConfig?.navbar?.backgroundColor || themeColors.background
+            : themeColors.background,
           borderRadius: isCustomisation
             ? userConfig?.navbar?.borderRadius
             : isVertical
@@ -304,7 +273,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
       {visibleRoutes.map((route, index) => {
         const labels = {
           Home: "Головна",
-          Liked: "Обрані",
+          Bookmarks: "Обрані",
           Download: "Збережені",
           Settings: "Параметри",
         };
@@ -318,7 +287,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                 if (isPreview) {
                   setPreviewIndex(index);
                 } else {
-                  if (route.name === "Liked" || route.name === "Download") {
+                  if (route.name === "Bookmarks" || route.name === "Download") {
                     navigation.navigate(route.name, {
                       title: labels[route.name],
                     });
@@ -338,7 +307,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                 const IconComponent =
                   {
                     Home: Icons.House,
-                    Liked: Icons.Heart,
+                    Bookmarks: Icons.BookmarkSimple,
                     Download: Icons.DownloadSimple,
                     Settings: Icons.Gear,
                   }[route.name] || null;
@@ -352,7 +321,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                         size={25}
                         weight={isFocused ? "fill" : "regular"}
                         color={
-                          isFocused ? themeColors.appColor : themeColors.white
+                          isFocused ? themeColors.primary : themeColors.text
                         }
                       />
                     </AnimatedIconContainer>
@@ -363,7 +332,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
             <Text
               style={[
                 styles.textBelow,
-                { color: themeColors.white, paddingVertical: 4 },
+                { color: themeColors.text, paddingVertical: 4 },
               ]}
             >
               {labels[route.name]}
@@ -434,19 +403,30 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
     });
   }, []);
 
-  const [previewIndex, setPreviewIndex] = useState(
-    state.routes.findIndex(
-      (route) => route.key === state.routes[state.index].key
-    )
-  );
-  const visibleRoutes = state.routes.filter(
-    (route) => route.name !== "AnimeList"
-  );
-  const visibleStateIndex = isPreview
-    ? previewIndex
-    : state.routes.findIndex(
-        (route) => route.key === state.routes[state.index].key
-      );
+  const [previewIndex, setPreviewIndex] = useState(state.index);
+  const visibleRoutes = state.routes;
+  const visibleStateIndex = isPreview ? previewIndex : state.index;
+
+  const totalTabs = visibleRoutes.length || 1;
+  const baseWidth = userConfig?.navbar?.width
+    ? (width * (userConfig.navbar.width || 80)) / 100
+    : width * 0.8;
+  const tabWidth = baseWidth / totalTabs;
+
+  const indicatorTranslateX = useSharedValue(0);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: indicatorTranslateX.value,
+      },
+    ],
+  }));
+
+  useEffect(() => {
+    const targetX = visibleStateIndex * tabWidth;
+    indicatorTranslateX.value = withTiming(targetX, { duration: 250 });
+  }, [visibleStateIndex, tabWidth]);
 
   return (
     <View
@@ -454,8 +434,8 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
         styles.container,
         {
           backgroundColor: isCustomisation
-            ? userConfig?.navbar?.backgroundColor || themeColors.black
-            : themeColors.black,
+            ? userConfig?.navbar?.backgroundColor || themeColors.background
+            : themeColors.background,
           borderRadius: isCustomisation ? userConfig?.navbar?.borderRadius : 8,
           bottom: isCustomisation
             ? userConfig?.navbar?.bottomOffset || bottomOffset
@@ -466,6 +446,20 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
         },
       ]}
     >
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            borderRadius: userConfig?.navbar?.borderRadius || 8,
+            backgroundColor: themeColors.Primary(0.25),
+            width: tabWidth,
+          },
+          indicatorStyle,
+        ]}
+      />
       {isCustomisation && userConfig?.navbar?.isBlurBackground && (
         <BlurView
           tint="dark"
@@ -479,7 +473,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
       {visibleRoutes.map((route, index) => {
         const labels = {
           Home: "Головна",
-          Liked: "Обрані",
+          Bookmarks: "Обрані",
           Download: "Завантажені",
           Settings: "Параметри",
         };
@@ -497,22 +491,15 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                 if (isPreview) {
                   setPreviewIndex(index);
                 } else {
-                  if (route.name === "Liked" || route.name === "Download") {
-                    navigation.navigate(route.name, {
-                      title: labels[route.name],
-                    });
-                  } else {
-                    navigation.navigate(route.name);
-                  }
+                  navigation.navigate(route.name);
                 }
               }
             }}
             style={[
               styles.tabItem,
               {
-                width: isFocused ? 100 : "auto",
-                // make opened tab farther from others, and closed tabs closer together
-                marginRight: isFocused ? width / 12 : 10,
+                width: tabWidth,
+                justifyContent: "center",
               },
             ]}
           >
@@ -520,7 +507,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
               const IconComponent =
                 {
                   Home: Icons.House,
-                  Liked: Icons.Heart,
+                  Bookmarks: Icons.Heart,
                   Download: Icons.DownloadSimple,
                   Settings: Icons.Gear,
                 }[route.name] || null;
@@ -529,7 +516,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                   <IconComponent
                     size={32}
                     weight={"regular"}
-                    color={isFocused ? themeColors.appColor : themeColors.white}
+                    color={isFocused ? themeColors.primary : themeColors.text}
                   />
                 )
               );
@@ -538,7 +525,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
               <Animated.Text
                 entering={FadeIn.duration(600)}
                 exiting={FadeOut.duration(100)}
-                style={[H7, { color: themeColors.white, paddingLeft: 6 }]}
+                style={[H7, { color: themeColors.text, paddingLeft: 6 }]}
               >
                 {labels[route.name]}
               </Animated.Text>
@@ -570,13 +557,18 @@ function HiddenStack() {
             isArrow={options?.isArrow ?? route?.params?.isArrow ?? true}
           />
         ),
-        contentStyle: { backgroundColor: black },
+        contentStyle: { backgroundColor: background },
       }}
     >
       <HiddenStackNav.Screen
         name="AnimeList"
         component={AnimeListScreen}
         options={{ headerShown: true }}
+      />
+      <HiddenStackNav.Screen
+        name="SearchScreen"
+        component={SearchScreen}
+        options={{ headerShown: false }}
       />
       <HiddenStackNav.Screen
         name="AnimePreview"
@@ -655,6 +647,13 @@ function HiddenStack() {
           headerTitle: "Посилання недійсне",
         }}
       />
+      <HiddenStackNav.Screen
+        name="CharacterScreen"
+        component={CharacterScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -665,6 +664,12 @@ export default function ScreenController() {
     // Не показуємо error користувачу, просто логуємо
   };
 
+  // Перевіряємо, чи користувач пройшов онбордінг
+  const hasCompletedOnboarding = SettingsStorage.getParameter(
+    "hasCompletedOnboarding"
+  );
+  const initialRouteName = hasCompletedOnboarding ? "MainTabs" : "Login";
+
   return (
     <View style={{ flex: 1 }}>
       <NavigationContainer
@@ -674,11 +679,13 @@ export default function ScreenController() {
         fallback={null}
       >
         <RootStack.Navigator
+          initialRouteName={initialRouteName}
           screenOptions={{
             headerShown: false,
             presentation: "modal",
           }}
         >
+          <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="MainTabs" component={MainTabs} />
           <RootStack.Screen name="HiddenStack" component={HiddenStack} />
         </RootStack.Navigator>
@@ -693,7 +700,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     justifyContent: "center",
-    backgroundColor: Black(0.6),
+    backgroundColor: Background(0.6),
     width: "80%",
     alignSelf: "center",
     bottom: 25,
@@ -706,7 +713,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
-    backgroundColor: Black(0.6),
+    backgroundColor: Background(0.6),
     width: "100%",
     alignSelf: "center",
     paddingVertical: 8,
@@ -729,7 +736,6 @@ const styles = StyleSheet.create({
   text: {},
   textBelow: {
     fontFamily: "Nunito-SemiBold",
-    color: white,
     fontSize: 12,
     textAlign: "center",
   },

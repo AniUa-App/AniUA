@@ -108,7 +108,7 @@ const RatingWidget = ({
           <Icons.Star
             width={28}
             height={28}
-            color={isFilled ? themeColors.appColor : themeColors.white}
+            color={isFilled ? themeColors.primary : themeColors.text}
             weight={isFilled ? "fill" : "regular"}
             strokeWidth={2}
           />
@@ -148,7 +148,7 @@ const RatingWidget = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: themeColors.Black(0.3),
+            backgroundColor: themeColors.Background(0.3),
             zIndex: 10,
           },
           StyleSheet.absoluteFillObject,
@@ -159,7 +159,7 @@ const RatingWidget = ({
       <Animated.View
         style={[
           {
-            backgroundColor: themeColors.black_1,
+            backgroundColor: themeColors.subtle,
             position: "absolute",
             top: "50%",
             left: "50%",
@@ -180,7 +180,7 @@ const RatingWidget = ({
             style={[
               H3,
               {
-                color: themeColors.gray,
+                color: themeColors.inActiveText,
                 marginBottom: 8,
                 textAlign: "center",
               },
@@ -206,7 +206,7 @@ const RatingWidget = ({
           onChangeText={setFeedback}
           placeholder="Напишіть ваші побажання"
           placeholderTextColor={
-            themeColors.Gray ? themeColors.Gray(0.6) : themeColors.white
+            themeColors.InActiveText ? themeColors.InActiveText(0.6) : themeColors.text
           }
           multiline
           numberOfLines={3}
@@ -217,8 +217,8 @@ const RatingWidget = ({
             borderRadius: 8,
             paddingHorizontal: 12,
             paddingVertical: 10,
-            backgroundColor: themeColors.black,
-            color: themeColors.white,
+            backgroundColor: themeColors.background,
+            color: themeColors.text,
             marginBottom: 10,
           }}
         />
@@ -226,7 +226,7 @@ const RatingWidget = ({
         <TouchableOpacity
           onPress={handleSubmit}
           style={{
-            backgroundColor: themeColors.appColor,
+            backgroundColor: themeColors.primary,
             borderRadius: 8,
             height: 31,
             width: 74,
@@ -239,7 +239,7 @@ const RatingWidget = ({
             style={[
               H5,
               {
-                color: themeColors.white,
+                color: themeColors.text,
                 fontWeight: "600",
               },
             ]}

@@ -8,9 +8,10 @@ import {
 import React from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { H2, H7 } from "../Styles/Fonts";
-import { black_1, white, gray, appColor } from "../Styles/Colors";
+import { useThemeColors } from "../Global/useTheme";
 
 export default function DonateScreen() {
+  const colors = useThemeColors();
   const [amount, setAmount] = React.useState("40");
 
   return (
@@ -31,16 +32,26 @@ export default function DonateScreen() {
           <TextInput
             style={[H2, styles.amountInput]}
             placeholder="30"
-            placeholderTextColor={gray}
+            placeholderTextColor={inActiveText}
             keyboardType="numeric"
             value={amount}
             onChangeText={setAmount}
           />
-          <Text style={[H2, styles.currency]}>₴</Text>
+          <Text
+            style={[
+              H2,
+              styles.currency,
+              {
+                color: colors.primary,
+              },
+            ]}
+          >
+            ₴
+          </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={[styles.primaryButton, { backgroundColor: colors.primary }]}
           activeOpacity={0.85}
           onPress={() => {
             /* TODO: handle donate */
@@ -64,7 +75,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: "40%",
     height: "8%",
-    backgroundColor: black_1,
     borderRadius: 8,
     marginTop: 20,
     flexDirection: "row",
@@ -77,7 +87,6 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     textAlign: "center",
-    color: white,
     fontSize: 40,
     lineHeight: 40,
     paddingVertical: 0,
@@ -86,11 +95,9 @@ const styles = StyleSheet.create({
   currency: {
     fontSize: 55,
     lineHeight: 55,
-    color: appColor,
   },
   primaryButton: {
     width: "70%",
-    backgroundColor: appColor,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
@@ -98,7 +105,6 @@ const styles = StyleSheet.create({
     marginTop: 26,
   },
   primaryButtonText: {
-    color: white,
     textAlign: "center",
     fontSize: 18,
     lineHeight: 22,
@@ -106,7 +112,6 @@ const styles = StyleSheet.create({
   caption: {
     alignSelf: "center",
     marginTop: 16,
-    color: gray,
     lineHeight: 18,
   },
 });
