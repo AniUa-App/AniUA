@@ -81,6 +81,11 @@ export default {
               host: "aniua.yuzka.site",
               pathPrefix: "/anime",
             },
+            {
+              scheme: "https",
+              host: "aniua.yuzka.site",
+              pathPattern: "/anime/.*/watch",
+            },
           ],
           category: ["BROWSABLE", "DEFAULT"],
         },

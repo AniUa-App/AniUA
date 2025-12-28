@@ -368,13 +368,13 @@ export default function EpisodesBottomSheet({
     if (
       episodesList &&
       Object.keys(episodesList).length > 0 &&
-      storage_data?.watched?.player &&
-      storage_data?.watched?.dubbing &&
-      episodesList[storage_data.watched.player] &&
-      episodesList[storage_data.watched.player][storage_data.watched.dubbing]
+      storage_data?.player &&
+      storage_data?.dub_team &&
+      episodesList[storage_data.player] &&
+      episodesList[storage_data.player][storage_data.dub_team]
     ) {
       const episodes =
-        episodesList[storage_data.watched.player][storage_data.watched.dubbing];
+        episodesList[storage_data.player][storage_data.dub_team];
 
       // Просто використовуємо оригінальні дані
       setEpisodesData(episodes || []);

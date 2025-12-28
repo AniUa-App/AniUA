@@ -21,7 +21,7 @@ const CustomLinearGradient = (props) => {
   );
 };
 
-export function Image({ uri, style, onLoad }) {
+export function Image({ uri, style, onLoad, resizeMode }) {
   const [loading, setLoading] = useState(true);
 
   return (
@@ -53,7 +53,7 @@ export function Image({ uri, style, onLoad }) {
           setLoading(false);
           onLoad && onLoad();
         }}
-        resizeMode={FastImage.resizeMode.cover}
+        resizeMode={resizeMode || FastImage.resizeMode.cover}
       />
     </View>
   );

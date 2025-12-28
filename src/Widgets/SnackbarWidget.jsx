@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import {
   Text,
   StyleSheet,
@@ -24,6 +24,7 @@ import { useThemeColors } from "../Global/useTheme";
 import { H6 } from "../Styles/Fonts";
 import Icons from "../Styles/Icons";
 import Logger from "../Logger/Logger";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const DISMISS_THRESHOLD = SCREEN_WIDTH * 0.3;
@@ -50,6 +51,8 @@ export default function Snackbar({
   position = "bottom",
 }) {
   const themeColors = useThemeColors();
+  const safeAreaContext = useContext(SafeAreaInsetsContext);
+  const insets = safeAreaContext || { top: 0, bottom: 0, left: 0, right: 0 };
   const opacity = useSharedValue(1);
   const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
@@ -165,7 +168,11 @@ export default function Snackbar({
       }
       style={[
         styles.container,
-        isTop ? styles.containerTop : styles.containerBottom,
+        isTop
+          ? styles.containerTop
+          : {
+              bottom: insets.bottom + 10,
+            },
       ]}
     >
       <GestureDetector gesture={panGesture}>
@@ -239,7 +246,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   containerBottom: {
-    bottom: 100,
+    bottom: 10,
   },
   containerTop: {
     top: 24,

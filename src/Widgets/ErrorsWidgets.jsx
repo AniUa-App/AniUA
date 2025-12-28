@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Linking } from "react-native";
 import { background, Subtle, text, Primary } from "../Styles/Colors";
 import { H2, H3, H4 } from "../Styles/Fonts";
 import { TouchableOpacity } from "./Button";
-import Icon from "../Styles/Icons";
+import Icon, { WiFiIcon } from "../Styles/Icons";
 import MainConfig from "../cfgs/MainConfig";
 
 export const ErrorWidget = ({ title = "Помилка", message, onRetry }) => {

@@ -8,15 +8,6 @@ import {
 import React, { useState, useEffect } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  Primary,
-  Background,
-  primary,
-  background,
-  InActiveText,
-  text,
-  yellow,
-} from "../Styles/Colors";
 import { TouchableOpacity } from "./Button";
 import Icon, { MoonIcon, AshdiIcon, AppIcon } from "../Styles/Icons";
 import { H2, H3, H4, H5 } from "../Styles/Fonts";
@@ -27,7 +18,7 @@ import DubComponent from "../Components/DubComponent";
 import { useThemeColors } from "../Global/useTheme";
 
 export const playersIcons = {
-  "Вбудований плеєр": <Icon.MonitorPlay color={primary} size={40} />,
+  "Вбудований плеєр": <Icon.MonitorPlay color={"#000"} size={40} />,
   moon: <MoonIcon styles={{ width: 40, height: 40 }} />,
   ashdi: <AshdiIcon styles={{ width: 40, height: 40 }} />,
 };
@@ -51,7 +42,9 @@ export const sortDubbingsBypartnerStudios_old = (dubbingsList) => {
 export const sortDubbingsByPartnerStudios = (dubbingsList) => {
   if (!Array.isArray(dubbingsList) || dubbingsList.length === 0) return [];
 
-  const partnerStudios = Array.isArray(MainConfig?.partnerStudios) ? MainConfig.partnerStudios : [];
+  const partnerStudios = Array.isArray(MainConfig?.partnerStudios)
+    ? MainConfig.partnerStudios
+    : [];
 
   const normalizeDubbingName = (name) => {
     if (!name || typeof name !== "string") return "";
@@ -97,7 +90,9 @@ export const sortDubbingsByPartnerStudios = (dubbingsList) => {
 
 // Допоміжна функція для отримання Team за назвою озвучення
 export const getPartnerTeamByDubbingName = (dubbingName) => {
-  const partnerStudios = Array.isArray(MainConfig?.partnerStudios) ? MainConfig.partnerStudios : [];
+  const partnerStudios = Array.isArray(MainConfig?.partnerStudios)
+    ? MainConfig.partnerStudios
+    : [];
   if (!dubbingName) return null;
 
   const normalizedName =
@@ -132,7 +127,7 @@ const playerTitles = {
 const playersWithAds = ["ashdi"];
 
 function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
-  const [selectedDubbing, setSelectedDubbing] = useState(data.watched.dubbing);
+  const [selectedDubbing, setSelectedDubbing] = useState(data.dub_team);
   const themeColors = useThemeColors();
   const { height } = useWindowDimensions();
 
@@ -155,7 +150,7 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
             {
               textAlign: "center",
 
-              color: InActiveText(0.8),
+              color: themeColors.InActiveText(0.8),
             },
           ]}
         >
@@ -185,7 +180,7 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
                 setSelectedDubbing(name);
                 changeDubbing({
                   ...data,
-                  watched: { ...data.watched, dubbing: name },
+                  dub_team: name,
                 });
               }}
               onButtonClick={() => {
@@ -200,13 +195,10 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
                 }
               }}
               style={{
-                borderColor:
-                  selectedDubbing === name
-                    ? themeColors.primary
-                    : themeColors.Primary(0),
+                borderColor: themeColors.primary,
                 borderWidth: 1,
               }}
-              icon={<Icon.TelegramLogo size={32} color={text} />}
+              icon={<Icon.TelegramLogo size={32} color={themeColors.text} />}
             />
           );
         }}
@@ -223,7 +215,9 @@ export function getFullDubbersListOfQueues(episodesList) {
     return {};
   }
 
-  const partnerStudios = Array.isArray(MainConfig?.partnerStudios) ? MainConfig.partnerStudios : [];
+  const partnerStudios = Array.isArray(MainConfig?.partnerStudios)
+    ? MainConfig.partnerStudios
+    : [];
 
   const normalizeDubbingName = (name) => {
     if (!name || typeof name !== "string") return "";
@@ -349,9 +343,9 @@ export default function DubbingBottomSheet({
       // Визначаємо, яку вкладку встановити за замовчуванням
       let defaultTab;
 
-      // Спочатку перевіряємо, чи є player в info?.watched і чи він присутній в episodesList
-      if (info?.watched?.player && episodesList[info?.watched?.player]) {
-        defaultTab = info?.watched?.player;
+      // Спочатку перевіряємо, чи є player в info і чи він присутній в episodesList
+      if (info?.player && episodesList[info?.player]) {
+        defaultTab = info?.player;
       }
 
       // Встановлюємо активну вкладку
@@ -406,13 +400,17 @@ export default function DubbingBottomSheet({
                   onPress={() => {
                     changeDubbing({
                       ...info,
-                      watched: { ...info?.watched, player: name },
+                      player: name,
                     });
                     setActiveTab(name);
                   }}
                   style={[
                     styles.tabButton,
                     activeTab === name && styles.activeTabButton,
+
+                    {
+                      borderColor: themeColors.inActiveIcon,
+                    },
                   ]}
                 >
                   {icon}
@@ -447,18 +445,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: "row",
     alignItems: "center",
-    borderColor: InActiveText(0.5),
     borderWidth: 1,
     justifyContent: "center",
     width: 45,
     height: 45,
   },
   activeTabButton: {
-    borderColor: Primary(),
     borderWidth: 1,
   },
   tabText: {
-    color: "text",
     marginLeft: 8,
   },
   activeTabText: {

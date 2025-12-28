@@ -44,6 +44,7 @@
       <intent-filter android:autoVerify="true" data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
         <data android:scheme="https" android:host="aniua.yuzka.site" android:pathPrefix="/anime"/>
+        <data android:scheme="https" android:host="aniua.yuzka.site" android:pathPattern="/anime/.*/watch"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>

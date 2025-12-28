@@ -336,8 +336,8 @@ export async function DownloadVideo({
     if (notificationId) {
       var savedEpisodeData = {
         episode: item.episode,
-        player: info?.watched.player,
-        dubbing: info?.watched.dubbing,
+        player: info?.player,
+        dubbing: info?.dub_team,
         quality: data.quality,
         url: { homeUrl: item.video_url, playerUrl: data.url },
         video_path: data.path,
@@ -360,10 +360,9 @@ export async function DownloadVideo({
           });
         } catch {}
         if (completionCallback) {
-          if (!info.downloaded) info.downloaded = {};
-          if (!info.downloaded.episodes) info.downloaded.episodes = [];
+          if (!info.downloaded_episodes) info.downloaded_episodes = [];
 
-          info.downloaded.episodes.push(savedEpisodeData);
+          info.downloaded_episodes.push(savedEpisodeData);
           completionCallback(info);
         }
       } else if (status === "error") {

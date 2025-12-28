@@ -26,6 +26,53 @@ export type TeamActivity =
   | "різне";
 
 /**
+ * Епізод аніме
+ */
+export interface Episode {
+  /** Унікальний ідентифікатор епізоду */
+  id: number;
+  /** Дата створення запису */
+  created_at: string;
+  /** Slug аніме */
+  slug: string;
+  /** IMDB ID */
+  imdb_id: string | null;
+  /** MAL ID */
+  mal_id: string | null;
+  /** Плеєр (moon, ashdi, etc.) */
+  player: string;
+  /** ID плеєра */
+  player_id: string;
+  /** Назва команди озвучення */
+  team: string;
+  /** Номер епізоду */
+  episode: number;
+  /** URL постера епізоду */
+  poster: string | null;
+  /** URL відео */
+  video_url: string;
+  /** Українська назва епізоду */
+  name_ua: string | null;
+  /** Англійська назва епізоду */
+  name_en: string | null;
+  /** Японська назва епізоду */
+  name_jp: string | null;
+}
+
+/**
+ * Відповідь з епізодами аніме
+ */
+export interface EpisodesResponse {
+  episodes: Episode[];
+}
+
+/**
+ * Епізоди згруповані по плеєрах та командах
+ * Структура: { "moon": { "Glass Moon": Episode[], ... }, "ashdi": { ... } }
+ */
+export type EpisodesByPlayerAndTeam = Record<string, Record<string, Episode[]>>;
+
+/**
  * Команда озвучення
  */
 export interface Team {
@@ -149,9 +196,11 @@ export class AniuaApi {
   private static cache: {
     teams: { data: Team[] | null; timestamp: number };
     byName: Map<string, { data: Team | null; timestamp: number }>;
+    episodes: Map<string, { data: Episode[]; timestamp: number }>;
   } = {
     teams: { data: null, timestamp: 0 },
     byName: new Map(),
+    episodes: new Map(),
   };
 
   private static axiosInstance: AxiosInstance = axios.create({
@@ -219,6 +268,7 @@ export class AniuaApi {
     AniuaApi.cache = {
       teams: { data: null, timestamp: 0 },
       byName: new Map(),
+      episodes: new Map(),
     };
     Logger.debug("AniuaApi", "Кеш очищено");
   }
@@ -815,6 +865,198 @@ export class AniuaApi {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  // ==================== EPISODES METHODS ====================
+
+  /**
+   * Отримує список епізодів для аніме за slug
+   * @param slug - Slug аніме
+   * @returns Масив епізодів
+   *
+   * @example
+   * ```typescript
+   * const episodes = await AniuaApi.getAnimeEpisodes("sono-bisque-doll-wa-koi-wo-suru-zoku-hen-789ae8");
+   * console.log(`Знайдено ${episodes.length} епізодів`);
+   * ```
+   */
+  public static async getAnimeEpisodes(slug: string): Promise<Episode[]> {
+    // Перевіряємо кеш
+    const cached = AniuaApi.cache.episodes.get(slug);
+    if (cached && AniuaApi.isCacheValid(cached.timestamp)) {
+      Logger.debug("AniuaApi", `Епізоди для ${slug} з кешу`);
+      return cached.data;
+    }
+
+    try {
+      Logger.debug("AniuaApi", `Завантаження епізодів для ${slug}`);
+
+      const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
+        `${AniuaApi.baseUrl}/anime/${slug}/episodes`
+      );
+
+      const episodes = response.data.episodes || [];
+
+      // Зберігаємо в кеш
+      AniuaApi.cache.episodes.set(slug, {
+        data: episodes,
+        timestamp: Date.now(),
+      });
+
+      Logger.debug("AniuaApi", `Завантажено ${episodes.length} епізодів`);
+      return episodes;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        `Помилка завантаження епізодів для ${slug}`
+      );
+    }
+  }
+
+  /**
+   * Отримує епізоди згруповані по командах озвучення
+   * @param slug - Slug аніме
+   * @returns Об'єкт де ключ - назва команди, значення - масив епізодів
+   *
+   * @example
+   * ```typescript
+   * const grouped = await AniuaApi.getAnimeEpisodesGroupedByTeam("sono-bisque-doll");
+   * Object.entries(grouped).forEach(([team, eps]) => {
+   *   console.log(`${team}: ${eps.length} епізодів`);
+   * });
+   * ```
+   */
+  public static async getAnimeEpisodesGroupedByTeam(
+    slug: string
+  ): Promise<Record<string, Episode[]>> {
+    const episodes = await AniuaApi.getAnimeEpisodes(slug);
+
+    const grouped: Record<string, Episode[]> = {};
+
+    episodes.forEach((episode) => {
+      const teamName = episode.team || "Невідомо";
+      if (!grouped[teamName]) {
+        grouped[teamName] = [];
+      }
+      grouped[teamName].push(episode);
+    });
+
+    // Сортуємо епізоди в кожній групі за номером
+    Object.values(grouped).forEach((eps) => {
+      eps.sort((a, b) => a.episode - b.episode);
+    });
+
+    return grouped;
+  }
+
+  /**
+   * Отримує епізоди згруповані по плеєрах та командах озвучення
+   * @param slug - Slug аніме
+   * @returns Об'єкт де перший рівень - плеєр, другий - команда, значення - масив епізодів
+   *
+   * @example
+   * ```typescript
+   * const grouped = await AniuaApi.getAnimeEpisodesGroupedByPlayer("sono-bisque-doll");
+   * // grouped = { "moon": { "Glass Moon": [...], "Didko": [...] }, "ashdi": { ... } }
+   * ```
+   */
+  public static async getAnimeEpisodesGroupedByPlayer(
+    slug: string
+  ): Promise<EpisodesByPlayerAndTeam> {
+    const episodes = await AniuaApi.getAnimeEpisodes(slug);
+
+    const grouped: EpisodesByPlayerAndTeam = {};
+
+    episodes.forEach((episode) => {
+      const player = episode.player || "unknown";
+      const team = episode.team || "Невідомо";
+
+      if (!grouped[player]) {
+        grouped[player] = {};
+      }
+      if (!grouped[player][team]) {
+        grouped[player][team] = [];
+      }
+      grouped[player][team].push(episode);
+    });
+
+    // Сортуємо епізоди за номером в кожній групі
+    Object.values(grouped).forEach((teams) => {
+      Object.values(teams).forEach((eps) => {
+        eps.sort((a, b) => a.episode - b.episode);
+      });
+    });
+
+    return grouped;
+  }
+
+  /**
+   * Отримує унікальні команди озвучення для конкретного аніме за slug
+   * @param slug - Slug аніме
+   * @returns Масив назв команд
+   */
+  public static async getEpisodeTeams(slug: string): Promise<string[]> {
+    const episodes = await AniuaApi.getAnimeEpisodes(slug);
+    const teams = new Set<string>();
+    episodes.forEach((ep) => {
+      if (ep.team) teams.add(ep.team);
+    });
+    return Array.from(teams);
+  }
+
+  /**
+   * Перевіряє чи епізоди для аніме вже закешовані
+   * @param slug - Slug аніме
+   * @returns true якщо епізоди в кеші і кеш валідний
+   */
+  public static hasEpisodesCached(slug: string): boolean {
+    const cached = AniuaApi.cache.episodes.get(slug);
+    return !!cached && AniuaApi.isCacheValid(cached.timestamp);
+  }
+
+  /**
+   * Попередньо завантажує епізоди в кеш (без очікування)
+   * Використовується для прелоаду при відображенні карток аніме
+   * @param slug - Slug аніме
+   */
+  public static prefetchEpisodes(slug: string): void {
+    // Якщо вже в кеші - пропускаємо
+    if (AniuaApi.hasEpisodesCached(slug)) {
+      return;
+    }
+
+    // Завантажуємо в фоні без очікування
+    AniuaApi.getAnimeEpisodes(slug).catch((error) => {
+      Logger.debug("AniuaApi", `Prefetch failed for ${slug}:`, error);
+    });
+  }
+
+  /**
+   * Попередньо завантажує епізоди для масиву аніме
+   * @param slugs - Масив slug аніме
+   * @param concurrency - Кількість паралельних запитів (default: 3)
+   */
+  public static prefetchMultipleEpisodes(
+    slugs: string[],
+    concurrency: number = 3
+  ): void {
+    // Фільтруємо ті що вже в кеші
+    const toFetch = slugs.filter((slug) => !AniuaApi.hasEpisodesCached(slug));
+
+    if (toFetch.length === 0) return;
+
+    // Завантажуємо пачками
+    const fetchBatch = async (batch: string[]) => {
+      await Promise.allSettled(
+        batch.map((slug) => AniuaApi.getAnimeEpisodes(slug))
+      );
+    };
+
+    // Розбиваємо на пачки і запускаємо
+    for (let i = 0; i < toFetch.length; i += concurrency) {
+      const batch = toFetch.slice(i, i + concurrency);
+      fetchBatch(batch);
     }
   }
 }

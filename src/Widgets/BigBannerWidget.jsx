@@ -4,6 +4,8 @@ import { TouchableOpacity } from "./Button";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "./LoadersWidgets";
+import { prefetchBloomImage } from "./BloomImage";
+import { AniuaApi } from "../Sources/AniuaApi";
 
 const Mobile = React.memo(({ animes }) => {
   const { width: winWidth, height: winHeight } = useWindowDimensions();
@@ -12,6 +14,14 @@ const Mobile = React.memo(({ animes }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigation = useNavigation();
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  // Prefetch епізодів для банерних аніме
+  useEffect(() => {
+    if (animes && animes.length > 0) {
+      const slugs = animes.map((anime) => anime.slug).filter(Boolean);
+      AniuaApi.prefetchMultipleEpisodes(slugs, 3);
+    }
+  }, [animes]);
 
   useEffect(() => {
     if (!animes || animes.length <= 1) return;
@@ -51,12 +61,13 @@ const Mobile = React.memo(({ animes }) => {
       <View style={{ width: winWidth, height: bannerHeight }}>
         <TouchableOpacity
           style={styles.imageContainer}
-          onPress={() =>
+          onPress={() => {
+            prefetchBloomImage(item.image);
             navigation.navigate("HiddenStack", {
               screen: "AnimePreview",
               params: { anime: item },
-            })
-          }
+            });
+          }}
         >
           <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
 
@@ -114,6 +125,14 @@ const Tablet = React.memo(({ animes }) => {
   const navigation = useNavigation();
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
+  // Prefetch епізодів для банерних аніме
+  useEffect(() => {
+    if (animes && animes.length > 0) {
+      const slugs = animes.map((anime) => anime.slug).filter(Boolean);
+      AniuaApi.prefetchMultipleEpisodes(slugs, 3);
+    }
+  }, [animes]);
+
   useEffect(() => {
     if (!animes || animes.length <= 1) return;
 
@@ -152,12 +171,13 @@ const Tablet = React.memo(({ animes }) => {
       <View style={{ width: cardWidth, height: "100%" }}>
         <TouchableOpacity
           style={styles.imageContainer}
-          onPress={() =>
+          onPress={() => {
+            prefetchBloomImage(item.image);
             navigation.navigate("HiddenStack", {
               screen: "AnimePreview",
               params: { anime: item },
-            })
-          }
+            });
+          }}
         >
           <Image uri={item.image} style={{ width: "100%", height: "100%" }} />
 

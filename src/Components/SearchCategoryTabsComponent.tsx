@@ -62,7 +62,7 @@ export default function SearchCategoryTabsComponent({
                 <IconComponent
                   size={18}
                   color={
-                    isActive ? themeColors.activeIcon : themeColors.inActiveIcon
+                    isActive ? themeColors.activeIcon : themeColors.inActiveText
                   }
                   weight={isActive ? "fill" : "regular"}
                 />

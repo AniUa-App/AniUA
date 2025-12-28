@@ -88,7 +88,7 @@ export const H3 = {
 };
 
 export const H4 = {
-  fontSize: getStaticFontSize(16, staticWidth, staticHeight),
+  fontSize: getStaticFontSize(18, staticWidth, staticHeight),
   color: text,
   fontFamily: "Nunito-SemiBold",
 };

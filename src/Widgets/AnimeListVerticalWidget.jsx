@@ -7,6 +7,7 @@ import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
 import { useNavigation } from "@react-navigation/native";
 import { Background, background } from "../Styles/Colors";
+import { prefetchBloomImage } from "./BloomImage";
 export default function AnimeListVertical({
   title,
   animeList,
@@ -38,12 +39,13 @@ export default function AnimeListVertical({
         {animeList.map((anime, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() =>
+            onPress={() => {
+              prefetchBloomImage(anime.image);
               navigation.navigate("HiddenStack", {
                 screen: "AnimePreview",
                 params: { anime },
-              })
-            }
+              });
+            }}
           >
             <Image
               uri={anime.image}

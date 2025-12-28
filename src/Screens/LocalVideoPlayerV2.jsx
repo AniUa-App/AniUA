@@ -35,14 +35,6 @@ import Animated, {
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
-import {
-  background,
-  Background,
-  InActiveText,
-  text,
-  primary,
-  subtle,
-} from "../Styles/Colors";
 import { H3, H4, H5, H6 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity as CustomTouchableOpacity } from "../Widgets/Button";
@@ -106,7 +98,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     );
   }, [episodeInfo]);
   const [isLocked, setIsLocked] = useState(false);
-  const [info, _setInfo] = useState(AnimeStorage.getInfoBySlug(_anime.slug));
+  const [info, _setInfo] = useState(AnimeStorage.get(_anime.slug));
   const seekTimeout = useRef(null);
   const videoViewRef = useRef(null);
   const qualitySheetRef = useRef(null);
@@ -139,7 +131,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const setInfo = (newInfo) => {
     _setInfo(newInfo);
-    AnimeStorage.setInfoBySlug(_anime.slug, newInfo);
+    AnimeStorage.set(_anime.slug, newInfo);
   };
 
   // Хелпер для встановлення стану завантаження
@@ -449,9 +441,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const setWatchedEpisode = (slug, episode) => {
-    const info = AnimeStorage.getInfoBySlug(slug);
-    info.watched.episodes = [...info?.watched.episodes, episode.episode];
-    AnimeStorage.setInfoBySlug(slug, info);
+    const info = AnimeStorage.get(slug);
+    info.watched_episodes = [
+      ...(info?.watched_episodes || []),
+      episode.episode,
+    ];
+    AnimeStorage.set(slug, info);
   };
 
   useEffect(() => {
@@ -869,7 +864,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             <Animated.View
               style={[styles.loadingContainer, animatedLoadingStyle]}
             >
-              <ActivityIndicator size="large" color={primary} />
+              <ActivityIndicator size="large" color={themeColors.primary} />
             </Animated.View>
           </Animated.View>
         )}
@@ -916,7 +911,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         }, 100);
                       }}
                     >
-                      <Icons.ArrowLeft size={32} color={primary} />
+                      <Icons.ArrowLeft size={32} color={themeColors.primary} />
                     </CustomTouchableOpacity>
                   </View>
 
@@ -988,7 +983,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       >
                         <Icons.Queue
                           size={24}
-                          color={showEpisodes ? primary : themeColors.text}
+                          color={
+                            showEpisodes
+                              ? themeColors.primary
+                              : themeColors.text
+                          }
                         />
                       </CustomTouchableOpacity>
                     </View>
@@ -1079,9 +1078,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         minimumValue={0}
                         maximumValue={duration || 0}
                         step={0.1}
-                        minimumTrackTintColor={primary}
+                        minimumTrackTintColor={themeColors.primary}
                         maximumTrackTintColor={themeColors.text}
-                        thumbTintColor={primary}
+                        thumbTintColor={themeColors.primary}
                         disabled={!duration || duration <= 0}
                         onSlidingStart={() => {
                           if (hideControlsTimerRef.current) {
@@ -1198,7 +1197,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       onPress={togglePlayPause}
                       android_disableSound
                     >
-                      <View style={styles.playButton}>
+                      <View style={[styles.playButton, { shadowColor: themeColors.primary }]}>
                         {isPlaying ? (
                           <Icons.Pause size={32} color={themeColors.text} />
                         ) : (
@@ -1260,7 +1259,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           >
                             <Icons.FrameCorners
                               size={24}
-                              color={isZoomed ? primary : themeColors.text}
+                              color={isZoomed ? themeColors.primary : themeColors.text}
                             />
                           </CustomTouchableOpacity>
                         </View>
@@ -1281,9 +1280,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                 // Знаходимо епізод у списку завантажених
                                 setInfo(info);
                                 const downloadedEpisodes = Array.isArray(
-                                  info?.downloaded?.episodes
+                                  info?.downloaded_episodes
                                 )
-                                  ? info.downloaded.episodes
+                                  ? info.downloaded_episodes
                                   : [];
                                 const episode = downloadedEpisodes.find(
                                   (ep) => ep.episode === currentEpisode?.episode
@@ -1321,19 +1320,17 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                   // Видаляємо запис, якщо файл не існує
                                   if (episode) {
                                     const downloadedEpisodesSafe =
-                                      Array.isArray(info?.downloaded?.episodes)
-                                        ? info.downloaded.episodes
+                                      Array.isArray(info?.downloaded_episodes)
+                                        ? info.downloaded_episodes
                                         : [];
                                     setInfo({
                                       ...info,
-                                      downloaded: {
-                                        ...info.downloaded,
-                                        episodes: downloadedEpisodesSafe.filter(
+                                      downloaded_episodes:
+                                        downloadedEpisodesSafe.filter(
                                           (ep) =>
                                             ep.episode !==
                                             currentEpisode?.episode
                                         ),
-                                      },
                                     });
                                   }
 
@@ -1382,7 +1379,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                 Logger.debug(
                                   "LocalVideoPlayer",
                                   "Episode info",
-                                  { episodes: info.downloaded?.episodes }
+                                  { episodes: info.downloaded_episodes }
                                 );
                               }
                             }}
@@ -1396,8 +1393,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                               <Icons.DownloadSimple
                                 size={24}
                                 color={
-                                  Array.isArray(info?.downloaded?.episodes) &&
-                                  info.downloaded.episodes.some(
+                                  Array.isArray(info?.downloaded_episodes) &&
+                                  info.downloaded_episodes.some(
                                     (ep) =>
                                       ep.episode === currentEpisode?.episode
                                   )
@@ -1440,7 +1437,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     }}
                   >
                     <View style={styles.centerInfo}>
-                      <Text style={styles.qualityText}>{quality || "x_x"}</Text>
+                      <Text style={[styles.qualityText, { color: themeColors.text, borderColor: themeColors.Text(0.2) }]}>{quality || "x_x"}</Text>
                     </View>
                   </CustomTouchableOpacity>
                 </View>
@@ -1476,7 +1473,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     }
                   }}
                 >
-                  <Icons.Lock type={"disabled"} size={24} color={primary} />
+                  <Icons.Lock type={"disabled"} size={24} color={themeColors.primary} />
                 </CustomTouchableOpacity>
               </View>
             </Animated.View>
@@ -1492,7 +1489,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           style={styles.episodesPanel}
         >
           <View style={styles.episodesPanelContent}>
-            <View style={styles.episodesPanelHeader}>
+            <View style={[styles.episodesPanelHeader, { borderBottomColor: themeColors.InActiveText(0.2) }]}>
               <CustomTouchableOpacity
                 style={styles.episodesBackButton}
                 activeOpacity={1}
@@ -1510,7 +1507,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               >
                 Епізоди
               </Text>
-              <View style={styles.episodeCount}>
+              <View style={[styles.episodeCount, { borderColor: themeColors.primary }]}>
                 <Text style={[H6, { color: themeColors.primary }]}>
                   {episodes.length}
                 </Text>
@@ -1529,8 +1526,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   <CustomTouchableOpacity
                     style={[
                       styles.episodeItem,
-                      currentEpisode?.episode === episode.episode &&
-                        styles.episodeItemActive,
+                      currentEpisode?.episode === episode.episode && [
+                          styles.episodeItemActive,
+                          { borderColor: themeColors.primary },
+                        ],
                     ]}
                     activeOpacity={1}
                     delayPressIn={0}
@@ -1631,7 +1630,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
   },
   videoTouchArea: {
     flex: 1,
@@ -1639,7 +1637,6 @@ const styles = StyleSheet.create({
   video: {
     flex: 1,
     width: "100%",
-    backgroundColor: background,
   },
   loadingOverlay: {
     position: "absolute",
@@ -1649,13 +1646,11 @@ const styles = StyleSheet.create({
     right: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
     zIndex: 1000,
   },
   loadingContainer: {
     padding: 20,
     borderRadius: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
 
   // Стилі заголовка
@@ -1719,32 +1714,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 4,
-    backgroundColor: InActiveText(0.3),
     borderRadius: 2,
     position: "relative",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: primary,
     borderRadius: 2,
     position: "absolute",
-  },
-  progressThumb: {
-    position: "absolute",
-    top: -6,
-    width: 16,
-    height: 16,
-    backgroundColor: primary,
-    borderRadius: 8,
-    marginLeft: -8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
 
   // Основні елементи керування
@@ -1796,10 +1772,8 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: primary,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -1823,12 +1797,10 @@ const styles = StyleSheet.create({
   qualityText: {
     fontSize: 13,
     fontFamily: "Nunito-Bold",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
     overflow: "hidden",
   },
 
@@ -1843,7 +1815,6 @@ const styles = StyleSheet.create({
   },
   episodesPanelContent: {
     flex: 1,
-    backgroundColor: Background(0.95),
   },
   episodesPanelHeader: {
     flexDirection: "row",
@@ -1852,18 +1823,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingTop: 50,
     borderBottomWidth: 1,
-    borderBottomColor: InActiveText(0.2),
   },
   episodesBackButton: {
     padding: 8,
   },
   episodeCount: {
-    backgroundColor: Background(0.5),
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: primary,
   },
   episodesList: {
     flex: 1,
@@ -1876,17 +1844,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginVertical: 6,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   episodeItemActive: {
     borderWidth: 2,
-    borderColor: primary,
   },
   episodeNumber: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: InActiveText(0.2),
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -1901,15 +1866,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: primary,
-    shadowColor: primary,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 4,
   },
 });
 

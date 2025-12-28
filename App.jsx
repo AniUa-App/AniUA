@@ -360,16 +360,16 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider style={{ flex: 1 }}>
-        <RootSiblingParent>
-          <ThemeProvider>
+      <ThemeProvider>
+        <BottomSheetModalProvider style={{ flex: 1 }}>
+          <RootSiblingParent>
             <ScreenController />
             {isErrorBoundary && <ErrorTestComponent />}
             {snackbar}
             {snackbarTop}
-          </ThemeProvider>
-        </RootSiblingParent>
-      </BottomSheetModalProvider>
+          </RootSiblingParent>
+        </BottomSheetModalProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

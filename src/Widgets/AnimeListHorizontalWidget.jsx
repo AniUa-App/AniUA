@@ -13,7 +13,9 @@ import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
 import { NavigationContext } from "@react-navigation/native";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
+import { prefetchBloomImage } from "./BloomImage";
+import { AniuaApi } from "../Sources/AniuaApi";
 
 export function AnimeListHorizontal({
   animeList,
@@ -30,6 +32,14 @@ export function AnimeListHorizontal({
   const { width, height } = useWindowDimensions();
   const baseWidth = Math.max(120, width * 0.4);
   const baseHeight = Math.max(120, height * 0.26);
+
+  // Prefetch епізодів для всіх аніме в списку
+  useEffect(() => {
+    if (animeList && animeList.length > 0) {
+      const slugs = animeList.map((anime) => anime.slug).filter(Boolean);
+      AniuaApi.prefetchMultipleEpisodes(slugs, 3);
+    }
+  }, [animeList]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -65,9 +75,10 @@ export function AnimeListHorizontal({
                 ? { width: width * 0.12, height: height * 0.3 }
                 : isTablet()
                   ? { width: width * 0.2, height: height * 0.2 }
-                  : { width: baseWidth, height: baseHeight },
+                  : { width: width * 0.35, height: height * 0.22 },
             ]}
             onPress={() => {
+              prefetchBloomImage(anime.image);
               navigation.navigate("HiddenStack", {
                 screen: "AnimePreview",
                 params: { anime },
@@ -129,7 +140,7 @@ export function PreviewAnimeListHorizontal({
                 ? { width: width * 0.12, height: height * 0.3 }
                 : isTablet()
                   ? { width: width * 0.2, height: height * 0.2 }
-                  : { width: baseWidth, height: baseHeight },
+                  : { width: width * 0.35, height: height * 0.22 },
             ]}
             onPress={() => {
               onPress(anime);

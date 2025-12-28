@@ -4,6 +4,7 @@ import { useThemeColors } from "../Global/useTheme";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
 import { Snowflake as SnowflakeIcon } from "phosphor-react-native";
+import Icon from "../Styles/Icons";
 import { navigationRef } from "../Global/NavigationService";
 
 // Екрани, на яких сніжинки не показуються
@@ -46,6 +47,7 @@ const Snowflake = React.memo(({ config }) => {
   const fallValue = useMemo(() => new Animated.Value(0), []);
   const swayValue = useMemo(() => new Animated.Value(0), []);
   const rotateValue = useMemo(() => new Animated.Value(0), []);
+  const themeColors = useThemeColors();
 
   useEffect(() => {
     let fallAnimation;
@@ -148,7 +150,11 @@ const Snowflake = React.memo(({ config }) => {
         },
       ]}
     >
-      <SnowflakeIcon size={config.size} color={text} weight="regular" />
+      <SnowflakeIcon
+        size={config.size}
+        color={themeColors.icon}
+        weight="regular"
+      />
     </AnimatedSnowflakeIcon>
   );
 });
@@ -182,7 +188,10 @@ export default function SnowflakesWidget() {
     checkCurrentScreen();
 
     // Підписуємось на зміни навігації
-    const unsubscribe = navigationRef.addListener?.("state", checkCurrentScreen);
+    const unsubscribe = navigationRef.addListener?.(
+      "state",
+      checkCurrentScreen
+    );
 
     return () => {
       if (unsubscribe) unsubscribe();

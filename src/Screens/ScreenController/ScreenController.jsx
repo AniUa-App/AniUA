@@ -29,6 +29,7 @@ import {
 } from "../../Styles/Icons";
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
+import AnimeWatchScreen from "../AnimeWatchScreen";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import SettingsScreen from "../Settings";
@@ -54,7 +55,12 @@ import LoginScreen from "../LoginScreen";
 import BookmarkScreen from "../Bookmark";
 import SearchScreen from "../SearchScreen";
 import CharacterScreen from "../CharacterScreen";
+import ProfileScreen from "../ProfileScreen";
 import { Background, background } from "../../Styles/Colors";
+import { HikkaAuthService } from "../../Services/HikkaAuthService";
+
+// Ініціалізуємо auth токен при запуску застосунку
+HikkaAuthService.initialize();
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -117,6 +123,14 @@ function MainTabs() {
       </Tab.Screen>
 
       <Tab.Screen name="Settings" component={SettingsScreen} />
+
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Профіль",
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -276,6 +290,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
           Bookmarks: "Обрані",
           Download: "Збережені",
           Settings: "Параметри",
+          Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
 
@@ -310,6 +325,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                     Bookmarks: Icons.BookmarkSimple,
                     Download: Icons.DownloadSimple,
                     Settings: Icons.Gear,
+                    Profile: Icons.UserCircle,
                   }[route.name] || null;
                 return (
                   IconComponent && (
@@ -476,6 +492,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
           Bookmarks: "Обрані",
           Download: "Завантажені",
           Settings: "Параметри",
+          Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
 
@@ -510,6 +527,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                   Bookmarks: Icons.Heart,
                   Download: Icons.DownloadSimple,
                   Settings: Icons.Gear,
+                  Profile: Icons.UserCircle,
                 }[route.name] || null;
               return (
                 IconComponent && (
@@ -573,6 +591,11 @@ function HiddenStack() {
       <HiddenStackNav.Screen
         name="AnimePreview"
         component={AnimePreviewScreen}
+        options={{ headerShown: false }}
+      />
+      <HiddenStackNav.Screen
+        name="AnimeWatch"
+        component={AnimeWatchScreen}
         options={{ headerShown: false }}
       />
       <HiddenStackNav.Screen
@@ -650,6 +673,13 @@ function HiddenStack() {
       <HiddenStackNav.Screen
         name="CharacterScreen"
         component={CharacterScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <HiddenStackNav.Screen
+        name="ProfileScreen"
+        component={ProfileScreen}
         options={{
           headerShown: false,
         }}

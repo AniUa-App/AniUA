@@ -13,6 +13,7 @@ import { useThemeColors } from "../Global/useTheme";
 import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
 import { HikkaApi } from "../Sources/hikka";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AnimeStorage from "../Storage/AnimeStorage";
 import { H2 } from "../Styles/Fonts";
@@ -43,7 +44,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
 
   const getInfos = useCallback(() => {
     try {
-      const storedInfos = AnimeStorage.getInfos();
+      const storedInfos = AnimeStorage.getAll();
       setInfo(storedInfos || {});
       Logger.debug("AnimeList", "Інформація завантажена", { storedInfos });
     } catch (error) {
@@ -63,19 +64,12 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
           slug,
           newInfoData,
         });
-        AnimeStorage.setInfoBySlug(slug, newInfoData); // Зберігаємо оновлення
+        AnimeStorage.set(slug, newInfoData); // Зберігаємо оновлення
         return updatedInfo;
       });
-      // Якщо тип 'liked' і ми щойно видалили з улюблених, можна одразу оновити список візуально
-      // (хоча useFocusEffect все одно оновить при поверненні)
-      if (type === "Liked" && newInfoData.isFavorite === false) {
-        setAnimeList((prevList) =>
-          prevList.filter((anime) => anime.slug !== slug)
-        );
-      }
     },
-    [type]
-  ); // Додаємо type до залежностей, якщо він використовується
+    []
+  );
 
   // Оптимізована функція для паралельного завантаження аніме
   const fetchAnimeDetails = useCallback(async (animeSlug) => {
@@ -118,24 +112,46 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     setAnimeList([]); // Очищаємо список перед завантаженням
 
     // Завжди перезавантажуємо інфо безпосередньо перед використанням
-    const currentInfo = AnimeStorage.getInfos() || {};
+    const currentInfo = AnimeStorage.getAll();
 
     let dataToFetch; // Визначаємо dataToFetch всередині функції
 
     // Визначаємо, які дані потрібно завантажити залежно від типу списку
     switch (type) {
       case "Liked":
-        dataToFetch = Object.keys(currentInfo).filter(
-          (slug) => currentInfo[slug]?.isFavorite
-        );
-        Logger.debug("AnimeList", "Завантаження улюбленого", {
-          slugs: dataToFetch,
-        });
-        setIsCheckingInternet(false);
+        // Улюблене тепер зберігається тільки в Hikka
+        if (!HikkaAuthService.isAuthenticated()) {
+          Logger.debug("AnimeList", "Користувач не авторизований для улюбленого");
+          setIsLoading(false);
+          return;
+        }
+        try {
+          const user = HikkaAuthService.getCurrentUser();
+          if (user?.username) {
+            const favoritesResponse = await HikkaApiComplete.getUserFavorites(
+              "anime",
+              user.username,
+              { page: 1, size: 100 }
+            );
+            // Дані аніме в полі anime для кожного елемента списку
+            dataToFetch = (favoritesResponse?.list || []).map(
+              (item) => item.anime || item
+            );
+            Logger.debug("AnimeList", "Завантаження улюбленого з Hikka", {
+              count: dataToFetch.length,
+            });
+          } else {
+            dataToFetch = [];
+          }
+        } catch (error) {
+          Logger.error("AnimeList", "Помилка завантаження улюбленого з Hikka", error);
+          dataToFetch = [];
+        }
+        setIsCheckingInternet(true);
         break;
       case "Downloaded":
         dataToFetch = Object.keys(currentInfo).filter(
-          (slug) => (currentInfo[slug]?.downloaded?.episodes?.length || 0) > 0 // Трохи спрощено
+          (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0
         );
         Logger.debug("AnimeList", "Завантаження завантаженого", {
           slugs: dataToFetch,
@@ -209,14 +225,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
 
       const currentItemInfo = info?.[item.slug] || {}; // Більш короткий запис
 
-      // Якщо тип списку 'liked', показуємо елемент тільки якщо він є улюбленим
-      // Використовуємо currentItemInfo, яке оновлюється через useFocusEffect -> getInfos
-      if (type === "Liked" && !currentItemInfo.isFavorite) {
-        // Якщо тип 'liked', але елемент не улюблений (згідно з актуальним info), не відображаємо його
-        return null;
-      }
-
-      // Для всіх інших типів або якщо це 'Liked' і isFavorite true
+      // Для типу "Liked" дані вже відфільтровані з Hikka API
       return (
         <AnimePreviewWidget
           anime={item}
@@ -240,7 +249,9 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
           {/* Додано контейнер для кращого центрування */}
           <Text style={[styles.emptyMessage, H2, {}]}>
             {type === "Liked"
-              ? "Список улюбленого порожній"
+              ? HikkaAuthService.isAuthenticated()
+                ? "Список улюбленого порожній"
+                : "Увійдіть в акаунт Hikka для перегляду улюбленого"
               : type === "Downloaded"
                 ? "Список завантаженого порожній"
                 : "Список порожній"}

@@ -19,6 +19,17 @@ const config = {
             slug: (slug) => slug,
           },
         },
+        AnimeWatch: {
+          path: "anime/:slug/watch",
+          parse: {
+            slug: (slug) => slug,
+            episode: (episode) => parseInt(episode, 10) || 1,
+            studio: (studio) => decodeURIComponent(studio || ""),
+            provider: (provider) => provider || "moon",
+            time: (time) => parseInt(time, 10) || 0,
+            build_in: (build_in) => build_in === "true",
+          },
+        },
         CharacterScreen: {
           path: "characters/:slug",
           parse: {

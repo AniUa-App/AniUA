@@ -137,21 +137,12 @@ export function TelegramIconSVG({ fill }) {
 }
 
 export function AshdiIcon({ styles }) {
-  const colors = useThemeColors();
   return (
-    <View
-      style={[
-        {
-          backgroundColor: colors.background,
-          borderRadius: 32,
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        styles,
-      ]}
-    >
-      <Text style={[H3, { fontSize: 23 }]}>A</Text>
-    </View>
+    <FastImage
+      style={[{ width: 44, height: 44, borderRadius: 16 }, styles]}
+      source={require("../../assets/Ashdi.jpg")}
+      resizeMode={FastImage.resizeMode.cover}
+    />
   );
 }
 

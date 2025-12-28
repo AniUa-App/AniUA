@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { ForwardButton } from "../../Widgets/ForwardButtonWidget";
 import AnimeStatusFAB from "../../Widgets/AnimeStatusFAB";
 import Icon from "../../Styles/Icons";
 import { H3, H4, H5 } from "../../Styles/Fonts";
+import CharacterCard from "../../Components/CharacterCard";
 import { useThemeColors } from "../../Global/useTheme";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import { playersIcons } from "../../Widgets/DubbingBottomSheetWidget";
@@ -35,6 +36,62 @@ const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
 const MoreBottomSheetMemo = React.memo(MoreBottomSheet);
 
+// Section tabs component
+const SectionTabs = ({ tabs, defaultTab, themeColors }) => {
+  const filteredTabs = tabs.filter(Boolean);
+  const [activeTab, setActiveTab] = useState(null);
+
+  useEffect(() => {
+    const tabExists = filteredTabs.some((tab) => tab.key === activeTab);
+    if (filteredTabs.length > 0 && !tabExists) {
+      setActiveTab(defaultTab || filteredTabs[0]?.key);
+    }
+  }, [filteredTabs, defaultTab, activeTab]);
+
+  const handleTabChange = useCallback((key) => {
+    setActiveTab(key);
+  }, []);
+
+  const activeContent = filteredTabs.find(
+    (tab) => tab.key === activeTab
+  )?.content;
+
+  if (filteredTabs.length === 0) return null;
+
+  return (
+    <View style={{ marginBottom: 20 }}>
+      <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
+        {filteredTabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={{
+                padding: 12,
+                borderRadius: 12,
+                backgroundColor: themeColors.subtle,
+              }}
+              onPress={() => handleTabChange(tab.key)}
+            >
+              <Text
+                style={[
+                  H5,
+                  {
+                    color: isActive ? themeColors.activeIcon : themeColors.text,
+                  },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      {activeContent && <View>{activeContent}</View>}
+    </View>
+  );
+};
+
 export default function AnimePreviewTablet({ route }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
@@ -44,6 +101,7 @@ export default function AnimePreviewTablet({ route }) {
     isLoading,
     existingFiles,
     animeList,
+    charactersList,
     errorCode,
     episodesList,
     setIsConnection,
@@ -140,6 +198,16 @@ export default function AnimePreviewTablet({ route }) {
       </TouchableOpacity>
     );
   };
+
+  const renderCharacter = useCallback(
+    ({ item }) => <CharacterCard item={item} imageSize={80} />,
+    []
+  );
+
+  const keyExtractorCharacter = useCallback(
+    (item) => item?.character?.slug || "",
+    []
+  );
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection}>
@@ -373,24 +441,47 @@ export default function AnimePreviewTablet({ route }) {
               </Markdown>
             </Text>
 
-            {/* Similar anime */}
-            {animeList.length > 0 && (
-              <>
-                <Text style={[H4, { color: themeColors.primary, marginBottom: 10 }]}>
-                  Схожі Відтворення
-                </Text>
-                <FlatList
-                  horizontal
-                  data={animeList}
-                  renderItem={renderSimilarAnime}
-                  keyExtractor={keyExtractorSimilar}
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.similarContainer}
-                  contentContainerStyle={{ paddingRight: 16 }}
-                  initialNumToRender={3}
-                  windowSize={5}
-                />
-              </>
+            {/* Similar anime and Characters tabs */}
+            {(animeList.length > 0 || charactersList.length > 0) && (
+              <SectionTabs
+                tabs={[
+                  animeList.length > 0 && {
+                    key: "similar",
+                    label: "Схожі",
+                    content: (
+                      <FlatList
+                        horizontal
+                        data={animeList}
+                        renderItem={renderSimilarAnime}
+                        keyExtractor={keyExtractorSimilar}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.similarContainer}
+                        contentContainerStyle={{ paddingRight: 16 }}
+                        initialNumToRender={3}
+                        windowSize={5}
+                      />
+                    ),
+                  },
+                  charactersList.length > 0 && {
+                    key: "characters",
+                    label: "Герої",
+                    content: (
+                      <FlatList
+                        horizontal
+                        data={charactersList}
+                        renderItem={renderCharacter}
+                        keyExtractor={keyExtractorCharacter}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingRight: 16 }}
+                        initialNumToRender={5}
+                        windowSize={7}
+                      />
+                    ),
+                  },
+                ]}
+                defaultTab={animeList.length > 0 ? "similar" : "characters"}
+                themeColors={themeColors}
+              />
             )}
           </ScrollView>
         </View>
@@ -416,7 +507,7 @@ export default function AnimePreviewTablet({ route }) {
             onSelectEpisode={handleEpisodeSelect}
             onLongSelectEpisode={handleEpisodeLongSelect}
             onSwipeEpisode={handleEpisodeSwipe}
-            checkForStyle={(item) => info.watched.episodes.includes(item.episode)}
+            checkForStyle={(item) => (info.watched_episodes || []).includes(item.episode)}
           />
 
           <EpisodesBottomSheetMemo

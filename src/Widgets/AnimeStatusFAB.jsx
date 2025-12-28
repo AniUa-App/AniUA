@@ -69,8 +69,8 @@ export default function AnimeStatusFAB({
     {
       key: null,
       label: "Не дивлюсь",
-      icon: Icon.CircleTrash,
-      color: themeColors.inActiveIcon,
+      icon: Icon.PlusCircle,
+      color: themeColors.withoutBookmark,
     },
     {
       key: "dropped",
@@ -215,7 +215,7 @@ export default function AnimeStatusFAB({
               {
                 backgroundColor:
                   selectedItem.label === "Не дивлюсь"
-                    ? themeColors.accent
+                    ? themeColors.inActiveIcon
                     : `rgba(${Color(selectedItem.color).red()}, ${Color(selectedItem.color).green()}, ${Color(selectedItem.color).blue()}, 0.5)`,
               },
             ]}
@@ -245,7 +245,7 @@ export default function AnimeStatusFAB({
               ) : (
                 <Icon.CircleTrash
                   size={32}
-                  color={themeColors.inActiveText}
+                  color={themeColors.inActiveIcon}
                   weight={isOpen ? "fill" : "regular"}
                 />
               )}

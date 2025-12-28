@@ -13,6 +13,7 @@ export const orange_whiteThemeColors = {
   inActiveText: "rgb(96, 96, 96)",
   activeIcon: "#C55E53",
   inActiveIcon: "rgb(96, 96, 96)",
+  withoutBookmark: "rgb(124, 44, 44)",
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
@@ -27,7 +28,8 @@ export const orange_darkThemeColors = {
   yellow: "rgb(238, 201, 0)",
   inActiveText: "rgb(96, 96, 96)",
   activeIcon: "#C55E53",
-  inActiveIcon: "rgb(96, 96, 96)",
+  inActiveIcon: "#252525",
+  withoutBookmark: "rgb(124, 44, 44)",
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
@@ -43,7 +45,8 @@ export const greenApple_blackThemeColors = {
   yellow: "rgb(238, 201, 0)",
   inActiveText: "rgb(96, 96, 96)",
   activeIcon: "rgb(44, 124, 116)",
-  inActiveIcon: "rgb(96, 96, 96)",
+  inActiveIcon: "rgb(33, 37, 29)",
+  withoutBookmark: "rgb(96, 96, 96)",
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
@@ -81,6 +84,7 @@ export let yellow = defaultColors.yellow;
 export let inActiveText = defaultColors.inActiveText;
 export let inActiveIcon = defaultColors.inActiveIcon;
 export let activeIcon = defaultColors.activeIcon;
+export let withoutBookmark = defaultColors.withoutBookmark;
 export let redBookmark = defaultColors.redBookmark;
 export let orangeBookmark = defaultColors.orangeBookmark;
 export let yellowBookmark = defaultColors.yellowBookmark;
@@ -115,6 +119,7 @@ function refreshExportedColors() {
   inActiveText = current.inActiveText ?? defaultColors.inActiveText;
   inActiveIcon = current.inActiveIcon ?? defaultColors.inActiveIcon;
   activeIcon = current.activeIcon ?? defaultColors.activeIcon;
+  withoutBookmark = current.withoutBookmark ?? defaultColors.withoutBookmark;
   redBookmark = current.redBookmark ?? defaultColors.redBookmark;
   orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
   yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;

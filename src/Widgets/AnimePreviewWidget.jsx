@@ -1,26 +1,20 @@
 import { View, Text, StyleSheet } from "react-native";
 import { TouchableOpacity } from "./Button";
-import React, { useRef, useMemo } from "react";
-import { GetScreenHeight, GetScreenWidth } from "../Global/Functions";
+import React, { useRef } from "react";
 import { useThemeColors } from "../Global/useTheme";
 import Icon from "../Styles/Icons";
 import { H3, H4 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "./LoadersWidgets";
-import SettingsStorage from "../Storage/SettingsStorage";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { HikkaApi } from "../Sources/hikka";
 import { useState, useEffect } from "react";
-import { DownloadVideo } from "../Notifications/VideoDownloader";
-import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
 import { isTabletLandscape, isTablet } from "../Styles/Responsive";
 import { useWindowDimensions } from "react-native";
 import Logger from "../Logger/Logger";
-import { primary } from "../Styles/Colors";
+import { prefetchBloomImage } from "./BloomImage";
 
 const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   anime,
@@ -62,7 +56,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
 
   const navigation = useNavigation();
   const isFavorite = info?.isFavorite || false;
-  const hasDownloads = (info?.downloaded?.episodes?.length || 0) > 0;
+  const hasDownloads = (info?.downloaded_episodes?.length || 0) > 0;
   const sheetRef = useRef(null);
 
   const Component = {
@@ -99,12 +93,14 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           styles.cardContainer,
           { backgroundColor: themeColors.background },
         ]}
-        onPress={() =>
+        onPress={() => {
+          // Prefetch зображення перед навігацією
+          prefetchBloomImage(anime.image);
           navigation.navigate("HiddenStack", {
             screen: "AnimePreview",
             params: { anime },
-          })
-        }
+          });
+        }}
       >
         <Image
           uri={anime.image}
@@ -132,7 +128,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           </Text>
           <Text style={[H4, { marginBottom: 8 }]}>
             Рейтинг:{" "}
-            <Text style={styles.animeHighlight}>
+            <Text
+              style={[styles.animeHighlight, { color: themeColors.primary }]}
+            >
               {anime.rating === "g"
                 ? "0+"
                 : anime.rating === "pg"
@@ -145,7 +143,12 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             </Text>
           </Text>
           <Text style={[H4, { marginBottom: 8 }]}>
-            Дата виходу: <Text style={styles.animeHighlight}>{anime.year}</Text>
+            Дата виходу:{" "}
+            <Text
+              style={[styles.animeHighlight, { color: themeColors.primary }]}
+            >
+              {anime.year}
+            </Text>
           </Text>
           {anime.genres && anime.genres.length > 0 && (
             <Text
@@ -154,7 +157,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
               style={H4}
             >
               Жанри:{" "}
-              <Text style={styles.animeHighlight}>
+              <Text
+                style={[styles.animeHighlight, { color: themeColors.primary }]}
+              >
                 {anime.genres.map((genre) => genre.name_ua).join(", ")}
               </Text>
             </Text>
@@ -168,7 +173,10 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             ]}
             onPress={handlePress}
           >
-            <IconComponent fill={isIconFilled ? primary : text} size={34} />
+            <IconComponent
+              fill={isIconFilled ? themeColors.primary : themeColors.text}
+              size={34}
+            />
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -179,9 +187,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         type="download"
         isChanges={null}
         checkForStyle={(item) => {
-          if (!info.downloaded?.episodes) return false;
+          if (!info.downloaded_episodes?.length) return false;
 
-          const episode = info.downloaded.episodes.find(
+          const episode = info.downloaded_episodes.find(
             (ep) => ep.episode === item.episode
           );
 
@@ -192,7 +200,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           );
         }}
         onSelectEpisode={async (item) => {
-          const episode = info.downloaded?.episodes?.find(
+          const episode = (info.downloaded_episodes || []).find(
             (ep) => ep.episode === item.episode
           );
           if (episode) {
@@ -217,6 +225,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                     )
                   );
               } else {
+                prefetchBloomImage(anime.image);
                 navigation.navigate("HiddenStack", {
                   screen: "AnimePreview",
                   params: { anime, downloadEpisode: item },
@@ -257,9 +266,6 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 1,
     paddingTop: 5,
-  },
-  animeHighlight: {
-    color: primary,
   },
   favoriteButton: {
     position: "absolute",

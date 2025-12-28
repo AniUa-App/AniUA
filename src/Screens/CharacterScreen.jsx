@@ -23,6 +23,7 @@ import Logger from "../Logger/Logger";
 import { Shadow } from "react-native-shadow-2";
 import Markdown from "react-native-markdown-display";
 import MainConfig from "../cfgs/MainConfig";
+import BloomImage from "../Widgets/BloomImage";
 
 export default function CharacterScreen() {
   const navigation = useNavigation();
@@ -63,7 +64,7 @@ export default function CharacterScreen() {
     if (isTablet()) {
       return { width: width * 0.4, height: height * 0.35 };
     }
-    return { width: width * 0.55, height: height * 0.32 };
+    return { width: width * 0.6, height: height * 0.4 };
   }, [width, height]);
 
   const headerPaddingTop = useMemo(
@@ -243,15 +244,15 @@ export default function CharacterScreen() {
 
         {/* Character Image with Gradient */}
         {image && (
-          <Shadow distance={12} startColor={"#252525"}>
-            <View style={[styles.imageContainer, imageSize]}>
-              <Image
-                uri={image}
-                style={[styles.characterImage, imageSize]}
-                onLoad={() => {}}
-              />
-            </View>
-          </Shadow>
+          <BloomImage
+            uri={image}
+            width={imageSize.width}
+            height={imageSize.height}
+            borderRadius={16}
+            blurRadius={8}
+            glowScale={1}
+            fadePercent={0.15}
+          />
         )}
 
         {/* Character Name Pill */}

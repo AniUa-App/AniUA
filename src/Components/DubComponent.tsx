@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
 import FastImage from "react-native-fast-image";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
@@ -13,7 +20,10 @@ interface DubComponentProps {
   isPartner?: boolean;
   onBodyClick?: (name: string) => void;
   onButtonClick?: (name: string) => void;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle> | StyleProp<TextStyle>;
+  buttonStyle?: StyleProp<ViewStyle>;
+  subtitleStyle?: StyleProp<TextStyle>;
+  checkColor?: string;
 }
 
 export default function DubComponent({
@@ -25,6 +35,9 @@ export default function DubComponent({
   onBodyClick,
   onButtonClick,
   style,
+  buttonStyle,
+  subtitleStyle,
+  checkColor,
 }: DubComponentProps) {
   const themeColors = useThemeColors();
 
@@ -57,11 +70,17 @@ export default function DubComponent({
       </View>
       <View style={styles.resultInfo}>
         <View style={{ flexDirection: "row", gap: 4 }}>
-          <Text style={[H5, { color: themeColors.text }]} numberOfLines={2}>
+          <Text
+            style={[H5, { color: themeColors.text }, style]}
+            numberOfLines={2}
+          >
             {name}
           </Text>
           {isPartner && (
-            <Icons.CheckCircle size={22} color={themeColors.primary} />
+            <Icons.CheckCircle
+              size={22}
+              color={checkColor || themeColors.primary}
+            />
           )}
         </View>
 
@@ -71,6 +90,7 @@ export default function DubComponent({
             {
               color: themeColors.primary,
             },
+            subtitleStyle,
           ]}
           numberOfLines={1}
         >
@@ -78,11 +98,14 @@ export default function DubComponent({
         </Text>
       </View>
       <TouchableOpacity
-        style={{
-          backgroundColor: themeColors.primary,
-          padding: 6,
-          borderRadius: 8,
-        }}
+        style={[
+          {
+            backgroundColor: themeColors.primary,
+            padding: 6,
+            borderRadius: 8,
+          },
+          buttonStyle,
+        ]}
         onPress={() => onButtonClick(name)}
       >
         {icon}
@@ -97,7 +120,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 8,
     paddingHorizontal: 12,
-    margin: 4,
     borderRadius: 18,
     marginBottom: 8,
   },
