@@ -53,7 +53,7 @@ export default function HomeScreen() {
       setIsLoading(true);
       setHasInternetError(false);
       try {
-        const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
+        const yearData = await HikkaSets.getMostPopularAnime(1, 15, 2025);
         setAnimeList_popularity_this_year(yearData);
       } catch (error) {
         Logger.error("Home", "Помилка при завантаженні даних", error);
@@ -82,7 +82,7 @@ export default function HomeScreen() {
         setIsLoading(true);
         setHasInternetError(false);
         try {
-          const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 15);
+          const yearData = await HikkaSets.getMostPopularAnime(1, 15, 2025);
           setAnimeList_popularity_this_year(yearData);
         } catch (error) {
           Logger.error("Home", "Помилка при повторному завантаженні", error);
@@ -325,7 +325,11 @@ const PopularAnimeList = React.memo(() => {
         const data = await HikkaSets.getMostPopularAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -380,7 +384,11 @@ const OngoingAnimeList = React.memo(() => {
         const data = await HikkaSets.getOngoingAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -435,7 +443,11 @@ const ActionAnimeList = React.memo(() => {
         const data = await HikkaSets.getActionAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -490,7 +502,11 @@ const SciFiAnimeList = React.memo(() => {
         const data = await HikkaSets.getSciFiAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -545,7 +561,11 @@ const RomanceAnimeList = React.memo(() => {
         const data = await HikkaSets.getRomanceAnime(1, 16, 2020);
         setAnimeList(data);
       } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні популярних аніме", error);
+        Logger.error(
+          "Home",
+          "Помилка при завантаженні популярних аніме",
+          error
+        );
       } finally {
         setIsLoading(false);
       }
