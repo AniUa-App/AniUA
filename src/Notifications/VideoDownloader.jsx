@@ -403,7 +403,7 @@ export async function DownloadVideo({
 
     // Виправлено порядок - спочатку визначаємо nameOfFile
     const nameOfFile = `${sanitizeFileName(
-      `${anime.title_ua}-=(${info?.watched?.player}-${info?.watched?.dubbing}-${item.episode}).mp4`,
+      `${anime.title_ua.length > 120 ? anime.title_en.substring(0, 120) : anime.title_ua}-=(${info?.watched?.player}-${info?.watched?.dubbing}-${item.episode}).mp4`,
       false
     )}`;
     let selectedQuality = {};
@@ -413,7 +413,7 @@ export async function DownloadVideo({
 
     // Спочатку створюємо змінну outputPath
     let outputPath = `${pathToSaveEpisodes}/${sanitizeFileName(
-      anime.title_ua,
+      `${anime.title_ua.length > 120 ? anime.title_en.substring(0, 120) : anime.title_ua}`,
       false
     )}/`;
 

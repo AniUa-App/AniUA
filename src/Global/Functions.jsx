@@ -1,4 +1,5 @@
 import { Dimensions } from "react-native";
+import Logger from "../Logger/Logger";
 
 /**
  * Повертає висоту екрану в пікселях
@@ -142,7 +143,7 @@ export function sanitizeFileName(
       .join("");
   }
 
-  sanitized = sanitized.replace(/[\x00-\x1f\x7f-\x9f]/g, "");
+  sanitized = sanitized.replace(/[\x00-\x1f\x7f-\x9f,，]/g, "");
   sanitized = sanitized.trim().replace(/\.+$/g, "");
 
   const reservedNames = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
@@ -153,6 +154,8 @@ export function sanitizeFileName(
   if (sanitized.length === 0) {
     sanitized = "file";
   }
+
+  Logger.debug("sanitizeFileName", "info", { sanitized });
 
   return sanitized;
 }
