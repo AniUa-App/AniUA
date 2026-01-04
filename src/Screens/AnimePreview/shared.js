@@ -85,9 +85,7 @@ export function useAnimePreview({ route, navigation }) {
       return AnimeStorage.get(initialAnime.slug);
     }
     if (slug) {
-      return (
-        AnimeStorage.get(slug)
-      );
+      return AnimeStorage.get(slug);
     }
     return null;
   });
@@ -139,10 +137,7 @@ export function useAnimePreview({ route, navigation }) {
   // Check downloaded files
   useEffect(() => {
     const checkDownloadedFiles = async () => {
-      if (
-        !info?.downloaded_episodes ||
-        info.downloaded_episodes.length === 0
-      ) {
+      if (!info?.downloaded_episodes || info.downloaded_episodes.length === 0) {
         setExistingFiles(new Set());
         return;
       }
@@ -341,15 +336,6 @@ export function useAnimePreview({ route, navigation }) {
                 setEpisodesList([]);
                 return;
               }
-              if (data["vidking"]) {
-                delete data["vidking"];
-              }
-              if (data["Main"]) {
-                delete data["Main"];
-              }
-
-              data["Вбудований плеєр"] = getFullDubbersListOfQueues(data);
-
               // Sort dubbings
               const sortedData = {};
               for (const [player, dubbings] of Object.entries(data)) {
@@ -569,7 +555,9 @@ export function useAnimePreview({ route, navigation }) {
   const handleEpisodeSelect = useCallback(
     (item) => {
       // Зберігаємо прогрес перегляду (глобально, не залежить від плеєра/озвучки)
-      const watched_episodes = !(info.watched_episodes || []).includes(item.episode)
+      const watched_episodes = !(info.watched_episodes || []).includes(
+        item.episode
+      )
         ? [...(info.watched_episodes || []), item.episode]
         : info.watched_episodes;
       setInfo({
@@ -587,8 +575,7 @@ export function useAnimePreview({ route, navigation }) {
         navigation.navigate("HiddenStack", {
           screen: "LocalVideoPlayer",
           params: {
-            _episodes:
-              episodesList[info.player][info.dub_team],
+            _episodes: episodesList[info.player][info.dub_team],
             _currentEpisode: item,
             _anime: anime,
           },
@@ -638,7 +625,9 @@ export function useAnimePreview({ route, navigation }) {
   const handleNewEpisodeSelect = useCallback(
     (episode, useBuiltIn) => {
       // episode is from AniuaApi: { id, team, episode, video_url, player, ... }
-      const watched_episodes = !(info.watched_episodes || []).includes(episode.episode)
+      const watched_episodes = !(info.watched_episodes || []).includes(
+        episode.episode
+      )
         ? [...(info.watched_episodes || []), episode.episode]
         : info.watched_episodes;
 
@@ -744,9 +733,9 @@ export function useAnimePreview({ route, navigation }) {
                 duration: 5000,
                 actionLabel: "Відкрити",
                 onActionPress: async () => {
-                  const downloadedEpisode = (updatedInfo.downloaded_episodes || []).find(
-                    (ep) => ep.episode === item.episode
-                  );
+                  const downloadedEpisode = (
+                    updatedInfo.downloaded_episodes || []
+                  ).find((ep) => ep.episode === item.episode);
                   if (downloadedEpisode) {
                     try {
                       await FileOpener.openFile(

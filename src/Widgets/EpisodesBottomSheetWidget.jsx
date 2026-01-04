@@ -373,8 +373,7 @@ export default function EpisodesBottomSheet({
       episodesList[storage_data.player] &&
       episodesList[storage_data.player][storage_data.dub_team]
     ) {
-      const episodes =
-        episodesList[storage_data.player][storage_data.dub_team];
+      const episodes = episodesList[storage_data.player][storage_data.dub_team];
 
       // Просто використовуємо оригінальні дані
       setEpisodesData(episodes || []);

@@ -4,10 +4,7 @@ import { MoonIcon, AshdiIcon } from "../../Styles/Icons";
 import { EpisodesByPlayerAndTeam } from "../../Sources/AniuaApi";
 import { Player } from "./types";
 
-export const getPlayerInfo = (
-  playerName: string,
-  themeColors: any
-): Player => {
+export const getPlayerInfo = (playerName: string, themeColors: any): Player => {
   switch (playerName) {
     case "moon":
       return {
@@ -33,7 +30,15 @@ export const convertHikkaEpisodes = (
 ): EpisodesByPlayerAndTeam => {
   const result: EpisodesByPlayerAndTeam = {};
 
+  // Плеєри які потрібно ігнорувати
+  const ignoredPlayers = ["vidking"];
+
   Object.entries(hikkaData).forEach(([player, teams]) => {
+    // Пропускаємо ігноровані плеєри
+    if (ignoredPlayers.includes(player.toLowerCase())) {
+      return;
+    }
+
     if (typeof teams === "object" && teams !== null) {
       result[player] = {};
       Object.entries(teams).forEach(([teamName, episodes]) => {

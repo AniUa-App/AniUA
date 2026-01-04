@@ -17,6 +17,7 @@ export const orange_whiteThemeColors = {
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
+  blueBookmark: "rgb(70, 130, 180)",
 };
 export const orange_darkThemeColors = {
   background: "#181818",
@@ -33,6 +34,7 @@ export const orange_darkThemeColors = {
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
+  blueBookmark: "rgb(70, 130, 180)",
 };
 
 export const greenApple_blackThemeColors = {
@@ -50,6 +52,7 @@ export const greenApple_blackThemeColors = {
   redBookmark: "rgb(124, 44, 44)",
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
+  blueBookmark: "rgb(70, 130, 180)",
 };
 
 export const themes = {
@@ -88,6 +91,7 @@ export let withoutBookmark = defaultColors.withoutBookmark;
 export let redBookmark = defaultColors.redBookmark;
 export let orangeBookmark = defaultColors.orangeBookmark;
 export let yellowBookmark = defaultColors.yellowBookmark;
+export let blueBookmark = defaultColors.blueBookmark;
 
 // Відкладаємо завантаження з storage після ініціалізації модуля
 setTimeout(() => {
@@ -105,6 +109,7 @@ setTimeout(() => {
     redBookmark = current.redBookmark ?? defaultColors.redBookmark;
     orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
     yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
+    blueBookmark = current.blueBookmark ?? defaultColors.blueBookmark;
   }
 }, 0);
 
@@ -123,6 +128,7 @@ function refreshExportedColors() {
   redBookmark = current.redBookmark ?? defaultColors.redBookmark;
   orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
   yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
+  blueBookmark = current.blueBookmark ?? defaultColors.blueBookmark;
 }
 
 // Підписуємось на зміни конфігурації, щоб оновлювати експортовані значення на льоту
@@ -146,6 +152,10 @@ export function Subtle(opacity = 1) {
 
 export function Text(opacity = 1) {
   return toRgbaString(text, opacity);
+}
+
+export function Icon(opacity = 1) {
+  return toRgbaString(icon, opacity);
 }
 
 export function Primary(opacity = 1) {

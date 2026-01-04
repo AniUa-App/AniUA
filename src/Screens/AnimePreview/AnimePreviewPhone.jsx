@@ -133,7 +133,11 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
               key={tab.key}
               style={[
                 styles.sectionTab,
-                { backgroundColor: themeColors.subtle },
+                {
+                  backgroundColor: isActive
+                    ? themeColors.activeIcon
+                    : themeColors.subtle,
+                },
               ]}
               onPress={() => handleTabChange(tab.key)}
             >
@@ -141,7 +145,7 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
                 style={[
                   H5,
                   {
-                    color: isActive ? themeColors.activeIcon : themeColors.text,
+                    color: themeColors.text,
                   },
                 ]}
               >
@@ -312,7 +316,11 @@ export default function AnimePreviewPhone({ route }) {
 
   const renderSimilarAnime = useCallback(
     ({ item }) => {
-      if (!item?.slug || !initialAnime?.slug || item.slug === initialAnime.slug) {
+      if (
+        !item?.slug ||
+        !initialAnime?.slug ||
+        item.slug === initialAnime.slug
+      ) {
         return null;
       }
       return (

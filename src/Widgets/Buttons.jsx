@@ -12,11 +12,11 @@ export default function ButtonsScreen({ route }) {
   const colors = useThemeColors();
   const { list, title, buttonStyle } = route.params;
   useEffect(() => {
-    Logger.debug('ButtonsScreen', 'List changed', { list });
+    Logger.debug("ButtonsScreen", "List changed", { list });
   }, [list]);
   useFocusEffect(
     useCallback(() => {
-      Logger.debug('ButtonsScreen', 'Screen focused', { list });
+      Logger.debug("ButtonsScreen", "Screen focused", { list });
     }, [list])
   );
   return (
@@ -59,6 +59,8 @@ export function SegmentedControlLabelWidget({
   segments = [],
   onChange = () => {},
   value = "",
+  style = {},
+  backgroundColor = null,
 }) {
   const colors = useThemeColors();
 
@@ -94,7 +96,7 @@ export function SegmentedControlLabelWidget({
         onChangeIndex(event.nativeEvent.selectedSegmentIndex)
       }
       tintColor={colors.primary}
-      backgroundColor={colors.subtle}
+      backgroundColor={backgroundColor || colors.subtle}
       sliderStyle={{ top: 0, bottom: 0, left: 0, right: 0 }}
       style={{
         width: "100%",
@@ -103,6 +105,7 @@ export function SegmentedControlLabelWidget({
         borderWidth: 0,
         borderRadius: 8,
         overflow: "hidden",
+        ...style,
       }}
       fontStyle={{
         ...H7,

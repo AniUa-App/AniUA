@@ -50,6 +50,7 @@ export function ThemeProvider({ children }) {
       Background: createColorFunction(colors.background),
       Primary: createColorFunction(colors.primary),
       Text: createColorFunction(colors.text),
+      Icon: createColorFunction(colors.icon),
       Subtle: createColorFunction(colors.subtle),
       Accent: createColorFunction(colors.accent),
       InActiveText: createColorFunction(colors.inActiveText),

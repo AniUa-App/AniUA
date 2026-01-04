@@ -1,6 +1,160 @@
 import axios, { AxiosInstance } from "axios";
 import Logger from "../Logger/Logger";
 
+// ==================== HIKKA API TYPES ====================
+
+export interface HikkaCompany {
+  image: string | null;
+  slug: string;
+  name: string;
+}
+
+export interface HikkaAnimeCompany {
+  company: HikkaCompany;
+  type: "producer" | "studio";
+}
+
+export interface HikkaGenre {
+  name_ua: string;
+  name_en: string;
+  slug: string;
+  type: "genre" | "theme" | "demographic";
+}
+
+export interface HikkaExternalLink {
+  url: string;
+  text: string;
+  type: "general" | "watch";
+}
+
+export interface HikkaOST {
+  index: number;
+  title: string;
+  author: string;
+  spotify: string | null;
+  ost_type: "opening" | "ending";
+}
+
+export interface HikkaStats {
+  completed: number;
+  watching: number;
+  planned: number;
+  dropped: number;
+  on_hold: number;
+  score_1: number;
+  score_2: number;
+  score_3: number;
+  score_4: number;
+  score_5: number;
+  score_6: number;
+  score_7: number;
+  score_8: number;
+  score_9: number;
+  score_10: number;
+}
+
+export interface HikkaScheduleItem {
+  episode: number;
+  airing_at: number;
+}
+
+export type HikkaMediaType = "tv" | "movie" | "ova" | "ona" | "special" | "music";
+export type HikkaStatus = "ongoing" | "finished" | "announced";
+export type HikkaSource = "manga" | "light_novel" | "original" | "visual_novel" | "game" | "other";
+export type HikkaRating = "g" | "pg" | "pg_13" | "r" | "r_plus" | "rx";
+export type HikkaSeason = "winter" | "spring" | "summer" | "fall";
+
+export interface HikkaPaginatedResponse<T> {
+  list: T[];
+  pagination: {
+    total: number;
+    pages: number;
+    page: number;
+  };
+}
+
+export interface HikkaWatchStatus {
+  status: string | null;
+  note: string | null;
+  episodes: number;
+  score: number;
+  rewatches: number;
+}
+
+/**
+ * Скорочена версія аніме для списків/пошуку
+ */
+export interface HikkaAnimePreview {
+  data_type: "anime";
+  slug: string;
+
+  // Titles
+  title_ua: string;
+  title_en: string;
+  title_ja: string;
+
+  // Media info
+  media_type: HikkaMediaType;
+  status: HikkaStatus;
+  source: HikkaSource;
+  rating: HikkaRating;
+  season: HikkaSeason | null;
+  year: number | null;
+
+  // Episodes
+  episodes_total: number;
+  episodes_released: number;
+
+  // Dates (Unix timestamps)
+  start_date: number | null;
+  end_date: number | null;
+
+  // Content
+  image: string;
+  translated_ua: boolean;
+
+  // Scores
+  score: number;
+  scored_by: number;
+  native_score: number;
+  native_scored_by: number;
+
+  // User watch status (only in search results when authenticated)
+  watch?: HikkaWatchStatus[];
+}
+
+/**
+ * Повна версія аніме з деталями
+ */
+export interface HikkaAnime extends HikkaAnimePreview {
+  mal_id: number;
+  synonyms: string[];
+
+  // Episodes
+  duration: number;
+
+  // Dates
+  updated: number;
+
+  // Content
+  synopsis_ua: string | null;
+  synopsis_en: string | null;
+  nsfw: boolean;
+  has_franchise: boolean;
+
+  // Related data
+  companies: HikkaAnimeCompany[];
+  genres: HikkaGenre[];
+  external: HikkaExternalLink[];
+  videos: any[];
+  ost: HikkaOST[];
+  stats: HikkaStats;
+  schedule: HikkaScheduleItem[];
+
+  // Misc
+  comments_count: number;
+}
+
 /**
  * Повний API клас для роботи з Hikka API (api.hikka.io)
  * Підтримує всі ендпоінти з OpenAPI специфікації
@@ -349,16 +503,16 @@ export class HikkaApiComplete {
     query?: string;
     page?: number;
     size?: number;
-    media_type?: string[];
+    media_type?: HikkaMediaType[];
     years?: number[];
     score?: number[];
-    status?: string[];
-    season?: string[];
-    genres: string[];
+    status?: HikkaStatus[];
+    season?: HikkaSeason[];
+    genres?: string[];
     studios?: string[];
     only_translated?: boolean;
     sort?: string[];
-  }) {
+  }): Promise<HikkaPaginatedResponse<HikkaAnimePreview>> {
     const { page = 1, size = 20, ...rest } = params;
     const cacheKey = `anime_search_${JSON.stringify(params)}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
@@ -373,9 +527,9 @@ export class HikkaApiComplete {
   /**
    * Отримує детальну інформацію про аніме за slug
    * @param {string} slug - Унікальний slug аніме
-   * @returns {Promise<Object|null>} Об'єкт з деталями аніме або null
+   * @returns {Promise<HikkaAnime|null>} Об'єкт з деталями аніме або null
    */
-  public static async getAnimeDetails(slug: string) {
+  public static async getAnimeDetails(slug: string): Promise<HikkaAnime | null> {
     const cacheKey = `anime_details_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(

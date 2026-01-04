@@ -56,6 +56,7 @@ export async function prefetchBloomImage(uri) {
  * @param {number} width - Ширина зображення
  * @param {number} height - Висота зображення
  * @param {number} borderRadius - Радіус заокруглення (за замовчуванням: 16)
+ * @param {number} blurBorderRadius - Радіус заокруглення для blur шару (за замовчуванням: borderRadius)
  * @param {number} blurRadius - Радіус розмиття для ефекту glow (за замовчуванням: 10)
  * @param {number} glowScale - Масштаб шару glow (за замовчуванням: 1.03)
  * @param {number} glowOpacity - Прозорість шару glow (за замовчуванням: 1)
@@ -67,12 +68,14 @@ export default function BloomImage({
   width,
   height,
   borderRadius = 16,
+  blurBorderRadius,
   blurRadius = 10,
   glowScale = 1.03,
   glowOpacity = 2,
   fadePercent = 0.2,
   style,
 }) {
+  const effectiveBlurBorderRadius = blurBorderRadius ?? borderRadius;
   // Спробуємо отримати з кешу або завантажити через useImage
   const [cachedImage] = useState(() => imageCache.get(uri));
   const loadedImage = useImage(uri);
@@ -245,8 +248,8 @@ export default function BloomImage({
           opacity={glowOpacity}
           clip={rrect(
             rect(glowX, glowY, glowWidth, glowHeight),
-            borderRadius + blurRadius,
-            borderRadius + blurRadius
+            effectiveBlurBorderRadius,
+            effectiveBlurBorderRadius
           )}
         >
           <Image

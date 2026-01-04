@@ -26,6 +26,7 @@ export interface HikkaUser {
 interface UseHikkaUserResult {
   user: HikkaUser | null;
   stats: WatchStats | null;
+  favorites: any[];
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
@@ -44,6 +45,7 @@ export function useHikkaUser(): UseHikkaUserResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [favorites, setFavorites] = useState<any[]>([]);
 
   const fetchUserData = useCallback(async () => {
     setIsLoading(true);
@@ -71,6 +73,14 @@ export function useHikkaUser(): UseHikkaUserResult {
             userData.username
           );
           setStats(watchStats);
+
+          // Отримуємо кількість улюблених
+          const favoritesData = await HikkaApiComplete.getUserFavorites(
+            "anime",
+            userData.username,
+            { page: 1, size: 1 }
+          );
+          setFavorites(favoritesData);
         } catch (statsError) {
           Logger.warn(
             "useHikkaUser",
@@ -80,7 +90,11 @@ export function useHikkaUser(): UseHikkaUserResult {
         }
       }
     } catch (err: any) {
-      Logger.error("useHikkaUser", "Помилка завантаження даних користувача", err);
+      Logger.error(
+        "useHikkaUser",
+        "Помилка завантаження даних користувача",
+        err
+      );
       setError(err);
       setUser(null);
       setStats(null);
@@ -118,6 +132,7 @@ export function useHikkaUser(): UseHikkaUserResult {
   return {
     user,
     stats,
+    favorites,
     isLoading,
     isAuthenticated,
     error,

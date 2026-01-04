@@ -1197,7 +1197,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       onPress={togglePlayPause}
                       android_disableSound
                     >
-                      <View style={[styles.playButton, { shadowColor: themeColors.primary }]}>
+                      <View
+                        style={[
+                          styles.playButton,
+                          { backgroundColor: themeColors.primary },
+                        ]}
+                      >
                         {isPlaying ? (
                           <Icons.Pause size={32} color={themeColors.text} />
                         ) : (
@@ -1259,7 +1264,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                           >
                             <Icons.FrameCorners
                               size={24}
-                              color={isZoomed ? themeColors.primary : themeColors.text}
+                              color={
+                                isZoomed
+                                  ? themeColors.primary
+                                  : themeColors.text
+                              }
                             />
                           </CustomTouchableOpacity>
                         </View>
@@ -1437,7 +1446,17 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     }}
                   >
                     <View style={styles.centerInfo}>
-                      <Text style={[styles.qualityText, { color: themeColors.text, borderColor: themeColors.Text(0.2) }]}>{quality || "x_x"}</Text>
+                      <Text
+                        style={[
+                          styles.qualityText,
+                          {
+                            color: themeColors.text,
+                            borderColor: themeColors.Text(0.2),
+                          },
+                        ]}
+                      >
+                        {quality || "x_x"}
+                      </Text>
                     </View>
                   </CustomTouchableOpacity>
                 </View>
@@ -1473,7 +1492,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     }
                   }}
                 >
-                  <Icons.Lock type={"disabled"} size={24} color={themeColors.primary} />
+                  <Icons.Lock
+                    type={"disabled"}
+                    size={24}
+                    color={themeColors.primary}
+                  />
                 </CustomTouchableOpacity>
               </View>
             </Animated.View>
@@ -1489,7 +1512,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           style={styles.episodesPanel}
         >
           <View style={styles.episodesPanelContent}>
-            <View style={[styles.episodesPanelHeader, { borderBottomColor: themeColors.InActiveText(0.2) }]}>
+            <View
+              style={[
+                styles.episodesPanelHeader,
+                { borderBottomColor: themeColors.InActiveText(0.2) },
+              ]}
+            >
               <CustomTouchableOpacity
                 style={styles.episodesBackButton}
                 activeOpacity={1}
@@ -1507,7 +1535,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               >
                 Епізоди
               </Text>
-              <View style={[styles.episodeCount, { borderColor: themeColors.primary }]}>
+              <View
+                style={[
+                  styles.episodeCount,
+                  { borderColor: themeColors.primary },
+                ]}
+              >
                 <Text style={[H6, { color: themeColors.primary }]}>
                   {episodes.length}
                 </Text>
@@ -1527,9 +1560,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     style={[
                       styles.episodeItem,
                       currentEpisode?.episode === episode.episode && [
-                          styles.episodeItemActive,
-                          { borderColor: themeColors.primary },
-                        ],
+                        styles.episodeItemActive,
+                        { borderColor: themeColors.primary },
+                      ],
                     ]}
                     activeOpacity={1}
                     delayPressIn={0}

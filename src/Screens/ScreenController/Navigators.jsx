@@ -5,3 +5,4 @@ export const Tab = createMaterialTopTabNavigator();
 export const HiddenStackNav = createNativeStackNavigator();
 export const RootStack = createNativeStackNavigator();
 export const TabBookmark = createMaterialTopTabNavigator();
+export const ContentTypeTab = createMaterialTopTabNavigator();

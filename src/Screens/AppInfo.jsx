@@ -167,12 +167,13 @@ function Header() {
           }}
         >
           <View
-            style={[
-              styles.valuePill,
-              { backgroundColor: themeColors.primary },
-            ]}
+            style={[styles.valuePill, { backgroundColor: themeColors.primary }]}
           >
-            <Icon.GitPullRequest size={24} color={text} style={{}} />
+            <Icon.GitPullRequest
+              size={24}
+              color={themeColors.text}
+              style={{}}
+            />
           </View>
         </TouchableOpacity>
       </View>

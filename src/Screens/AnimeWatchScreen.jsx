@@ -5,6 +5,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
 import { AniuaApi } from "../Sources/AniuaApi";
 import { HikkaApi } from "../Sources/hikka";
+import { convertHikkaEpisodes } from "../Components/BottomSheetEpisodes/helpers";
 import AnimeStorage from "../Storage/AnimeStorage";
 import Logger from "../Logger/Logger";
 import { H4 } from "../Styles/Fonts";
@@ -64,9 +65,30 @@ export default function AnimeWatchScreen({ route }) {
           return;
         }
 
-        // Fetch episodes
+        // Fetch episodes with fallback to hikka-features
         setMessage("Завантаження епізодів...");
-        const episodesByPlayer = await AniuaApi.getAnimeEpisodesGroupedByPlayer(slug);
+        let episodesByPlayer;
+
+        try {
+          episodesByPlayer = await AniuaApi.getAnimeEpisodesGroupedByPlayer(slug);
+        } catch (aniuaError) {
+          Logger.warn("AnimeWatchScreen", "AniuaApi failed, trying HikkaApi fallback", aniuaError);
+
+          try {
+            const hikkaResult = await HikkaApi.getEpisodes(slug);
+            if (hikkaResult.data && typeof hikkaResult.data === "object") {
+              episodesByPlayer = convertHikkaEpisodes(hikkaResult.data, slug);
+              Logger.info("AnimeWatchScreen", "Successfully loaded episodes from HikkaApi fallback");
+            } else {
+              throw new Error("Invalid HikkaApi response");
+            }
+          } catch (hikkaError) {
+            Logger.error("AnimeWatchScreen", "Both AniuaApi and HikkaApi failed", hikkaError);
+            setStatus("error");
+            setMessage("Не вдалося завантажити епізоди");
+            return;
+          }
+        }
 
         // Find the episode
         const playerName = watchProvider || "moon";

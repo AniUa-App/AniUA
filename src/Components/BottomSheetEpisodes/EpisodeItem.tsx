@@ -73,6 +73,7 @@ export const EpisodeItem = React.memo(
                 {
                   color: themeColors.text,
                   fontWeight: "100",
+                  padding: episode.poster ? 0 : 8,
                 },
               ]}
             >
@@ -92,8 +93,18 @@ export const EpisodeItem = React.memo(
               </Text>
             )}
           </View>
-          <View style={styles.shareButtonContainer}>
-            <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+          <View
+            style={[
+              styles.shareButtonContainer,
+              {
+                position: episode.poster ? "absolute" : "relative",
+              },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={handleShare}
+              style={[styles.shareButton, {}]}
+            >
               <Icon.ShareNetwork
                 size={24}
                 color={isWatched ? themeColors.subtle : themeColors.primary}

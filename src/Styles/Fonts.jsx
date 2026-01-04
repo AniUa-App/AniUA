@@ -4,6 +4,7 @@ import { text } from "./Colors";
 import { useFonts } from "expo-font";
 import { useThemeColors } from "../Global/useTheme";
 import { isTablet, isTabletLandscape } from "./Responsive";
+import { FontWeight } from "@shopify/react-native-skia";
 
 export function useCustomFonts() {
   const [fontsLoaded] = useFonts({
@@ -96,13 +97,13 @@ export const H4 = {
 export const H5 = {
   fontSize: getStaticFontSize(15, staticWidth, staticHeight),
   color: text,
-  fontFamily: "Nunito-SemiBold",
+  fontFamily: "Nunito-Light",
 };
 
 export const H6 = {
   fontSize: getStaticFontSize(14, staticWidth, staticHeight),
   color: text,
-  fontFamily: "Nunito-SemiBold",
+  fontFamily: "Nunito-Light",
 };
 
 export const H7 = {

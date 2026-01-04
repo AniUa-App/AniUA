@@ -189,7 +189,7 @@ export interface AniuaApiConfig {
 export class AniuaApi {
   // ==================== CONFIGURATION ====================
 
-  private static baseUrl: string = "http://192.168.178.22:8080";
+  private static baseUrl: string = "https://testapi.yuzka.site";
   private static cacheTtl: number = 5 * 60 * 1000; // 5 хвилин
   private static timeout: number = 15000;
 
@@ -348,7 +348,7 @@ export class AniuaApi {
       Logger.debug("AniuaApi", "Завантаження команд з API");
 
       const response = await AniuaApi.axiosInstance.get<Team[]>(
-        `${AniuaApi.baseUrl}/teams`
+        `${AniuaApi.baseUrl}/v1/teams`
       );
 
       const teams = response.data;
@@ -381,7 +381,7 @@ export class AniuaApi {
   public static async getVerifiedTeams(): Promise<Team[]> {
     try {
       const response = await AniuaApi.axiosInstance.get<Team[]>(
-        `${AniuaApi.baseUrl}/teams`,
+        `${AniuaApi.baseUrl}/v1/teams`,
         {
           params: { is_verified: true },
         }
@@ -858,7 +858,7 @@ export class AniuaApi {
    */
   public static async healthCheck(): Promise<boolean> {
     try {
-      await AniuaApi.axiosInstance.get(`${AniuaApi.baseUrl}/teams`, {
+      await AniuaApi.axiosInstance.get(`${AniuaApi.baseUrl}/v1/teams`, {
         timeout: 5000,
         params: { is_verified: true },
       });
@@ -893,7 +893,7 @@ export class AniuaApi {
       Logger.debug("AniuaApi", `Завантаження епізодів для ${slug}`);
 
       const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
-        `${AniuaApi.baseUrl}/anime/${slug}/episodes`
+        `${AniuaApi.baseUrl}/v1/anime/${slug}/episodes`
       );
 
       const episodes = response.data.episodes || [];

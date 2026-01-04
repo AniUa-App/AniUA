@@ -73,12 +73,17 @@ export default function AnimeStatusFAB({
       color: themeColors.withoutBookmark,
     },
     {
+      key: "on_hold",
+      label: "Відкладено",
+      icon: Icon.PauseCircle,
+      color: themeColors.blueBookmark,
+    },
+    {
       key: "dropped",
       label: "Закинуто",
       icon: Icon.XCircle,
       color: themeColors.redBookmark,
     },
-
     {
       key: "watching",
       label: "Дивлюсь",
@@ -98,6 +103,12 @@ export default function AnimeStatusFAB({
       label: "Переглянуто",
       icon: Icon.CheckCircle,
       color: themeColors.orangeBookmark,
+    },
+    {
+      key: "on_hold",
+      label: "Відкладено",
+      icon: Icon.PauseCircle,
+      color: themeColors.blueBookmark,
     },
     {
       key: "dropped",
