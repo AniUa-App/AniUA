@@ -488,9 +488,9 @@ export default function ProfileScreen({ navigation }) {
               </Text>
             </View>
           </Animated.View>
+          <View style={{ width: "100%", paddingBottom: insets.bottom }} />
         </View>
       </ScrollView>
-      <View style={{ width: "100%", paddingBottom: insets.bottom + 40 }} />
     </DefaultScreenWidget>
   );
 }
@@ -620,11 +620,11 @@ const styles = StyleSheet.create({
   filtersContainer: {
     flexDirection: "row",
     gap: 8,
+    height: 38,
   },
   filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 7,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderRadius: 18,
@@ -660,7 +660,6 @@ const styles = StyleSheet.create({
   emptyState: {
     width: "100%",
     alignItems: "center",
-    paddingVertical: 100,
   },
   emptyStateText: {
     fontFamily: "Nunito-Regular",

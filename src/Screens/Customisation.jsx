@@ -1,65 +1,36 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
-import React, { useState, useRef, useEffect } from "react";
+import { View, ScrollView, StatusBar, Text } from "react-native";
+import { useState } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import SettingsStorage from "../Storage/SettingsStorage";
-import {
-  primary,
-  background,
-  text,
-  Background,
-  Subtle,
-  subtle,
-  inActiveText,
-} from "../Styles/Colors";
-import { useThemeColors } from "../Global/useTheme";
-import { ScrollView } from "react-native-gesture-handler";
-import { H2, H3, H4, H5, H6 } from "../Styles/Fonts";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
+import SettingsSection from "../Widgets/SettingsSectionWidget";
 import Icons from "../Styles/Icons";
-import Slider from "@react-native-community/slider"; // Потрібно встановити цей пакет
-import {
-  CustomNavBar,
-  ThemedNavBar,
-} from "./ScreenController/ScreenController";
-import { EventBus } from "../Global/EventBus";
-import ColorPicker, {
-  Panel1,
-  Swatches,
-  Preview,
-  OpacitySlider,
-  HueSlider,
-  colorKit,
-  PreviewText,
-} from "reanimated-color-picker";
-import { runOnJS } from "react-native-reanimated";
-import * as DocumentPicker from "expo-document-picker";
-import RNFS from "react-native-fs";
 import { useNavigation } from "@react-navigation/native";
-import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import { useThemeColors } from "../Global/useTheme";
+import SettingsStorage from "../Storage/SettingsStorage";
+import { EventBus } from "../Global/EventBus";
 import { isTablet } from "../Styles/Responsive";
 import Logger from "../Logger/Logger";
+import {
+  SliderWidget,
+  ColorPickerWidget,
+  PhotoPickerWidget,
+  ToggleSettingWidget,
+  ExpandableSection,
+} from "../Widgets/CustomisationWidgets";
+import { ThemedNavBar } from "./ScreenController/ScreenController";
+import RNFS from "react-native-fs";
+import { H6 } from "../Styles/Fonts";
 
-export default function СustomisationScreen() {
+export default function CustomisationScreen() {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
   const _USER_CONFIG = SettingsStorage.getParameter("userConfig");
-  const MAIN_SCREEN_CONFIG = SettingsStorage.getParameter("mainScreenConfig");
   const [USER_CONFIG, _SET_USER_CONFIG] = useState(_USER_CONFIG);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [expandedItems, setExpandedItems] = useState({});
-  // Значення для слайдерів (можна розширити для декількох)
-  const [sliderValue, setSliderValue] = useState(
-    USER_CONFIG?.navbar?.blurIntensity ?? 80
-  );
 
-  // Анімаційні значення для кожного елемента
-  const animatedValues = useRef({});
+  // Expanded states for sections
+  const [expandedNavbar, setExpandedNavbar] = useState(false);
+  const [expandedColors, setExpandedColors] = useState(false);
+  const [expandedBackground, setExpandedBackground] = useState(false);
 
   const SET_USER_CONFIG = (newConfig) => {
     _SET_USER_CONFIG(newConfig);
@@ -70,731 +41,608 @@ export default function СustomisationScreen() {
     EventBus.emit("userConfig", newConfig);
   };
 
-  // Функція для керування анімацією
-  const toggleExpanded = (itemKey) => {
-    const isExpanded = expandedItems[itemKey];
+  const copyBackgroundImage = async (input) => {
+    try {
+      const uri = typeof input === "string" ? input : input?.uri;
+      const name = typeof input === "object" ? input?.name : null;
+      const mimeType = typeof input === "object" ? input?.mimeType : null;
+      if (!uri) throw new Error("URI is missing");
 
-    if (!animatedValues.current[itemKey]) {
-      animatedValues.current[itemKey] = new Animated.Value(0);
-    }
-
-    if (isExpanded) {
-      // Анімація приховування
-      Animated.timing(animatedValues.current[itemKey], {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    } else {
-      // Анімація показу
-      Animated.timing(animatedValues.current[itemKey], {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-
-    setExpandedItems((prev) => ({
-      ...prev,
-      [itemKey]: !isExpanded,
-    }));
-  };
-
-  // Явне відкриття/закриття секції з анімацією
-  const setExpandedState = (itemKey, shouldExpand) => {
-    if (!animatedValues.current[itemKey]) {
-      animatedValues.current[itemKey] = new Animated.Value(
-        shouldExpand ? 1 : 0
+      let extension = null;
+      if (name && name.includes(".")) {
+        extension = name.split(".").pop();
+      }
+      if (!extension && typeof uri === "string") {
+        const uriParts = uri.split(".");
+        if (uriParts.length > 1) {
+          extension = uriParts.pop().split("?")[0];
+        }
+      }
+      if (!extension && mimeType) {
+        const mimeMap = {
+          "image/png": "png",
+          "image/jpeg": "jpg",
+          "image/jpg": "jpg",
+          "image/webp": "webp",
+        };
+        extension = mimeMap[mimeType] || "png";
+      }
+      const safeExt = extension || "png";
+      const destPath = `${RNFS.DocumentDirectoryPath}/background.${safeExt}`;
+      await RNFS.copyFile(uri, destPath);
+      Logger.info(
+        "Customisation",
+        "Зображення скопійовано у внутрішню памʼять",
+        { destPath }
       );
+      return destPath;
+    } catch (error) {
+      Logger.error(
+        "Customisation",
+        "Помилка копіювання зображення у внутрішню памʼять",
+        error
+      );
+      return null;
     }
-
-    Animated.timing(animatedValues.current[itemKey], {
-      toValue: shouldExpand ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-
-    setExpandedItems((prev) => ({
-      ...prev,
-      [itemKey]: shouldExpand,
-    }));
   };
 
-  const MOBILE_CUSTOMISATION_SETTINGS = [
-    {
-      slug: "navbar",
-      body: [
-        {
-          title: "Стиль навігаційної панелі",
-          description: ``,
-          value: USER_CONFIG?.navbar?.style || "default",
-          button: <Icons.CaretDown size={34} color={text} />,
-          onPress: () => {},
-          body: () => {
-            return (
-              <View
-                style={[
-                  styles.bsContainer,
-                  {
-                    width: "100%",
+  return (
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+      <ScrollView
+        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 16 }}
+      >
+        {/* Навігаційна панель */}
+        <SettingsSection title="Навігаційна панель">
+          {/* Стиль навігації - тільки для мобільних */}
+          {!isTablet() && (
+            <SettingsItemWidget
+              title="Стиль панелі"
+              subtitle={USER_CONFIG?.navbar?.style || "Default"}
+              icon={<Icons.Browsers />}
+              showChevron
+              onPress={() => {
+                navigation.navigate("HiddenStack", {
+                  screen: "ButtonsScreen",
+                  params: {
+                    title: "Виберіть стиль навігаційної панелі",
+                    Sbutton: true,
+                    isGoBack: true,
+                    value: USER_CONFIG?.navbar?.style || "Default",
+                    list: [
+                      {
+                        title: "Default",
+                        onPress: () => {
+                          SET_USER_CONFIG({
+                            ...USER_CONFIG,
+                            navbar: {
+                              ...USER_CONFIG?.navbar,
+                              style: "Default",
+                            },
+                          });
+                        },
+                      },
+                      {
+                        title: "MD3",
+                        onPress: () => {
+                          SET_USER_CONFIG({
+                            ...USER_CONFIG,
+                            navbar: {
+                              ...USER_CONFIG?.navbar,
+                              style: "MD3",
+                            },
+                          });
+                        },
+                      },
+                    ],
                   },
-                ]}
-              >
-                <SegmentedControlLabelWidget
-                  segments={[{ label: "Default" }, { label: "MD3" }]}
-                  value={USER_CONFIG?.navbar?.style || "Default"}
-                  onChange={(value) => {
-                    Logger.debug("Customisation", "Зміна стилю навігації", {
-                      value,
-                    });
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        style: value,
-                      },
-                    });
-                  }}
-                />
-              </View>
-            );
-          },
-        },
-      ],
-    },
-    {
-      slug: "navbar",
-      body: [
-        {
-          title: "Кастомізація навігаційної панелі",
-          description: ``,
-          value: USER_CONFIG?.navbar?.isCustomisation || false,
-          button: USER_CONFIG?.navbar?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={text} />
-          ) : (
-            <Icons.ToggleLeft size={34} color={background} />
-          ),
-          onPress: () => {
-            SET_USER_CONFIG({
-              ...USER_CONFIG,
-              navbar: {
-                ...USER_CONFIG?.navbar,
-                isCustomisation: !USER_CONFIG?.navbar?.isCustomisation,
-              },
-            });
-          },
-          body: ({}) => (
-            <>
-              <ScrollView style={styles.bsContainer}>
-                <SliderWidget
-                  title="Закруглення панелі"
-                  value={USER_CONFIG?.navbar?.borderRadius ?? 8}
-                  minimumValue={0}
-                  maximumValue={50}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        borderRadius: value,
-                      },
-                    });
-                  }}
-                />
-                <SliderWidget
-                  title="Відступ панелі"
-                  value={USER_CONFIG?.navbar?.bottomOffset ?? 20}
-                  minimumValue={0}
-                  maximumValue={1000}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        bottomOffset: value,
-                      },
-                    });
-                  }}
-                />
-                <SliderWidget
-                  title="Ширина панелі"
-                  value={USER_CONFIG?.navbar?.width ?? 80}
-                  minimumValue={0}
-                  maximumValue={100}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        width: value,
-                      },
-                    });
-                  }}
-                />
-                <ColorPickerWidget
-                  title="Колір панелі"
-                  value={USER_CONFIG?.navbar?.backgroundColor || background}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        backgroundColor: value.rgba,
-                      },
-                    });
-                  }}
-                />
-                <SettingsItemWidget
-                  title="Блюр панелі"
-                  subtitle="Заблюрення панелі навігації"
-                  onPress={() => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        isBlurBackground: !(
-                          USER_CONFIG?.navbar?.isBlurBackground ?? false
-                        ),
-                      },
-                    });
-                  }}
-                  button={{
-                    Icon: USER_CONFIG?.navbar?.isBlurBackground ? (
-                      <Icons.ToggleRight size={34} color={text} />
-                    ) : (
-                      <Icons.ToggleLeft size={34} color={background} />
-                    ),
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    alignSelf: "center",
-                    paddingTop: 10,
-                  }}
-                >
-                  {USER_CONFIG?.navbar?.isBlurBackground && (
-                    <>
-                      <SliderWidget
-                        title="Заблюрення панелі"
-                        onValueChange={(value) => {
+                });
+              }}
+            />
+          )}
+
+          {/* Розташування панелі - тільки для планшетів */}
+          {isTablet() && (
+            <SettingsItemWidget
+              title="Розташування панелі"
+              subtitle={USER_CONFIG?.navbar?.placedAt || "Внизу"}
+              icon={<Icons.List />}
+              showChevron
+              onPress={() => {
+                navigation.navigate("HiddenStack", {
+                  screen: "ButtonsScreen",
+                  params: {
+                    title: "Виберіть розташування панелі",
+                    Sbutton: true,
+                    isGoBack: true,
+                    value: USER_CONFIG?.navbar?.placedAt || "Внизу",
+                    list: [
+                      {
+                        title: "Внизу",
+                        onPress: () => {
                           SET_USER_CONFIG({
                             ...USER_CONFIG,
                             navbar: {
                               ...USER_CONFIG?.navbar,
-                              blurIntensity: value,
+                              placedAt: "Внизу",
+                              style: "MD3",
                             },
                           });
-                        }}
-                        value={USER_CONFIG?.navbar?.blurIntensity ?? 80}
-                        minimumValue={0}
-                        maximumValue={100}
-                      />
-                      <SliderWidget
-                        title="Коефіцієнт зменшення розмиття"
-                        onValueChange={(value) => {
+                        },
+                      },
+                      {
+                        title: "Праворуч",
+                        onPress: () => {
                           SET_USER_CONFIG({
                             ...USER_CONFIG,
                             navbar: {
                               ...USER_CONFIG?.navbar,
-                              blurReductionFactor: value,
+                              placedAt: "Праворуч",
+                              style: "MD3",
                             },
                           });
-                        }}
-                        value={USER_CONFIG?.navbar?.blurReductionFactor ?? 20}
-                        minimumValue={0}
-                        maximumValue={100}
-                      />
-                    </>
-                  )}
-                  <SettingsItemWidget
-                    title="Скинути налаштування"
-                    button={{
-                      Icon: <Icons.ArrowsClockwise size={34} color={text} />,
-                    }}
-                    onPress={() => {
+                        },
+                      },
+                      {
+                        title: "Ліворуч",
+                        onPress: () => {
+                          SET_USER_CONFIG({
+                            ...USER_CONFIG,
+                            navbar: {
+                              ...USER_CONFIG?.navbar,
+                              placedAt: "Ліворуч",
+                              style: "MD3",
+                            },
+                          });
+                        },
+                      },
+                    ],
+                  },
+                });
+              }}
+            />
+          )}
+
+          {/* Кастомізація навігаційної панелі */}
+          <ToggleSettingWidget
+            title="Кастомізація панелі"
+            subtitle="Налаштувати вигляд панелі"
+            icon={<Icons.Faders />}
+            value={USER_CONFIG?.navbar?.isCustomisation || false}
+            onToggle={() => {
+              const newValue = !USER_CONFIG?.navbar?.isCustomisation;
+              SET_USER_CONFIG({
+                ...USER_CONFIG,
+                navbar: {
+                  ...USER_CONFIG?.navbar,
+                  isCustomisation: newValue,
+                },
+              });
+              if (newValue) setExpandedNavbar(true);
+            }}
+          />
+
+          {/* Налаштування панелі (розгортається) */}
+          {USER_CONFIG?.navbar?.isCustomisation && (
+            <ExpandableSection
+              title="Налаштування панелі"
+              icon={<Icons.Wrench />}
+              expanded={expandedNavbar}
+              onToggle={() => setExpandedNavbar(!expandedNavbar)}
+            >
+              <SliderWidget
+                title="Закруглення"
+                icon={
+                  <Icons.SelectionBackground
+                    size={20}
+                    color={themeColors.primary}
+                  />
+                }
+                value={USER_CONFIG?.navbar?.borderRadius ?? 8}
+                minimumValue={0}
+                maximumValue={50}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: {
+                      ...USER_CONFIG?.navbar,
+                      borderRadius: value,
+                    },
+                  });
+                }}
+              />
+              <SliderWidget
+                title="Відступ знизу"
+                icon={
+                  <Icons.ArrowLineDown size={20} color={themeColors.primary} />
+                }
+                value={USER_CONFIG?.navbar?.bottomOffset ?? 20}
+                minimumValue={0}
+                maximumValue={100}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: {
+                      ...USER_CONFIG?.navbar,
+                      bottomOffset: value,
+                    },
+                  });
+                }}
+              />
+              <SliderWidget
+                title="Ширина панелі"
+                icon={<Icons.ArrowsOut size={20} color={themeColors.primary} />}
+                value={USER_CONFIG?.navbar?.width ?? 80}
+                minimumValue={50}
+                maximumValue={100}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: {
+                      ...USER_CONFIG?.navbar,
+                      width: value,
+                    },
+                  });
+                }}
+              />
+              <ColorPickerWidget
+                title="Колір панелі"
+                icon={<Icons.PaintBucket />}
+                value={
+                  USER_CONFIG?.navbar?.backgroundColor || themeColors.background
+                }
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: {
+                      ...USER_CONFIG?.navbar,
+                      backgroundColor: value.rgba,
+                    },
+                  });
+                }}
+              />
+
+              <ToggleSettingWidget
+                title="Блюр панелі"
+                subtitle="Заблюрення панелі навігації"
+                icon={<Icons.Drop />}
+                value={USER_CONFIG?.navbar?.isBlurBackground ?? false}
+                onToggle={() => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: {
+                      ...USER_CONFIG?.navbar,
+                      isBlurBackground: !USER_CONFIG?.navbar?.isBlurBackground,
+                    },
+                  });
+                }}
+              />
+
+              {USER_CONFIG?.navbar?.isBlurBackground && (
+                <>
+                  <SliderWidget
+                    title="Інтенсивність блюру"
+                    icon={<Icons.Gauge size={20} color={themeColors.primary} />}
+                    value={USER_CONFIG?.navbar?.blurIntensity ?? 80}
+                    minimumValue={0}
+                    maximumValue={100}
+                    onValueChange={(value) => {
                       SET_USER_CONFIG({
                         ...USER_CONFIG,
-                        navbar: { isCustomisation: true },
+                        navbar: {
+                          ...USER_CONFIG?.navbar,
+                          blurIntensity: value,
+                        },
                       });
                     }}
                   />
-                </View>
-              </ScrollView>
-            </>
-          ),
-          // onPressBody: ({ item }) => {
-          //   setSelectedItem(item);
-          // },
-        },
-      ],
-    },
-  ];
-  const TABLET_CUSTOMISATION_SETTINGS = [
-    {
-      slug: "navbar",
-      body: [
-        {
-          title: "Розташування панелі",
-          description: ``,
-          value: USER_CONFIG?.navbar?.placedAt || "Внизу",
-          button: <Icons.CaretDown size={34} color={text} />,
-          onPress: () => {},
-          body: () => {
-            return (
-              <View
-                style={[
-                  styles.bsContainer,
-                  {
-                    width: "100%",
-                  },
-                ]}
-              >
-                <SegmentedControlLabelWidget
-                  segments={[
-                    {
-                      label: "Внизу",
-                    },
-                    {
-                      label: "Праворуч",
-                    },
-                    {
-                      label: "Ліворуч",
-                    },
-                  ]}
-                  value={USER_CONFIG?.navbar?.placedAt || "Внизу"}
-                  onChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      navbar: {
-                        ...USER_CONFIG?.navbar,
-                        placedAt: value,
-                        style: "MD3",
-                      },
-                    });
-                  }}
-                />
-              </View>
-            );
-          },
-        },
-      ],
-    },
-  ];
-  const CROSS_PLATFORM_CUSTOMISATION_SETTINGS = [
-    {
-      slug: "effects",
-      body: [
-        {
-          title: "Сніжинки",
-          description: "Падаючі сніжинки на екрані",
-          value: USER_CONFIG?.effects?.snowflakes || false,
-          button: USER_CONFIG?.effects?.snowflakes ? (
-            <Icons.ToggleRight size={34} color={text} />
-          ) : (
-            <Icons.ToggleLeft size={34} color={background} />
-          ),
-          onPress: () => {
-            SET_USER_CONFIG({
-              ...USER_CONFIG,
-              effects: {
-                ...USER_CONFIG?.effects,
-                snowflakes: !USER_CONFIG?.effects?.snowflakes,
-              },
-            });
-          },
-        },
-      ],
-    },
-    {
-      slug: "colors",
-      body: [
-        {
-          title: "Кастомні кольори",
-          description: ``,
-          value: USER_CONFIG?.colors?.isCustomisation || false,
-          button: USER_CONFIG?.colors?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={text} />
-          ) : (
-            <Icons.ToggleLeft size={34} color={background} />
-          ),
-          onPress: () => {
-            SET_USER_CONFIG({
-              ...USER_CONFIG,
-              colors: {
-                ...USER_CONFIG?.colors,
-                isCustomisation: !USER_CONFIG?.colors?.isCustomisation,
-              },
-            });
-          },
-          body: ({}) => {
-            return (
-              <ScrollView style={styles.bsContainer}>
-                <ColorPickerWidget
-                  title="Основний колір додатка"
-                  value={USER_CONFIG?.colors?.primary || themeColors.primary}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, primary: value.rgba },
-                    });
-                  }}
-                />
-                <ColorPickerWidget
-                  title="Колір для фону"
-                  value={
-                    USER_CONFIG?.colors?.background || themeColors.background
-                  }
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      colors: {
-                        ...USER_CONFIG?.colors,
-                        background: value.rgba,
-                      },
-                    });
-                  }}
-                />
-                <ColorPickerWidget
-                  title="Допоміжний колір"
-                  value={USER_CONFIG?.colors?.subtle || themeColors.subtle}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, subtle: value.rgba },
-                    });
-                  }}
-                />
-                <ColorPickerWidget
-                  title="Колір для тексту"
-                  value={USER_CONFIG?.colors?.text || themeColors.text}
-                  onValueChange={(value) => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      colors: { ...USER_CONFIG?.colors, text: value.rgba },
-                    });
-                  }}
-                />
-                <SettingsItemWidget
-                  title="Скинути налаштування"
-                  onPress={() => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      colors: {
-                        isCustomisation: true,
-                      },
-                    });
-                  }}
-                  button={{
-                    Icon: <Icons.ArrowsClockwise size={34} color={text} />,
-                  }}
-                />
-                <Text style={[H6, { padding: 20, textAlign: "center" }]}>
-                  Можливо буде потрібно перезапуск додатку
-                </Text>
-              </ScrollView>
-            );
-          },
-        },
-      ],
-    },
-    {
-      slug: "background",
-      body: [
-        {
-          title: "Кастомізація фону",
-          description: ``,
-          value: USER_CONFIG?.background?.isCustomisation || false,
-          button: USER_CONFIG?.background?.isCustomisation ? (
-            <Icons.ToggleRight size={34} color={text} />
-          ) : (
-            <Icons.ToggleLeft size={34} color={background} />
-          ),
-          onPress: () => {
-            SET_USER_CONFIG({
-              ...USER_CONFIG,
-              background: {
-                ...USER_CONFIG?.background,
-                isCustomisation: !USER_CONFIG?.background?.isCustomisation,
-              },
-            });
-          },
-          body: ({}) => {
-            const copyBackgroundImage = async (input) => {
-              try {
-                const uri = typeof input === "string" ? input : input?.uri;
-                const name = typeof input === "object" ? input?.name : null;
-                const mimeType =
-                  typeof input === "object" ? input?.mimeType : null;
-                if (!uri) throw new Error("URI is missing");
-
-                // Try to determine extension from name, URI or mimeType
-                let extension = null;
-                if (name && name.includes(".")) {
-                  extension = name.split(".").pop();
-                }
-                if (!extension && typeof uri === "string") {
-                  const uriParts = uri.split(".");
-                  if (uriParts.length > 1) {
-                    extension = uriParts.pop().split("?")[0];
-                  }
-                }
-                if (!extension && mimeType) {
-                  const mimeMap = {
-                    "image/png": "png",
-                    "image/jpeg": "jpg",
-                    "image/jpg": "jpg",
-                    "image/webp": "webp",
-                  };
-                  extension = mimeMap[mimeType] || "png";
-                }
-                const safeExt = extension || "png";
-                const destPath = `${RNFS.DocumentDirectoryPath}/background.${safeExt}`;
-                await RNFS.copyFile(uri, destPath);
-                Logger.info(
-                  "Customisation",
-                  "Зображення скопійовано у внутрішню памʼять",
-                  { destPath }
-                );
-                return destPath;
-              } catch (error) {
-                Logger.error(
-                  "Customisation",
-                  "Помилка копіювання зображення у внутрішню памʼять",
-                  error
-                );
-                return null;
-              }
-            };
-            return (
-              <ScrollView style={styles.bsContainer}>
-                <SettingsItemWidget
-                  title="Зображення на фоні"
-                  subtitle="Фонове зображення додатка"
-                  onPress={() => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      background: {
-                        ...USER_CONFIG?.background,
-                        isImageBackground: !(
-                          USER_CONFIG?.background?.isImageBackground ?? false
-                        ),
-                      },
-                    });
-                  }}
-                  button={{
-                    Icon: USER_CONFIG?.background?.isImageBackground ? (
-                      <Icons.ToggleRight size={34} color={text} />
-                    ) : (
-                      <Icons.ToggleLeft size={34} color={background} />
-                    ),
-                  }}
-                />
-                {USER_CONFIG?.background?.isImageBackground && (
-                  <View style={{ marginTop: 20 }}>
-                    <PhotoPickerWidget
-                      title="Фонове зображення"
-                      subtitle="Фонове зображення додатка"
-                      onPick={async (payload) => {
-                        const uriPath = await copyBackgroundImage(payload);
-                        Logger.debug(
-                          "Customisation",
-                          "Отримано шлях до фонового зображення",
-                          { uriPath }
-                        );
-                        SET_USER_CONFIG({
-                          ...USER_CONFIG,
-                          background: {
-                            ...USER_CONFIG?.background,
-                            image: uriPath,
-                          },
-                        });
-                      }}
-                    />
-                  </View>
-                )}
-                <SettingsItemWidget
-                  title="Блюр фону"
-                  subtitle="Заблюрення фонового зображення"
-                  onPress={() => {
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      background: {
-                        ...USER_CONFIG?.background,
-                        isBlurBackground: !(
-                          USER_CONFIG?.background?.isBlurBackground ?? false
-                        ),
-                      },
-                    });
-                  }}
-                  button={{
-                    Icon: USER_CONFIG?.background?.isBlurBackground ? (
-                      <Icons.ToggleRight size={34} color={text} />
-                    ) : (
-                      <Icons.ToggleLeft size={34} color={background} />
-                    ),
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    alignSelf: "center",
-                    paddingTop: 10,
-                  }}
-                >
-                  {USER_CONFIG?.background?.isBlurBackground && (
-                    <>
-                      <SliderWidget
-                        title="Заблюрення панелі"
-                        onValueChange={(value) => {
-                          SET_USER_CONFIG({
-                            ...USER_CONFIG,
-                            background: {
-                              ...USER_CONFIG?.background,
-                              blurIntensity: value,
-                            },
-                          });
-                        }}
-                        value={USER_CONFIG?.background?.blurIntensity ?? 80}
-                        minimumValue={0}
-                        maximumValue={100}
-                      />
-                      <SliderWidget
-                        title="Коефіцієнт зменшення розмиття"
-                        onValueChange={(value) => {
-                          SET_USER_CONFIG({
-                            ...USER_CONFIG,
-                            background: {
-                              ...USER_CONFIG?.background,
-                              blurReductionFactor: value,
-                            },
-                          });
-                        }}
-                        value={
-                          USER_CONFIG?.background?.blurReductionFactor ?? 80
-                        }
-                        minimumValue={0}
-                        maximumValue={20}
-                      />
-                    </>
-                  )}
-                </View>
-              </ScrollView>
-            );
-          },
-        },
-      ],
-    },
-    {
-      slug: "mainScreen",
-      body: [
-        {
-          title: "Налаштування головного екрану",
-          value: USER_CONFIG?.mainScreen?.isCustomisation || false,
-          button: <Icons.CaretRight size={34} color={text} />,
-          onPress: () => {
-            navigation.navigate("HiddenStack", {
-              screen: "MainScreenCustomisation",
-              params: {
-                userConfig: USER_CONFIG,
-              },
-            });
-          },
-        },
-      ],
-    },
-  ];
-
-  let CUSTOMISATION_SETTINGS = isTablet()
-    ? [
-        ...TABLET_CUSTOMISATION_SETTINGS,
-        ...CROSS_PLATFORM_CUSTOMISATION_SETTINGS,
-      ]
-    : [
-        ...MOBILE_CUSTOMISATION_SETTINGS,
-        ...CROSS_PLATFORM_CUSTOMISATION_SETTINGS,
-      ];
-
-  return (
-    <DefaultScreenWidget>
-      <ScrollView style={{ paddingTop: 20 }}>
-        {CUSTOMISATION_SETTINGS.map((items, index) => (
-          <View key={index} style={{ marginBottom: 0 }}>
-            {items.body.map((item, index) => {
-              const itemKey = `${items.slug || items.title || "group"}-${item.title}-${index}`;
-              const isExpanded = Boolean(item?.value) || expandedItems[itemKey];
-
-              if (!animatedValues.current[itemKey]) {
-                animatedValues.current[itemKey] = new Animated.Value(
-                  isExpanded ? 1 : 0
-                );
-              }
-
-              return (
-                <View key={index}>
-                  <SettingsItemWidget
-                    key={index}
-                    title={item.title}
-                    subtitle={item.description || ""}
-                    button={{ Icon: item.button }}
-                    onPress={() => {
-                      if (item.onPress) {
-                        const nextValue =
-                          typeof item.value === "boolean"
-                            ? !item.value
-                            : undefined;
-                        item.onPress();
-
-                        if (item.body) {
-                          if (typeof nextValue === "boolean") {
-                            setExpandedState(itemKey, nextValue);
-                          } else {
-                            toggleExpanded(itemKey);
-                          }
-                        }
-                      } else if (item.body) {
-                        toggleExpanded(itemKey);
-                      }
+                  <SliderWidget
+                    title="Коефіцієнт зменшення"
+                    icon={
+                      <Icons.Subtract size={20} color={themeColors.primary} />
+                    }
+                    value={USER_CONFIG?.navbar?.blurReductionFactor ?? 20}
+                    minimumValue={0}
+                    maximumValue={100}
+                    onValueChange={(value) => {
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        navbar: {
+                          ...USER_CONFIG?.navbar,
+                          blurReductionFactor: value,
+                        },
+                      });
                     }}
-                    // onPressBody={() => {}}
                   />
+                </>
+              )}
 
-                  {item?.body && (
-                    <Animated.View
-                      style={{
-                        opacity:
-                          animatedValues.current[itemKey]?.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, 1],
-                          }) || 0,
-                        overflow: "hidden",
-                        transform: [
-                          {
-                            translateY:
-                              animatedValues.current[itemKey]?.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [-20, 0],
-                              }) || -20,
-                          },
-                        ],
-                      }}
-                    >
-                      {isExpanded && item.body({})}
-                    </Animated.View>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        ))}
-        <View style={{ height: 150, backgroundColor: "transparent" }} />
+              <SettingsItemWidget
+                title="Скинути налаштування"
+                subtitle="Відновити значення за замовчуванням"
+                icon={<Icons.Trash />}
+                iconColor={themeColors.redBookmark}
+                showChevron
+                onPress={() => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    navbar: { isCustomisation: true },
+                  });
+                }}
+              />
+            </ExpandableSection>
+          )}
+        </SettingsSection>
+
+        {/* Ефекти */}
+        <SettingsSection title="Ефекти">
+          <ToggleSettingWidget
+            title="Сніжинки"
+            subtitle="Падаючі сніжинки на екрані"
+            icon={<Icons.Sparkle />}
+            iconColor={themeColors.primary}
+            value={USER_CONFIG?.effects?.snowflakes || false}
+            onToggle={() => {
+              SET_USER_CONFIG({
+                ...USER_CONFIG,
+                effects: {
+                  ...USER_CONFIG?.effects,
+                  snowflakes: !USER_CONFIG?.effects?.snowflakes,
+                },
+              });
+            }}
+          />
+        </SettingsSection>
+
+        {/* Кольори
+        <SettingsSection title="Кольори">
+          <ToggleSettingWidget
+            title="Кастомні кольори"
+            subtitle="Власна кольорова схема"
+            icon={<Icons.PaintBucket />}
+            value={USER_CONFIG?.colors?.isCustomisation || false}
+            onToggle={() => {
+              const newValue = !USER_CONFIG?.colors?.isCustomisation;
+              SET_USER_CONFIG({
+                ...USER_CONFIG,
+                colors: {
+                  ...USER_CONFIG?.colors,
+                  isCustomisation: newValue,
+                },
+              });
+              if (newValue) setExpandedColors(true);
+            }}
+          />
+
+          {USER_CONFIG?.colors?.isCustomisation && (
+            <ExpandableSection
+              title="Налаштування кольорів"
+              icon={<Icons.Palette />}
+              expanded={expandedColors}
+              onToggle={() => setExpandedColors(!expandedColors)}
+            >
+              <ColorPickerWidget
+                title="Основний колір"
+                icon={<Icons.Hexagon />}
+                value={USER_CONFIG?.colors?.primary || themeColors.primary}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    colors: { ...USER_CONFIG?.colors, primary: value.rgba },
+                  });
+                }}
+              />
+              <ColorPickerWidget
+                title="Колір фону"
+                icon={<Icons.Rectangle />}
+                value={USER_CONFIG?.colors?.background || themeColors.background}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    colors: { ...USER_CONFIG?.colors, background: value.rgba },
+                  });
+                }}
+              />
+              <ColorPickerWidget
+                title="Допоміжний колір"
+                icon={<Icons.SplitVertical />}
+                value={USER_CONFIG?.colors?.subtle || themeColors.subtle}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    colors: { ...USER_CONFIG?.colors, subtle: value.rgba },
+                  });
+                }}
+              />
+              <ColorPickerWidget
+                title="Колір тексту"
+                icon={<Icons.TextT />}
+                value={USER_CONFIG?.colors?.text || themeColors.text}
+                onValueChange={(value) => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    colors: { ...USER_CONFIG?.colors, text: value.rgba },
+                  });
+                }}
+              />
+
+              <SettingsItemWidget
+                title="Скинути кольори"
+                subtitle="Відновити стандартні кольори"
+                icon={<Icons.Trash />}
+                iconColor={themeColors.redBookmark}
+                showChevron
+                onPress={() => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    colors: { isCustomisation: true },
+                  });
+                }}
+              />
+
+              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+                <Text style={[H6, { color: themeColors.inActiveText, textAlign: "center" }]}>
+                  Може знадобитися перезапуск додатку
+                </Text>
+              </View>
+            </ExpandableSection>
+          )}
+        </SettingsSection> */}
+
+        {/* Фон */}
+        <SettingsSection title="Фон">
+          <ToggleSettingWidget
+            title="Кастомізація фону"
+            subtitle="Налаштувати фон додатку"
+            icon={<Icons.Mountains />}
+            value={USER_CONFIG?.background?.isCustomisation || false}
+            onToggle={() => {
+              const newValue = !USER_CONFIG?.background?.isCustomisation;
+              SET_USER_CONFIG({
+                ...USER_CONFIG,
+                background: {
+                  ...USER_CONFIG?.background,
+                  isCustomisation: newValue,
+                },
+              });
+              if (newValue) setExpandedBackground(true);
+            }}
+          />
+
+          {USER_CONFIG?.background?.isCustomisation && (
+            <ExpandableSection
+              title="Налаштування фону"
+              icon={<Icons.Wrench />}
+              expanded={expandedBackground}
+              onToggle={() => setExpandedBackground(!expandedBackground)}
+            >
+              <ToggleSettingWidget
+                title="Зображення на фоні"
+                subtitle="Використовувати власне зображення"
+                icon={<Icons.Image />}
+                value={USER_CONFIG?.background?.isImageBackground || false}
+                onToggle={() => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    background: {
+                      ...USER_CONFIG?.background,
+                      isImageBackground:
+                        !USER_CONFIG?.background?.isImageBackground,
+                    },
+                  });
+                }}
+              />
+
+              {USER_CONFIG?.background?.isImageBackground && (
+                <PhotoPickerWidget
+                  title="Вибрати зображення"
+                  subtitle="Фонове зображення додатка"
+                  icon={<Icons.Folder />}
+                  onPick={async (payload) => {
+                    const uriPath = await copyBackgroundImage(payload);
+                    Logger.debug(
+                      "Customisation",
+                      "Отримано шлях до фонового зображення",
+                      { uriPath }
+                    );
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      background: {
+                        ...USER_CONFIG?.background,
+                        image: uriPath,
+                      },
+                    });
+                  }}
+                />
+              )}
+
+              <ToggleSettingWidget
+                title="Блюр фону"
+                subtitle="Заблюрення фонового зображення"
+                icon={<Icons.Drop />}
+                value={USER_CONFIG?.background?.isBlurBackground || false}
+                onToggle={() => {
+                  SET_USER_CONFIG({
+                    ...USER_CONFIG,
+                    background: {
+                      ...USER_CONFIG?.background,
+                      isBlurBackground:
+                        !USER_CONFIG?.background?.isBlurBackground,
+                    },
+                  });
+                }}
+              />
+
+              {USER_CONFIG?.background?.isBlurBackground && (
+                <>
+                  <SliderWidget
+                    title="Інтенсивність блюру"
+                    icon={<Icons.Gauge size={20} color={themeColors.primary} />}
+                    value={USER_CONFIG?.background?.blurIntensity ?? 80}
+                    minimumValue={0}
+                    maximumValue={100}
+                    onValueChange={(value) => {
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        background: {
+                          ...USER_CONFIG?.background,
+                          blurIntensity: value,
+                        },
+                      });
+                    }}
+                  />
+                  <SliderWidget
+                    title="Коефіцієнт зменшення"
+                    icon={
+                      <Icons.Subtract size={20} color={themeColors.primary} />
+                    }
+                    value={USER_CONFIG?.background?.blurReductionFactor ?? 20}
+                    minimumValue={0}
+                    maximumValue={20}
+                    onValueChange={(value) => {
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        background: {
+                          ...USER_CONFIG?.background,
+                          blurReductionFactor: value,
+                        },
+                      });
+                    }}
+                  />
+                </>
+              )}
+            </ExpandableSection>
+          )}
+        </SettingsSection>
+
+        {/* Головний екран */}
+        <SettingsSection title="Головний екран">
+          <SettingsItemWidget
+            title="Налаштування головного екрану"
+            subtitle="Віджети та порядок відображення"
+            icon={<Icons.House />}
+            showChevron
+            onPress={() => {
+              navigation.navigate("HiddenStack", {
+                screen: "MainScreenCustomisation",
+                params: {
+                  userConfig: USER_CONFIG,
+                },
+              });
+            }}
+          />
+        </SettingsSection>
+
+        {/* Прев'ю навбару */}
+        {USER_CONFIG?.navbar?.isCustomisation && (
+          <View style={{ height: 120 }} />
+        )}
+
+        <View style={{ height: 130 }} />
       </ScrollView>
+
+      {/* Прев'ю кастомної навігаційної панелі */}
       {USER_CONFIG?.navbar?.isCustomisation && (
         <View
           style={{
@@ -817,455 +665,16 @@ export default function СustomisationScreen() {
               index: 0,
               preloadedRouteKeys: [],
               routes: [
-                {
-                  key: "Home",
-                  name: "Home",
-                  params: undefined,
-                },
-                {
-                  key: "Liked",
-                  name: "Liked",
-                  params: undefined,
-                },
-                {
-                  key: "Download",
-                  name: "Download",
-                  params: undefined,
-                },
-                {
-                  key: "Settings",
-                  name: "Settings",
-                  params: undefined,
-                },
-                {
-                  key: "AnimeList",
-                  name: "AnimeList",
-                  params: undefined,
-                },
+                { key: "Home", name: "Home", params: undefined },
+                { key: "Liked", name: "Liked", params: undefined },
+                { key: "Download", name: "Download", params: undefined },
+                { key: "Settings", name: "Settings", params: undefined },
+                { key: "AnimeList", name: "AnimeList", params: undefined },
               ],
             }}
           />
         </View>
       )}
     </DefaultScreenWidget>
-  );
-}
-
-const styles = StyleSheet.create({
-  bsContainer: {
-    width: "100%",
-    backgroundColor: "transparent",
-    marginTop: 8,
-    shadowColor: "#000",
-    paddingHorizontal: 15,
-
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  cacheBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  textContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    width: "70%",
-  },
-  title: {
-    fontWeight: "600",
-  },
-  button: {
-    backgroundColor: primary,
-    borderRadius: 8,
-  },
-  // Стилі для SliderWidget
-  sliderContainer: {
-    backgroundColor: "transparent",
-    width: "100%",
-    borderRadius: 8,
-    padding: 20,
-    marginVertical: 8,
-    borderWidth: 1,
-  },
-  sliderHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  valueContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    backgroundColor: primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  sliderWrapper: {
-    alignItems: "center",
-  },
-  slider: {
-    width: "100%",
-    height: 40,
-  },
-  sliderThumb: {
-    backgroundColor: primary,
-    borderWidth: 3,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  sliderTrack: {
-    height: 6,
-    borderRadius: 3,
-  },
-  rangeLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginTop: 8,
-  },
-  rangeText: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  title: {
-    textAlign: "center",
-    fontFamily: "Quicksand",
-    fontWeight: "bold",
-  },
-  picker: {
-    gap: 20,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  pickerContainer: {
-    alignSelf: "center",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.34,
-    shadowRadius: 6.27,
-
-    elevation: 10,
-  },
-  panelStyle: {
-    borderRadius: 16,
-    width: 190,
-    height: 190,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-
-    elevation: 5,
-  },
-  sliderStyle: {
-    width: 190,
-    height: 190,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-
-    elevation: 5,
-  },
-  sliderVerticalStyle: {
-    borderRadius: 20,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-
-    elevation: 5,
-  },
-  colorPickerContainer: {
-    backgroundColor: "transparent",
-    width: "100%",
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
-    borderWidth: 1,
-  },
-
-  previewStyle: {
-    height: 40,
-    borderRadius: 14,
-  },
-  swatchesContainer: {
-    flexDirection: "column",
-    gap: 20,
-  },
-  swatchStyle: {
-    borderRadius: 20,
-    height: 30,
-    width: 30,
-    margin: 0,
-    marginBottom: 0,
-    marginHorizontal: 0,
-    marginVertical: 0,
-  },
-});
-
-// function getButton(type, specialParams = {}) {
-//   switch (type) {
-//     case "button":
-//       return specialParams
-//         ? {
-//             Icon: <Icons.ToggleRight size={34} color={text} />,
-//           }
-//         : { Icon: <Icons.ToggleLeft size={34} color={background} /> };
-//     case "colorPicker":
-//       return {
-//         Icon: <Icons.Eyedropper size={34} color={specialParams || text} />,
-//       };
-//     case "photoPicker":
-//       return {
-//         Icon: <Icons.Image size={34} color={text} />,
-//       };
-//     case "slider":
-//       return {
-//         Icon: <Icons.SlidersHorizontal size={34} color={text} />,
-//       };
-//     default:
-//       return {
-//         Icon: <Icons.Empty size={34} color={text} />,
-//       };
-//   }
-// }
-
-export function SliderWidget({
-  title,
-  onValueChange = () => {},
-  value = 0,
-  minimumValue = 0,
-  maximumValue = 100,
-}) {
-  let len = title.length;
-  const [sliderValue, setSliderValue] = useState(value);
-
-  // Оновлюємо локальний стан при зміні пропса value
-  useEffect(() => {
-    setSliderValue(value);
-  }, [value]);
-
-  return (
-    <Animated.View style={styles.sliderContainer}>
-      <View style={styles.sliderHeader}>
-        {len > 1 && <Text style={[H4]}>{title}</Text>}
-        <View style={[H4, styles.valueContainer]}>
-          <Text style={[H4]}>{sliderValue}</Text>
-        </View>
-      </View>
-      <View style={styles.sliderWrapper}>
-        <Slider
-          style={styles.slider}
-          minimumValue={minimumValue}
-          maximumValue={maximumValue}
-          step={1}
-          value={sliderValue}
-          minimumTrackTintColor={primary}
-          maximumTrackTintColor={Text(0.2)}
-          thumbStyle={styles.sliderThumb}
-          trackStyle={styles.sliderTrack}
-          onValueChange={(value) => {
-            setSliderValue(value);
-            onValueChange(value);
-          }}
-        />
-        <View style={styles.rangeLabels}>
-          <Text style={H6}>{minimumValue}</Text>
-          <Text style={H6}>{maximumValue}</Text>
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-const customSwatches = new Array(6)
-  .fill("#fff")
-  .map(() => colorKit.randomRgbColor().hex());
-
-export function ColorPickerWidget({
-  title,
-  onValueChange = () => {},
-  onComplete = () => {},
-  value = primary,
-}) {
-  const [pickerColor, setPickerColor] = useState(
-    typeof value === "string" ? value : customSwatches[0]
-  );
-  const [isOpened, setIsOpened] = useState(false);
-  let len = title.length;
-  if (!isOpened) {
-    return (
-      <SettingsItemWidget
-        title={title}
-        subtitle={""}
-        button={{
-          Icon: <Icons.PaintBrush size={34} color={value} />,
-        }}
-        onPress={() => setIsOpened(true)}
-        color={value === primary ? background : primary}
-      />
-    );
-  } else {
-    return (
-      <Animated.View style={styles.colorPickerContainer}>
-        <View style={styles.sliderHeader}>
-          {len > 1 && (
-            <Text style={[H4, { paddingTop: 4, paddingLeft: 9 }]}>{title}</Text>
-          )}
-          <TouchableOpacity
-            style={{
-              marginRight: 8,
-              backgroundColor: "transparent",
-              borderRadius: 8,
-              width: 40,
-              height: 40,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onPress={() => setIsOpened(false)}
-          >
-            <Icons.CaretDown size={34} color={primary} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sliderWrapper}>
-          <ColorPicker
-            value={pickerColor}
-            sliderThickness={25}
-            thumbSize={24}
-            thumbShape="circle"
-            onChange={(c) => {
-              "worklet";
-              const hex = c?.hex ?? pickerColor;
-              runOnJS(setPickerColor)(hex);
-              runOnJS(onValueChange)(c);
-            }}
-            onComplete={(c) => {
-              "worklet";
-              const hex = c?.hex ?? pickerColor;
-              runOnJS(setPickerColor)(hex);
-              runOnJS(onComplete)(c);
-            }}
-            style={styles.picker}
-            boundedThumb
-          >
-            <View style={{ flexDirection: "column", gap: 15 }}>
-              <Panel1 style={styles.panelStyle} />
-              <HueSlider style={styles.sliderStyle} />
-              <OpacitySlider style={styles.sliderStyle} />
-            </View>
-
-            <Swatches
-              style={styles.swatchesContainer}
-              swatchStyle={styles.swatchStyle}
-              colors={customSwatches}
-            />
-          </ColorPicker>
-        </View>
-      </Animated.View>
-    );
-  }
-}
-
-export function PhotoPickerWidget({ title, subtitle, onPick }) {
-  const [image, setImage] = useState(null);
-  let len = title.length;
-
-  const pickImage = async () => {
-    try {
-      let result = await DocumentPicker.getDocumentAsync({
-        type: "image/*",
-        multiple: false,
-        copyToCacheDirectory: true,
-      });
-
-      Logger.debug("Customisation", "Результат вибору зображення", { result });
-
-      const canceled = result?.canceled ?? result?.type === "cancel";
-      if (canceled) {
-        return null;
-      }
-
-      const asset = result?.assets?.[0] || result;
-      const uri = asset?.uri || null;
-      const name = asset?.name || null;
-      const mimeType = asset?.mimeType || null;
-      if (!uri) {
-        Logger.warn(
-          "Customisation",
-          "Не вдалося отримати URI вибраного зображення"
-        );
-        return null;
-      }
-
-      setImage(uri);
-      const payload = { uri, name, mimeType };
-      onPick?.(payload);
-      return payload;
-    } catch (err) {
-      Logger.error("Customisation", "Помилка вибору зображення", err);
-      return null;
-    }
-  };
-
-  return (
-    <TouchableOpacity style={[styles.cacheBox]} activeOpacity={0.9}>
-      <View style={styles.textContainer}>
-        {len > 1 && <Text style={[H5, styles.title]}>{title}</Text>}
-        {subtitle && (
-          <Text style={[H6]} numberOfLines={1}>
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          {
-            width: 40,
-            height: 40,
-            backgroundColor: primary,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        ]}
-        onPress={async () => {
-          const picked = await pickImage();
-          if (!picked) return;
-        }}
-      >
-        <Icons.FilePng size={34} color={text} />
-      </TouchableOpacity>
-    </TouchableOpacity>
   );
 }

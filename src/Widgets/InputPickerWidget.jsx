@@ -174,7 +174,7 @@ export default function InputPickerWidget({
             style={{
               height: 48,
               borderRadius: 10,
-              backgroundColor: colors.subtle,
+              backgroundColor: colors.background,
               paddingHorizontal: 14,
               alignItems: "center",
               flexDirection: "row",

@@ -69,7 +69,7 @@ export default function AppInfoScreen() {
   ];
 
   return (
-    <DefaultScreenWidget>
+    <DefaultScreenWidget isNavBarPadding>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingVertical: 12 }}

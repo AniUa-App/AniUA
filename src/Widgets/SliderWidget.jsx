@@ -66,7 +66,7 @@ export default function SliderWidget({
 
   return (
     <View
-      style={[styles.container, { backgroundColor: colors.subtle }, style]}
+      style={[styles.container, { backgroundColor: colors.background }, style]}
     >
       <Text style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}>
         {label}
@@ -74,7 +74,9 @@ export default function SliderWidget({
 
       <View style={styles.row}>
         <Text style={[H4, { color: colors.text }]}>{internal}</Text>
-        <GestureDetector gesture={Gesture.Simultaneous(panGesture, Gesture.Native())}>
+        <GestureDetector
+          gesture={Gesture.Simultaneous(panGesture, Gesture.Native())}
+        >
           <View style={styles.sliderWrap}>
             <Slider
               minimumValue={min}

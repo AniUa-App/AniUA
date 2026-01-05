@@ -144,7 +144,7 @@ export default {
       name: "Hikka Features",
     },
     moonanime: {
-      url: "",
+      url: "https://t.me/moonanime_ua/",
       name: "Moonanime",
     },
   },

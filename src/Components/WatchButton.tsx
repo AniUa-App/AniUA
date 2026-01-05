@@ -71,19 +71,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 12,
     overflow: "hidden",
+    width: 44,
+    height: 44,
   },
   watchButton: {
     flex: 1,
-    paddingVertical: 12,
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
 
   downloadButton: {
-    paddingHorizontal: 16,
+    width: "18%",
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     borderLeftWidth: 1,
-    paddingVertical: 11,
   },
 });

@@ -82,7 +82,7 @@ function MainTabs() {
     <Tab.Navigator
       tabBarPosition="bottom"
       screenOptions={{
-        swipeEnabled: true,
+        swipeEnabled: false,
         animationEnabled: true,
         lazy: true,
         lazyPreloadDistance: 1,

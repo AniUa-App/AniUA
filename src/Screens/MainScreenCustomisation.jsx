@@ -6,62 +6,48 @@ import {
   Animated,
   Easing,
   ScrollView,
+  StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import React, { useRef, useState, useLayoutEffect } from "react";
+import { useRef, useState, useLayoutEffect, useEffect, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { HikkaSets } from "../Sources/HikkaSets";
-import { useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { useCallback } from "react";
-import { ActivityIndicator } from "react-native";
+import SettingsSection from "../Widgets/SettingsSectionWidget";
+import SettingsItemWidget from "../Widgets/SettingsItemWidget";
+import { useThemeColors } from "../Global/useTheme";
 import { TouchableOpacity } from "../Widgets/Button";
 import Logger from "../Logger/Logger";
-
-import {
-  primary,
-  text,
-  subtle,
-  Background,
-  Subtle,
-  background,
-  Primary,
-  inActiveText,
-  InActiveText,
-} from "../Styles/Colors";
-import { H4 } from "../Styles/Fonts";
+import { H4, H6 } from "../Styles/Fonts";
 import SettingsStorage from "../Storage/SettingsStorage";
-import CustomSet, { test } from "../Sources/CustomSet";
-import SwitchWidget from "../Widgets/SwitchWidget";
 import { EventBus } from "../Global/EventBus";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Icons from "../Styles/Icons";
-import {
-  CustomAnimeListsPreviewScreen,
-  CustomisationAnimeListsScreen,
-} from "./BottomSheetScreens";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { getGenres } from "../Sources/CustomSet";
 import SliderWidget from "../Widgets/SliderWidget";
 import InputPickerWidget from "../Widgets/InputPickerWidget";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import {
+  ToggleSettingWidget,
+  ExpandableSection,
+} from "../Widgets/CustomisationWidgets";
 
 import {
   Statuses,
   Seasons,
   Genres,
   Sort,
-  Rating,
   getPagesAndSizes,
   sendRequest,
 } from "../Sources/CustomSet";
 import { PreviewAnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 
 export default function MainScreenCustomisationScreen() {
+  const themeColors = useThemeColors();
   const [RECOMMENDATIONS, setRecommendations] = useState();
+  const [isPersonalRecExpanded, setIsPersonalRecExpanded] = useState(false);
 
   const RecListRef = useRef(null);
 
-  const [isPersonalRecView, setIsPersonalRecView] = useState(false);
   const [PerRecList, setPerRecList] = useState([]);
   const [value, setValue] = useState(null);
 
@@ -77,12 +63,14 @@ export default function MainScreenCustomisationScreen() {
       newRecommendations
     );
   }
+
   function addList(list) {
     PersonalRecListStorage.newSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
     Logger.debug("MainScreenCustomisation", "Додано новий список", { list });
     EventBus.emit("personalRecListUpdated", list);
   }
+
   function editList(name, list) {
     PersonalRecListStorage.editSettingsList(name, list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
@@ -92,6 +80,7 @@ export default function MainScreenCustomisationScreen() {
     });
     EventBus.emit("personalRecListUpdated", list);
   }
+
   function deleteList(list) {
     PersonalRecListStorage.deleteSettingsList(list);
     setPerRecList(PersonalRecListStorage.getSettingsList());
@@ -117,55 +106,87 @@ export default function MainScreenCustomisationScreen() {
   }
 
   return (
-    <DefaultScreenWidget>
-      <SwitchWidget
-        title="Показувати загальні рекомендації"
-        value={RECOMMENDATIONS?.isEnabled || false}
-        onPress={() => {
-          SET_RECOMMENDATIONS({
-            ...RECOMMENDATIONS,
-            isEnabled: !RECOMMENDATIONS?.isEnabled,
-          });
-        }}
-        onBodyPress={() => {}}
-      />
-      <SwitchWidget
-        title="Показувати вбудований банер"
-        value={RECOMMENDATIONS?.isDefaultBigBanner || false}
-        onPress={() => {
-          SET_RECOMMENDATIONS({
-            ...RECOMMENDATIONS,
-            isDefaultBigBanner: !RECOMMENDATIONS?.isDefaultBigBanner,
-          });
-        }}
-      />
-      <SwitchWidget
-        title="Показувати особисті рекомендації"
-        value={RECOMMENDATIONS?.isCustomedPersonalRecommendations || false}
-        onPress={() => {
-          setIsPersonalRecView(!isPersonalRecView);
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+      <ScrollView
+        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 16 }}
+      >
+        {/* Загальні налаштування */}
+        <SettingsSection title="Загальні">
+          <ToggleSettingWidget
+            title="Загальні рекомендації"
+            subtitle="Показувати рекомендації від системи"
+            icon={<Icons.Star />}
+            iconColor={themeColors.yellow}
+            value={RECOMMENDATIONS?.isEnabled || false}
+            onToggle={() => {
+              SET_RECOMMENDATIONS({
+                ...RECOMMENDATIONS,
+                isEnabled: !RECOMMENDATIONS?.isEnabled,
+              });
+            }}
+          />
+          <ToggleSettingWidget
+            title="Вбудований банер"
+            subtitle="Показувати великий банер зверху"
+            icon={<Icons.Image />}
+            value={RECOMMENDATIONS?.isDefaultBigBanner || false}
+            onToggle={() => {
+              SET_RECOMMENDATIONS({
+                ...RECOMMENDATIONS,
+                isDefaultBigBanner: !RECOMMENDATIONS?.isDefaultBigBanner,
+              });
+            }}
+          />
+        </SettingsSection>
 
-          SET_RECOMMENDATIONS({
-            ...RECOMMENDATIONS,
-            isCustomedPersonalRecommendations:
-              !RECOMMENDATIONS?.isCustomedPersonalRecommendations,
-          });
-        }}
-        onPressBody={() => {
-          setIsPersonalRecView(!isPersonalRecView);
-        }}
-      />
-      {isPersonalRecView && (
-        <PersonalRecList
-          list={PerRecList}
-          onPressAdd={() => {
-            RecListRef.current?.present();
-          }}
-          onPressEdit={(name) => {
-            onPressEdit(name);
-          }}
-        />
-      )}
+        {/* Персональні рекомендації */}
+        <SettingsSection title="Персональні рекомендації">
+          <ToggleSettingWidget
+            title="Особисті рекомендації"
+            subtitle="Власні списки аніме на головному екрані"
+            icon={<Icons.ListPlus />}
+            value={RECOMMENDATIONS?.isCustomedPersonalRecommendations || false}
+            onToggle={() => {
+              const newValue = !RECOMMENDATIONS?.isCustomedPersonalRecommendations;
+              SET_RECOMMENDATIONS({
+                ...RECOMMENDATIONS,
+                isCustomedPersonalRecommendations: newValue,
+              });
+              if (newValue) setIsPersonalRecExpanded(true);
+            }}
+          />
+
+          {RECOMMENDATIONS?.isCustomedPersonalRecommendations && (
+            <ExpandableSection
+              title="Керування списками"
+              icon={<Icons.List />}
+              expanded={isPersonalRecExpanded}
+              onToggle={() => setIsPersonalRecExpanded(!isPersonalRecExpanded)}
+            >
+              <PersonalRecList
+                list={PerRecList}
+                onPressAdd={() => {
+                  setValue(null);
+                  RecListRef.current?.present();
+                }}
+                onPressEdit={(name) => {
+                  onPressEdit(name);
+                }}
+                onPressClear={() => {
+                  PersonalRecListStorage.clearStorage();
+                  setPerRecList([]);
+                  EventBus.emit("personalRecListUpdated");
+                }}
+              />
+            </ExpandableSection>
+          )}
+        </SettingsSection>
+
+        <View style={{ height: 130 }} />
+      </ScrollView>
+
       <PersonalRecListFilter
         sheetRef={RecListRef}
         value={value}
@@ -217,7 +238,9 @@ function PersonalRecList({
   list = [],
   onPressAdd = () => {},
   onPressEdit = () => {},
+  onPressClear = () => {},
 }) {
+  const themeColors = useThemeColors();
   const [personalRecList, setPersonalRecList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
@@ -253,61 +276,57 @@ function PersonalRecList({
   }, [personalRecList]);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 16 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          padding: 8,
-          paddingTop: 0,
-          gap: 8,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            PersonalRecListStorage.clearStorage();
-            setPersonalRecList([]);
-            EventBus.emit("personalRecListUpdated");
-          }}
-          style={{
-            width: 44,
-            height: 44,
-            backgroundColor: primary,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icons.Trash size={24} color={text} />
-        </TouchableOpacity>
-        <TouchableOpacity
+    <View style={{ paddingTop: 8 }}>
+      {/* Кнопки керування */}
+      <View style={styles.actionButtons}>
+        <SettingsItemWidget
+          title="Очистити всі"
+          subtitle="Видалити всі списки"
+          icon={<Icons.Trash />}
+          iconColor={themeColors.redBookmark}
+          showChevron
+          onPress={onPressClear}
+        />
+        <SettingsItemWidget
+          title="Додати список"
+          subtitle="Створити новий список аніме"
+          icon={<Icons.Plus />}
+          iconColor={themeColors.primary}
+          showChevron
           onPress={onPressAdd}
-          style={{
-            width: 44,
-            height: 44,
-            backgroundColor: primary,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icons.Plus size={24} color={text} />
-        </TouchableOpacity>
+        />
       </View>
-      {loading && <ActivityIndicator size="large" color={primary} />}
+
+      {/* Завантаження */}
+      {loading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={themeColors.primary} />
+        </View>
+      )}
+
+      {/* Списки аніме */}
       {!loading &&
         loadedAnimeLists?.map((anime, index) => (
-          <PreviewAnimeListHorizontal
-            key={`${anime.name}-${index}`}
-            animeList={anime.animeList}
-            title={anime.name}
-            onPress={() => {
-              onPressEdit?.(anime.name);
-            }}
-          />
+          <View key={`${anime.name}-${index}`} style={{ marginTop: 16 }}>
+            <PreviewAnimeListHorizontal
+              animeList={anime.animeList}
+              title={anime.name}
+              onPress={() => {
+                onPressEdit?.(anime.name);
+              }}
+            />
+          </View>
         ))}
-      <View style={{ height: 100 }} />
-    </ScrollView>
+
+      {!loading && loadedAnimeLists.length === 0 && (
+        <View style={styles.emptyState}>
+          <Icons.ListDashes size={48} color={themeColors.inActiveText} />
+          <Text style={[H6, { color: themeColors.inActiveText, marginTop: 8 }]}>
+            Списків ще немає
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -318,6 +337,7 @@ export function PersonalRecListFilter({
   sheetRef,
   value = {},
 }) {
+  const themeColors = useThemeColors();
   const [LoadedGenres, setLoadedGenres] = useState([]);
 
   const [status, setStatus] = useState("Анонс");
@@ -327,12 +347,13 @@ export function PersonalRecListFilter({
   const [genres, setGenres] = useState([]);
   const [animeListName, setAnimeListName] = useState("");
 
-  // Track initial snapshot for edit mode to detect changes
   const [initialSnapshot, setInitialSnapshot] = useState(null);
-  const isEditMode = React.useMemo(() => {
+
+  const isEditMode = useMemo(() => {
     return value && Object.keys(value || {}).length > 0;
   }, [value]);
-  const hasChanges = React.useMemo(() => {
+
+  const hasChanges = useMemo(() => {
     if (!isEditMode || !initialSnapshot) return false;
     const isEqualArray = (a = [], b = []) =>
       a.length === b.length && a.every((v, i) => v === b[i]);
@@ -400,14 +421,14 @@ export function PersonalRecListFilter({
     if (value) {
       const name = value.name ?? "";
       const st = Object.keys(Statuses).find(
-        (key) => Statuses[key] === value.animeSet.Statuses
+        (key) => Statuses[key] === value.animeSet?.Statuses
       );
       const ss = Object.keys(Seasons).find(
-        (key) => Seasons[key] === value.animeSet.Seasons
+        (key) => Seasons[key] === value.animeSet?.Seasons
       );
-      const yrs = value.animeSet.Years ?? [2000, new Date().getFullYear()];
-      const scr = value.animeSet.Score?.[0] ?? 5;
-      const genreNames = (value.animeSet.Genres || [])
+      const yrs = value.animeSet?.Years ?? [2000, new Date().getFullYear()];
+      const scr = value.animeSet?.Score?.[0] ?? 5;
+      const genreNames = (value.animeSet?.Genres || [])
         .map((genreSlug) =>
           Object.keys(Genres).find((key) => Genres[key] === genreSlug)
         )
@@ -429,6 +450,12 @@ export function PersonalRecListFilter({
         genres: genreNames,
       });
     } else {
+      setAnimeListName("");
+      setStatus("Анонс");
+      setSeasons("Зима");
+      setYears([2000, new Date().getFullYear()]);
+      setScore(5);
+      setGenres([]);
       setInitialSnapshot(null);
     }
   }, [value]);
@@ -436,11 +463,11 @@ export function PersonalRecListFilter({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={["60%"]}
+      snapPoints={["65%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Subtle(0.8) }}
-      handleIndicatorStyle={{ backgroundColor: background }}
+      backgroundStyle={{ backgroundColor: themeColors.subtle }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.background }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -457,22 +484,32 @@ export function PersonalRecListFilter({
         showsVerticalScrollIndicator={false}
       >
         <View style={{ flex: 1, paddingBottom: 100 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              paddingHorizontal: 16,
-              marginBottom: 16,
-              gap: 30,
-            }}
-          >
-            <TextInputWidget
-              style={{ width: "80%" }}
-              placeholder="Назва"
-              title={animeListName}
-              onChangeText={(text) => {
-                setAnimeListName(text);
-              }}
-            />
+          {/* Заголовок */}
+          <View style={styles.sheetHeader}>
+            <Text style={[H4, { color: themeColors.text, fontWeight: "bold" }]}>
+              {isEditMode ? "Редагувати список" : "Новий список"}
+            </Text>
+          </View>
+
+          {/* Назва списку */}
+          <View style={styles.inputRow}>
+            <View style={styles.inputContainer}>
+              <Icons.TextT size={20} color={themeColors.inActiveText} />
+              <TextInput
+                value={animeListName}
+                onChangeText={setAnimeListName}
+                placeholder="Назва списку"
+                placeholderTextColor={themeColors.inActiveText}
+                style={[
+                  H4,
+                  {
+                    flex: 1,
+                    color: themeColors.text,
+                    marginLeft: 12,
+                  },
+                ]}
+              />
+            </View>
             <TouchableOpacity
               onPress={() => {
                 if (isEditMode) {
@@ -489,35 +526,30 @@ export function PersonalRecListFilter({
                   }
                 }
               }}
-              style={{
-                width: 44,
-                height: 44,
-                backgroundColor: primary,
-                borderRadius: 8,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={[
+                styles.actionButton,
+                { backgroundColor: themeColors.primary },
+              ]}
             >
               {isEditMode ? (
                 hasChanges ? (
-                  <Icons.Check size={24} color={text} />
+                  <Icons.Check size={24} color={themeColors.text} />
                 ) : (
-                  <Icons.Trash size={24} color={text} />
+                  <Icons.Trash size={24} color={themeColors.text} />
                 )
               ) : animeListName.length > 0 ? (
-                <Icons.Check size={24} color={text} />
+                <Icons.Check size={24} color={themeColors.text} />
               ) : (
-                <Icons.X size={24} color={text} />
+                <Icons.X size={24} color={themeColors.text} />
               )}
             </TouchableOpacity>
           </View>
-          <View
-            style={{
-              paddingHorizontal: 16,
-              gap: 16,
-              alignItems: "center",
-            }}
-          >
+
+          {/* Фільтри */}
+          <View style={styles.filtersContainer}>
+            <Text style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}>
+              Статус
+            </Text>
             <SegmentedControlLabelWidget
               segments={[
                 { label: "Анонс" },
@@ -530,6 +562,10 @@ export function PersonalRecListFilter({
                 setStatus(item?.label ?? item);
               }}
             />
+
+            <Text style={[H6, { color: themeColors.inActiveText, marginTop: 16, marginBottom: 8 }]}>
+              Сезон
+            </Text>
             <SegmentedControlLabelWidget
               segments={[
                 { label: "Зима" },
@@ -543,6 +579,10 @@ export function PersonalRecListFilter({
                 setSeasons(item?.label ?? item);
               }}
             />
+
+            <Text style={[H6, { color: themeColors.inActiveText, marginTop: 16, marginBottom: 8 }]}>
+              Жанри
+            </Text>
             <InputPickerWidget
               items={LoadedGenres}
               placeholder="Виберіть жанр/жанри..."
@@ -551,24 +591,26 @@ export function PersonalRecListFilter({
                 setGenres(item);
               }}
             />
+
             <SliderWidget
-              label="Рік"
+              label="Рік від"
               min={2000}
               max={2025}
               value={years[0]}
               defaultValue={2005}
-              style={{}}
+              style={{ marginTop: 16 }}
               onChange={(item) => {
                 setYears([item, new Date().getFullYear()]);
               }}
             />
+
             <SliderWidget
-              label="Оцінка"
+              label="Мінімальна оцінка"
               min={0}
               max={10}
               value={score}
               defaultValue={5}
-              style={{}}
+              style={{ marginTop: 8 }}
               onChange={(item) => {
                 setScore(item);
               }}
@@ -581,124 +623,48 @@ export function PersonalRecListFilter({
 }
 
 const styles = StyleSheet.create({
-  segmentContainer: {
-    flexDirection: "row",
-    gap: 12,
-    borderRadius: 8,
-    padding: 4,
-    alignSelf: "center",
-    position: "relative",
-  },
-  segmentButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  segmentButtonActive: {
-    backgroundColor: primary,
-  },
-  segmentIndicator: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    backgroundColor: primary,
-    borderRadius: 8,
+  actionButtons: {
+    gap: 2,
   },
   loaderContainer: {
-    flex: 1,
+    paddingVertical: 32,
     alignItems: "center",
     justifyContent: "center",
   },
+  emptyState: {
+    paddingVertical: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    alignItems: "center",
+  },
+  inputRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    gap: 12,
+    alignItems: "center",
+  },
+  inputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  actionButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filtersContainer: {
+    paddingHorizontal: 16,
+  },
 });
-
-export function TabWidget({ segments, onSelect = () => {}, style }) {
-  const [activeSegment, setActiveSegment] = useState(segments[0]);
-  const [layouts, setLayouts] = useState({});
-  const translateX = useRef(new Animated.Value(0)).current;
-  const indicatorWidth = useRef(new Animated.Value(0)).current;
-
-  const animateTo = (label) => {
-    const layout = layouts[label];
-    if (!layout) return;
-    Animated.parallel([
-      Animated.timing(translateX, {
-        toValue: layout.x,
-        duration: 220,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }),
-      Animated.timing(indicatorWidth, {
-        toValue: layout.width,
-        duration: 220,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }),
-    ]).start();
-  };
-
-  React.useEffect(() => {
-    if (layouts[activeSegment]) {
-      animateTo(activeSegment);
-    }
-  }, [activeSegment, layouts]);
-
-  return (
-    <View style={[styles.segmentContainer, style]}>
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.segmentIndicator,
-          { width: indicatorWidth, transform: [{ translateX }] },
-        ]}
-      />
-      {segments.map((label) => {
-        const isActive = activeSegment === label;
-        return (
-          <TouchableOpacity
-            key={label}
-            onLayout={(e) => {
-              const { x, width } = e.nativeEvent.layout;
-              setLayouts((prev) => ({ ...prev, [label]: { x, width } }));
-            }}
-            onPress={() => {
-              setActiveSegment(label);
-              onSelect(label);
-            }}
-            style={[styles.segmentButton, {}]}
-          >
-            <Text style={[H4, { color: isActive ? text : Text(0.8) }]}>
-              {label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
-export function TextInputWidget({
-  title = "",
-  onChangeText = () => {},
-  placeholder = "Назва",
-  style,
-}) {
-  return (
-    <View style={[style]}>
-      <TextInput
-        value={title}
-        onChangeText={(text) => {
-          onChangeText(text);
-        }}
-        placeholder={placeholder}
-        placeholderTextColor={inActiveText}
-        style={{
-          height: 45,
-          width: "100%",
-          paddingHorizontal: 16,
-          backgroundColor: Subtle(1),
-          borderRadius: 8,
-        }}
-      />
-    </View>
-  );
-}

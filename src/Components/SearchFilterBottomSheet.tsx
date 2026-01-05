@@ -81,7 +81,6 @@ export default function SearchFilterBottomSheet({
           activeOpacity={1}
           style={{
             ...props.style,
-            backgroundColor: "rgba(0,0,0,0.5)",
           }}
         />
       )}
@@ -132,7 +131,7 @@ export default function SearchFilterBottomSheet({
             ]}
             value={status}
             onChange={(item: { label: string } | string) =>
-              setStatus(typeof item === "string" ? item : item?.label ?? "")
+              setStatus(typeof item === "string" ? item : (item?.label ?? ""))
             }
           />
 
@@ -148,7 +147,7 @@ export default function SearchFilterBottomSheet({
             ]}
             value={seasons}
             onChange={(item: { label: string } | string) =>
-              setSeasons(typeof item === "string" ? item : item?.label ?? "")
+              setSeasons(typeof item === "string" ? item : (item?.label ?? ""))
             }
           />
 
@@ -169,7 +168,9 @@ export default function SearchFilterBottomSheet({
             value={years[0]}
             defaultValue={2000}
             style={styles.slider}
-            onChange={(item: number) => setYears([item, new Date().getFullYear()])}
+            onChange={(item: number) =>
+              setYears([item, new Date().getFullYear()])
+            }
           />
 
           {/* Оцінка */}

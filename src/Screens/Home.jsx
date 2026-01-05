@@ -77,7 +77,7 @@ export default function HomeScreen() {
           tabBar={(props) => (
             <View
               style={{
-                marginTop: insets.top,
+                marginTop: 8,
                 backgroundColor: "transparent",
                 zIndex: 2,
                 position: "absolute",
@@ -88,7 +88,7 @@ export default function HomeScreen() {
             </View>
           )}
           screenOptions={{
-            swipeEnabled: true,
+            swipeEnabled: false,
             animationEnabled: true,
             lazy: true,
           }}
@@ -199,46 +199,48 @@ function AnimeTabContent() {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      showsVerticalScrollIndicator={false}
-    >
-      {recommendations?.isDefaultBigBanner === true && (
-        <View style={{ marginTop: insets.top + 44 }}>
-          <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
-        </View>
-      )}
-      {isLoading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            paddingBottom: 50,
-            width: "95%",
-            alignSelf: "center",
-            marginTop: recommendations?.isDefaultBigBanner ? -20 : 0,
-            zIndex: 10,
-          }}
-        >
-          {recommendations?.isCustomedPersonalRecommendations && (
-            <CustomPersonalRecList />
-          )}
-          {recommendations?.isEnabled && (
-            <>
-              <OngoingAnimeList />
-              <PopularAnimeList />
-              <RomanceAnimeList />
-              <ActionAnimeList />
-              <SciFiAnimeList />
-            </>
-          )}
-        </View>
-      )}
-      <View style={{ height: 40 }} />
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 50,
+        }}
+      >
+        {recommendations?.isDefaultBigBanner === true && (
+          <View style={{ marginTop: insets.top + 24 }}>
+            <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
+          </View>
+        )}
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              width: "95%",
+              alignSelf: "center",
+            }}
+          >
+            {recommendations?.isCustomedPersonalRecommendations && (
+              <CustomPersonalRecList />
+            )}
+            {recommendations?.isEnabled && (
+              <>
+                <OngoingAnimeList />
+                <PopularAnimeList />
+                <RomanceAnimeList />
+                <ActionAnimeList />
+                <SciFiAnimeList />
+              </>
+            )}
+          </View>
+        )}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
   );
 }
 

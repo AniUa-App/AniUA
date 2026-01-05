@@ -1,9 +1,9 @@
-import { View, Text, ScrollView, Linking, StatusBar } from "react-native";
-import React, { useState, useEffect } from "react";
+import { View, ScrollView, Linking, StatusBar } from "react-native";
+import React, { useState } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
-import Icons, { AppIcon, TelegramIcon } from "../Styles/Icons";
-import Icon from "../Styles/Icons";
+import SettingsSection from "../Widgets/SettingsSectionWidget";
+import Icons, { AppIcon } from "../Styles/Icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
 import ExpandableNotification from "../Widgets/ExpandableNotification";
@@ -13,7 +13,6 @@ import * as FileSystem from "expo-file-system";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import AnimeStorage from "../Storage/AnimeStorage";
-import { playersIcons } from "../Widgets/DubbingBottomSheetWidget";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
 import Api from "../Api/api";
@@ -52,7 +51,6 @@ export default function SettingsScreen() {
 
   const clearCache = async () => {
     try {
-      // Очищаємо MMKV storage
       AnimeHashStorage.clearHash();
       AnimeStorage.clearStorage();
       PersonalRecListStorage.clearStorage();
@@ -66,7 +64,6 @@ export default function SettingsScreen() {
       }
       SettingsStorage.setParameter("isNotFirstLaunch", false);
 
-      // Очищаємо файли епізодів
       const episodesPath = SettingsStorage.getParameter("pathToSaveEpisodes");
       const userConfig = SettingsStorage.getParameter("userConfig");
       const mainScreenConfig = SettingsStorage.getParameter("mainScreenConfig");
@@ -93,195 +90,14 @@ export default function SettingsScreen() {
     }
   };
 
-  const SETTINGS_ITEMS = [
-    {
-      title: "Кешовані данні",
-      subtitle: "Завантажені серії та збережені аніме.",
-      button: {
-        Text: "Видалити",
-      },
-      onPress: () => {
-        showConfirmation(
-          "Ви впевнені, що хочете видалити всі кешовані дані?",
-          clearCache
-        );
-        setTimeout(() => {
-          Expo.reloadAppAsync();
-        }, 3000);
-      },
-    },
-    {
-      title: "Плеєр за замовчуванням",
-      subtitle: `${
-        SettingsStorage.getParameter("defaultPlayer")
-          ? SettingsStorage.getParameter("defaultPlayer")
-          : "не вибрано"
-      } є за замовчуванням`,
-      button: {
-        Text: "Вибрати",
-      },
-      onPress: () => {
-        navigation.navigate("HiddenStack", {
-          screen: "ButtonsScreen",
-          params: {
-            title: "Виберіть плеєр за замовчуванням.",
-            Sbutton: true,
-            isGoBack: true,
-            value: SettingsStorage.getParameter("defaultPlayer"),
-            list: MainConfig.players.map((player) => ({
-              title: player.slice(0, 10),
-
-              onPress: () => {
-                SettingsStorage.setParameter("defaultPlayer", player);
-                showNotification(
-                  `Плеєр ${player} за замовчуванням успішно вибрано.`
-                );
-              },
-            })),
-          },
-        });
-      },
-    },
-    {
-      title: "Підтримка",
-      subtitle: "Зворотний зв'язок з розробниками.",
-      button: {
-        Text: "Відкрити",
-      },
-      onPress: () => {
-        Linking.openURL(MainConfig.urls.supportTelegramBotUrl);
-      },
-    },
-
-    {
-      title: "Оцінити застосунок",
-      subtitle: "Допоможіть нам стати кращими.",
-      button: {
-        Text: "Оцінити",
-      },
-      onPress: () => {
-        setIsRatingVisible(true);
-      },
-    },
-    {
-      title: "Партнери",
-      subtitle: "Всі партнери додатку (дуже вдячний).",
-      button: {
-        Text: "Дивитись",
-      },
-      onPress: () => {
-        // Збираємо партнерів з MainConfig.partners
-        const partnersList = Object.values(MainConfig.partners).map(
-          (partner) => ({
-            title: partner.name,
-            onPress: () => {
-              Linking.openURL(partner.url);
-            },
-          })
-        );
-
-        // Збираємо студії озвучення з MainConfig.partnerStudios (без дублікатів)
-        const seenUrls = new Set();
-        const partnerStudiosArray = MainConfig.partnerStudios || [];
-        const studiosList = partnerStudiosArray
-          .filter((team) => {
-            if (!team.telegram) return false;
-            if (seenUrls.has(team.telegram)) return false;
-            seenUrls.add(team.telegram);
-            return true;
-          })
-          .map((team) => ({
-            title: team.name,
-            onPress: () => {
-              Linking.openURL(team.telegram);
-            },
-          }));
-
-        navigation.navigate("HiddenStack", {
-          screen: "ButtonsScreen",
-          params: {
-            title: "Наші партнери.",
-            list: [...partnersList, ...studiosList],
-            buttonStyle: {
-              minWidth: "20%",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: themeColors.primary,
-              borderRadius: 8,
-              padding: 10,
-              minHeight: 50,
-            },
-          },
-        });
-      },
-    },
-    {
-      title: "Донат",
-      subtitle: "Ви можете зробити пожертву.",
-      button: {
-        Text: "Відкрити",
-      },
-      onPress: () => {
-        Linking.openURL(`${MainConfig.urls.donateUrl}?amount=40`);
-      },
-    },
-    {
-      title: "Посилання на сайт",
-      subtitle: "Інша інформація про додаток.",
-      button: {
-        Icon: <AppIcon styles={{ width: 41, height: 41 }} />,
-      },
-      onPress: () => {
-        Linking.openURL(MainConfig.urls.appUrl);
-      },
-    },
-    {
-      title: "Новини",
-      subtitle: "У телеграм каналі ви знайдете новини.",
-      button: {
-        Icon: <Icon.TelegramLogo size={41} color={themeColors.text} />,
-      },
-      onPress: () => {
-        Linking.openURL(MainConfig.urls.telegramChannelUrl);
-      },
-    },
-    {
-      title: "Кастомізація",
-      subtitle: "Налаштування вигляду додатку.",
-      button: {
-        Icon: <Icons.PaintBrushBroad size={40} color={themeColors.text} />,
-      },
-      onPress: () => {
-        navigation.navigate("HiddenStack", {
-          screen: "CustomisationScreen",
-          params: {
-            title: "Кастомізація",
-          },
-        });
-      },
-    },
-    {
-      title: "Інформація про застосунок",
-      subtitle: "Версія, хеш та ін.",
-      button: {
-        Icon: <Icons.Info size={38} color={themeColors.text} />,
-      },
-      onPress: () => {
-        navigation.navigate("HiddenStack", {
-          screen: "AppInfo",
-          params: {
-            title: "Інформація про застосунок",
-          },
-        });
-      },
-    },
-  ];
+  const defaultPlayer = SettingsStorage.getParameter("defaultPlayer");
 
   return (
     <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
       <ScrollView
         style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 16 }}
       >
         <ExpandableNotification
           visible={notification.visible}
@@ -312,15 +128,196 @@ export default function SettingsScreen() {
             setIsRatingVisible(false);
           }}
         />
-        {SETTINGS_ITEMS.map((item, index) => (
+
+        {/* Загальні налаштування */}
+        <SettingsSection title="Загальні">
           <SettingsItemWidget
-            key={index}
-            title={item.title}
-            subtitle={item.subtitle}
-            button={item.button}
-            onPress={item.onPress}
+            title="Плеєр за замовчуванням"
+            subtitle={defaultPlayer || "Не вибрано"}
+            icon={<Icons.Play />}
+            showChevron
+            onPress={() => {
+              navigation.navigate("HiddenStack", {
+                screen: "ButtonsScreen",
+                params: {
+                  title: "Виберіть плеєр за замовчуванням.",
+                  Sbutton: true,
+                  isGoBack: true,
+                  value: defaultPlayer,
+                  list: MainConfig.players.map((player) => ({
+                    title: player.slice(0, 10),
+                    onPress: () => {
+                      SettingsStorage.setParameter("defaultPlayer", player);
+                      showNotification(
+                        `Плеєр ${player} за замовчуванням успішно вибрано.`
+                      );
+                    },
+                  })),
+                },
+              });
+            }}
           />
-        ))}
+          <SettingsItemWidget
+            title="Очистити кеш"
+            subtitle="Завантажені серії та збережені аніме"
+            icon={<Icons.Trash />}
+            iconColor={themeColors.redBookmark}
+            showChevron
+            onPress={() => {
+              showConfirmation(
+                "Ви впевнені, що хочете видалити всі кешовані дані?",
+                () => {
+                  clearCache();
+                  setTimeout(() => {
+                    Expo.reloadAppAsync();
+                  }, 3000);
+                }
+              );
+            }}
+          />
+        </SettingsSection>
+
+        {/* Зовнішній вигляд */}
+        <SettingsSection title="Зовнішній вигляд">
+          <SettingsItemWidget
+            title="Кастомізація"
+            subtitle="Налаштування вигляду додатку"
+            icon={<Icons.PaintBrush />}
+            showChevron
+            onPress={() => {
+              navigation.navigate("HiddenStack", {
+                screen: "CustomisationScreen",
+                params: {
+                  title: "Кастомізація",
+                },
+              });
+            }}
+          />
+        </SettingsSection>
+
+        {/* Про додаток */}
+        <SettingsSection title="Про додаток">
+          <SettingsItemWidget
+            title="Інформація"
+            subtitle="Версія, хеш та інше"
+            icon={<Icons.Info />}
+            showChevron
+            onPress={() => {
+              navigation.navigate("HiddenStack", {
+                screen: "AppInfo",
+                params: {
+                  title: "Інформація про застосунок",
+                },
+              });
+            }}
+          />
+          <SettingsItemWidget
+            title="Партнери"
+            subtitle="Студії озвучення та спонсори"
+            icon={<Icons.Handshake />}
+            showChevron
+            onPress={() => {
+              const partnersList = Object.values(MainConfig.partners).map(
+                (partner) => ({
+                  title: partner.name,
+                  onPress: () => {
+                    Linking.openURL(partner.url);
+                  },
+                })
+              );
+
+              const seenUrls = new Set();
+              const partnerStudiosArray = MainConfig.partnerStudios || [];
+              const studiosList = partnerStudiosArray
+                .filter((team) => {
+                  if (!team.telegram) return false;
+                  if (seenUrls.has(team.telegram)) return false;
+                  seenUrls.add(team.telegram);
+                  return true;
+                })
+                .map((team) => ({
+                  title: team.name,
+                  onPress: () => {
+                    Linking.openURL(team.telegram);
+                  },
+                }));
+
+              navigation.navigate("HiddenStack", {
+                screen: "ButtonsScreen",
+                params: {
+                  title: "Наші партнери.",
+                  list: [...partnersList, ...studiosList],
+                  buttonStyle: {
+                    minWidth: "20%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: themeColors.primary,
+                    borderRadius: 8,
+                    padding: 10,
+                    minHeight: 50,
+                  },
+                },
+              });
+            }}
+          />
+        </SettingsSection>
+
+        {/* Зв'язок */}
+        <SettingsSection title="Зв'язок">
+          <SettingsItemWidget
+            title="Новини"
+            subtitle="Telegram канал з оновленнями"
+            icon={<Icons.TelegramLogo />}
+            iconColor="#0088cc"
+            showChevron
+            onPress={() => {
+              Linking.openURL(MainConfig.urls.telegramChannelUrl);
+            }}
+          />
+          <SettingsItemWidget
+            title="Підтримка"
+            subtitle="Зворотний зв'язок з розробниками"
+            icon={<Icons.ChatCircle />}
+            showChevron
+            onPress={() => {
+              Linking.openURL(MainConfig.urls.supportTelegramBotUrl);
+            }}
+          />
+          <SettingsItemWidget
+            title="Веб-сайт"
+            subtitle="Офіційний сайт AniUA"
+            icon={<Icons.Globe />}
+            showChevron
+            onPress={() => {
+              Linking.openURL(MainConfig.urls.appUrl);
+            }}
+          />
+        </SettingsSection>
+
+        {/* Підтримати проєкт */}
+        <SettingsSection title="Підтримати проєкт">
+          <SettingsItemWidget
+            title="Оцінити застосунок"
+            subtitle="Допоможіть нам стати кращими"
+            icon={<Icons.Star />}
+            iconColor={themeColors.yellow}
+            showChevron
+            onPress={() => {
+              setIsRatingVisible(true);
+            }}
+          />
+          <SettingsItemWidget
+            title="Донат"
+            subtitle="Підтримати розробку фінансово"
+            icon={<Icons.Heart />}
+            iconColor={themeColors.redBookmark}
+            showChevron
+            onPress={() => {
+              Linking.openURL(`${MainConfig.urls.donateUrl}?amount=40`);
+            }}
+          />
+        </SettingsSection>
+
         <View style={{ height: 130 }} />
       </ScrollView>
     </DefaultScreenWidget>

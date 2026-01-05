@@ -16,7 +16,7 @@ export default function DefaultScreenWidget({
   children,
   isCheckInternet = true,
   isConnection,
-  isNavBarPadding = false,
+  isNavBarPadding = true,
 }) {
   const isTL = useIsTabletLandscape();
   const themeColors = useThemeColors();

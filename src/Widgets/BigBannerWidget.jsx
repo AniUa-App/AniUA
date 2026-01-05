@@ -1,11 +1,16 @@
-import React, { useEffect, useCallback, useRef } from "react";
-import { View, StyleSheet, useWindowDimensions, Text } from "react-native";
-import { TouchableOpacity } from "./Button";
+import React, { useEffect, useCallback, useRef, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  useWindowDimensions,
+  Text,
+  Pressable,
+  FlatList,
+} from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import BloomImage, { prefetchBloomImage } from "./BloomImage";
 import { AniuaApi } from "../Sources/AniuaApi";
-import Carousel from "react-native-reanimated-carousel";
 import FastImage from "react-native-fast-image";
 import Animated, {
   useSharedValue,
@@ -13,10 +18,11 @@ import Animated, {
   interpolate,
   interpolateColor,
   Extrapolation,
+  withTiming,
 } from "react-native-reanimated";
 import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
-import { H2, H1, H3, H4 } from "../Styles/Fonts";
+import { H2, H4 } from "../Styles/Fonts";
 
 const CARD_BORDER_RADIUS = 20;
 
@@ -52,9 +58,9 @@ const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
   }, [index, total, themeColors]);
 
   return (
-    <TouchableOpacity onPress={() => onPress?.(index)} activeOpacity={0.7}>
+    <Pressable onPress={() => onPress?.(index)}>
       <Animated.View style={[styles.paginationDot, animatedStyle]} />
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
@@ -80,9 +86,12 @@ const Mobile = React.memo(({ animes }) => {
   const BANNER_WIDTH = Math.round(PAGE_WIDTH);
   const BANNER_HEIGHT = Math.round(Math.max(200, PAGE_HEIGHT / 1.4));
   const navigation = useNavigation();
-  const carouselRef = useRef(null);
+  const flatListRef = useRef(null);
   const progress = useSharedValue(0);
   const themeColors = useThemeColors();
+  const currentIndexRef = useRef(0);
+  const autoPlayRef = useRef(null);
+  const isTouchingRef = useRef(false);
 
   useEffect(() => {
     if (animes?.length > 0) {
@@ -90,6 +99,37 @@ const Mobile = React.memo(({ animes }) => {
       AniuaApi.prefetchMultipleEpisodes(slugs, 3);
     }
   }, [animes]);
+
+  // AutoPlay
+  useEffect(() => {
+    if (!animes?.length || animes.length <= 1) return;
+
+    autoPlayRef.current = setInterval(() => {
+      if (isTouchingRef.current) return;
+
+      const nextIndex = (currentIndexRef.current + 1) % animes.length;
+      currentIndexRef.current = nextIndex;
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+      progress.value = withTiming(nextIndex, { duration: 300 });
+    }, 4000);
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [animes?.length]);
+
+  const onTouchStart = useCallback(() => {
+    isTouchingRef.current = true;
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    isTouchingRef.current = false;
+  }, []);
 
   const handlePress = useCallback(
     (item) => {
@@ -103,8 +143,36 @@ const Mobile = React.memo(({ animes }) => {
   );
 
   const onPressPagination = useCallback((index) => {
-    carouselRef.current?.scrollTo({ index, animated: true });
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+    currentIndexRef.current = index;
   }, []);
+
+  const onScroll = useCallback(
+    (event) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      progress.value = offsetX / BANNER_WIDTH;
+    },
+    [BANNER_WIDTH]
+  );
+
+  const onMomentumScrollEnd = useCallback(
+    (event) => {
+      const newIndex = Math.round(
+        event.nativeEvent.contentOffset.x / BANNER_WIDTH
+      );
+      currentIndexRef.current = newIndex;
+    },
+    [BANNER_WIDTH]
+  );
+
+  const getItemLayout = useCallback(
+    (_, index) => ({
+      length: BANNER_WIDTH,
+      offset: BANNER_WIDTH * index,
+      index,
+    }),
+    [BANNER_WIDTH]
+  );
 
   const renderItem = useCallback(
     ({ item }) => {
@@ -113,9 +181,8 @@ const Mobile = React.memo(({ animes }) => {
       const score = item.score;
 
       return (
-        <TouchableOpacity
+        <Pressable
           onPress={() => handlePress(item)}
-          activeOpacity={0.95}
           style={[
             styles.itemContainer,
             {
@@ -188,7 +255,7 @@ const Mobile = React.memo(({ animes }) => {
                 {year ? ` (${year})` : ""}
               </Text>
             </View>
-            <TouchableOpacity
+            <View
               style={[
                 styles.playButton,
                 {
@@ -199,9 +266,9 @@ const Mobile = React.memo(({ animes }) => {
               ]}
             >
               <Icons.PlayCircle size={32} color={themeColors.primary} />
-            </TouchableOpacity>
+            </View>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT]
@@ -220,21 +287,24 @@ const Mobile = React.memo(({ animes }) => {
         },
       ]}
     >
-      <Carousel
-        ref={carouselRef}
-        loop
-        autoPlay
-        autoPlayInterval={4000}
-        style={{ width: BANNER_WIDTH, height: BANNER_HEIGHT }}
-        width={BANNER_WIDTH}
-        height={BANNER_HEIGHT}
+      <FlatList
+        ref={flatListRef}
         data={animes}
         renderItem={renderItem}
-        scrollAnimationDuration={1200}
-        onProgressChange={progress}
-        panGestureHandlerProps={{
-          activeOffsetX: [-10, 10],
-        }}
+        keyExtractor={(item, index) => item.slug || index.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        getItemLayout={getItemLayout}
+        style={{ width: BANNER_WIDTH, height: BANNER_HEIGHT }}
+        decelerationRate="fast"
+        snapToInterval={BANNER_WIDTH}
+        snapToAlignment="start"
+        scrollEventThrottle={16}
       />
       <PaginationDots
         total={animes.length}
@@ -250,6 +320,9 @@ const Tablet = React.memo(({ animes }) => {
   const CARD_WIDTH = Math.round(PAGE_WIDTH / 2.5);
   const BANNER_HEIGHT = Math.round(PAGE_HEIGHT * 0.8);
   const navigation = useNavigation();
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const autoPlayRef = useRef(null);
 
   useEffect(() => {
     if (animes?.length > 0) {
@@ -257,6 +330,28 @@ const Tablet = React.memo(({ animes }) => {
       AniuaApi.prefetchMultipleEpisodes(slugs, 3);
     }
   }, [animes]);
+
+  // AutoPlay
+  useEffect(() => {
+    if (!animes?.length || animes.length <= 1) return;
+
+    autoPlayRef.current = setInterval(() => {
+      setCurrentIndex((prev) => {
+        const nextIndex = (prev + 1) % animes.length;
+        flatListRef.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, 4000);
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [animes?.length]);
 
   const handlePress = useCallback(
     (item) => {
@@ -269,12 +364,33 @@ const Tablet = React.memo(({ animes }) => {
     [navigation]
   );
 
+  const onMomentumScrollEnd = useCallback(
+    (event) => {
+      const newIndex = Math.round(
+        event.nativeEvent.contentOffset.x / CARD_WIDTH
+      );
+      setCurrentIndex(newIndex);
+    },
+    [CARD_WIDTH]
+  );
+
+  const getItemLayout = useCallback(
+    (_, index) => ({
+      length: CARD_WIDTH,
+      offset: CARD_WIDTH * index,
+      index,
+    }),
+    [CARD_WIDTH]
+  );
+
   const renderItem = useCallback(
     ({ item }) => (
-      <TouchableOpacity
+      <Pressable
         onPress={() => handlePress(item)}
-        activeOpacity={0.95}
-        style={styles.itemContainer}
+        style={[
+          styles.itemContainer,
+          { width: CARD_WIDTH, height: BANNER_HEIGHT },
+        ]}
       >
         <FastImage
           source={{ uri: item.image }}
@@ -287,9 +403,9 @@ const Tablet = React.memo(({ animes }) => {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
-    [handlePress]
+    [handlePress, CARD_WIDTH, BANNER_HEIGHT]
   );
 
   if (!animes?.length) return null;
@@ -305,19 +421,20 @@ const Tablet = React.memo(({ animes }) => {
         },
       ]}
     >
-      <Carousel
-        loop
-        autoPlay
-        autoPlayInterval={4000}
-        style={{ width: CARD_WIDTH, height: BANNER_HEIGHT }}
-        width={CARD_WIDTH}
-        height={BANNER_HEIGHT}
+      <FlatList
+        ref={flatListRef}
         data={animes}
         renderItem={renderItem}
-        scrollAnimationDuration={1200}
-        panGestureHandlerProps={{
-          activeOffsetX: [-10, 10],
-        }}
+        keyExtractor={(item, index) => item.slug || index.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        getItemLayout={getItemLayout}
+        style={{ width: CARD_WIDTH, height: BANNER_HEIGHT }}
+        decelerationRate="fast"
+        snapToInterval={CARD_WIDTH}
+        snapToAlignment="start"
       />
     </View>
   );

@@ -252,7 +252,7 @@ export default function App() {
           });
         const fetchMetadata_2 = async () => {
           try {
-            MainConfig.partnerStudios = await AniuaApi.getAllTeams();
+            MainConfig.partnerStudios = await AniuaApi.getVerifiedTeams();
             Logger.debug(
               "App",
               "Дані про команди завантажено",
