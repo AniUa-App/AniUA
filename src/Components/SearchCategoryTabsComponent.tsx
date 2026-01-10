@@ -45,7 +45,7 @@ export default function SearchCategoryTabsComponent({
             style={[
               styles.tab,
               {
-                backgroundColor: themeColors.Subtle(0.9),
+                backgroundColor: themeColors.subtle,
                 borderBottomLeftRadius: isActive ? 0 : 18,
                 borderBottomRightRadius: isActive ? 0 : 18,
                 height: isActive ? 40 : 34,

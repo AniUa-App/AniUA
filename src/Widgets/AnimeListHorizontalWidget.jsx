@@ -4,18 +4,17 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
-  FlatList,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { ScrollView, FlatList } from "react-native-gesture-handler";
 
 import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
-import { useFocusEffect } from "@react-navigation/native";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { AniuaApi } from "../Sources/AniuaApi";
+import { useFocusEffect } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeCard from "../Components/AnimeCard";
 
@@ -23,6 +22,7 @@ export function AnimeListHorizontal({
   animeList,
   title = "",
   onClickMore = null,
+  navigation,
 }) {
   const themeColors = useThemeColors();
   const { width } = useWindowDimensions();
@@ -34,15 +34,23 @@ export function AnimeListHorizontal({
 
   // Зберігаємо slug'и для яких вже зробили prefetch
   const prefetchedSlugs = useRef(new Set());
-
   // Перечитуємо налаштування при фокусі на екран
-  useFocusEffect(
-    useCallback(() => {
+
+  try {
+    useFocusEffect(
+      useCallback(() => {
+        setShowAnimeDetails(
+          SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+        );
+      }, [])
+    );
+  } catch {
+    useEffect(() => {
       setShowAnimeDetails(
         SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
       );
-    }, [])
-  );
+    }, []);
+  }
 
   // Ширина картки
   const cardWidth = useMemo(() => {
@@ -78,9 +86,10 @@ export function AnimeListHorizontal({
         anime={anime}
         width={cardWidth}
         showDetails={showAnimeDetails}
+        navigation={navigation}
       />
     ),
-    [cardWidth, showAnimeDetails]
+    [cardWidth, showAnimeDetails, navigation]
   );
 
   const keyExtractor = useCallback(

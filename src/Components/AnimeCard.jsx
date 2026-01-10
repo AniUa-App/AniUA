@@ -21,8 +21,9 @@ const AnimeCard = memo(function AnimeCard({
   width,
   showDetails = true,
   onPress,
+  navigation: propNavigation,
 }) {
-  const navigation = useNavigation();
+  const navigation = propNavigation || useNavigation();
   const themeColors = useThemeColors();
   const [details, setDetails] = useState(null);
 
@@ -99,7 +100,7 @@ const AnimeCard = memo(function AnimeCard({
           <View style={styles.infoRow}>
             {genres && (
               <Text
-                style={[H6, styles.genres, { color: themeColors.Text(0.5) }]}
+                style={[H6, styles.genres, { color: themeColors.primary }]}
                 numberOfLines={1}
               >
                 {genres}
@@ -107,7 +108,7 @@ const AnimeCard = memo(function AnimeCard({
             )}
             {episodes && (
               <Text
-                style={[H6, styles.episodes, { color: themeColors.Text(0.5) }]}
+                style={[H6, styles.episodes, { color: themeColors.primary }]}
               >
                 {genres?.length > 15
                   ? null
