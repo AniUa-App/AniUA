@@ -14,6 +14,7 @@ interface SearchHeaderComponentProps {
   paddingTop: number;
   placeholder?: string;
   autoFocus?: boolean;
+  activeCategory: string;
 }
 
 export default function SearchHeaderComponent({
@@ -23,8 +24,9 @@ export default function SearchHeaderComponent({
   onGoBack,
   onFilterPress,
   paddingTop,
-  placeholder = "Пошук аніме...",
+  placeholder = "Пошук...",
   autoFocus = true,
+  activeCategory,
 }: SearchHeaderComponentProps) {
   const themeColors = useThemeColors();
 
@@ -34,7 +36,6 @@ export default function SearchHeaderComponent({
         styles.header,
         {
           paddingTop,
-          backgroundColor: themeColors.background,
         },
       ]}
     >
@@ -62,13 +63,30 @@ export default function SearchHeaderComponent({
       </View>
 
       {/* Filter Button */}
+
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: themeColors.subtle }]}
-        onPress={onFilterPress}
+        style={[
+          styles.button,
+          {
+            backgroundColor:
+              activeCategory === "anime" || activeCategory === "team"
+                ? themeColors.subtle
+                : themeColors.Subtle(0.5),
+          },
+        ]}
+        onPress={
+          activeCategory === "anime" || activeCategory === "team"
+            ? onFilterPress
+            : null
+        }
       >
         <Icons.SlidersHorizontal
           size={32}
-          color={themeColors.primary}
+          color={
+            activeCategory === "anime" || activeCategory === "team"
+              ? themeColors.primary
+              : themeColors.Primary(0.5)
+          }
           weight="regular"
         />
       </TouchableOpacity>

@@ -23,7 +23,7 @@ export const INITIAL_SEARCHED = {
 export const INITIAL_FILTERS = {
   status: "Байдуже",
   seasons: "Байдуже",
-  years: [2000, new Date().getFullYear()],
+  years: [1990, new Date().getFullYear()],
   score: 0,
   genres: [],
 };

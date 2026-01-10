@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  FlatList,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
@@ -11,35 +12,81 @@ import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
-import { NavigationContext } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
-import { useContext, useEffect } from "react";
-import { prefetchBloomImage } from "./BloomImage";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { AniuaApi } from "../Sources/AniuaApi";
+import SettingsStorage from "../Storage/SettingsStorage";
+import AnimeCard from "../Components/AnimeCard";
 
 export function AnimeListHorizontal({
   animeList,
   title = "",
   onClickMore = null,
-  navigation: navProp,
-  onAnimePress = () => {},
 }) {
-  // Використовуємо переданий navigation або з контексту
-  const navContext = useContext(NavigationContext);
-  const navigation = navProp || navContext;
-
   const themeColors = useThemeColors();
-  const { width, height } = useWindowDimensions();
-  const baseWidth = Math.max(120, width * 0.4);
-  const baseHeight = Math.max(120, height * 0.26);
+  const { width } = useWindowDimensions();
 
-  // Prefetch епізодів для всіх аніме в списку
-  useEffect(() => {
-    if (animeList && animeList.length > 0) {
-      const slugs = animeList.map((anime) => anime.slug).filter(Boolean);
-      AniuaApi.prefetchMultipleEpisodes(slugs, 3);
+  // Налаштування показу деталей
+  const [showAnimeDetails, setShowAnimeDetails] = useState(
+    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+  );
+
+  // Зберігаємо slug'и для яких вже зробили prefetch
+  const prefetchedSlugs = useRef(new Set());
+
+  // Перечитуємо налаштування при фокусі на екран
+  useFocusEffect(
+    useCallback(() => {
+      setShowAnimeDetails(
+        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+      );
+    }, [])
+  );
+
+  // Ширина картки
+  const cardWidth = useMemo(() => {
+    return isTabletLandscape()
+      ? width * 0.12
+      : isTablet()
+        ? width * 0.2
+        : width * 0.35;
+  }, [width]);
+
+  // Конфігурація для визначення видимих елементів
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 20,
+    minimumViewTime: 100,
+  }).current;
+
+  // Callback коли змінюються видимі елементи
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+    const newSlugs = viewableItems
+      .map((item) => item.item?.slug)
+      .filter((slug) => slug && !prefetchedSlugs.current.has(slug));
+
+    if (newSlugs.length > 0) {
+      newSlugs.forEach((slug) => prefetchedSlugs.current.add(slug));
+      AniuaApi.prefetchMultipleEpisodes(newSlugs, 3);
     }
-  }, [animeList]);
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item: anime, index }) => (
+      <AnimeCard
+        key={anime.slug || index}
+        anime={anime}
+        width={cardWidth}
+        showDetails={showAnimeDetails}
+      />
+    ),
+    [cardWidth, showAnimeDetails]
+  );
+
+  const keyExtractor = useCallback(
+    (item, index) => item.slug || String(index),
+    []
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -54,47 +101,35 @@ export function AnimeListHorizontal({
           </Text>
         )}
         {!!onClickMore && (
-          <View style={styles.arrowRightIcon}>
-            <Icon.ArrowRight size={34} color={themeColors.primary} />
+          <View
+            style={[
+              styles.arrowRightIcon,
+              {
+                padding: 6,
+                borderRadius: 16,
+                backgroundColor: themeColors.accent,
+              },
+            ]}
+          >
+            <Icon.ArrowRight size={28} color={themeColors.primary} />
           </View>
         )}
       </TouchableOpacity>
 
-      <ScrollView
+      <FlatList
         horizontal
+        data={animeList}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        initialNumToRender={4}
+        maxToRenderPerBatch={3}
+        windowSize={5}
+        removeClippedSubviews={true}
         nestedScrollEnabled={true}
-      >
-        {animeList.map((anime, index) => (
-          <TouchableOpacity
-            key={index}
-            activeOpacity={1}
-            style={[
-              styles.imageContainer,
-              isTabletLandscape()
-                ? { width: width * 0.12, height: height * 0.3 }
-                : isTablet()
-                  ? { width: width * 0.2, height: height * 0.2 }
-                  : { width: width * 0.35, height: height * 0.22 },
-            ]}
-            onPress={() => {
-              prefetchBloomImage(anime.image);
-              navigation.navigate("HiddenStack", {
-                screen: "AnimePreview",
-                params: { anime },
-              });
-              onAnimePress(anime);
-            }}
-          >
-            <Image
-              uri={anime.image}
-              style={[
-                { flex: 1, width: "100%", height: "100%", borderRadius: 18 },
-              ]}
-            />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      />
     </View>
   );
 }
@@ -106,57 +141,51 @@ export function PreviewAnimeListHorizontal({
 }) {
   const themeColors = useThemeColors();
   const { width, height } = useWindowDimensions();
-  const baseWidth = Math.max(120, width * 0.4);
-  const baseHeight = Math.max(120, height * 0.3);
 
   return (
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
-      <TouchableOpacity
-        style={styles.header}
-        activeOpacity={0.9}
-        onPress={onPress}
-      >
-        <Text style={[styles.title, H3, { color: themeColors.text }]}>
-          {title}
-        </Text>
-        <View style={styles.arrowRightIcon}>
-          {animeList.length >= 10 && (
-            <Icon.ArrowRight size={34} color={themeColors.primary} />
-          )}
+      <View style={styles.header} activeOpacity={1}>
+        {title?.length > 0 && (
+          <Text style={[styles.title, H3, { color: themeColors.text }]}>
+            {title || ""}
+          </Text>
+        )}
+        <View
+          style={[
+            styles.arrowRightIcon,
+            {
+              padding: 6,
+              borderRadius: 16,
+              backgroundColor: themeColors.accent,
+            },
+          ]}
+        >
+          <Icon.ArrowRight size={28} color={themeColors.primary} />
         </View>
-      </TouchableOpacity>
+      </View>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
+        nestedScrollEnabled={true}
       >
-        {animeList.map((anime, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.imageContainer,
-              isTabletLandscape()
-                ? { width: width * 0.12, height: height * 0.3 }
-                : isTablet()
-                  ? { width: width * 0.2, height: height * 0.2 }
-                  : { width: width * 0.35, height: height * 0.22 },
-            ]}
-            onPress={() => {
-              onPress(anime);
-            }}
-          >
-            <Image
-              uri={anime.image}
-              style={[
-                { flex: 1, width: "100%", height: "100%", borderRadius: 8 },
-              ]}
+        {animeList.map((anime, index) => {
+          // Ширина завжди однакова
+          const cardWidth = isTabletLandscape()
+            ? width * 0.12
+            : isTablet()
+              ? width * 0.2
+              : width * 0.35;
+
+          return (
+            <AnimeCard
+              key={anime.slug || index}
+              anime={anime}
+              width={cardWidth}
+              onPress={() => onPress(anime)}
             />
-            {/* <Text style={[H3, { color: themeColors.text }]} numberOfLines={2}>
-              {anime.title_ua}
-            </Text> */}
-          </TouchableOpacity>
-        ))}
+          );
+        })}
       </ScrollView>
     </TouchableOpacity>
   );
@@ -168,8 +197,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   arrowRightIcon: {
-    paddingRight: "5%",
-    paddingVertical: isTabletLandscape() ? 8 : 16,
+    marginVertical: isTabletLandscape() ? 4 : 12,
   },
   header: {
     flexDirection: "row",
@@ -178,7 +206,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    paddingLeft: 25,
-    paddingVertical: isTabletLandscape() ? 8 : 16,
+    paddingLeft: 8,
+    marginVertical: isTabletLandscape() ? 6 : 16,
   },
 });

@@ -4,23 +4,24 @@ import { useState, useCallback } from "react";
  * Hook для керування Snackbar
  *
  * @example
- * const { snackbar, snackbarTop, showSnackbar, showSnackbarTop } = useSnackbar();
+ * const { snackbar, showSnackbar, showConfirmSnackbar } = useSnackbar();
  *
  * // Показати простий snackbar внизу
  * showSnackbar("Відео завантажено");
  *
- * // Показати snackbar вгорі з action
- * showSnackbarTop("Оновлення доступне", {
- *   actionLabel: "Оновити",
- *   onActionPress: () => console.log("Update clicked"),
- *   duration: 5000
- * });
- *
- * // Показати snackbar з action внизу
+ * // Показати snackbar з action
  * showSnackbar("Файл видалено", {
  *   actionLabel: "Скасувати",
  *   onActionPress: () => console.log("Undo clicked"),
  *   duration: 5000
+ * });
+ *
+ * // Показати snackbar підтвердження
+ * showConfirmSnackbar("Ви впевнені?", {
+ *   onConfirm: () => console.log("Confirmed"),
+ *   onDecline: () => console.log("Declined"),
+ *   confirmLabel: "Так",
+ *   declineLabel: "Ні"
  * });
  *
  * // В render:
@@ -28,7 +29,6 @@ import { useState, useCallback } from "react";
  *   <>
  *     <YourContent />
  *     {snackbar}
- *     {snackbarTop}
  *   </>
  * );
  */
@@ -39,6 +39,11 @@ export function useSnackbar() {
     actionLabel: null,
     onActionPress: null,
     duration: 4000,
+    isConfirm: false,
+    confirmLabel: "Так",
+    declineLabel: "Ні",
+    onConfirm: null,
+    onDecline: null,
   });
 
   const [snackbarTopState, setSnackbarTopState] = useState({
@@ -56,6 +61,26 @@ export function useSnackbar() {
       actionLabel: options.actionLabel || null,
       onActionPress: options.onActionPress || null,
       duration: options.duration || 4000,
+      isConfirm: false,
+      confirmLabel: "Так",
+      declineLabel: "Ні",
+      onConfirm: null,
+      onDecline: null,
+    });
+  }, []);
+
+  const showConfirmSnackbar = useCallback((message, options = {}) => {
+    setSnackbarState({
+      visible: true,
+      message,
+      actionLabel: null,
+      onActionPress: null,
+      duration: 0,
+      isConfirm: true,
+      confirmLabel: options.confirmLabel || "Так",
+      declineLabel: options.declineLabel || "Ні",
+      onConfirm: options.onConfirm || null,
+      onDecline: options.onDecline || null,
     });
   }, []);
 
@@ -88,6 +113,11 @@ export function useSnackbar() {
       duration={snackbarState.duration}
       onDismiss={hideSnackbar}
       position="bottom"
+      isConfirm={snackbarState.isConfirm}
+      confirmLabel={snackbarState.confirmLabel}
+      declineLabel={snackbarState.declineLabel}
+      onConfirm={snackbarState.onConfirm}
+      onDecline={snackbarState.onDecline}
     />
   );
 
@@ -108,6 +138,7 @@ export function useSnackbar() {
     snackbarTop,
     showSnackbar,
     showSnackbarTop,
+    showConfirmSnackbar,
     hideSnackbar,
     hideSnackbarTop,
   };

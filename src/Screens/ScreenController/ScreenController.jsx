@@ -25,7 +25,6 @@ import {
   LikeIcon,
   DownloadIcon,
   AccountIcon,
-  SettingsIcon,
 } from "../../Styles/Icons";
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
@@ -80,13 +79,11 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
-      tabBarPosition="bottom"
       screenOptions={{
-        swipeEnabled: false,
-        animationEnabled: true,
+        headerShown: false,
         lazy: true,
-        lazyPreloadDistance: 1,
       }}
+      sceneContainerStyle={{ backgroundColor: background }}
       tabBar={(props) => <ThemedNavBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
@@ -101,28 +98,21 @@ function MainTabs() {
         {(props) => <BookmarkScreen {...props} />}
       </Tab.Screen>
 
-      <Tab.Screen
-        name="Download"
-        initialParams={{ type: "Downloaded" }}
-        options={{
-          title: "Завантажені",
-        }}
-      >
+      <Tab.Screen name="Download" initialParams={{ type: "Downloaded" }}>
         {(props) => (
           <View style={{ flex: 1 }}>
-            <Header
-              navigation={props.navigation}
-              route={props.route}
-              isArrow={false}
-              title="Завантажені"
-              arrowSide="right"
-            />
-            <AnimeListScreen {...props} isNavBarPadding={true} />
+            <AnimeListScreen {...props} isNavBarPadding={true} hasManualHeader={true} />
+            <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+              <Header
+                navigation={props.navigation}
+                route={props.route}
+                isArrow={false}
+                title="Завантажені"
+              />
+            </View>
           </View>
         )}
       </Tab.Screen>
-
-      <Tab.Screen name="Settings" component={SettingsScreen} />
 
       <Tab.Screen
         name="Profile"
@@ -289,7 +279,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
           Home: "Головна",
           Bookmarks: "Обрані",
           Download: "Збережені",
-          Settings: "Параметри",
           Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
@@ -324,7 +313,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                     Home: Icons.House,
                     Bookmarks: Icons.BookmarkSimple,
                     Download: Icons.DownloadSimple,
-                    Settings: Icons.Gear,
                     Profile: Icons.UserCircle,
                   }[route.name] || null;
                 return (
@@ -491,7 +479,6 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
           Home: "Головна",
           Bookmarks: "Обрані",
           Download: "Завантажені",
-          Settings: "Параметри",
           Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
@@ -526,7 +513,6 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                   Home: Icons.House,
                   Bookmarks: Icons.Heart,
                   Download: Icons.DownloadSimple,
-                  Settings: Icons.Gear,
                   Profile: Icons.UserCircle,
                 }[route.name] || null;
               return (
@@ -559,7 +545,10 @@ function HiddenStack() {
   return (
     <HiddenStackNav.Navigator
       screenOptions={{
-        animation: "slide_from_right",
+        animation: "ios_from_right",
+        animationDuration: 250,
+        gestureEnabled: true,
+        gestureDirection: "horizontal",
         headerShown: true,
         headerTransparent: true,
         headerStyle: { backgroundColor: "transparent" },
@@ -569,9 +558,6 @@ function HiddenStack() {
             navigation={navigation}
             route={route}
             title={options?.headerTitle}
-            arrowSide={
-              options?.arrowSide ?? route?.params?.arrowSide ?? "right"
-            }
             isArrow={options?.isArrow ?? route?.params?.isArrow ?? true}
           />
         ),
@@ -610,12 +596,20 @@ function HiddenStack() {
       <HiddenStackNav.Screen
         name="WebVideoPlayer"
         component={WebVideoPlayerScreen}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          animation: "fade",
+          animationDuration: 200,
+        }}
       />
       <HiddenStackNav.Screen
         name="LocalVideoPlayer"
         component={LocalVideoPlayerV2Screen}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          animation: "fade",
+          animationDuration: 200,
+        }}
       />
       <HiddenStackNav.Screen
         name="ButtonsScreen"
@@ -684,6 +678,16 @@ function HiddenStack() {
           headerShown: false,
         }}
       />
+      <HiddenStackNav.Screen
+        name="SettingsScreen"
+        component={SettingsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Налаштування",
+          animation: "slide_from_bottom",
+          animationDuration: 300,
+        }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -713,6 +717,8 @@ export default function ScreenController() {
           screenOptions={{
             headerShown: false,
             presentation: "modal",
+            animation: "fade",
+            animationDuration: 200,
           }}
         >
           <RootStack.Screen name="Login" component={LoginScreen} />

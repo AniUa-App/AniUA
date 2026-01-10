@@ -17,7 +17,6 @@ export default function Header({
   route,
   isArrow = true,
   title = "",
-  arrowSide = "right",
 }) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets?.() || { top: 0 };
@@ -41,31 +40,23 @@ export default function Header({
       style={{
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor:
-          userConfig?.background?.isCustomisation &&
-          userConfig?.background?.image
-            ? "transparent"
-            : themeColors.background,
-        // Respect safe area on all platforms
+        justifyContent: "flex-start",
+        backgroundColor: "transparent",
         paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
         paddingVertical: 10,
-        // Avoid overlap with vertical MD3 navbar
-        paddingLeft:
-          userConfig?.navbar?.style === "MD3" &&
-          userConfig?.navbar?.placedAt === "Ліворуч"
-            ? getNavbarWidth() / 1.1
-            : 25,
-        paddingRight:
-          userConfig?.navbar?.style === "MD3" &&
-          userConfig?.navbar?.placedAt === "Праворуч"
-            ? getNavbarWidth() / 1.1
-            : 25,
+        paddingLeft: 16,
       }}
     >
-      {arrowSide === "left" && isArrow && (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icons.ArrowLeft fill={themeColors.primary} size={34} />
+      {isArrow && (
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{
+            backgroundColor: themeColors.accent,
+            padding: 6,
+            borderRadius: 16,
+          }}
+        >
+          <Icons.ArrowLeft fill={themeColors.primary} size={28} />
         </TouchableOpacity>
       )}
 
@@ -90,13 +81,6 @@ export default function Header({
           return safe.length > 24 ? safe.slice(0, 24) + "..." : safe;
         })()}
       </Text>
-
-      {/* Кнопка "Назад" справа */}
-      {arrowSide === "right" && isArrow && (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icons.ArrowLeft fill={themeColors.primary} size={34} />
-        </TouchableOpacity>
-      )}
     </View>
   );
 }

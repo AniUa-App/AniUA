@@ -22,7 +22,11 @@ export default function SettingsItem({
   const effectiveIconColor = iconColor || themeColors.primary;
 
   const content = (
-    <View style={styles.content}>
+    <TouchableOpacity
+      style={styles.content}
+      disabled={disabled}
+      onPress={onPress}
+    >
       {icon && (
         <View
           style={[
@@ -56,9 +60,7 @@ export default function SettingsItem({
             style={[
               H6,
               {
-                color: disabled
-                  ? themeColors.Text(0.4)
-                  : themeColors.Text(0.7),
+                color: disabled ? themeColors.Text(0.4) : themeColors.Text(0.7),
               },
             ]}
             numberOfLines={2}
@@ -71,7 +73,7 @@ export default function SettingsItem({
         <Icons.CaretRight size={24} color={themeColors.inActiveText} />
       )}
       {(button?.Icon || button?.Text) && (
-        <TouchableOpacity
+        <View
           style={[
             styles.button,
             {
@@ -79,19 +81,19 @@ export default function SettingsItem({
               backgroundColor: button?.Icon ? "transparent" : color,
             },
           ]}
-          onPress={onPress}
-          disabled={disabled}
         >
           {button?.Icon ? (
             button?.Icon
           ) : (
-            <Text style={[H4, { color: themeColors.text, textAlign: "center" }]}>
+            <Text
+              style={[H4, { color: themeColors.text, textAlign: "center" }]}
+            >
               {button.Text}
             </Text>
           )}
-        </TouchableOpacity>
+        </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   if (onPressBody || (onPress && !button)) {

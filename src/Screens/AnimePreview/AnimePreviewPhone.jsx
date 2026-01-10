@@ -35,6 +35,7 @@ import {
   MoreBottomSheet,
   NewEpisodesBottomSheet,
 } from "./shared";
+import AnimeCard from "../../Components/AnimeCard";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -229,7 +230,7 @@ export default function AnimePreviewPhone({ route }) {
       case "finished":
         return "Завершено";
       case "ongoing":
-        return "Онгоінг";
+        return "Онґоінг";
       case "announced":
         return "Анонс";
       default:
@@ -263,7 +264,6 @@ export default function AnimePreviewPhone({ route }) {
           content: <MusicOST ost={anime?.ost} />,
         });
       }
-      console.log(anime?.videos);
       setFirstTabs(_tabs);
     };
     getTabs();
@@ -324,19 +324,13 @@ export default function AnimePreviewPhone({ route }) {
         return null;
       }
       return (
-        <TouchableOpacity
+        <AnimeCard
           key={item.slug}
-          style={styles.similarCard}
+          anime={item}
+          width={winWidth * 0.35}
+          showDetails={true}
           onPress={() => navigation.replace("AnimePreview", { anime: item })}
-        >
-          <Image
-            style={[
-              styles.similarImage,
-              { width: winWidth * 0.35, height: winHeight * 0.22 },
-            ]}
-            uri={item.image}
-          />
-        </TouchableOpacity>
+        />
       );
     },
     [initialAnime?.slug, navigation, winWidth, winHeight]
@@ -500,6 +494,7 @@ export default function AnimePreviewPhone({ route }) {
               onWatchPress={handleWatchPress}
               onDownloadPress={handleDownloadPress}
               isDownloadable={Object.keys(episodesList).length > 0}
+              isActive={Object.keys(episodesList).length > 0}
             />
 
             {/* Download button */}
@@ -794,7 +789,6 @@ export default function AnimePreviewPhone({ route }) {
         currentStatus={watchStatus}
         onStatusChange={handleStatusChange}
       />
-      <View style={{ height: insets.bottom }} />
     </DefaultScreenWidget>
   );
 }
@@ -937,9 +931,6 @@ export const styles = StyleSheet.create({
   },
   infoIcon: {
     alignItems: "center",
-  },
-  infoLabel: {
-    opacity: 0.6,
   },
   infoValue: {
     fontWeight: "500",

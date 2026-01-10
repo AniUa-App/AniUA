@@ -24,7 +24,6 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   maxHeight,
   maxWidth,
 }) {
-  console.log(anime);
   if (!anime || !anime.slug) return null;
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();

@@ -20,10 +20,10 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { useThemeColors } from "../Global/useTheme";
-import { H6 } from "../Styles/Fonts";
-import Icons from "../Styles/Icons";
-import Logger from "../Logger/Logger";
+import { useThemeColors } from "../../Global/useTheme";
+import { H6, H7 } from "../../Styles/Fonts";
+import Icons from "../../Styles/Icons";
+import Logger from "../../Logger/Logger";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -40,6 +40,11 @@ const DISMISS_THRESHOLD = SCREEN_WIDTH * 0.3;
  * @param {Function} props.onDismiss - Callback при закритті
  * @param {boolean} props.visible - Видимість snackbar
  * @param {string} props.position - Позиція snackbar: "bottom" або "top" (за замовчуванням "bottom")
+ * @param {boolean} props.isConfirm - Режим підтвердження з двома кнопками
+ * @param {string} props.confirmLabel - Текст кнопки підтвердження (за замовчуванням "Так")
+ * @param {string} props.declineLabel - Текст кнопки відхилення (за замовчуванням "Ні")
+ * @param {Function} props.onConfirm - Callback при підтвердженні
+ * @param {Function} props.onDecline - Callback при відхиленні
  */
 export default function Snackbar({
   message,
@@ -49,6 +54,11 @@ export default function Snackbar({
   onDismiss,
   visible = false,
   position = "bottom",
+  isConfirm = false,
+  confirmLabel = "Так",
+  declineLabel = "Ні",
+  onConfirm,
+  onDecline,
 }) {
   const themeColors = useThemeColors();
   const safeAreaContext = useContext(SafeAreaInsetsContext);
@@ -75,14 +85,15 @@ export default function Snackbar({
   };
 
   useEffect(() => {
-    if (visible && duration > 0) {
+    // Не автозакриваємо в режимі підтвердження
+    if (visible && duration > 0 && !isConfirm) {
       const timer = setTimeout(() => {
         onDismiss?.();
       }, duration);
 
       return () => clearTimeout(timer);
     }
-  }, [visible, duration, onDismiss]);
+  }, [visible, duration, onDismiss, isConfirm]);
 
   const animatedButtonStyle = useAnimatedStyle(() => {
     return {
@@ -102,6 +113,21 @@ export default function Snackbar({
   };
 
   const handleClose = () => {
+    onDismiss?.();
+  };
+
+  const handleConfirm = () => {
+    opacity.value = withTiming(0.5, { duration: 100 }, () => {
+      opacity.value = withTiming(1, { duration: 100 });
+    });
+    onConfirm?.();
+    setTimeout(() => {
+      onDismiss?.();
+    }, 200);
+  };
+
+  const handleDecline = () => {
+    onDecline?.();
     onDismiss?.();
   };
 
@@ -182,7 +208,51 @@ export default function Snackbar({
           {renderMessage()}
 
           <View style={styles.actionsContainer}>
-            {actionLabel ? (
+            {isConfirm ? (
+              <>
+                <Pressable onPress={handleConfirm}>
+                  <Animated.View
+                    style={[
+                      styles.actionButton,
+                      styles.confirmButton,
+                      { backgroundColor: themeColors.primary },
+                      animatedButtonStyle,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        H7,
+                        styles.actionText,
+                        { color: themeColors.text },
+                      ]}
+                    >
+                      {confirmLabel}
+                    </Text>
+                  </Animated.View>
+                </Pressable>
+                <Pressable onPress={handleDecline}>
+                  <View
+                    style={[
+                      {
+                        ...styles.actionButton,
+                        ...styles.declineButton,
+                        backgroundColor: themeColors.background,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        H7,
+                        styles.actionText,
+                        { color: themeColors.text },
+                      ]}
+                    >
+                      {declineLabel}
+                    </Text>
+                  </View>
+                </Pressable>
+              </>
+            ) : actionLabel ? (
               <Pressable onPress={handleActionPress}>
                 <Animated.View
                   style={[styles.actionButton, animatedButtonStyle]}
@@ -275,11 +345,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
   },
+  confirmButton: {
+    minWidth: 50,
+    alignItems: "center",
+  },
+  declineButton: {
+    minWidth: 50,
+    alignItems: "center",
+  },
   actionText: {
-    fontFamily: "Nunito-Bold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontSize: 13,
   },
   closeButton: {
     padding: 8,
@@ -289,6 +365,5 @@ const styles = StyleSheet.create({
   },
   link: {
     textDecorationLine: "underline",
-    fontFamily: "Nunito-Bold",
   },
 });

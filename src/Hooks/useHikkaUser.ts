@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import Logger from "../Logger/Logger";
+import { EventBus } from "../Global/EventBus";
 
 export interface WatchStats {
   planned: number;
@@ -127,6 +128,13 @@ export function useHikkaUser(): UseHikkaUserResult {
 
   useEffect(() => {
     fetchUserData();
+  }, [fetchUserData]);
+
+  useEffect(() => {
+    const unsubscribe = EventBus.on("favoritesUpdated", () => {
+      fetchUserData();
+    });
+    return unsubscribe;
   }, [fetchUserData]);
 
   return {

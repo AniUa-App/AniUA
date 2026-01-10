@@ -32,7 +32,7 @@ const MAX_CONCURRENT_REQUESTS = 10;
 // };
 
 // Основний компонент екрану списку аніме
-export default function AnimeListScreen({ route, isNavBarPadding }) {
+export default function AnimeListScreen({ route, isNavBarPadding, hasManualHeader }) {
   const { type, initialData, title } = route.params;
   const { height } = useWindowDimensions();
   const themeColors = useThemeColors();
@@ -277,6 +277,7 @@ export default function AnimeListScreen({ route, isNavBarPadding }) {
     <DefaultScreenWidget
       isCheckInternet={isCheckingInternet}
       isNavBarPadding={isNavBarPadding}
+      hasManualHeader={hasManualHeader}
     >
       <FlatList
         data={animeList}

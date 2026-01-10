@@ -29,10 +29,7 @@ export default function SearchCategoryTabsComponent({
       horizontal
       showsHorizontalScrollIndicator={false}
       style={styles.scrollView}
-      contentContainerStyle={[
-        styles.container,
-        { backgroundColor: themeColors.background },
-      ]}
+      contentContainerStyle={[styles.container]}
     >
       {categories.map((category) => {
         const isActive = activeCategory === category.id;
@@ -48,7 +45,7 @@ export default function SearchCategoryTabsComponent({
             style={[
               styles.tab,
               {
-                backgroundColor: themeColors.subtle,
+                backgroundColor: themeColors.Subtle(0.9),
                 borderBottomLeftRadius: isActive ? 0 : 18,
                 borderBottomRightRadius: isActive ? 0 : 18,
                 height: isActive ? 40 : 34,

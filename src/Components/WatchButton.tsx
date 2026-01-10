@@ -25,6 +25,7 @@ interface WatchButtonProps {
   style?: ViewStyle;
   label?: WatchButtonState;
   isDownloadable?: boolean;
+  isActive: boolean;
 }
 
 export default function WatchButton({
@@ -33,17 +34,25 @@ export default function WatchButton({
   style,
   label,
   isDownloadable = true,
+  isActive,
 }: WatchButtonProps) {
   const colors = useThemeColors();
 
   return (
     <View style={[styles.container, {}, style]}>
       <TouchableOpacity
-        style={[styles.watchButton, { backgroundColor: colors.primary }]}
-        onPress={onWatchPress}
+        style={[
+          styles.watchButton,
+          { backgroundColor: isActive ? colors.primary : colors.Primary(0.3) },
+        ]}
+        onPress={isActive ? onWatchPress : null}
         activeOpacity={0.7}
       >
-        <Text style={[H5]}>{label || WatchButtonState.LOADING}</Text>
+        <Text
+          style={[H5, { color: isActive ? colors.text : colors.inActiveText }]}
+        >
+          {label || WatchButtonState.LOADING}
+        </Text>
       </TouchableOpacity>
 
       {isDownloadable && (
@@ -52,13 +61,17 @@ export default function WatchButton({
             styles.downloadButton,
             {
               borderLeftColor: colors.background,
-              backgroundColor: colors.primary,
+              backgroundColor: isActive ? colors.primary : colors.Primary(0.3),
             },
           ]}
-          onPress={onDownloadPress}
+          onPress={isActive ? onDownloadPress : null}
           activeOpacity={0.7}
         >
-          <Icon.DownloadSimple size={24} color={colors.text} weight="regular" />
+          <Icon.DownloadSimple
+            size={24}
+            color={isActive ? colors.icon : colors.inActiveText}
+            weight="regular"
+          />
         </TouchableOpacity>
       )}
     </View>

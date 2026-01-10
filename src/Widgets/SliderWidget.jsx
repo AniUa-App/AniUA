@@ -1,11 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import Slider from "@react-native-community/slider";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
+import { View, Text, StyleSheet } from "react-native";
+import { Slider } from "react-native-awesome-slider";
+import { useSharedValue } from "react-native-reanimated";
 import { useThemeColors } from "../Global/useTheme";
 import { H4, H5 } from "../Styles/Fonts";
 
@@ -24,7 +20,7 @@ import { H4, H5 } from "../Styles/Fonts";
  * - style?: ViewStyle — стилі контейнера
  */
 export default function SliderWidget({
-  label = "Рік",
+  label = "",
   min = 2000,
   max = 2025,
   defaultValue,
@@ -36,62 +32,92 @@ export default function SliderWidget({
 }) {
   const colors = useThemeColors();
 
-  // Жест для блокування BottomSheet при взаємодії зі слайдером
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-20, 20])
-    .onStart(() => {})
-    .onUpdate(() => {})
-    .onEnd(() => {});
-
   const initial = useMemo(() => {
     if (typeof value === "number") return value;
     if (typeof defaultValue === "number") return defaultValue;
     return min;
-  }, [value, defaultValue, min]);
+  }, []);
 
-  const [internal, setInternal] = useState(initial);
+  // Shared values for react-native-awesome-slider
+  const progress = useSharedValue(initial);
+  const minValue = useSharedValue(min);
+  const maxValue = useSharedValue(max);
+
+  // React state для відображення поточного значення (без warning)
+  const [displayValue, setDisplayValue] = useState(initial);
 
   // Синхронізуємо контрольоване значення
   useEffect(() => {
-    if (typeof value === "number" && value !== internal) {
-      setInternal(value);
+    if (typeof value === "number") {
+      progress.value = value;
+      setDisplayValue(value);
     }
   }, [value]);
 
-  const setValue = (v) => {
-    setInternal(v);
-    onChange(v);
+  // Оновлюємо min/max якщо вони змінюються
+  useEffect(() => {
+    minValue.value = min;
+  }, [min]);
+
+  useEffect(() => {
+    maxValue.value = max;
+  }, [max]);
+
+  // Кількість кроків для дискретного слайдера
+  const steps = useMemo(() => {
+    return Math.round((max - min) / step);
+  }, [min, max, step]);
+
+  const handleValueChange = (val) => {
+    const rounded = Math.round(val);
+    setDisplayValue(rounded);
+    onChange(rounded);
+  };
+
+  const handleSlidingComplete = (val) => {
+    onChangeEnd(Math.round(val));
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.background }, style]}
-    >
-      <Text style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}>
-        {label}
-      </Text>
+    <View style={[styles.container, { backgroundColor: colors.accent }, style]}>
+      {label && (
+        <Text style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}>
+          {label}
+        </Text>
+      )}
 
       <View style={styles.row}>
-        <Text style={[H4, { color: colors.text }]}>{internal}</Text>
-        <GestureDetector
-          gesture={Gesture.Simultaneous(panGesture, Gesture.Native())}
+        <Text style={[H4, { color: colors.text, minWidth: 40 }]}>
+          {displayValue}
+        </Text>
+        <View style={styles.sliderWrap}>
+          <Slider
+            progress={progress}
+            minimumValue={minValue}
+            maximumValue={maxValue}
+            steps={steps}
+            forceSnapToStep
+            renderMark={() => null}
+            onValueChange={handleValueChange}
+            onSlidingComplete={handleSlidingComplete}
+            // Gesture handling для роботи в BottomSheet
+            activeOffsetX={[-10, 10]}
+            failOffsetY={[-20, 20]}
+            // Стилізація
+            theme={{
+              minimumTrackTintColor: colors.primary,
+              maximumTrackTintColor: colors.background,
+            }}
+            sliderHeight={4}
+            thumbWidth={20}
+            renderBubble={() => null}
+          />
+        </View>
+        <Text
+          style={[H4, { color: colors.text, minWidth: 40, textAlign: "right" }]}
         >
-          <View style={styles.sliderWrap}>
-            <Slider
-              minimumValue={min}
-              maximumValue={max}
-              value={internal}
-              step={step}
-              onValueChange={setValue}
-              onSlidingComplete={onChangeEnd}
-              minimumTrackTintColor={colors.primary}
-              maximumTrackTintColor={colors.background}
-              thumbTintColor={colors.primary}
-            />
-          </View>
-        </GestureDetector>
-        <Text style={[H4, { color: colors.text }]}>{max}</Text>
+          {max}
+        </Text>
       </View>
     </View>
   );
@@ -100,7 +126,7 @@ export default function SliderWidget({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    borderRadius: 10,
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

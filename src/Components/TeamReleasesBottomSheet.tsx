@@ -48,7 +48,7 @@ export default function TeamReleasesBottomSheet({
           activeOpacity={1}
           style={[
             {
-              ...props.style,
+              ...props,
             },
           ]}
         />
@@ -77,10 +77,6 @@ export default function TeamReleasesBottomSheet({
             animeList={teamReleases}
             title=""
             onClickMore={null}
-            navigation={navigation}
-            onAnimePress={() => {
-              sheetRef.current?.close();
-            }}
           />
         ) : (
           <View style={styles.loadingContainer}>

@@ -12,7 +12,6 @@ import AnimeStatusFAB from "../Widgets/AnimeStatusFAB";
 import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import Logger from "../Logger/Logger";
-import { useFocusEffect } from "@react-navigation/native";
 import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import LoginScreen from "./LoginScreen";
@@ -117,12 +116,14 @@ export default function BookmarkScreen({ ...props }) {
   }, [currentStatus, fetchAnimeList]);
 
   // Оновлення при фокусі екрану
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    const unsubscribe = props.navigation.addListener("focus", () => {
       setPage(1);
       fetchAnimeList(currentStatus, 1, false);
-    }, [currentStatus, fetchAnimeList])
-  );
+    });
+
+    return unsubscribe;
+  }, [props.navigation, currentStatus, fetchAnimeList]);
 
   // Завантаження наступної сторінки
   const loadMore = useCallback(() => {
@@ -181,7 +182,6 @@ export default function BookmarkScreen({ ...props }) {
           route={props.route}
           isArrow={false}
           title={STATUS_TITLES[currentStatus] || "Обрані"}
-          arrowSide="right"
         />
         <DefaultScreenWidget isCheckInternet={true} isNavBarPadding={true}>
           <FlatList

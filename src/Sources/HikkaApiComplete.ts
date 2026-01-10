@@ -58,9 +58,21 @@ export interface HikkaScheduleItem {
   airing_at: number;
 }
 
-export type HikkaMediaType = "tv" | "movie" | "ova" | "ona" | "special" | "music";
+export type HikkaMediaType =
+  | "tv"
+  | "movie"
+  | "ova"
+  | "ona"
+  | "special"
+  | "music";
 export type HikkaStatus = "ongoing" | "finished" | "announced";
-export type HikkaSource = "manga" | "light_novel" | "original" | "visual_novel" | "game" | "other";
+export type HikkaSource =
+  | "manga"
+  | "light_novel"
+  | "original"
+  | "visual_novel"
+  | "game"
+  | "other";
 export type HikkaRating = "g" | "pg" | "pg_13" | "r" | "r_plus" | "rx";
 export type HikkaSeason = "winter" | "spring" | "summer" | "fall";
 
@@ -514,6 +526,7 @@ export class HikkaApiComplete {
     sort?: string[];
   }): Promise<HikkaPaginatedResponse<HikkaAnimePreview>> {
     const { page = 1, size = 20, ...rest } = params;
+    if (!rest.query || rest.query.length < 1) delete rest["query"];
     const cacheKey = `anime_search_${JSON.stringify(params)}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.post(
@@ -529,7 +542,9 @@ export class HikkaApiComplete {
    * @param {string} slug - Унікальний slug аніме
    * @returns {Promise<HikkaAnime|null>} Об'єкт з деталями аніме або null
    */
-  public static async getAnimeDetails(slug: string): Promise<HikkaAnime | null> {
+  public static async getAnimeDetails(
+    slug: string
+  ): Promise<HikkaAnime | null> {
     const cacheKey = `anime_details_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
@@ -828,9 +843,7 @@ export class HikkaApiComplete {
       `${HikkaApiComplete.apiUrl}watch/${username}/list?page=${page}&size=${size}`,
       bodyParams
     );
-    console.log(
-      `${HikkaApiComplete.apiUrl}watch/${username}/list?page=${page}&size=${size}`
-    );
+
     return response.data;
   }
 

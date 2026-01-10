@@ -7,6 +7,7 @@ import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
 import Logger from "../Logger/Logger";
+import { EventBus } from "../Global/EventBus";
 
 const BUTTON_STATES = {
   LOADING: "loading",
@@ -358,6 +359,7 @@ export function ForwardButton({
         isFavorite: true,
       };
       onDataChange?.(newData);
+      EventBus.emit("favoritesUpdated", { slug: anime.slug, isFavorite: true });
 
       Logger.debug("ForwardButton", "Додано в обрані через API");
     } catch (error) {

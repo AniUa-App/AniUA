@@ -30,7 +30,7 @@ export default function AnimeWatchScreen({ route }) {
   const watchBuildIn = watchBuildInRaw === true || watchBuildInRaw === "true";
 
   // Debug log
-  console.log("[AnimeWatchScreen] Params:", {
+  Logger.info("AnimeWatchScreen", "Params", {
     slug,
     watchEpisode,
     watchStudio,
@@ -43,7 +43,10 @@ export default function AnimeWatchScreen({ route }) {
 
   useEffect(() => {
     const handleWatch = async () => {
-      console.log("[AnimeWatchScreen] handleWatch called, handledRef:", handledRef.current, "slug:", slug);
+      Logger.info("AnimeWatchScreen", "handleWatch called", {
+        handledRef: handledRef.current,
+        slug,
+      });
       if (handledRef.current || !slug) return;
       handledRef.current = true;
 
@@ -70,20 +73,36 @@ export default function AnimeWatchScreen({ route }) {
         let episodesByPlayer;
 
         try {
-          episodesByPlayer = await AniuaApi.getAnimeEpisodesGroupedByPlayer(slug);
+          episodesByPlayer =
+            await AniuaApi.getAnimeEpisodesGroupedByPlayer(slug);
         } catch (aniuaError) {
-          Logger.warn("AnimeWatchScreen", "AniuaApi failed, trying HikkaApi fallback", aniuaError);
+          Logger.warn(
+            "AnimeWatchScreen",
+            "AniuaApi failed, trying HikkaApi fallback",
+            aniuaError
+          );
 
           try {
             const hikkaResult = await HikkaApi.getEpisodes(slug);
             if (hikkaResult.data && typeof hikkaResult.data === "object") {
               episodesByPlayer = convertHikkaEpisodes(hikkaResult.data, slug);
-              Logger.info("AnimeWatchScreen", "Successfully loaded episodes from HikkaApi fallback");
+              Logger.info(
+                "AnimeWatchScreen",
+                "Successfully loaded episodes from HikkaApi fallback",
+                {
+                  slug,
+                  episodesByPlayer,
+                }
+              );
             } else {
               throw new Error("Invalid HikkaApi response");
             }
           } catch (hikkaError) {
-            Logger.error("AnimeWatchScreen", "Both AniuaApi and HikkaApi failed", hikkaError);
+            Logger.error(
+              "AnimeWatchScreen",
+              "Both AniuaApi and HikkaApi failed",
+              hikkaError
+            );
             setStatus("error");
             setMessage("Не вдалося завантажити епізоди");
             return;
@@ -103,7 +122,10 @@ export default function AnimeWatchScreen({ route }) {
 
         // Find studio/team
         const availableStudios = Object.keys(playerEpisodes);
-        console.log("[AnimeWatchScreen] Available studios:", availableStudios, "Looking for:", watchStudio);
+        Logger.info("AnimeWatchScreen", "Available studios", {
+          availableStudios,
+          watchStudio,
+        });
 
         // Спробувати знайти студію за точним ім'ям або частковим співпадінням
         let studioName = watchStudio;
@@ -118,10 +140,13 @@ export default function AnimeWatchScreen({ route }) {
 
         if (!studioEpisodes && watchStudio) {
           // Спробувати знайти часткове співпадіння
-          const lowerWatchStudio = watchStudio.toLowerCase().replace(/\s+/g, '');
-          const foundStudio = availableStudios.find(s =>
-            s.toLowerCase().replace(/\s+/g, '') === lowerWatchStudio ||
-            s.toLowerCase().includes(watchStudio.toLowerCase())
+          const lowerWatchStudio = watchStudio
+            .toLowerCase()
+            .replace(/\s+/g, "");
+          const foundStudio = availableStudios.find(
+            (s) =>
+              s.toLowerCase().replace(/\s+/g, "") === lowerWatchStudio ||
+              s.toLowerCase().includes(watchStudio.toLowerCase())
           );
           if (foundStudio) {
             studioName = foundStudio;
@@ -136,20 +161,28 @@ export default function AnimeWatchScreen({ route }) {
         }
 
         if (!studioEpisodes) {
-          Logger.warn("AnimeWatchScreen", "Studio not found", { studioName, availableStudios });
+          Logger.warn("AnimeWatchScreen", "Studio not found", {
+            studioName,
+            availableStudios,
+          });
           setStatus("error");
           setMessage("Студію не знайдено");
           return;
         }
 
-        console.log("[AnimeWatchScreen] Using studio:", studioName);
+        Logger.info("AnimeWatchScreen", "Using studio", { studioName });
 
         // Find specific episode
-        const episodeNum = typeof watchEpisode === "number" ? watchEpisode : parseInt(watchEpisode, 10);
+        const episodeNum =
+          typeof watchEpisode === "number"
+            ? watchEpisode
+            : parseInt(watchEpisode, 10);
         const episode = studioEpisodes.find((ep) => ep.episode === episodeNum);
 
         if (!episode) {
-          Logger.warn("AnimeWatchScreen", "Episode not found", { watchEpisode: episodeNum });
+          Logger.warn("AnimeWatchScreen", "Episode not found", {
+            watchEpisode: episodeNum,
+          });
           setStatus("error");
           setMessage(`Епізод ${episodeNum} не знайдено`);
           return;
@@ -157,7 +190,9 @@ export default function AnimeWatchScreen({ route }) {
 
         // Update storage
         const info = AnimeStorage.get(slug) || {};
-        const watched_episodes = !(info.watched_episodes || []).includes(episode.episode)
+        const watched_episodes = !(info.watched_episodes || []).includes(
+          episode.episode
+        )
           ? [...(info.watched_episodes || []), episode.episode]
           : info.watched_episodes || [];
 
@@ -185,17 +220,31 @@ export default function AnimeWatchScreen({ route }) {
           });
         }
       } catch (error) {
-        Logger.error("AnimeWatchScreen", "Failed to handle watch deep link", error);
+        Logger.error(
+          "AnimeWatchScreen",
+          "Failed to handle watch deep link",
+          error
+        );
         setStatus("error");
         setMessage("Не вдалося відкрити епізод");
       }
     };
 
     handleWatch();
-  }, [slug, watchEpisode, watchStudio, watchProvider, watchTime, watchBuildIn, navigation]);
+  }, [
+    slug,
+    watchEpisode,
+    watchStudio,
+    watchProvider,
+    watchTime,
+    watchBuildIn,
+    navigation,
+  ]);
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: themeColors.background }]}
+    >
       {status === "loading" ? (
         <>
           <ActivityIndicator size="large" color={themeColors.primary} />

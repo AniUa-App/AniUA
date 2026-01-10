@@ -44,11 +44,11 @@ export const Years: [number, number] = [1965, new Date().getFullYear()];
 
 export default interface ReqCustomSet {
   Genres: string[];
-  Statuses: keyof typeof Statuses | Array<keyof typeof Statuses>;
-  Seasons: keyof typeof Seasons | Array<keyof typeof Seasons>;
-  IsUkrainianised: boolean;
-  Sort: keyof typeof Sort;
-  Rating: keyof typeof Rating | [];
+  Statuses: string | string[];
+  Seasons: string | string[];
+  IsUkrainianised?: boolean;
+  Sort: string;
+  Rating: string | string[] | [];
   Years: [number, number];
   Score: [number, number];
 }
@@ -127,20 +127,15 @@ async function _sendRequest(
   const toArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
   const mapUsingDict = (input: any | any[], dict: Record<string, string>) =>
     toArray(input).map((item) => dict[item as any] ?? String(item)) || [];
+  const dictValues = (dict: Record<string, string>) => Object.values(dict);
 
   const body = {
     years: years || [1965, new Date().getFullYear()],
-    rating: mapUsingDict(rating as any, Rating) || [],
-    status:
-      mapUsingDict(statuses as any, Statuses).length > 2
-        ? mapUsingDict(statuses as any, Statuses)
-        : [],
+    rating: toArray(rating as any).map(r => Rating[r as any] ?? r).filter(s => s !== ''),
+    status: toArray(statuses as any).map(s => Statuses[s as any] ?? s).filter(s => s !== ''),
     score: score || [5, 10],
     only_translated: isUkrainianised || true,
-    season:
-      seasons && mapUsingDict(seasons as any, Seasons).length > 2
-        ? mapUsingDict(seasons as any, Seasons)
-        : [],
+    season: toArray(seasons as any).map(s => Seasons[s as any] ?? s).filter(s => s !== ''),
     genres: genres || [],
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };
@@ -165,23 +160,14 @@ export async function getPagesAndSizes(
 
   const query = HikkaApi.getApiUrl() + `anime?page=1&size=1`;
   const toArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
-  const mapUsingDict = (input: any | any[], dict: Record<string, string>) =>
-    toArray(input).map((item) => dict[item as any] ?? String(item)) || [];
 
   const body = {
     years: years || [1965, new Date().getFullYear()],
-    rating: mapUsingDict(rating as any, Rating) || [],
-    status:
-      mapUsingDict(statuses as any, Statuses).length > 2
-        ? mapUsingDict(statuses as any, Statuses)
-        : [],
+    rating: toArray(rating as any).map(r => Rating[r as any] ?? r).filter(s => s !== ''),
+    status: toArray(statuses as any).map(s => Statuses[s as any] ?? s).filter(s => s !== ''),
     only_translated: isUkrainianised || true,
     score: score || [5, 10],
-
-    season:
-      seasons && mapUsingDict(seasons as any, Seasons).length > 2
-        ? mapUsingDict(seasons as any, Seasons)
-        : [],
+    season: toArray(seasons as any).map(s => Seasons[s as any] ?? s).filter(s => s !== ''),
     genres: genres || [],
     sort: [`${Sort[sort] ?? String(sort)}:desc`],
   };

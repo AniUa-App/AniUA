@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import Logger from "../Logger/Logger";
+import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
 
 // ==================== TYPES ====================
 
@@ -114,10 +115,6 @@ export interface TeamsFilterParams {
   sort_by?: "name" | "releases_count" | "status";
   /** Порядок сортування */
   sort_order?: "asc" | "desc";
-  /** Номер сторінки (починаючи з 1) */
-  page?: number;
-  /** Кількість елементів на сторінці */
-  size?: number;
 }
 
 /**
@@ -126,13 +123,8 @@ export interface TeamsFilterParams {
 export interface PaginatedTeamsResult {
   /** Список команд */
   list: Team[];
-  /** Інформація про пагінацію */
-  pagination: {
-    page: number;
-    size: number;
-    total: number;
-    pages: number;
-  };
+
+  total: number;
 }
 
 /**
@@ -506,8 +498,6 @@ export class AniuaApi {
       min_releases,
       sort_by = "name",
       sort_order = "asc",
-      page = 1,
-      size = 20,
     } = params;
 
     let teams = await AniuaApi.getAllTeams();
@@ -585,18 +575,10 @@ export class AniuaApi {
 
     // Пагінація
     const total = teams.length;
-    const pages = Math.ceil(total / size);
-    const startIndex = (page - 1) * size;
-    const paginatedTeams = teams.slice(startIndex, startIndex + size);
 
     return {
-      list: paginatedTeams,
-      pagination: {
-        page,
-        size,
-        total,
-        pages,
-      },
+      list: teams,
+      total,
     };
   }
 
@@ -882,10 +864,24 @@ export class AniuaApi {
    * ```
    */
   public static async getAnimeEpisodes(slug: string): Promise<Episode[]> {
-    // Перевіряємо кеш
+    const cacheKey = `aniua_episodes_${slug}`;
+
+    // Спочатку перевіряємо персистентний кеш (зберігається 10 хв навіть після перезапуску)
+    const persistentCached = EpisodesCacheStorage.get(cacheKey);
+    if (persistentCached) {
+      Logger.debug("AniuaApi", `Епізоди для ${slug} з персистентного кешу`);
+      // Оновлюємо in-memory кеш
+      AniuaApi.cache.episodes.set(slug, {
+        data: persistentCached,
+        timestamp: Date.now(),
+      });
+      return persistentCached;
+    }
+
+    // Перевіряємо in-memory кеш
     const cached = AniuaApi.cache.episodes.get(slug);
     if (cached && AniuaApi.isCacheValid(cached.timestamp)) {
-      Logger.debug("AniuaApi", `Епізоди для ${slug} з кешу`);
+      Logger.debug("AniuaApi", `Епізоди для ${slug} з in-memory кешу`);
       return cached.data;
     }
 
@@ -898,7 +894,10 @@ export class AniuaApi {
 
       const episodes = response.data.episodes || [];
 
-      // Зберігаємо в кеш
+      // Зберігаємо в персистентний кеш (10 хв)
+      EpisodesCacheStorage.set(cacheKey, episodes);
+
+      // Зберігаємо в in-memory кеш
       AniuaApi.cache.episodes.set(slug, {
         data: episodes,
         timestamp: Date.now(),

@@ -96,26 +96,22 @@ export function SegmentedControlLabelWidget({
         onChangeIndex(event.nativeEvent.selectedSegmentIndex)
       }
       tintColor={colors.primary}
-      backgroundColor={backgroundColor || colors.subtle}
-      sliderStyle={{ top: 0, bottom: 0, left: 0, right: 0 }}
+      backgroundColor={"transparent"}
+      sliderStyle={{
+        borderRadius: 16,
+        paddingHorizontal: 8,
+      }}
       style={{
-        width: "100%",
-        alignSelf: "center",
-        height: 50,
-        borderWidth: 0,
-        borderRadius: 8,
-        overflow: "hidden",
-        ...style,
+        height: 44,
       }}
       fontStyle={{
-        ...H7,
-        color: colors.text,
+        ...H5,
+        color: colors.Text(0.5),
       }}
       activeFontStyle={{
         ...H5,
-        textAlign: "center",
+        fontWeight: "normal",
         color: colors.text,
-        lineHeight: (H7?.fontSize ?? 13) + 2,
       }}
     />
   );

@@ -11,6 +11,7 @@ import {
 import { H3, H4 } from "../Styles/Fonts";
 import { TouchableOpacity } from "../Widgets/Button";
 import Config from "../cfgs/MainConfig";
+import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 
 export default function DoramaScreen() {
   const themeColors = useThemeColors();
@@ -23,122 +24,132 @@ export default function DoramaScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: themeColors.background }}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <View style={styles.container}>
-        <View style={styles.content}>
-          {/* Іконка */}
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: themeColors.primary },
-            ]}
-          >
-            <FilmReel size={72} color={themeColors.accent} weight="duotone" />
-          </View>
-
-          {/* Заголовок */}
-          <Text style={[H3, styles.title, { color: themeColors.text }]}>
-            Дорами
-          </Text>
-
-          {/* Статус */}
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: themeColors.accent },
-            ]}
-          >
-            <Timer size={16} color={themeColors.primary} weight="bold" />
-            <Text style={[styles.statusText, { color: themeColors.primary }]}>
-              Йде збір коштів
-            </Text>
-          </View>
-
-          {/* Опис */}
-          <Text
-            style={[
-              styles.description,
-              { color: themeColors.text, opacity: 0.7 },
-            ]}
-          >
-            Для запуску розділу дорам нам потрібен окремий сервер. Як тільки
-            збір буде закрито — розпочнеться активна розробка!
-          </Text>
-
-          {/* Інфо картка */}
-          <View
-            style={[styles.infoCard, { backgroundColor: themeColors.subtle }]}
-          >
-            <View style={styles.infoRow}>
-              <CloudArrowUp
-                size={20}
-                color={themeColors.text}
-                weight="duotone"
-                style={{ opacity: 0.7 }}
-              />
-              <Text
-                style={[
-                  styles.infoText,
-                  { color: themeColors.text, opacity: 0.8 },
-                ]}
-              >
-                Сервер для зберігання та стрімінгу дорам з українською озвучкою
-              </Text>
-            </View>
+    <DefaultScreenWidget>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "transparent" }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.container}>
+          <View style={styles.content}>
+            {/* Іконка */}
             <View
               style={[
-                styles.divider,
-                { backgroundColor: themeColors.text + "15" },
+                styles.iconContainer,
+                { backgroundColor: themeColors.primary },
               ]}
-            />
-            <View style={styles.infoRow}>
-              <Globe
-                size={20}
-                color={themeColors.text}
-                weight="duotone"
-                style={{ opacity: 0.7 }}
-              />
-              <Text
-                style={[
-                  styles.infoText,
-                  { color: themeColors.text, opacity: 0.8 },
-                ]}
-              >
-                Корейські, японські та китайські дорами українською
+            >
+              <FilmReel size={72} color={themeColors.accent} weight="duotone" />
+            </View>
+
+            {/* Заголовок */}
+            <Text style={[H3, styles.title, { color: themeColors.text }]}>
+              Дорами
+            </Text>
+
+            {/* Статус */}
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: themeColors.accent },
+              ]}
+            >
+              <Timer size={16} color={themeColors.primary} weight="bold" />
+              <Text style={[styles.statusText, { color: themeColors.primary }]}>
+                Йде збір коштів
               </Text>
             </View>
-          </View>
 
-          {/* Кнопка донату */}
-          <TouchableOpacity
-            style={[
-              styles.donateButton,
-              { backgroundColor: themeColors.primary },
-            ]}
-            onPress={handleDonate}
-            activeOpacity={0.8}
-          >
-            <HeartStraight size={22} color={themeColors.text} weight="fill" />
+            {/* Опис */}
             <Text
-              style={[H4, styles.donateButtonText, { color: themeColors.text }]}
+              style={[
+                styles.description,
+                { color: themeColors.text, opacity: 0.7 },
+              ]}
             >
-              Підтримати проєкт
+              Для запуску розділу дорам нам потрібен окремий сервер. Як тільки
+              збір буде закрито — розпочнеться активна розробка!
             </Text>
-          </TouchableOpacity>
 
-          {/* Додаткова інформація */}
-          <Text
-            style={[styles.footnote, { color: themeColors.text, opacity: 0.5 }]}
-          >
-            Кожен донат наближає запуск розділу дорам
-          </Text>
+            {/* Інфо картка */}
+            <View
+              style={[styles.infoCard, { backgroundColor: themeColors.subtle }]}
+            >
+              <View style={styles.infoRow}>
+                <CloudArrowUp
+                  size={20}
+                  color={themeColors.text}
+                  weight="duotone"
+                  style={{ opacity: 0.7 }}
+                />
+                <Text
+                  style={[
+                    styles.infoText,
+                    { color: themeColors.text, opacity: 0.8 },
+                  ]}
+                >
+                  Сервер для зберігання та стрімінгу дорам з українською
+                  озвучкою
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: themeColors.text + "15" },
+                ]}
+              />
+              <View style={styles.infoRow}>
+                <Globe
+                  size={20}
+                  color={themeColors.text}
+                  weight="duotone"
+                  style={{ opacity: 0.7 }}
+                />
+                <Text
+                  style={[
+                    styles.infoText,
+                    { color: themeColors.text, opacity: 0.8 },
+                  ]}
+                >
+                  Корейські, японські та китайські дорами українською
+                </Text>
+              </View>
+            </View>
+
+            {/* Кнопка донату */}
+            <TouchableOpacity
+              style={[
+                styles.donateButton,
+                { backgroundColor: themeColors.primary },
+              ]}
+              onPress={handleDonate}
+              activeOpacity={0.8}
+            >
+              <HeartStraight size={22} color={themeColors.text} weight="fill" />
+              <Text
+                style={[
+                  H4,
+                  styles.donateButtonText,
+                  { color: themeColors.text },
+                ]}
+              >
+                Підтримати проєкт
+              </Text>
+            </TouchableOpacity>
+
+            {/* Додаткова інформація */}
+            <Text
+              style={[
+                styles.footnote,
+                { color: themeColors.text, opacity: 0.5 },
+              ]}
+            >
+              Кожен донат наближає запуск розділу дорам
+            </Text>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </DefaultScreenWidget>
   );
 }
 

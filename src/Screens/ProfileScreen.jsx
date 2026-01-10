@@ -5,111 +5,32 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
-  Pressable,
   ActivityIndicator,
   Animated,
-  Dimensions,
 } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
-import FastImage from "react-native-fast-image";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
-import { H2, H3, H4, H5, H6, useScaleFontSize } from "../Styles/Fonts";
+import { useScaleFontSize } from "../Styles/Fonts";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
-import { Image } from "../Widgets/LoadersWidgets";
-import BloomImage, { prefetchBloomImage } from "../Widgets/BloomImage";
-import { background } from "../Styles/Colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import LoginScreen from "./LoginScreen";
 
-const AnimatedTabButton = ({ tab, isActive, onPress, colors }) => {
-  const scaleAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.spring(scaleAnim, {
-      toValue: isActive ? 1 : 0,
-      useNativeDriver: false,
-      tension: 100,
-      friction: 10,
-    }).start();
-  }, [isActive]);
-
-  const Icon = Icons[tab.icon];
-
-  const animatedSize = scaleAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [44, 46],
-  });
-
-  const animatedBorderRadius = scaleAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [16, 0],
-  });
-
-  const animatedTopBorderRadius = scaleAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [16, 16],
-  });
-
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Animated.View
-        style={[
-          styles.tabItem,
-          {
-            backgroundColor: colors.accent,
-            width: animatedSize,
-            height: animatedSize,
-            borderTopLeftRadius: animatedTopBorderRadius,
-            borderTopRightRadius: animatedTopBorderRadius,
-            borderBottomLeftRadius: animatedBorderRadius,
-            borderBottomRightRadius: animatedBorderRadius,
-          },
-        ]}
-      >
-        <Icon size={28} color={isActive ? colors.activeIcon : colors.icon} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
-
-const TABS = [
-  { id: "list", icon: "MonitorPlay" },
-  { id: "favorites", icon: "Heart" },
-];
-
-const FILTERS = [
-  { id: "watching", label: "Дивлюсь", icon: "PlayCircle", colorKey: "primary" },
-  {
-    id: "planned",
-    label: "У планах",
-    icon: "PlusCircle",
-    colorKey: "yellowBookmark",
-  },
-  {
-    id: "completed",
-    label: "Оглянуто",
-    icon: "CheckCircle",
-    colorKey: "orangeBookmark",
-  },
-  {
-    id: "on_hold",
-    label: "Відкладено",
-    icon: "PauseCircle",
-    colorKey: "blueBookmark",
-  },
-  {
-    id: "dropped",
-    label: "Закинуто",
-    icon: "XCircle",
-    colorKey: "redBookmark",
-  },
-];
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+import {
+  AnimatedTabButton,
+  ProfileAvatar,
+  ProfileStats,
+  FilterChips,
+  AnimeGrid,
+  NotAuthenticatedView,
+  TABS,
+  FILTERS,
+  FAVORITES_FILTERS,
+  SCREEN_WIDTH,
+} from "../Components/Profile";
 
 export default function ProfileScreen({ navigation }) {
   const colors = useThemeColors();
@@ -118,9 +39,10 @@ export default function ProfileScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState("watching");
   const [animeList, setAnimeList] = useState([]);
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [activeFavoriteFilter, setActiveFavoriteFilter] = useState("anime");
+  const [favoritesList, setFavoritesList] = useState([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
 
-  const insets = useSafeAreaInsets();
-  const tabScrollRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const activeTabIndex = TABS.findIndex((tab) => tab.id === activeTab);
@@ -134,8 +56,49 @@ export default function ProfileScreen({ navigation }) {
     }).start();
   }, [activeTabIndex]);
 
-  const { user, stats, favorites, isLoading, isAuthenticated, login, logout } =
+  const { user, stats, favorites, isLoading, isAuthenticated, login } =
     useHikkaUser();
+
+  const fetchAnimeList = useCallback(async () => {
+    if (!user?.username || !activeFilter) return;
+
+    setIsLoadingAnime(true);
+    try {
+      const response = await HikkaApiComplete.getUserWatchList(user.username, {
+        page: 1,
+        size: 50,
+        watch_status: activeFilter,
+      });
+      setAnimeList(response?.list || []);
+    } catch (error) {
+      console.error("Error fetching anime list:", error);
+      setAnimeList([]);
+    } finally {
+      setIsLoadingAnime(false);
+    }
+  }, [user?.username, activeFilter]);
+
+  const fetchFavoritesList = useCallback(async () => {
+    if (!user?.username || !activeFavoriteFilter) return;
+
+    setIsLoadingFavorites(true);
+    try {
+      const response = await HikkaApiComplete.getUserFavorites(
+        activeFavoriteFilter,
+        user.username,
+        {
+          page: 1,
+          size: 50,
+        }
+      );
+      setFavoritesList(response?.list || []);
+    } catch (error) {
+      console.error("Error fetching favorites list:", error);
+      setFavoritesList([]);
+    } finally {
+      setIsLoadingFavorites(false);
+    }
+  }, [user?.username, activeFavoriteFilter]);
 
   useFocusEffect(
     useCallback(() => {
@@ -145,47 +108,28 @@ export default function ProfileScreen({ navigation }) {
     }, [])
   );
 
-  const selectFilter = (filterId) => {
-    setActiveFilter(filterId);
-  };
+  // Перезавантаження даних при поверненні на екран
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchAnimeList();
+      fetchFavoritesList();
+    });
+
+    return unsubscribe;
+  }, [navigation, fetchAnimeList, fetchFavoritesList]);
 
   // Завантаження списку аніме при зміні фільтра
   useEffect(() => {
-    const fetchAnimeList = async () => {
-      if (!user?.username || !activeFilter) return;
-
-      setIsLoadingAnime(true);
-      try {
-        const response = await HikkaApiComplete.getUserWatchList(
-          user.username,
-          {
-            page: 1,
-            size: 50,
-            watch_status: activeFilter,
-          }
-        );
-        setAnimeList(response?.list || []);
-      } catch (error) {
-        console.error("Error fetching anime list:", error);
-        setAnimeList([]);
-      } finally {
-        setIsLoadingAnime(false);
-      }
-    };
-
     fetchAnimeList();
-  }, [user?.username, activeFilter]);
+  }, [fetchAnimeList]);
 
-  const userStats = [
-    { value: stats?.planned ?? 0, label: "У планах" },
-    { value: stats?.watching ?? 0, label: "Дивлюсь" },
-    { value: stats?.completed ?? 0, label: "Оглянуто" },
-    { value: favorites?.pagination?.total ?? 0, label: "Обрані" },
-  ];
+  // Завантаження улюблених аніме при зміні фільтра
+  useEffect(() => {
+    fetchFavoritesList();
+  }, [fetchFavoritesList]);
 
   const displayName = user?.username || "Користувач AniUa";
   const handle = user?.username ? `@${user.username}` : "@aniua_user";
-  const avatarUrl = user?.avatar;
 
   // Стан завантаження
   if (isLoading) {
@@ -202,45 +146,29 @@ export default function ProfileScreen({ navigation }) {
   if (!isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={styles.notAuthContainer}>
-          <View
-            style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}
-          >
-            <Icons.User size={72} color={colors.Text(0.3)} weight="regular" />
-          </View>
-
-          <Text
-            style={[
-              styles.notAuthTitle,
-              { color: colors.text, fontSize: scaleFontSize(18) },
-            ]}
-          >
-            Увійдіть в акаунт
-          </Text>
-
-          <Text
-            style={[
-              styles.notAuthSubtitle,
-              { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
-            ]}
-          >
-            Авторизуйтесь через Hikka, щоб синхронізувати свій список аніме
-          </Text>
-
+        {/* Header */}
+        <View style={[styles.header, { zIndex: 1 }]}>
           <TouchableOpacity
-            style={[styles.loginButton, { backgroundColor: colors.primary }]}
-            onPress={login}
+            onPress={() =>
+              navigation.navigate("HiddenStack", {
+                screen: "SettingsScreen",
+              })
+            }
+            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
           >
-            <Icons.SignIn size={20} color={colors.background} weight="bold" />
-            <Text
-              style={[
-                styles.loginButtonText,
-                { color: colors.background, fontSize: scaleFontSize(15) },
-              ]}
-            >
-              Увійти через Hikka
-            </Text>
+            <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
+          <LoginScreen isCanSkip={false} />
         </View>
       </DefaultScreenWidget>
     );
@@ -256,7 +184,11 @@ export default function ProfileScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => navigation.navigate("Settings")}
+            onPress={() =>
+              navigation.navigate("HiddenStack", {
+                screen: "SettingsScreen",
+              })
+            }
             style={[styles.iconButton, { backgroundColor: colors.subtle }]}
           >
             <Icons.GearSix size={32} color={colors.primary} />
@@ -264,21 +196,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Avatar */}
-        <View style={styles.avatarContainer}>
-          {!avatarUrl?.includes("avatar") ? (
-            <Image
-              uri={avatarUrl}
-              style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}
-              resizeMode="cover"
-            />
-          ) : (
-            <View
-              style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}
-            >
-              <Icons.User size={72} color={colors.Text(0.5)} weight="regular" />
-            </View>
-          )}
-        </View>
+        <ProfileAvatar avatarUrl={user?.avatar} colors={colors} />
 
         {/* Username */}
         <View style={styles.usernameContainer}>
@@ -305,32 +223,7 @@ export default function ProfileScreen({ navigation }) {
         </Text>
 
         {/* Stats */}
-        <View style={styles.statsContainer}>
-          {userStats.map((stat, index) => (
-            <View
-              key={index}
-              style={[
-                styles.statItem,
-                {
-                  backgroundColor: colors.accent,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  H4,
-                  {
-                    color: colors.text,
-                    fontFamily: "Nunito-SemiBold",
-                  },
-                ]}
-              >
-                {String(stat.value)}
-              </Text>
-              <Text style={[H6, { color: colors.text }]}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
+        <ProfileStats stats={stats} favorites={favorites} colors={colors} />
 
         {/* Tabs */}
         <View
@@ -360,135 +253,51 @@ export default function ProfileScreen({ navigation }) {
             ]}
           >
             {/* List Tab */}
-            <View style={[]}>
-              {/* Filters */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtersContainer}
-              >
-                {FILTERS.map((filter, index) => {
-                  const Icon = Icons[filter.icon];
-                  const isActive = activeFilter === filter.id;
-                  const filterColor = colors[filter.colorKey];
-                  return (
-                    <TouchableOpacity
-                      key={filter.id}
-                      style={[
-                        styles.filterChip,
-                        {
-                          borderColor: colors.background,
-                          backgroundColor: colors.background,
-                          marginLeft: index === 0 ? 8 : 0,
-                          marginRight: index === FILTERS.length - 1 ? 8 : 0,
-                        },
-                      ]}
-                      onPress={() => selectFilter(filter.id)}
-                    >
-                      <Icon
-                        size={18}
-                        color={filterColor}
-                        weight={isActive ? "fill" : "regular"}
-                      />
-                      <Text
-                        style={[
-                          H5,
-                          {
-                            color: isActive ? filterColor : colors.text,
-                          },
-                        ]}
-                      >
-                        {filter.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-
-              {/* Anime List */}
-              {isLoadingAnime ? (
-                <View style={styles.emptyState}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-              ) : animeList.length > 0 ? (
-                <View style={styles.animeGridContainer}>
-                  {animeList.map((item, index) => {
-                    const anime = item.anime;
-                    return (
-                      <TouchableOpacity
-                        key={anime?.slug || index}
-                        style={styles.animeGridItem}
-                        onPress={() => {
-                          if (anime?.image) prefetchBloomImage(anime.image);
-                          navigation.navigate("HiddenStack", {
-                            screen: "AnimePreview",
-                            params: { anime },
-                          });
-                        }}
-                      >
-                        <Image
-                          uri={anime?.image}
-                          style={{
-                            borderRadius: 16,
-                            height: SCREEN_HEIGHT * 0.22,
-                            width: SCREEN_WIDTH * 0.3,
-                          }}
-                          resizeMode="cover"
-                        />
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ) : (
-                <View style={styles.emptyState}>
-                  <Icons.MonitorPlay
-                    size={48}
-                    color={colors.Text(0.3)}
-                    weight="regular"
-                  />
-                  <Text
-                    style={[
-                      styles.emptyStateText,
-                      { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
-                    ]}
-                  >
-                    Список порожній
-                  </Text>
-                </View>
-              )}
+            <View style={{ width: SCREEN_WIDTH }}>
+              <View>
+                <FilterChips
+                  filters={FILTERS}
+                  activeFilter={activeFilter}
+                  onFilterSelect={setActiveFilter}
+                  colors={colors}
+                />
+              </View>
+              <AnimeGrid
+                data={animeList}
+                isLoading={isLoadingAnime}
+                emptyIcon="MonitorPlay"
+                emptyText="Список порожній"
+                colors={colors}
+                scaleFontSize={scaleFontSize}
+                navigation={navigation}
+                getAnimeFromItem={(item) => item.anime}
+              />
             </View>
 
             {/* Favorites Tab */}
-            <View style={styles.emptyState}>
-              <Icons.Heart size={48} color={colors.Text(0.3)} />
-              <Text
-                style={[
-                  styles.emptyStateText,
-                  { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
-                ]}
-              >
-                Улюблені аніме
-              </Text>
-            </View>
+            <View style={{ width: SCREEN_WIDTH }}>
+              <View>
+                <FilterChips
+                  filters={FAVORITES_FILTERS}
+                  activeFilter={activeFavoriteFilter}
+                  onFilterSelect={setActiveFavoriteFilter}
+                  colors={colors}
+                />
+              </View>
 
-            {/* Friends Tab */}
-            <View style={styles.emptyState}>
-              <Icons.Users
-                size={48}
-                color={colors.Text(0.3)}
-                weight="regular"
+              <AnimeGrid
+                data={favoritesList}
+                isLoading={isLoadingFavorites}
+                emptyIcon="Heart"
+                emptyText="Список порожній"
+                colors={colors}
+                scaleFontSize={scaleFontSize}
+                navigation={navigation}
+                getAnimeFromItem={(item) => item}
               />
-              <Text
-                style={[
-                  styles.emptyStateText,
-                  { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
-                ]}
-              >
-                Ваші друзі
-              </Text>
             </View>
           </Animated.View>
-          <View style={{ width: "100%", paddingBottom: insets.bottom }} />
+          <View style={{ width: "100%", paddingBottom: 45 }} />
         </View>
       </ScrollView>
     </DefaultScreenWidget>
@@ -508,35 +317,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  notAuthContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  notAuthTitle: {
-    fontFamily: "Nunito-Bold",
-    marginTop: 20,
-    textAlign: "center",
-  },
-  notAuthSubtitle: {
-    fontFamily: "Nunito-Regular",
-    marginTop: 8,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  loginButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 10,
-  },
-  loginButtonText: {
-    fontFamily: "Nunito-Bold",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -551,18 +331,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-  },
-  avatarContainer: {
-    alignItems: "center",
-    marginTop: 4,
-  },
-  avatarOuter: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
   },
   usernameContainer: {
     flexDirection: "row",
@@ -585,68 +353,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: "Nunito-Regular",
   },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginHorizontal: 20,
-    marginTop: 20,
-    gap: 6,
-  },
-  statItem: {
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-  },
-  statValue: {
-    fontFamily: "Nunito-Bold",
-  },
-  statLabel: {
-    fontFamily: "Nunito-Regular",
-    marginTop: 2,
-  },
   tabsContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
     marginTop: 20,
     marginHorizontal: 20,
-  },
-  tabItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  filtersContainer: {
-    flexDirection: "row",
-    gap: 8,
-    height: 38,
-  },
-  filterChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderRadius: 18,
-    marginTop: 8,
-    gap: 5,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginHorizontal: 20,
-    marginTop: 24,
-    gap: 8,
-  },
-  contentArea: {
-    flex: 1,
-    minHeight: 200,
-    marginTop: 16,
   },
   tabContentWrapper: {
     overflow: "hidden",
@@ -656,24 +367,5 @@ const styles = StyleSheet.create({
   },
   tabContentContainer: {
     flexDirection: "row",
-  },
-  emptyState: {
-    width: "100%",
-    alignItems: "center",
-  },
-  emptyStateText: {
-    fontFamily: "Nunito-Regular",
-    textAlign: "center",
-  },
-  animeGridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingTop: 12,
-  },
-  animeGridItem: {
-    width: "33%",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
   },
 });

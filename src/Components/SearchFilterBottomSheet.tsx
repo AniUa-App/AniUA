@@ -8,6 +8,7 @@ import { H4 } from "../Styles/Fonts";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import InputPickerWidget from "../Widgets/InputPickerWidget";
 import SliderWidget from "../Widgets/SliderWidget";
+import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 
 export interface SearchFilters {
   status: string;
@@ -17,12 +18,19 @@ export interface SearchFilters {
   genres: string[];
 }
 
+type OnApply = {
+  (filters: SearchFilters): void;
+  (isVerified: boolean): void;
+};
+
 interface SearchFilterBottomSheetProps {
   sheetRef: RefObject<BottomSheetModal>;
   filters: SearchFilters;
   loadedGenres: string[];
-  onApply: (filters: SearchFilters) => void;
+  onApply: OnApply;
   onReset: () => void;
+  activeCategory: string;
+  isVerified?: boolean;
 }
 
 export default function SearchFilterBottomSheet({
@@ -31,6 +39,8 @@ export default function SearchFilterBottomSheet({
   loadedGenres,
   onApply,
   onReset,
+  activeCategory,
+  isVerified = true,
 }: SearchFilterBottomSheetProps) {
   const [status, setStatus] = useState(filters.status);
   const [seasons, setSeasons] = useState(filters.seasons);
@@ -61,7 +71,7 @@ export default function SearchFilterBottomSheet({
   const handleReset = () => {
     setStatus("Байдуже");
     setSeasons("Байдуже");
-    setYears([2000, new Date().getFullYear()]);
+    setYears([1990, new Date().getFullYear()]);
     setScore(0);
     setGenres([]);
     onReset();
@@ -70,10 +80,10 @@ export default function SearchFilterBottomSheet({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={["70%"]}
+      snapPoints={activeCategory === "anime" ? ["70%"] : ["15%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: themeColors.subtle }}
+      backgroundStyle={{ backgroundColor: themeColors.background }}
       handleIndicatorStyle={{ backgroundColor: themeColors.text }}
       backdropComponent={(props) => (
         <TouchableOpacity
@@ -90,100 +100,130 @@ export default function SearchFilterBottomSheet({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
-          {/* Заголовок */}
-          <View style={styles.headerRow}>
-            <Text style={[H4, { color: themeColors.text, fontSize: 18 }]}>
-              Фільтри пошуку
-            </Text>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                onPress={handleReset}
-                style={[
-                  styles.headerButton,
-                  { backgroundColor: themeColors.background },
-                ]}
-              >
-                <Icons.Trash size={22} color={themeColors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleApply}
-                style={[
-                  styles.headerButton,
-                  { backgroundColor: themeColors.primary },
-                ]}
-              >
-                <Icons.Check size={22} color={themeColors.text} />
-              </TouchableOpacity>
+        {activeCategory === "anime" ? (
+          <View style={styles.content}>
+            {/* Заголовок */}
+            <View style={styles.headerRow}>
+              <Text style={[H4, { color: themeColors.text, fontSize: 18 }]}>
+                Фільтри пошуку
+              </Text>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity
+                  onPress={handleReset}
+                  style={[
+                    styles.headerButton,
+                    { backgroundColor: themeColors.accent },
+                  ]}
+                >
+                  <Icons.Trash size={22} color={themeColors.text} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleApply}
+                  style={[
+                    styles.headerButton,
+                    { backgroundColor: themeColors.accent },
+                  ]}
+                >
+                  <Icons.Check size={22} color={themeColors.primary} />
+                </TouchableOpacity>
+              </View>
             </View>
+
+            {/* Статус */}
+            <Text style={[H4, { color: themeColors.text, marginBottom: 8 }]}>
+              Статус
+            </Text>
+            <SegmentedControlLabelWidget
+              segments={[
+                { label: "Байдуже" },
+                { label: "Анонс" },
+                { label: "Онґоінґ" },
+                { label: "Завершено" },
+              ]}
+              value={status}
+              onChange={(item: { label: string } | string) =>
+                setStatus(typeof item === "string" ? item : (item?.label ?? ""))
+              }
+            />
+
+            {/* Сезон */}
+            <Text style={[H4, styles.sectionLabel]}>Сезон</Text>
+            <SegmentedControlLabelWidget
+              segments={[
+                { label: "Байдуже" },
+                { label: "Зима" },
+                { label: "Весна" },
+                { label: "Літо" },
+                { label: "Осінь" },
+              ]}
+              value={seasons}
+              onChange={(item: { label: string } | string) =>
+                setSeasons(
+                  typeof item === "string" ? item : (item?.label ?? "")
+                )
+              }
+            />
+
+            {/* Жанри */}
+            <Text style={[H4, styles.sectionLabel]}>Жанри</Text>
+            <InputPickerWidget
+              items={loadedGenres}
+              placeholder="Виберіть жанр/жанри..."
+              selected={genres}
+              onChange={(item: string[]) => setGenres(item)}
+            />
+
+            {/* Рік */}
+            <SliderWidget
+              label="Рік (від)"
+              min={1990}
+              max={new Date().getFullYear()}
+              value={years[0]}
+              style={styles.slider}
+              onChange={(item: number) =>
+                setYears([item, new Date().getFullYear()])
+              }
+            />
+
+            {/* Оцінка */}
+            <SliderWidget
+              label="Мінімальна оцінка"
+              min={0}
+              max={10}
+              value={score}
+              defaultValue={0}
+              style={styles.slider}
+              onChange={(item: number) => setScore(item)}
+            />
           </View>
-
-          {/* Статус */}
-          <Text style={[H4, { color: themeColors.text, marginBottom: 8 }]}>
-            Статус
-          </Text>
-          <SegmentedControlLabelWidget
-            segments={[
-              { label: "Байдуже" },
-              { label: "Анонс" },
-              { label: "Онґоінґ" },
-              { label: "Завершено" },
-            ]}
-            value={status}
-            onChange={(item: { label: string } | string) =>
-              setStatus(typeof item === "string" ? item : (item?.label ?? ""))
-            }
+        ) : (
+          <SettingsItemWidget
+            title={""}
+            subtitle={"Показувати лише верифіковані команди"}
+            icon={<Icons.Star weight="fill" />}
+            iconColor={themeColors.primary}
+            button={{
+              Icon: isVerified ? (
+                <Icons.ToggleRight
+                  size={34}
+                  color={themeColors.primary}
+                  weight="fill"
+                />
+              ) : (
+                <Icons.ToggleLeft size={34} color={themeColors.inActiveText} />
+              ),
+            }}
+            onPress={() => {
+              onApply(!isVerified);
+            }}
+            onPressBody={() => {
+              onApply(!isVerified);
+            }}
+            color={themeColors.background}
+            showChevron={false}
+            disabled={false}
           />
-
-          {/* Сезон */}
-          <Text style={[H4, styles.sectionLabel]}>Сезон</Text>
-          <SegmentedControlLabelWidget
-            segments={[
-              { label: "Байдуже" },
-              { label: "Зима" },
-              { label: "Весна" },
-              { label: "Літо" },
-              { label: "Осінь" },
-            ]}
-            value={seasons}
-            onChange={(item: { label: string } | string) =>
-              setSeasons(typeof item === "string" ? item : (item?.label ?? ""))
-            }
-          />
-
-          {/* Жанри */}
-          <Text style={[H4, styles.sectionLabel]}>Жанри</Text>
-          <InputPickerWidget
-            items={loadedGenres}
-            placeholder="Виберіть жанр/жанри..."
-            selected={genres}
-            onChange={(item: string[]) => setGenres(item)}
-          />
-
-          {/* Рік */}
-          <SliderWidget
-            label="Рік (від)"
-            min={1990}
-            max={new Date().getFullYear()}
-            value={years[0]}
-            defaultValue={2000}
-            style={styles.slider}
-            onChange={(item: number) =>
-              setYears([item, new Date().getFullYear()])
-            }
-          />
-
-          {/* Оцінка */}
-          <SliderWidget
-            label="Мінімальна оцінка"
-            min={0}
-            max={10}
-            value={score}
-            defaultValue={0}
-            style={styles.slider}
-            onChange={(item: number) => setScore(item)}
-          />
-        </View>
+        )}
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
@@ -214,7 +254,7 @@ const styles = StyleSheet.create({
   headerButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },

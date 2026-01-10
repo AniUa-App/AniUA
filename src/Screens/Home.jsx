@@ -92,8 +92,8 @@ export default function HomeScreen() {
             animationEnabled: true,
             lazy: true,
           }}
-          sceneContainerStyle={{}}
-          style={{}}
+          sceneContainerStyle={{ backgroundColor: "transparent" }}
+          style={{ backgroundColor: "transparent" }}
         >
           <ContentTypeTab.Screen name="DoramaTab" component={DoramaScreen} />
           <ContentTypeTab.Screen name="AnimeTab" component={AnimeTabContent} />
@@ -117,6 +117,48 @@ function AnimeTabContent() {
   const [recommendations, setRecommendations] = useState(
     SettingsStorage.getParameter("userConfig.recommendations")
   );
+
+  // Ініціалізація дефолтних списків при першому запуску
+  useEffect(() => {
+    const currentRecs =
+      SettingsStorage.getParameter("userConfig.recommendations") || {};
+
+    // Перевіряємо чи потрібно скинути до дефолтних (міграція старого формату)
+    const listsVersion = SettingsStorage.getParameter(
+      "personalRecListsVersion"
+    );
+    if (listsVersion !== 2) {
+      PersonalRecListStorage.resetToDefaultLists();
+      SettingsStorage.setParameter("personalRecListsVersion", 2);
+    } else {
+      PersonalRecListStorage.initializeDefaultLists();
+    }
+
+    // Ініціалізуємо тільки якщо значення ще не встановлені
+    const needsInit =
+      currentRecs.isCustomedPersonalRecommendations === undefined ||
+      currentRecs.isDefaultBigBanner === undefined;
+
+    if (needsInit) {
+      const newRecommendations = {
+        ...currentRecs,
+        isCustomedPersonalRecommendations:
+          currentRecs.isCustomedPersonalRecommendations ?? true,
+        isDefaultBigBanner: currentRecs.isDefaultBigBanner ?? true,
+      };
+
+      SettingsStorage.setParameter(
+        "userConfig.recommendations",
+        newRecommendations
+      );
+      setRecommendations(newRecommendations);
+      EventBus.emit("recommendations", newRecommendations);
+    } else {
+      setRecommendations(currentRecs);
+    }
+
+    EventBus.emit("personalRecListUpdated");
+  }, []);
 
   useEffect(() => {
     const unsubscribe = EventBus.on("recommendations", (newRecommendations) => {
@@ -142,11 +184,10 @@ function AnimeTabContent() {
 
   if (isTL) {
     return (
-      <View
+      <DefaultScreenWidget
         style={{
           flex: 1,
           flexDirection: "row",
-          backgroundColor: colors.background,
         }}
       >
         {recommendations?.isDefaultBigBanner === true && (
@@ -160,10 +201,7 @@ function AnimeTabContent() {
           </View>
         )}
         <View style={{ flex: 1, height: "100%" }}>
-          <ScrollView
-            style={{ flex: 1, backgroundColor: colors.background }}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
             {isLoading ? (
               <View style={styles.loaderContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -181,25 +219,16 @@ function AnimeTabContent() {
                 {recommendations?.isCustomedPersonalRecommendations && (
                   <CustomPersonalRecList />
                 )}
-                {recommendations?.isEnabled && (
-                  <>
-                    <OngoingAnimeList />
-                    <PopularAnimeList />
-                    <RomanceAnimeList />
-                    <ActionAnimeList />
-                    <SciFiAnimeList />
-                  </>
-                )}
               </View>
             )}
           </ScrollView>
         </View>
-      </View>
+      </DefaultScreenWidget>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <DefaultScreenWidget style={{ flex: 1 }}>
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -227,20 +256,11 @@ function AnimeTabContent() {
             {recommendations?.isCustomedPersonalRecommendations && (
               <CustomPersonalRecList />
             )}
-            {recommendations?.isEnabled && (
-              <>
-                <OngoingAnimeList />
-                <PopularAnimeList />
-                <RomanceAnimeList />
-                <ActionAnimeList />
-                <SciFiAnimeList />
-              </>
-            )}
           </View>
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </DefaultScreenWidget>
   );
 }
 
@@ -336,211 +356,6 @@ const CustomPersonalRecList = React.memo(() => {
         />
       ))}
     </>
-  );
-});
-
-const PopularAnimeList = React.memo(() => {
-  const colors = useThemeColors();
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigation();
-
-  useEffect(() => {
-    const fetchPopularAnime = async () => {
-      try {
-        const data = await HikkaSets.getMostPopularAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        Logger.error(
-          "Home",
-          "Помилка при завантаженні популярних аніме",
-          error
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPopularAnime();
-  }, []);
-
-  const handleShowMore = useCallback(async () => {
-    try {
-      const data = await HikkaSets.getMostPopularAnime(1, 50, 2020);
-      navigation.navigate("HiddenStack", {
-        screen: "AnimeList",
-        params: { title: "Найпопулярніші аніме", initialData: data },
-      });
-    } catch (error) {
-      Logger.error("Home", "Помилка при завантаженні аніме", error);
-    }
-  }, [navigation]);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-  return (
-    <AnimeListHorizontal
-      title="Найпопулярніші аніме"
-      animeList={animeList}
-      onClickMore={handleShowMore}
-    />
-  );
-});
-
-const OngoingAnimeList = React.memo(() => {
-  const colors = useThemeColors();
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigation();
-
-  useEffect(() => {
-    const fetchOngoingAnime = async () => {
-      try {
-        const data = await HikkaSets.getOngoingAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні онгоїнгів", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchOngoingAnime();
-  }, []);
-
-  const handleShowMore = useCallback(async () => {
-    try {
-      const data = await HikkaSets.getOngoingAnime(1, 32, 2020);
-      navigation.navigate("HiddenStack", {
-        screen: "AnimeList",
-        params: { title: "Онґоінги", initialData: data },
-      });
-    } catch (error) {
-      Logger.error("Home", "Помилка при завантаженні аніме", error);
-    }
-  }, [navigation]);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-  return (
-    <AnimeListHorizontal
-      title="Онґоінги"
-      animeList={animeList}
-      onClickMore={handleShowMore}
-    />
-  );
-});
-
-const ActionAnimeList = React.memo(() => {
-  const colors = useThemeColors();
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchActionAnime = async () => {
-      try {
-        const data = await HikkaSets.getActionAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні бойовиків", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchActionAnime();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-  return (
-    <AnimeListHorizontal
-      title="Бойовики"
-      animeList={animeList}
-      onClickMore={null}
-    />
-  );
-});
-
-const SciFiAnimeList = React.memo(() => {
-  const colors = useThemeColors();
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSciFiAnime = async () => {
-      try {
-        const data = await HikkaSets.getSciFiAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні фантастики", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSciFiAnime();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-  return (
-    <AnimeListHorizontal
-      title="Фантастика"
-      animeList={animeList}
-      onClickMore={null}
-    />
-  );
-});
-
-const RomanceAnimeList = React.memo(() => {
-  const colors = useThemeColors();
-  const [animeList, setAnimeList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchRomanceAnime = async () => {
-      try {
-        const data = await HikkaSets.getRomanceAnime(1, 16, 2020);
-        setAnimeList(data);
-      } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні романтики", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRomanceAnime();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-  return (
-    <AnimeListHorizontal
-      title="Романтика"
-      animeList={animeList}
-      onClickMore={null}
-    />
   );
 });
 

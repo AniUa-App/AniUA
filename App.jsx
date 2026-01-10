@@ -32,8 +32,7 @@ import Api, {
   getGithubRaw,
 } from "./src/Api/api";
 import { isTablet } from "./src/Styles/Responsive";
-import { useSnackbar } from "./src/Widgets/useSnackbar";
-import { SnackbarLink } from "./src/Widgets/SnackbarWidget";
+import { useSnackbar, SnackbarLink } from "./src/Components/Snackbar";
 import { set } from "date-fns";
 import { se } from "date-fns/locale";
 import Markdown from "react-native-markdown-display";

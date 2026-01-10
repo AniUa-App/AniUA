@@ -11,12 +11,12 @@ import { EventBus } from "../Global/EventBus";
 import { isTablet } from "../Styles/Responsive";
 import Logger from "../Logger/Logger";
 import {
-  SliderWidget,
   ColorPickerWidget,
   PhotoPickerWidget,
   ToggleSettingWidget,
   ExpandableSection,
 } from "../Widgets/CustomisationWidgets";
+import SliderWidget from "../Widgets/SliderWidget";
 import { ThemedNavBar } from "./ScreenController/ScreenController";
 import RNFS from "react-native-fs";
 import { H6 } from "../Styles/Fonts";
@@ -89,61 +89,16 @@ export default function CustomisationScreen() {
   return (
     <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
       <ScrollView
-        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        style={{ flex: 1, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 16 }}
       >
         {/* Навігаційна панель */}
-        <SettingsSection title="Навігаційна панель">
-          {/* Стиль навігації - тільки для мобільних */}
-          {!isTablet() && (
-            <SettingsItemWidget
-              title="Стиль панелі"
-              subtitle={USER_CONFIG?.navbar?.style || "Default"}
-              icon={<Icons.Browsers />}
-              showChevron
-              onPress={() => {
-                navigation.navigate("HiddenStack", {
-                  screen: "ButtonsScreen",
-                  params: {
-                    title: "Виберіть стиль навігаційної панелі",
-                    Sbutton: true,
-                    isGoBack: true,
-                    value: USER_CONFIG?.navbar?.style || "Default",
-                    list: [
-                      {
-                        title: "Default",
-                        onPress: () => {
-                          SET_USER_CONFIG({
-                            ...USER_CONFIG,
-                            navbar: {
-                              ...USER_CONFIG?.navbar,
-                              style: "Default",
-                            },
-                          });
-                        },
-                      },
-                      {
-                        title: "MD3",
-                        onPress: () => {
-                          SET_USER_CONFIG({
-                            ...USER_CONFIG,
-                            navbar: {
-                              ...USER_CONFIG?.navbar,
-                              style: "MD3",
-                            },
-                          });
-                        },
-                      },
-                    ],
-                  },
-                });
-              }}
-            />
-          )}
+        {/* Стиль навігації - тільки для мобільних */}
 
-          {/* Розташування панелі - тільки для планшетів */}
-          {isTablet() && (
+        {/* Розташування панелі - тільки для планшетів */}
+
+        {isTablet() && (
+          <SettingsSection title="Навігаційна панель">
             <SettingsItemWidget
               title="Розташування панелі"
               subtitle={USER_CONFIG?.navbar?.placedAt || "Внизу"}
@@ -202,178 +157,145 @@ export default function CustomisationScreen() {
                 });
               }}
             />
-          )}
+          </SettingsSection>
+        )}
 
-          {/* Кастомізація навігаційної панелі */}
-          <ToggleSettingWidget
-            title="Кастомізація панелі"
-            subtitle="Налаштувати вигляд панелі"
-            icon={<Icons.Faders />}
-            value={USER_CONFIG?.navbar?.isCustomisation || false}
-            onToggle={() => {
-              const newValue = !USER_CONFIG?.navbar?.isCustomisation;
-              SET_USER_CONFIG({
-                ...USER_CONFIG,
-                navbar: {
-                  ...USER_CONFIG?.navbar,
-                  isCustomisation: newValue,
-                },
-              });
-              if (newValue) setExpandedNavbar(true);
-            }}
-          />
+        {/* Налаштування панелі (розгортається) */}
+        {USER_CONFIG?.navbar?.isCustomisation && (
+          <ExpandableSection
+            title="Налаштування панелі"
+            icon={<Icons.Wrench />}
+            expanded={expandedNavbar}
+            onToggle={() => setExpandedNavbar(!expandedNavbar)}
+          >
+            <SliderWidget
+              label="Закруглення"
+              value={USER_CONFIG?.navbar?.borderRadius ?? 8}
+              min={0}
+              max={50}
+              onChange={(value) => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: {
+                    ...USER_CONFIG?.navbar,
+                    borderRadius: value,
+                  },
+                });
+              }}
+            />
+            <SliderWidget
+              label="Відступ знизу"
+              value={USER_CONFIG?.navbar?.bottomOffset ?? 20}
+              min={0}
+              max={100}
+              onChange={(value) => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: {
+                    ...USER_CONFIG?.navbar,
+                    bottomOffset: value,
+                  },
+                });
+              }}
+            />
+            <SliderWidget
+              label="Ширина панелі"
+              value={USER_CONFIG?.navbar?.width ?? 80}
+              min={50}
+              max={100}
+              onChange={(value) => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: {
+                    ...USER_CONFIG?.navbar,
+                    width: value,
+                  },
+                });
+              }}
+            />
+            <ColorPickerWidget
+              title="Колір панелі"
+              icon={<Icons.PaintBucket />}
+              value={
+                USER_CONFIG?.navbar?.backgroundColor || themeColors.background
+              }
+              onValueChange={(value) => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: {
+                    ...USER_CONFIG?.navbar,
+                    backgroundColor: value.rgba,
+                  },
+                });
+              }}
+            />
 
-          {/* Налаштування панелі (розгортається) */}
-          {USER_CONFIG?.navbar?.isCustomisation && (
-            <ExpandableSection
-              title="Налаштування панелі"
-              icon={<Icons.Wrench />}
-              expanded={expandedNavbar}
-              onToggle={() => setExpandedNavbar(!expandedNavbar)}
-            >
-              <SliderWidget
-                title="Закруглення"
-                icon={
-                  <Icons.SelectionBackground
-                    size={20}
-                    color={themeColors.primary}
-                  />
-                }
-                value={USER_CONFIG?.navbar?.borderRadius ?? 8}
-                minimumValue={0}
-                maximumValue={50}
-                onValueChange={(value) => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: {
-                      ...USER_CONFIG?.navbar,
-                      borderRadius: value,
-                    },
-                  });
-                }}
-              />
-              <SliderWidget
-                title="Відступ знизу"
-                icon={
-                  <Icons.ArrowLineDown size={20} color={themeColors.primary} />
-                }
-                value={USER_CONFIG?.navbar?.bottomOffset ?? 20}
-                minimumValue={0}
-                maximumValue={100}
-                onValueChange={(value) => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: {
-                      ...USER_CONFIG?.navbar,
-                      bottomOffset: value,
-                    },
-                  });
-                }}
-              />
-              <SliderWidget
-                title="Ширина панелі"
-                icon={<Icons.ArrowsOut size={20} color={themeColors.primary} />}
-                value={USER_CONFIG?.navbar?.width ?? 80}
-                minimumValue={50}
-                maximumValue={100}
-                onValueChange={(value) => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: {
-                      ...USER_CONFIG?.navbar,
-                      width: value,
-                    },
-                  });
-                }}
-              />
-              <ColorPickerWidget
-                title="Колір панелі"
-                icon={<Icons.PaintBucket />}
-                value={
-                  USER_CONFIG?.navbar?.backgroundColor || themeColors.background
-                }
-                onValueChange={(value) => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: {
-                      ...USER_CONFIG?.navbar,
-                      backgroundColor: value.rgba,
-                    },
-                  });
-                }}
-              />
+            <ToggleSettingWidget
+              title="Блюр панелі"
+              subtitle="Заблюрення панелі навігації"
+              icon={<Icons.Drop />}
+              value={USER_CONFIG?.navbar?.isBlurBackground ?? false}
+              onToggle={() => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: {
+                    ...USER_CONFIG?.navbar,
+                    isBlurBackground: !USER_CONFIG?.navbar?.isBlurBackground,
+                  },
+                });
+              }}
+            />
 
-              <ToggleSettingWidget
-                title="Блюр панелі"
-                subtitle="Заблюрення панелі навігації"
-                icon={<Icons.Drop />}
-                value={USER_CONFIG?.navbar?.isBlurBackground ?? false}
-                onToggle={() => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: {
-                      ...USER_CONFIG?.navbar,
-                      isBlurBackground: !USER_CONFIG?.navbar?.isBlurBackground,
-                    },
-                  });
-                }}
-              />
+            {USER_CONFIG?.navbar?.isBlurBackground && (
+              <>
+                <SliderWidget
+                  label="Інтенсивність блюру"
+                  value={USER_CONFIG?.navbar?.blurIntensity ?? 80}
+                  min={0}
+                  max={100}
+                  onChange={(value) => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      navbar: {
+                        ...USER_CONFIG?.navbar,
+                        blurIntensity: value,
+                      },
+                    });
+                  }}
+                />
+                <SliderWidget
+                  label="Коефіцієнт зменшення"
+                  value={USER_CONFIG?.navbar?.blurReductionFactor ?? 20}
+                  min={0}
+                  max={100}
+                  onChange={(value) => {
+                    SET_USER_CONFIG({
+                      ...USER_CONFIG,
+                      navbar: {
+                        ...USER_CONFIG?.navbar,
+                        blurReductionFactor: value,
+                      },
+                    });
+                  }}
+                />
+              </>
+            )}
 
-              {USER_CONFIG?.navbar?.isBlurBackground && (
-                <>
-                  <SliderWidget
-                    title="Інтенсивність блюру"
-                    icon={<Icons.Gauge size={20} color={themeColors.primary} />}
-                    value={USER_CONFIG?.navbar?.blurIntensity ?? 80}
-                    minimumValue={0}
-                    maximumValue={100}
-                    onValueChange={(value) => {
-                      SET_USER_CONFIG({
-                        ...USER_CONFIG,
-                        navbar: {
-                          ...USER_CONFIG?.navbar,
-                          blurIntensity: value,
-                        },
-                      });
-                    }}
-                  />
-                  <SliderWidget
-                    title="Коефіцієнт зменшення"
-                    icon={
-                      <Icons.Subtract size={20} color={themeColors.primary} />
-                    }
-                    value={USER_CONFIG?.navbar?.blurReductionFactor ?? 20}
-                    minimumValue={0}
-                    maximumValue={100}
-                    onValueChange={(value) => {
-                      SET_USER_CONFIG({
-                        ...USER_CONFIG,
-                        navbar: {
-                          ...USER_CONFIG?.navbar,
-                          blurReductionFactor: value,
-                        },
-                      });
-                    }}
-                  />
-                </>
-              )}
-
-              <SettingsItemWidget
-                title="Скинути налаштування"
-                subtitle="Відновити значення за замовчуванням"
-                icon={<Icons.Trash />}
-                iconColor={themeColors.redBookmark}
-                showChevron
-                onPress={() => {
-                  SET_USER_CONFIG({
-                    ...USER_CONFIG,
-                    navbar: { isCustomisation: true },
-                  });
-                }}
-              />
-            </ExpandableSection>
-          )}
-        </SettingsSection>
+            <SettingsItemWidget
+              title="Скинути налаштування"
+              subtitle="Відновити значення за замовчуванням"
+              icon={<Icons.Trash />}
+              iconColor={themeColors.redBookmark}
+              showChevron
+              onPress={() => {
+                SET_USER_CONFIG({
+                  ...USER_CONFIG,
+                  navbar: { isCustomisation: true },
+                });
+              }}
+            />
+          </ExpandableSection>
+        )}
 
         {/* Ефекти */}
         <SettingsSection title="Ефекти">
@@ -509,7 +431,6 @@ export default function CustomisationScreen() {
               if (newValue) setExpandedBackground(true);
             }}
           />
-
           {USER_CONFIG?.background?.isCustomisation && (
             <ExpandableSection
               title="Налаштування фону"
@@ -535,26 +456,44 @@ export default function CustomisationScreen() {
               />
 
               {USER_CONFIG?.background?.isImageBackground && (
-                <PhotoPickerWidget
-                  title="Вибрати зображення"
-                  subtitle="Фонове зображення додатка"
-                  icon={<Icons.Folder />}
-                  onPick={async (payload) => {
-                    const uriPath = await copyBackgroundImage(payload);
-                    Logger.debug(
-                      "Customisation",
-                      "Отримано шлях до фонового зображення",
-                      { uriPath }
-                    );
-                    SET_USER_CONFIG({
-                      ...USER_CONFIG,
-                      background: {
-                        ...USER_CONFIG?.background,
-                        image: uriPath,
-                      },
-                    });
-                  }}
-                />
+                <>
+                  <PhotoPickerWidget
+                    title="Вибрати зображення"
+                    subtitle="Фонове зображення додатка"
+                    icon={<Icons.Folder />}
+                    onPick={async (payload) => {
+                      const uriPath = await copyBackgroundImage(payload);
+                      Logger.debug(
+                        "Customisation",
+                        "Отримано шлях до фонового зображення",
+                        { uriPath }
+                      );
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        background: {
+                          ...USER_CONFIG?.background,
+                          image: uriPath,
+                        },
+                      });
+                    }}
+                  />
+                  <SliderWidget
+                    label="Прозорість фону"
+                    value={USER_CONFIG?.background?.opacity ?? 100}
+                    min={0}
+                    max={100}
+                    onChange={(value) => {
+                      SET_USER_CONFIG({
+                        ...USER_CONFIG,
+                        background: {
+                          ...USER_CONFIG?.background,
+                          opacity: value,
+                        },
+                      });
+                    }}
+                    style={{ width: "95%", alignSelf: "center" }}
+                  />
+                </>
               )}
 
               <ToggleSettingWidget
@@ -577,12 +516,11 @@ export default function CustomisationScreen() {
               {USER_CONFIG?.background?.isBlurBackground && (
                 <>
                   <SliderWidget
-                    title="Інтенсивність блюру"
-                    icon={<Icons.Gauge size={20} color={themeColors.primary} />}
+                    label="Інтенсивність блюру"
                     value={USER_CONFIG?.background?.blurIntensity ?? 80}
-                    minimumValue={0}
-                    maximumValue={100}
-                    onValueChange={(value) => {
+                    min={0}
+                    max={100}
+                    onChange={(value) => {
                       SET_USER_CONFIG({
                         ...USER_CONFIG,
                         background: {
@@ -593,14 +531,11 @@ export default function CustomisationScreen() {
                     }}
                   />
                   <SliderWidget
-                    title="Коефіцієнт зменшення"
-                    icon={
-                      <Icons.Subtract size={20} color={themeColors.primary} />
-                    }
+                    label="Коефіцієнт зменшення"
                     value={USER_CONFIG?.background?.blurReductionFactor ?? 20}
-                    minimumValue={0}
-                    maximumValue={20}
-                    onValueChange={(value) => {
+                    min={0}
+                    max={20}
+                    onChange={(value) => {
                       SET_USER_CONFIG({
                         ...USER_CONFIG,
                         background: {

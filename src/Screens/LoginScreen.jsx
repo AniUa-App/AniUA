@@ -7,6 +7,7 @@ import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useNavigation } from "@react-navigation/native";
 import Logger from "../Logger/Logger";
 import SettingsStorage from "../Storage/SettingsStorage";
+import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { themes } from "../Styles/Colors";
 import { EventBus } from "../Global/EventBus";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -56,6 +57,17 @@ export default function LoginScreen({ isCanSkip = true }) {
         Logger.info("LoginScreen", "Авторизація успішна");
         // Зберігаємо, що користувач пройшов онбордінг
         SettingsStorage.setParameter("hasCompletedOnboarding", true);
+        // Ініціалізуємо дефолтні списки та вмикаємо персональні рекомендації
+        PersonalRecListStorage.initializeDefaultLists();
+        const userConfig = SettingsStorage.getParameter("userConfig") || {};
+        SettingsStorage.setParameter("userConfig", {
+          ...userConfig,
+          recommendations: {
+            ...userConfig.recommendations,
+            isCustomedPersonalRecommendations: true,
+            isDefaultBigBanner: true,
+          },
+        });
         // Переходимо на головний екран
         navigation.reset({
           index: 0,
@@ -79,6 +91,17 @@ export default function LoginScreen({ isCanSkip = true }) {
     Logger.debug("LoginScreen", "Користувач пропустив авторизацію");
     // Зберігаємо, що користувач пройшов онбордінг
     SettingsStorage.setParameter("hasCompletedOnboarding", true);
+    // Ініціалізуємо дефолтні списки та вмикаємо персональні рекомендації
+    PersonalRecListStorage.initializeDefaultLists();
+    const userConfig = SettingsStorage.getParameter("userConfig") || {};
+    SettingsStorage.setParameter("userConfig", {
+      ...userConfig,
+      recommendations: {
+        ...userConfig.recommendations,
+        isCustomedPersonalRecommendations: true,
+        isDefaultBigBanner: true,
+      },
+    });
     // Переходимо на головний екран
     navigation.reset({
       index: 0,
@@ -88,9 +111,7 @@ export default function LoginScreen({ isCanSkip = true }) {
 
   return (
     <DefaultScreenWidget>
-      <View
-        style={[styles.container, { backgroundColor: themeColors.background }]}
-      >
+      <View style={[styles.container, {}]}>
         {/* Логотип */}
         <View style={styles.logoContainer}>
           <Image
@@ -192,11 +213,11 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     position: "absolute",
-    top: "15%",
+    top: "20%",
   },
   logo: {
-    width: 380,
-    height: 380,
+    width: 280,
+    height: 280,
   },
   title: {
     fontFamily: "Nunito-Bold",

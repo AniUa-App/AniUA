@@ -1,13 +1,13 @@
-import { View, ScrollView, Linking, StatusBar } from "react-native";
-import React, { useState } from "react";
+import { View, ScrollView, Linking, Text } from "react-native";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 import SettingsSection from "../Widgets/SettingsSectionWidget";
-import Icons, { AppIcon } from "../Styles/Icons";
-import { useNavigation } from "@react-navigation/native";
+import { ToggleSettingWidget } from "../Widgets/CustomisationWidgets";
+import Icons from "../Styles/Icons";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
-import ExpandableNotification from "../Widgets/ExpandableNotification";
-import ConfirmationWidget from "../Widgets/ConfirmationWidget";
+import { useSnackbar } from "../Components/Snackbar";
 import MainConfig from "../cfgs/MainConfig";
 import * as FileSystem from "expo-file-system";
 import SettingsStorage from "../Storage/SettingsStorage";
@@ -18,36 +18,61 @@ import RatingWidget from "../Widgets/RatingWidget";
 import Api from "../Api/api";
 import * as Expo from "expo";
 import Logger from "../Logger/Logger";
+import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { TouchableOpacity } from "../Widgets/Button";
+import { H4, H6 } from "../Styles/Fonts";
+import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
-  const [notification, setNotification] = useState({
-    visible: false,
-    message: "",
-  });
-  const [confirmation, setConfirmation] = useState({
-    visible: false,
-    message: "",
-    onConfirm: null,
-  });
+  const { snackbar, showSnackbar, showConfirmSnackbar } = useSnackbar();
   const [isRatingVisible, setIsRatingVisible] = useState(false);
+  const [showAnimeListDetails, setShowAnimeListDetails] = useState(
+    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+  );
+  const [defaultPlayer, setDefaultPlayer] = useState(
+    SettingsStorage.getParameter("defaultPlayer")
+  );
 
-  const showNotification = (message) => {
-    setNotification({ visible: true, message });
-  };
+  // Refs для BottomSheet
+  const playerSheetRef = useRef(null);
+  const partnersSheetRef = useRef(null);
 
-  const hideNotification = () => {
-    setNotification({ visible: false, message: "" });
-  };
+  // Перечитуємо налаштування при фокусі на екран
+  useFocusEffect(
+    useCallback(() => {
+      setShowAnimeListDetails(
+        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+      );
+      setDefaultPlayer(SettingsStorage.getParameter("defaultPlayer"));
+    }, [])
+  );
 
-  const showConfirmation = (message, onConfirm) => {
-    setConfirmation({ visible: true, message, onConfirm });
-  };
+  // Список партнерів
+  const partnersList = useMemo(() => {
+    const partners = Object.values(MainConfig.partners).map((partner) => ({
+      title: partner.name,
+      url: partner.url,
+    }));
 
-  const hideConfirmation = () => {
-    setConfirmation({ visible: false, message: "", onConfirm: null });
-  };
+    const seenUrls = new Set();
+    const partnerStudiosArray = MainConfig.partnerStudios || [];
+    const studios = partnerStudiosArray
+      .filter((team) => {
+        if (!team.telegram) return false;
+        if (seenUrls.has(team.telegram)) return false;
+        seenUrls.add(team.telegram);
+        return true;
+      })
+      .map((team) => ({
+        title: team.name,
+        url: team.telegram,
+      }));
+
+    return [...partners, ...studios];
+  }, []);
 
   const clearCache = async () => {
     try {
@@ -83,52 +108,43 @@ export default function SettingsScreen() {
         SettingsStorage.setParameter("mainScreenConfig", null);
       }
 
-      showNotification("Кеш успішно очищено");
+      showSnackbar("Кеш успішно очищено");
     } catch (error) {
       Logger.warn("Settings", "Помилка очищення кешу", error);
-      showNotification("Частково очищено кеш");
+      showSnackbar("Частково очищено кеш");
     }
   };
 
-  const defaultPlayer = SettingsStorage.getParameter("defaultPlayer");
+  const handlePlayerSelect = (player) => {
+    SettingsStorage.setParameter("defaultPlayer", player);
+    setDefaultPlayer(player);
+    showSnackbar(`Плеєр "${player}" вибрано за замовчуванням`);
+    playerSheetRef.current?.close();
+  };
 
   return (
-    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={false}>
+      <RatingWidget
+        visible={isRatingVisible}
+        onClose={() => setIsRatingVisible(false)}
+        onRatingSubmit={(rating, feedback) => {
+          Logger.info("Settings", "Користувач поставив оцінку", { rating });
+          Logger.info("Settings", "Користувач залишив відгук", { feedback });
+          Api.sendFeedback(rating, feedback).then((saved) => {
+            Logger.info("Settings", "Відгук відправлено", { saved });
+            if (saved) {
+              showSnackbar("Відгук успішно відправлено.");
+            } else {
+              showSnackbar("Помилка при відправці відгуку.");
+            }
+          });
+          setIsRatingVisible(false);
+        }}
+      />
       <ScrollView
-        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        style={{ flex: 1, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 16 }}
       >
-        <ExpandableNotification
-          visible={notification.visible}
-          message={notification.message}
-          onHide={hideNotification}
-        />
-        <ConfirmationWidget
-          visible={confirmation.visible}
-          message={confirmation.message}
-          onConfirm={confirmation.onConfirm}
-          onDecline={hideConfirmation}
-          onHide={hideConfirmation}
-        />
-        <RatingWidget
-          visible={isRatingVisible}
-          onClose={() => setIsRatingVisible(false)}
-          onRatingSubmit={(rating, feedback) => {
-            Logger.info("Settings", "Користувач поставив оцінку", { rating });
-            Logger.info("Settings", "Користувач залишив відгук", { feedback });
-            Api.sendFeedback(rating, feedback).then((saved) => {
-              Logger.info("Settings", "Відгук відправлено", { saved });
-              if (saved) {
-                showNotification("Відгук успішно відправлено.");
-              } else {
-                showNotification("Помилка при відправці відгуку.");
-              }
-            });
-            setIsRatingVisible(false);
-          }}
-        />
-
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">
           <SettingsItemWidget
@@ -136,26 +152,7 @@ export default function SettingsScreen() {
             subtitle={defaultPlayer || "Не вибрано"}
             icon={<Icons.Play />}
             showChevron
-            onPress={() => {
-              navigation.navigate("HiddenStack", {
-                screen: "ButtonsScreen",
-                params: {
-                  title: "Виберіть плеєр за замовчуванням.",
-                  Sbutton: true,
-                  isGoBack: true,
-                  value: defaultPlayer,
-                  list: MainConfig.players.map((player) => ({
-                    title: player.slice(0, 10),
-                    onPress: () => {
-                      SettingsStorage.setParameter("defaultPlayer", player);
-                      showNotification(
-                        `Плеєр ${player} за замовчуванням успішно вибрано.`
-                      );
-                    },
-                  })),
-                },
-              });
-            }}
+            onPress={() => playerSheetRef.current?.present()}
           />
           <SettingsItemWidget
             title="Очистити кеш"
@@ -164,13 +161,15 @@ export default function SettingsScreen() {
             iconColor={themeColors.redBookmark}
             showChevron
             onPress={() => {
-              showConfirmation(
+              showConfirmSnackbar(
                 "Ви впевнені, що хочете видалити всі кешовані дані?",
-                () => {
-                  clearCache();
-                  setTimeout(() => {
-                    Expo.reloadAppAsync();
-                  }, 3000);
+                {
+                  onConfirm: () => {
+                    clearCache();
+                    setTimeout(() => {
+                      Expo.reloadAppAsync();
+                    }, 3000);
+                  },
                 }
               );
             }}
@@ -191,6 +190,20 @@ export default function SettingsScreen() {
                   title: "Кастомізація",
                 },
               });
+            }}
+          />
+          <ToggleSettingWidget
+            title="Деталі аніме у списках"
+            subtitle="Назва, жанри та епізоди"
+            icon={<Icons.ListBullets />}
+            value={showAnimeListDetails}
+            onToggle={() => {
+              const newValue = !showAnimeListDetails;
+              setShowAnimeListDetails(newValue);
+              SettingsStorage.setParameter(
+                "hideAnimeListDetails",
+                newValue ? "" : "true"
+              );
             }}
           />
         </SettingsSection>
@@ -216,49 +229,7 @@ export default function SettingsScreen() {
             subtitle="Студії озвучення та спонсори"
             icon={<Icons.Handshake />}
             showChevron
-            onPress={() => {
-              const partnersList = Object.values(MainConfig.partners).map(
-                (partner) => ({
-                  title: partner.name,
-                  onPress: () => {
-                    Linking.openURL(partner.url);
-                  },
-                })
-              );
-
-              const seenUrls = new Set();
-              const partnerStudiosArray = MainConfig.partnerStudios || [];
-              const studiosList = partnerStudiosArray
-                .filter((team) => {
-                  if (!team.telegram) return false;
-                  if (seenUrls.has(team.telegram)) return false;
-                  seenUrls.add(team.telegram);
-                  return true;
-                })
-                .map((team) => ({
-                  title: team.name,
-                  onPress: () => {
-                    Linking.openURL(team.telegram);
-                  },
-                }));
-
-              navigation.navigate("HiddenStack", {
-                screen: "ButtonsScreen",
-                params: {
-                  title: "Наші партнери.",
-                  list: [...partnersList, ...studiosList],
-                  buttonStyle: {
-                    minWidth: "20%",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: themeColors.primary,
-                    borderRadius: 8,
-                    padding: 10,
-                    minHeight: 50,
-                  },
-                },
-              });
-            }}
+            onPress={() => partnersSheetRef.current?.present()}
           />
         </SettingsSection>
 
@@ -318,8 +289,109 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        <View style={{ height: 130 }} />
+        <View style={{ height: 30 }} />
       </ScrollView>
+
+      {/* BottomSheet для вибору плеєра */}
+      <BottomSheetModal
+        ref={playerSheetRef}
+        snapPoints={["20%"]}
+        enableDynamicSizing={false}
+        enablePanDownToClose={true}
+        backgroundStyle={{ backgroundColor: themeColors.subtle }}
+        handleIndicatorStyle={{ backgroundColor: themeColors.Background(0.6) }}
+        backdropComponent={(props) => (
+          <TouchableOpacity
+            {...props}
+            onPress={() => playerSheetRef.current?.close()}
+          />
+        )}
+      >
+        <View style={{ padding: 16 }}>
+          <Text
+            style={[
+              H4,
+              {
+                color: themeColors.text,
+                textAlign: "center",
+                marginBottom: 16,
+              },
+            ]}
+          >
+            Плеєр за замовчуванням
+          </Text>
+          <SegmentedControlLabelWidget
+            segments={MainConfig.players.map((player) => ({
+              label: player.slice(0, 10),
+            }))}
+            value={defaultPlayer?.slice(0, 10)}
+            onChange={(label) => {
+              const player = MainConfig.players.find(
+                (p) => p.slice(0, 10) === label
+              );
+              if (player) {
+                handlePlayerSelect(player);
+              }
+            }}
+          />
+        </View>
+      </BottomSheetModal>
+
+      {/* BottomSheet для партнерів */}
+      <BottomSheetModal
+        ref={partnersSheetRef}
+        snapPoints={["50%"]}
+        enableDynamicSizing={false}
+        enablePanDownToClose={true}
+        backgroundStyle={{ backgroundColor: themeColors.subtle }}
+        handleIndicatorStyle={{ backgroundColor: themeColors.Background(0.6) }}
+        backdropComponent={(props) => (
+          <TouchableOpacity
+            {...props}
+            onPress={() => partnersSheetRef.current?.close()}
+          />
+        )}
+      >
+        <View style={{ padding: 16 }}>
+          <Text
+            style={[
+              H4,
+              {
+                color: themeColors.text,
+                textAlign: "center",
+                marginBottom: 16,
+              },
+            ]}
+          >
+            Наші партнери
+          </Text>
+          <BottomSheetScrollView>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {partnersList.map((partner, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    backgroundColor: themeColors.primary,
+                    borderRadius: 8,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                  }}
+                  onPress={() => {
+                    Linking.openURL(partner.url);
+                    partnersSheetRef.current?.close();
+                  }}
+                >
+                  <Text style={[H6, { color: themeColors.text }]}>
+                    {partner.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </BottomSheetScrollView>
+        </View>
+      </BottomSheetModal>
+
+      {snackbar}
     </DefaultScreenWidget>
   );
 }

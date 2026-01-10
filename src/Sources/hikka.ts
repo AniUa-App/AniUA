@@ -1,6 +1,7 @@
 import axios from "axios";
 import { TransformToCompactJson } from "../Global/Functions";
 import Logger from "../Logger/Logger";
+import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
 
 /**
  * API клас для роботи з Hikka API (api.hikka.io)
@@ -171,7 +172,20 @@ export class HikkaApi {
    * @returns {Promise<Object>} Об'єкт з епізодами по озвучкам та провайдерам або помилкою
    */
   public static async getEpisodes(slug: string) {
-    const cacheKey = `episodes_${slug}`;
+    const cacheKey = `hikka_episodes_${slug}`;
+
+    // Спочатку перевіряємо персистентний кеш (10 хв навіть після перезапуску)
+    const persistentCached = EpisodesCacheStorage.get(cacheKey);
+    if (persistentCached) {
+      Logger.debug("HikkaApi", `Епізоди для ${slug} з персистентного кешу`);
+      // Оновлюємо in-memory кеш
+      HikkaApi.apiCache[cacheKey] = {
+        data: persistentCached,
+        timestamp: Date.now(),
+      };
+      return persistentCached;
+    }
+
     return HikkaApi.cachedRequest(cacheKey, async () => {
       try {
         Logger.debug("HikkaApi", "Завантаження епізодів для slug", slug);
@@ -183,8 +197,12 @@ export class HikkaApi {
         Logger.debug("HikkaApi", "Отримано епізоди", response.data);
 
         const { type, ...rest } = response.data;
+        const result = { data: rest, code: response.status };
 
-        return { data: rest, code: response.status };
+        // Зберігаємо в персистентний кеш (10 хв)
+        EpisodesCacheStorage.set(cacheKey, result);
+
+        return result;
       } catch (error: any) {
         Logger.error("HikkaApi", "Помилка при завантаженні епізодів", error);
         return {

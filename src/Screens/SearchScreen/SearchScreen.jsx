@@ -15,7 +15,7 @@ import SearchEmptyStateComponent from "../../Components/SearchEmptyStateComponen
 import SearchFilterBottomSheet from "../../Components/SearchFilterBottomSheet";
 import TeamReleasesBottomSheet from "../../Components/TeamReleasesBottomSheet";
 import CharacterDetailBottomSheet from "../../Components/CharacterDetailBottomSheet";
-
+import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { SEARCH_CATEGORIES } from "./constants";
 import { useSearch, useTeamReleases, useCharacterDetails } from "./hooks";
 import { SearchResultItem } from "./components";
@@ -42,6 +42,8 @@ export default function SearchScreen() {
     loadedGenres,
     handleSearch,
     resetFilters,
+    isVerified,
+    setIsVerified,
   } = useSearch();
 
   const { selectedTeam, teamReleases, isLoadingReleases, handleTeamPress } =
@@ -81,9 +83,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: themeColors.background }]}
-    >
+    <DefaultScreenWidget style={[styles.container, {}]}>
       <SearchHeaderComponent
         searchText={searchText}
         onChangeText={setSearchText}
@@ -93,6 +93,7 @@ export default function SearchScreen() {
         paddingTop={headerPaddingTop}
         placeholder="Пошук аніме..."
         autoFocus={true}
+        activeCategory={activeCategory}
       />
 
       <SearchCategoryTabsComponent
@@ -138,11 +139,18 @@ export default function SearchScreen() {
         sheetRef={filterSheetRef}
         filters={filters}
         loadedGenres={loadedGenres}
-        onApply={(newFilters) => {
-          setFilters(newFilters);
+        onApply={(args) => {
+          if (typeof args === "boolean") {
+            setIsVerified(args);
+          } else {
+            setFilters(args);
+            handleSearch();
+          }
           filterSheetRef.current?.close();
         }}
+        activeCategory={activeCategory}
         onReset={resetFilters}
+        isVerified={isVerified}
       />
 
       <TeamReleasesBottomSheet
@@ -160,7 +168,7 @@ export default function SearchScreen() {
         isLoading={isLoadingCharacter}
         navigation={navigation}
       />
-    </View>
+    </DefaultScreenWidget>
   );
 }
 

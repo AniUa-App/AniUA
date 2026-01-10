@@ -108,25 +108,12 @@ export default function MainScreenCustomisationScreen() {
   return (
     <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
       <ScrollView
-        style={{ flex: 1, paddingTop: StatusBar.currentHeight }}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16 }}
       >
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">
-          <ToggleSettingWidget
-            title="Загальні рекомендації"
-            subtitle="Показувати рекомендації від системи"
-            icon={<Icons.Star />}
-            iconColor={themeColors.yellow}
-            value={RECOMMENDATIONS?.isEnabled || false}
-            onToggle={() => {
-              SET_RECOMMENDATIONS({
-                ...RECOMMENDATIONS,
-                isEnabled: !RECOMMENDATIONS?.isEnabled,
-              });
-            }}
-          />
           <ToggleSettingWidget
             title="Вбудований банер"
             subtitle="Показувати великий банер зверху"
@@ -149,7 +136,8 @@ export default function MainScreenCustomisationScreen() {
             icon={<Icons.ListPlus />}
             value={RECOMMENDATIONS?.isCustomedPersonalRecommendations || false}
             onToggle={() => {
-              const newValue = !RECOMMENDATIONS?.isCustomedPersonalRecommendations;
+              const newValue =
+                !RECOMMENDATIONS?.isCustomedPersonalRecommendations;
               SET_RECOMMENDATIONS({
                 ...RECOMMENDATIONS,
                 isCustomedPersonalRecommendations: newValue,
@@ -466,8 +454,8 @@ export function PersonalRecListFilter({
       snapPoints={["65%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: themeColors.subtle }}
-      handleIndicatorStyle={{ backgroundColor: themeColors.background }}
+      backgroundStyle={{ backgroundColor: themeColors.background }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.accent }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -493,7 +481,14 @@ export function PersonalRecListFilter({
 
           {/* Назва списку */}
           <View style={styles.inputRow}>
-            <View style={styles.inputContainer}>
+            <View
+              style={[
+                styles.inputContainer,
+                {
+                  backgroundColor: themeColors.accent,
+                },
+              ]}
+            >
               <Icons.TextT size={20} color={themeColors.inActiveText} />
               <TextInput
                 value={animeListName}
@@ -547,7 +542,9 @@ export function PersonalRecListFilter({
 
           {/* Фільтри */}
           <View style={styles.filtersContainer}>
-            <Text style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}>
+            <Text
+              style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}
+            >
               Статус
             </Text>
             <SegmentedControlLabelWidget
@@ -563,7 +560,16 @@ export function PersonalRecListFilter({
               }}
             />
 
-            <Text style={[H6, { color: themeColors.inActiveText, marginTop: 16, marginBottom: 8 }]}>
+            <Text
+              style={[
+                H6,
+                {
+                  color: themeColors.inActiveText,
+                  marginTop: 16,
+                  marginBottom: 8,
+                },
+              ]}
+            >
               Сезон
             </Text>
             <SegmentedControlLabelWidget
@@ -580,7 +586,16 @@ export function PersonalRecListFilter({
               }}
             />
 
-            <Text style={[H6, { color: themeColors.inActiveText, marginTop: 16, marginBottom: 8 }]}>
+            <Text
+              style={[
+                H6,
+                {
+                  color: themeColors.inActiveText,
+                  marginTop: 16,
+                  marginBottom: 8,
+                },
+              ]}
+            >
               Жанри
             </Text>
             <InputPickerWidget

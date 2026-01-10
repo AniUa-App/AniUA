@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Image as RNImage } from "react-native";
+import { View, Image as RNImage, ActivityIndicator } from "react-native";
 import {
   Canvas,
   Image,
@@ -16,6 +16,7 @@ import {
   vec,
   Skia,
 } from "@shopify/react-native-skia";
+import { useThemeColors } from "../Global/useTheme";
 
 // Глобальний кеш для Skia зображень
 const imageCache = new Map();
@@ -91,15 +92,23 @@ export default function BloomImage({
   const image = cachedImage || loadedImage;
 
   if (!image) {
+    const themeColors = useThemeColors();
     return (
-      <View style={[{ width, height }, style]}>
-        <View
-          style={{
+      <View
+        style={[
+          {
             width,
             height,
-            backgroundColor: "rgba(255,255,255,0.1)",
-          }}
-        />
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius,
+            zIndex: 2,
+            backgroundColor: themeColors.background,
+          },
+          style,
+        ]}
+      >
+        <ActivityIndicator size="large" color={themeColors.primary} />
       </View>
     );
   }
@@ -311,21 +320,6 @@ export function BloomImageAdvanced({
   style,
 }) {
   const image = useImage(uri);
-
-  if (!image) {
-    return (
-      <View style={[{ width, height }, style]}>
-        <View
-          style={{
-            width,
-            height,
-            borderRadius,
-            backgroundColor: "rgba(255,255,255,0.1)",
-          }}
-        />
-      </View>
-    );
-  }
 
   const canvasWidth = width * glowScale;
   const canvasHeight = height * glowScale;

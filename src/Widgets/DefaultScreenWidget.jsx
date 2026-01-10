@@ -11,12 +11,14 @@ import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsTabletLandscape } from "../Styles/Responsive";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import PerlinNoiseBackground from "./PerlinNoiseBackground";
 
 export default function DefaultScreenWidget({
   children,
   isCheckInternet = true,
   isConnection,
   isNavBarPadding = true,
+  hasManualHeader = false,
 }) {
   const isTL = useIsTabletLandscape();
   const themeColors = useThemeColors();
@@ -24,7 +26,10 @@ export default function DefaultScreenWidget({
   const [isConnected, setIsConnected_] = useState(true);
   const [userConfig, setUserConfig] = useState(null);
 
-  const headerHeight = useHeaderHeight?.() || 0;
+  const navigatorHeaderHeight = useHeaderHeight?.() || 0;
+  // Якщо header рендериться вручну (не через navigator), додаємо відступ
+  const manualHeaderHeight = hasManualHeader ? Math.max(insets.top, StatusBar.currentHeight || 0) + 50 : 0;
+  const headerHeight = navigatorHeaderHeight || manualHeaderHeight;
 
   const isCustomisation = userConfig?.background?.isCustomisation ?? false;
 
@@ -85,58 +90,56 @@ export default function DefaultScreenWidget({
     return () => unsubscribe();
   }, []);
 
+  const hasCustomBackground =
+    isCustomisation &&
+    userConfig?.background?.isImageBackground &&
+    userConfig?.background?.image;
+
+  const rawImage = userConfig?.background?.image;
+  const imageUri =
+    rawImage &&
+    (rawImage.startsWith("file://") || rawImage.startsWith("content://")
+      ? rawImage
+      : `file://${rawImage}`);
+  const backgroundOpacity = (userConfig?.background?.opacity ?? 100) / 100;
+
+  const isBlurEnabled =
+    isCustomisation && userConfig?.background?.isBlurBackground;
+  const blurReductionFactor =
+    userConfig?.background?.blurReductionFactor ?? 20;
+  const blurIntensity = userConfig?.background?.blurIntensity ?? 80;
+
   return (
-    <SafeAreaView
-      style={[
-        Styles.defaultScreenWidget,
-        {
-          // Always keep an opaque background to avoid text flashes during transitions
-          backgroundColor: themeColors.background,
-          flexDirection: isTL ? "row" : "column",
-        },
-      ]}
-    >
-      <View style={{ flex: 1 }}>
-        {(() => {
-          const rawImage = userConfig?.background?.image;
-          const imageUri =
-            rawImage &&
-            (rawImage.startsWith("file://") || rawImage.startsWith("content://")
-              ? rawImage
-              : `file://${rawImage}`);
+    <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+      {/* Фонове зображення на найвищому рівні */}
+      {hasCustomBackground && imageUri && (
+        <ImageBackground
+          key={imageUri}
+          source={{ uri: imageUri }}
+          style={[StyleSheet.absoluteFill, { opacity: backgroundOpacity }]}
+          resizeMode="cover"
+        />
+      )}
 
-          return isCustomisation &&
-            userConfig?.background?.isImageBackground &&
-            imageUri ? (
-            <ImageBackground
-              key={imageUri}
-              source={{ uri: imageUri }}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-          ) : null;
-        })()}
-        {(() => {
-          const isBlurEnabled =
-            isCustomisation && userConfig?.background?.isBlurBackground;
-          const blurReductionFactor =
-            userConfig?.background?.blurReductionFactor || 80;
-          const blurTint = userConfig?.background?.blurIntensity || 80;
+      {/* Блюр поверх фонового зображення */}
+      {hasCustomBackground && isBlurEnabled && (
+        <BlurView
+          intensity={blurIntensity}
+          blurReductionFactor={blurReductionFactor}
+          style={StyleSheet.absoluteFill}
+          experimentalBlurMethod="dimezisBlurView"
+        />
+      )}
 
-          return isBlurEnabled ? (
-            <BlurView
-              intensity={blurTint}
-              blurReductionFactor={blurReductionFactor}
-              style={[StyleSheet.absoluteFill]}
-              experimentalBlurMethod="dimezisBlurView"
-            />
-          ) : null;
-        })()}
+      <SafeAreaView
+        style={[
+          Styles.defaultScreenWidget,
+          {
+            backgroundColor: "transparent",
+            flexDirection: isTL ? "row" : "column",
+          },
+        ]}
+      >
         <StatusBar
           barStyle="light-content"
           translucent
@@ -153,7 +156,7 @@ export default function DefaultScreenWidget({
           )}
           {children}
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }

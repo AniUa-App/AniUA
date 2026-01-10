@@ -173,8 +173,8 @@ export default function InputPickerWidget({
           <View
             style={{
               height: 48,
-              borderRadius: 10,
-              backgroundColor: colors.background,
+              borderRadius: 16,
+              backgroundColor: colors.accent,
               paddingHorizontal: 14,
               alignItems: "center",
               flexDirection: "row",
@@ -221,7 +221,7 @@ export default function InputPickerWidget({
               <View
                 style={{
                   height: 48,
-                  borderRadius: 10,
+                  borderRadius: 16,
                   backgroundColor: colors.subtle,
                   paddingHorizontal: 14,
                   alignItems: "center",
@@ -304,7 +304,7 @@ export default function InputPickerWidget({
 
 const styles = StyleSheet.create({
   dropdown: {
-    borderRadius: 10,
+    borderRadius: 16,
     borderWidth: 1,
     paddingVertical: 6,
     zIndex: 10,
@@ -320,6 +320,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 16,
   },
 });

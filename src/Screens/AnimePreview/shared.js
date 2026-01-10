@@ -24,12 +24,13 @@ import {
   sortDubbingsByPartnerStudios,
 } from "../../Widgets/DubbingBottomSheetWidget";
 import { DownloadVideo, STATUSES } from "../../Notifications/VideoDownloader";
-import { useSnackbar } from "../../Widgets/useSnackbar";
+import { useSnackbar } from "../../Components/Snackbar";
 import Logger from "../../Logger/Logger";
 import RNFS from "react-native-fs";
 import Clipboard from "@react-native-clipboard/clipboard";
 import * as NavigationBar from "expo-navigation-bar";
 import FileOpener from "../../Global/FileOpener";
+import { EventBus } from "../../Global/EventBus";
 
 // Utility function to get episode date or status
 export function getEpisodeDateOrType(anime) {
@@ -483,9 +484,17 @@ export function useAnimePreview({ route, navigation }) {
         await HikkaApiComplete.removeFromFavorites("anime", anime.slug);
         setIsFavoriteHikka(false);
         showSnackbar("Видалено з улюблених");
+        EventBus.emit("favoritesUpdated", {
+          slug: anime.slug,
+          isFavorite: false,
+        });
       } else {
         await HikkaApiComplete.addToFavorites("anime", anime.slug);
         setIsFavoriteHikka(true);
+        EventBus.emit("favoritesUpdated", {
+          slug: anime.slug,
+          isFavorite: true,
+        });
       }
     } catch (error) {
       Logger.error("AnimePreview", "Помилка зміни улюбленого", error);
