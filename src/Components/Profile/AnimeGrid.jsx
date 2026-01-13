@@ -12,6 +12,7 @@ export default function AnimeGrid({
   scaleFontSize,
   navigation,
   getAnimeFromItem,
+  showAnimeDetails,
 }) {
   if (isLoading) {
     return (
@@ -47,7 +48,7 @@ export default function AnimeGrid({
             <AnimeCard
               anime={anime}
               width={SCREEN_WIDTH * 0.34}
-              showDetails={true}
+              showDetails={showAnimeDetails}
             />
           </View>
         );

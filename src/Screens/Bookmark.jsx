@@ -7,7 +7,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useState, useCallback, useEffect } from "react";
-import Header from "../Widgets/HeaderWidget";
 import AnimeStatusFAB from "../Widgets/AnimeStatusFAB";
 import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -148,7 +147,10 @@ export default function BookmarkScreen({ ...props }) {
   );
 
   // Ключ для елемента
-  const keyExtractor = useCallback((item, index) => item?.slug || `${index}`, []);
+  const keyExtractor = useCallback(
+    (item, index) => item?.slug || `${index}`,
+    []
+  );
 
   // Компонент порожнього списку
   const ListEmptyComponent = useCallback(
@@ -176,30 +178,27 @@ export default function BookmarkScreen({ ...props }) {
 
   if (HikkaAuthStorage.isAuthenticated()) {
     return (
-      <View style={{ flex: 1 }}>
-        <Header
-          navigation={props.navigation}
-          route={props.route}
-          isArrow={false}
-          title={STATUS_TITLES[currentStatus] || "Обрані"}
+      <DefaultScreenWidget
+        isCheckInternet={true}
+        isNavBarPadding={true}
+        hasManualHeader={true}
+      >
+        <FlatList
+          data={animeList}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={5}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          removeClippedSubviews={true}
+          ListEmptyComponent={ListEmptyComponent}
+          ListFooterComponent={ListFooterComponent}
+          contentContainerStyle={styles.listContentContainer}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
         />
-        <DefaultScreenWidget isCheckInternet={true} isNavBarPadding={true}>
-          <FlatList
-            data={animeList}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-            showsVerticalScrollIndicator={false}
-            initialNumToRender={5}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            removeClippedSubviews={true}
-            ListEmptyComponent={ListEmptyComponent}
-            ListFooterComponent={ListFooterComponent}
-            contentContainerStyle={styles.listContentContainer}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-          />
-        </DefaultScreenWidget>
+
         <AnimeStatusFAB
           bottomOffset={80}
           onStatusChange={(item) => {
@@ -211,7 +210,7 @@ export default function BookmarkScreen({ ...props }) {
           currentStatus={currentStatus}
           isFavoritesTab={true}
         />
-      </View>
+      </DefaultScreenWidget>
     );
   } else {
     return <LoginScreen isCanSkip={false} />;

@@ -67,54 +67,9 @@ export default function DoramaScreen() {
                 { color: themeColors.text, opacity: 0.7 },
               ]}
             >
-              Для запуску розділу дорам нам потрібен окремий сервер. Як тільки
+              Для запуску розділу дорам нам потрібно оновити сервер. Як тільки
               збір буде закрито — розпочнеться активна розробка!
             </Text>
-
-            {/* Інфо картка */}
-            <View
-              style={[styles.infoCard, { backgroundColor: themeColors.subtle }]}
-            >
-              <View style={styles.infoRow}>
-                <CloudArrowUp
-                  size={20}
-                  color={themeColors.text}
-                  weight="duotone"
-                  style={{ opacity: 0.7 }}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: themeColors.text, opacity: 0.8 },
-                  ]}
-                >
-                  Сервер для зберігання та стрімінгу дорам з українською
-                  озвучкою
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: themeColors.text + "15" },
-                ]}
-              />
-              <View style={styles.infoRow}>
-                <Globe
-                  size={20}
-                  color={themeColors.text}
-                  weight="duotone"
-                  style={{ opacity: 0.7 }}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: themeColors.text, opacity: 0.8 },
-                  ]}
-                >
-                  Корейські, японські та китайські дорами українською
-                </Text>
-              </View>
-            </View>
 
             {/* Кнопка донату */}
             <TouchableOpacity

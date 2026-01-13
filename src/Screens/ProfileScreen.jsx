@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Animated,
 } from "react-native";
-
+import SettingsStorage from "../Storage/SettingsStorage";
 import { useFocusEffect } from "@react-navigation/native";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
@@ -42,11 +42,28 @@ export default function ProfileScreen({ navigation }) {
   const [activeFavoriteFilter, setActiveFavoriteFilter] = useState("anime");
   const [favoritesList, setFavoritesList] = useState([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [showAnimeDetails, setShowAnimeDetails] = useState(
+    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+  );
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const activeTabIndex = TABS.findIndex((tab) => tab.id === activeTab);
-
+  try {
+    useFocusEffect(
+      useCallback(() => {
+        setShowAnimeDetails(
+          SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+        );
+      }, [])
+    );
+  } catch {
+    useEffect(() => {
+      setShowAnimeDetails(
+        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+      );
+    }, []);
+  }
   useEffect(() => {
     Animated.spring(slideAnim, {
       toValue: -activeTabIndex * SCREEN_WIDTH,
@@ -270,6 +287,7 @@ export default function ProfileScreen({ navigation }) {
                 colors={colors}
                 scaleFontSize={scaleFontSize}
                 navigation={navigation}
+                showAnimeDetails={showAnimeDetails}
                 getAnimeFromItem={(item) => item.anime}
               />
             </View>
@@ -293,6 +311,7 @@ export default function ProfileScreen({ navigation }) {
                 colors={colors}
                 scaleFontSize={scaleFontSize}
                 navigation={navigation}
+                showAnimeDetails={showAnimeDetails}
                 getAnimeFromItem={(item) => item}
               />
             </View>

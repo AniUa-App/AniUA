@@ -88,20 +88,38 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
 
-      <Tab.Screen
-        name="Bookmarks"
-        initialParams={{ type: "Bookmarks" }}
-        options={{
-          title: "Обрані",
-        }}
-      >
-        {(props) => <BookmarkScreen {...props} />}
+      <Tab.Screen name="Bookmarks" initialParams={{ type: "Bookmarks" }}>
+        {(props) => (
+          <View style={{ flex: 1 }}>
+            <BookmarkScreen {...props} />
+
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+              }}
+            >
+              <Header
+                navigation={props.navigation}
+                route={props.route}
+                isArrow={false}
+                title="Орбані"
+              />
+            </View>
+          </View>
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Download" initialParams={{ type: "Downloaded" }}>
         {(props) => (
           <View style={{ flex: 1 }}>
-            <AnimeListScreen {...props} isNavBarPadding={true} hasManualHeader={true} />
+            <AnimeListScreen
+              {...props}
+              isNavBarPadding={true}
+              hasManualHeader={true}
+            />
             <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
               <Header
                 navigation={props.navigation}

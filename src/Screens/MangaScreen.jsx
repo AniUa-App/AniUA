@@ -39,11 +39,7 @@ export default function MangaScreen() {
                 { backgroundColor: themeColors.primary + "20" },
               ]}
             >
-              <BookOpen
-                size={72}
-                color={themeColors.primary}
-                weight="duotone"
-              />
+              <BookOpen size={72} color={themeColors.accent} weight="duotone" />
             </View>
 
             {/* Заголовок */}
@@ -55,7 +51,7 @@ export default function MangaScreen() {
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: themeColors.primary + "30" },
+                { backgroundColor: themeColors.accent + "30" },
               ]}
             >
               <Timer size={16} color={themeColors.primary} weight="bold" />
@@ -71,54 +67,9 @@ export default function MangaScreen() {
                 { color: themeColors.text, opacity: 0.7 },
               ]}
             >
-              Для запуску розділу манґи потрібен сервер для зберігання контенту.
-              Щойно збір закриється — розробка стартує!
+              Для запуску розділу манґи нам потрібно оновити сервер. Як тільки
+              збір буде закрито — розпочнеться активна розробка!
             </Text>
-
-            {/* Інфо картка */}
-            <View
-              style={[styles.infoCard, { backgroundColor: themeColors.subtle }]}
-            >
-              <View style={styles.infoRow}>
-                <CloudArrowUp
-                  size={20}
-                  color={themeColors.text}
-                  weight="duotone"
-                  style={{ opacity: 0.7 }}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: themeColors.text, opacity: 0.8 },
-                  ]}
-                >
-                  Сервер для зберігання та читання манґи з українським
-                  перекладом
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: themeColors.text + "15" },
-                ]}
-              />
-              <View style={styles.infoRow}>
-                <Browsers
-                  size={20}
-                  color={themeColors.text}
-                  weight="duotone"
-                  style={{ opacity: 0.7 }}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: themeColors.text, opacity: 0.8 },
-                  ]}
-                >
-                  Зручний рідер з підтримкою офлайн читання
-                </Text>
-              </View>
-            </View>
 
             {/* Кнопка донату */}
             <TouchableOpacity

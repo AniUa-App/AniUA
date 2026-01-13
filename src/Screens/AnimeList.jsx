@@ -32,7 +32,11 @@ const MAX_CONCURRENT_REQUESTS = 10;
 // };
 
 // Основний компонент екрану списку аніме
-export default function AnimeListScreen({ route, isNavBarPadding, hasManualHeader }) {
+export default function AnimeListScreen({
+  route,
+  isNavBarPadding,
+  hasManualHeader,
+}) {
   const { type, initialData, title } = route.params;
   const { height } = useWindowDimensions();
   const themeColors = useThemeColors();
@@ -53,23 +57,20 @@ export default function AnimeListScreen({ route, isNavBarPadding, hasManualHeade
     }
   }, []);
 
-  const updateInfos = useCallback(
-    (slug, newInfoData) => {
-      setInfo((prevInfo) => {
-        const updatedInfo = {
-          ...prevInfo,
-          [slug]: { ...(prevInfo[slug] || {}), ...newInfoData },
-        };
-        Logger.debug("AnimeList", "Оновлення інформації", {
-          slug,
-          newInfoData,
-        });
-        AnimeStorage.set(slug, newInfoData); // Зберігаємо оновлення
-        return updatedInfo;
+  const updateInfos = useCallback((slug, newInfoData) => {
+    setInfo((prevInfo) => {
+      const updatedInfo = {
+        ...prevInfo,
+        [slug]: { ...(prevInfo[slug] || {}), ...newInfoData },
+      };
+      Logger.debug("AnimeList", "Оновлення інформації", {
+        slug,
+        newInfoData,
       });
-    },
-    []
-  );
+      AnimeStorage.set(slug, newInfoData); // Зберігаємо оновлення
+      return updatedInfo;
+    });
+  }, []);
 
   // Оптимізована функція для паралельного завантаження аніме
   const fetchAnimeDetails = useCallback(async (animeSlug) => {
@@ -121,7 +122,10 @@ export default function AnimeListScreen({ route, isNavBarPadding, hasManualHeade
       case "Liked":
         // Улюблене тепер зберігається тільки в Hikka
         if (!HikkaAuthService.isAuthenticated()) {
-          Logger.debug("AnimeList", "Користувач не авторизований для улюбленого");
+          Logger.debug(
+            "AnimeList",
+            "Користувач не авторизований для улюбленого"
+          );
           setIsLoading(false);
           return;
         }
@@ -144,7 +148,11 @@ export default function AnimeListScreen({ route, isNavBarPadding, hasManualHeade
             dataToFetch = [];
           }
         } catch (error) {
-          Logger.error("AnimeList", "Помилка завантаження улюбленого з Hikka", error);
+          Logger.error(
+            "AnimeList",
+            "Помилка завантаження улюбленого з Hikka",
+            error
+          );
           dataToFetch = [];
         }
         setIsCheckingInternet(true);
