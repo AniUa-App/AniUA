@@ -48,7 +48,8 @@ export default function TeamReleasesBottomSheet({
           activeOpacity={1}
           style={[
             {
-              ...props.style,
+              ...props.style
+              ,
             },
           ]}
         />

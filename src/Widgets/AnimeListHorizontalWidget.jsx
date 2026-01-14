@@ -98,7 +98,7 @@ export function AnimeListHorizontal({
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       <TouchableOpacity
         style={styles.header}
         activeOpacity={1}
@@ -138,6 +138,7 @@ export function AnimeListHorizontal({
         windowSize={5}
         removeClippedSubviews={true}
         nestedScrollEnabled={true}
+        contentContainerStyle={{ width: "100%" }}
       />
     </View>
   );

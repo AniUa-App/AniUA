@@ -19,6 +19,7 @@ import { Shadow } from "react-native-shadow-2";
 import Markdown from "react-native-markdown-display";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { Linking } from "react-native";
+import BloomImage from "../Widgets/BloomImage";
 
 interface Character {
   slug?: string;
@@ -110,15 +111,17 @@ export default function CharacterDetailBottomSheet({
         {/* Character Image with Gradient Shadow */}
 
         {image && (
-          <Shadow distance={12} startColor={"#252525"}>
-            <View style={[styles.imageContainer, imageSize]}>
-              <Image
-                uri={image}
-                style={[styles.characterImage, imageSize]}
-                onLoad={() => {}}
-              />
-            </View>
-          </Shadow>
+          <View style={[styles.imageContainer]}>
+            <BloomImage
+              uri={image}
+              width={imageSize.width}
+              height={imageSize.height}
+              borderRadius={16}
+              blurRadius={8}
+              glowScale={1}
+              fadePercent={0.15}
+            />
+          </View>
         )}
 
         {/* Character Name Pill */}

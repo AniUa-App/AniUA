@@ -17,6 +17,7 @@ import { TouchableOpacity } from "../../Widgets/Button";
 import { ViewEpisode } from "../../Widgets/ForwardButtonWidget";
 import AnimeStatusFAB from "../../Widgets/AnimeStatusFAB";
 import BloomImage from "../../Widgets/BloomImage";
+import { AnimeListHorizontal } from "../../Widgets/AnimeListHorizontalWidget";
 import Icon from "../../Styles/Icons";
 import { H2, H3, H4, H5 } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
@@ -689,15 +690,11 @@ export default function AnimePreviewPhone({ route }) {
                   key: "similar",
                   label: "Схожі",
                   content: (
-                    <FlatList
-                      horizontal
-                      data={animeList}
-                      renderItem={renderSimilarAnime}
-                      keyExtractor={keyExtractorSimilar}
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ paddingRight: 16 }}
-                      initialNumToRender={3}
-                      windowSize={5}
+                    <AnimeListHorizontal
+                      animeList={animeList}
+                      title=""
+                      onClickMore={null}
+                      navigation={navigation}
                     />
                   ),
                 },

@@ -178,11 +178,7 @@ export default function BookmarkScreen({ ...props }) {
 
   if (HikkaAuthStorage.isAuthenticated()) {
     return (
-      <DefaultScreenWidget
-        isCheckInternet={true}
-        isNavBarPadding={true}
-        hasManualHeader={true}
-      >
+      <DefaultScreenWidget isCheckInternet={true} hasManualHeader={true}>
         <FlatList
           data={animeList}
           renderItem={renderItem}
@@ -198,6 +194,7 @@ export default function BookmarkScreen({ ...props }) {
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
         />
+        <View style={{ paddingBottom: 60 }} />
 
         <AnimeStatusFAB
           bottomOffset={80}

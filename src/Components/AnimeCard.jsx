@@ -1,7 +1,6 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Linking } from "react-native";
 import { memo, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-
 import { useThemeColors } from "../Global/useTheme";
 import { H6, H7 } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
@@ -64,14 +63,12 @@ const AnimeCard = memo(function AnimeCard({
       : getStatusText(animeData.status);
 
   const handlePress = () => {
+    console.log("pressed");
     if (onPress) {
       onPress(anime);
     } else {
       prefetchBloomImage(anime.image);
-      navigation.navigate("HiddenStack", {
-        screen: "AnimePreview",
-        params: { anime },
-      });
+      Linking.openURL(`https://aniua.yuzka.site/anime/${anime.slug}`);
     }
   };
 

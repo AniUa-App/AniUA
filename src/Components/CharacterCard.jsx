@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Linking } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity } from "../Widgets/Button";
 import { Image } from "../Widgets/LoadersWidgets";
@@ -18,15 +18,13 @@ export default function CharacterCard({ item, width, height }) {
 
   const character = item?.character;
   if (!character?.slug) return null;
+  console.log(character);
 
   return (
     <TouchableOpacity
       style={styles.container}
       onPress={() =>
-        navigation.navigate("HiddenStack", {
-          screen: "CharacterScreen",
-          params: { character },
-        })
+        Linking.openURL(`https://aniua.yuzka.site/characters/${character.slug}`)
       }
     >
       <Image style={[styles.image, { width, height }]} uri={character.image} />
