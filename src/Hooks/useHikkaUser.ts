@@ -28,6 +28,7 @@ interface UseHikkaUserResult {
   user: HikkaUser | null;
   stats: WatchStats | null;
   favorites: any[];
+  history: any[];
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
@@ -47,6 +48,7 @@ export function useHikkaUser(): UseHikkaUserResult {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [favorites, setFavorites] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
 
   const fetchUserData = useCallback(async () => {
     setIsLoading(true);
@@ -82,6 +84,13 @@ export function useHikkaUser(): UseHikkaUserResult {
             { page: 1, size: 1 }
           );
           setFavorites(favoritesData);
+
+          // Отримуємо історію перегляду
+          const historyData = await HikkaApiComplete.getUserHistory(
+            userData.username,
+            { page: 1, size: 100 }
+          );
+          setHistory(historyData);
         } catch (statsError) {
           Logger.warn(
             "useHikkaUser",
@@ -141,6 +150,7 @@ export function useHikkaUser(): UseHikkaUserResult {
     user,
     stats,
     favorites,
+    history,
     isLoading,
     isAuthenticated,
     error,

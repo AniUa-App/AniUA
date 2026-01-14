@@ -1441,9 +1441,10 @@ export class HikkaApiComplete {
    * @param {string} username - Ім'я користувача
    * @returns {Promise<Array>}
    */
-  public static async getUserHistory(username: string) {
+  public static async getUserHistory(username: string, params?: any) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}history/user/${username}`
+      `${HikkaApiComplete.apiUrl}history/user/${username}`,
+      { params }
     );
     return response.data;
   }

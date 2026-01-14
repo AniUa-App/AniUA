@@ -221,7 +221,7 @@ export default function AnimeListScreen({
 
   // Оптимізований рендеринг списку
   const renderItem = useCallback(
-    ({ item }) => {
+    ({ item, index }) => {
       // Перевіряємо чи є взагалі item та item.slug
       if (!item?.slug) {
         // Трохи спрощена перевірка
@@ -237,6 +237,7 @@ export default function AnimeListScreen({
       return (
         <AnimePreviewWidget
           anime={item}
+          key={`${item.slug}-${index}` || index}
           info={currentItemInfo}
           updateInfo={updateInfos}
           type={type} // Передаємо тип для логіки іконки/дії в AnimePreviewWidget

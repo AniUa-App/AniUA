@@ -82,8 +82,8 @@ export function AnimeListHorizontal({
   const renderItem = useCallback(
     ({ item: anime, index }) => (
       <AnimeCard
-        key={anime.slug || index}
         anime={anime}
+        key={`${anime.slug}-${index}` || index}
         width={cardWidth}
         showDetails={showAnimeDetails}
         navigation={navigation}
@@ -92,10 +92,9 @@ export function AnimeListHorizontal({
     [cardWidth, showAnimeDetails, navigation]
   );
 
-  const keyExtractor = useCallback(
-    (item, index) => item.slug || String(index),
-    []
-  );
+  const keyExtractor = useCallback((item, index) => {
+    return item.slug ? `${item.slug}-${index}` : String(index);
+  }, []);
 
   return (
     <View>
@@ -127,7 +126,7 @@ export function AnimeListHorizontal({
 
       <FlatList
         horizontal
-        data={animeList}
+        data={animeList ?? []}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
@@ -138,7 +137,7 @@ export function AnimeListHorizontal({
         windowSize={5}
         removeClippedSubviews={true}
         nestedScrollEnabled={true}
-        contentContainerStyle={{ width: "100%" }}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -189,7 +188,7 @@ export function PreviewAnimeListHorizontal({
 
           return (
             <AnimeCard
-              key={anime.slug || index}
+              key={`${anime.slug || index}-${index}`}
               anime={anime}
               width={cardWidth}
               onPress={() => onPress(anime)}
@@ -218,5 +217,8 @@ const styles = StyleSheet.create({
   title: {
     paddingLeft: 8,
     marginVertical: isTabletLandscape() ? 6 : 16,
+  },
+  listContent: {
+    paddingHorizontal: 4,
   },
 });

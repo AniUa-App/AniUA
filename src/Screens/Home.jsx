@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -24,6 +24,7 @@ import DoramaScreen from "./DoramaScreen";
 import MangaScreen from "./MangaScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContentTypeTab } from "./ScreenController/Navigators";
+import { useHikkaUser } from "../Hooks/useHikkaUser";
 
 /**
  * Кастомний TabBar для ContentTypeTab навігатора
@@ -61,12 +62,14 @@ function ContentTypeTabBar({ state, navigation }) {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const hikkaUser = useHikkaUser();
 
   useFocusEffect(
     useCallback(() => {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor("transparent");
-    }, [])
+      hikkaUser?.refetch?.();
+    }, [hikkaUser?.refetch])
   );
 
   return (
@@ -96,7 +99,14 @@ export default function HomeScreen() {
           style={{ backgroundColor: "transparent" }}
         >
           <ContentTypeTab.Screen name="DoramaTab" component={DoramaScreen} />
-          <ContentTypeTab.Screen name="AnimeTab" component={AnimeTabContent} />
+          <ContentTypeTab.Screen name="AnimeTab">
+            {() => (
+              <AnimeTabContent
+                historyData={hikkaUser?.history}
+                refetchUserData={hikkaUser?.refetch}
+              />
+            )}
+          </ContentTypeTab.Screen>
           <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
         </ContentTypeTab.Navigator>
       </View>
@@ -107,7 +117,7 @@ export default function HomeScreen() {
 /**
  * Компонент для вкладки Аніме
  */
-function AnimeTabContent() {
+function AnimeTabContent({ historyData, refetchUserData }) {
   const colors = useThemeColors();
   const isTL = useIsTabletLandscape();
   const insets = useSafeAreaInsets();
@@ -117,6 +127,27 @@ function AnimeTabContent() {
   const [recommendations, setRecommendations] = useState(
     SettingsStorage.getParameter("userConfig.recommendations")
   );
+  const navigation = useNavigation();
+  const historyList = useMemo(() => {
+    if (Array.isArray(historyData)) {
+      return historyData;
+    }
+    if (Array.isArray(historyData?.list)) {
+      return historyData.list;
+    }
+    return [];
+  }, [historyData]);
+
+  const animeHistory = useMemo(() => {
+    const filtered = historyList
+      .filter((item) => item.content?.data_type === "anime")
+      .map((item) => item.content);
+
+    return filtered.filter((item, index) => {
+      if (index === 0) return true;
+      return item.slug !== filtered[index - 1].slug;
+    });
+  }, [historyList]);
 
   // Ініціалізація дефолтних списків при першому запуску
   useEffect(() => {
@@ -167,21 +198,25 @@ function AnimeTabContent() {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const yearData = await HikkaSets.getMostPopularAnime(1, 6, 2025);
-        setAnimeList_popularity_this_year(yearData);
-      } catch (error) {
-        Logger.error("Home", "Помилка при завантаженні даних", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
+  const loadPopularAnime = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const yearData = await HikkaSets.getMostPopularAnime(1, 6, 2025);
+      setAnimeList_popularity_this_year(yearData);
+    } catch (error) {
+      Logger.error("Home", "Помилка при завантаженні даних", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      // Оновлюємо дані при кожному поверненні на вкладку, щоб синхронізувати головний екран
+      loadPopularAnime();
+      refetchUserData?.();
+    }, [loadPopularAnime, refetchUserData])
+  );
   if (isTL) {
     return (
       <DefaultScreenWidget
@@ -216,6 +251,26 @@ function AnimeTabContent() {
                 }}
               >
                 <View style={{ height: 20 }} />
+                {animeHistory.length > 0 && (
+                  <AnimeListHorizontal
+                    title="Історія перегяду"
+                    animeList={animeHistory.split(0, 15)}
+                    onClickMore={
+                      animeHistory.length < 15
+                        ? null
+                        : async () => {
+                            navigation.navigate("HiddenStack", {
+                              screen: "AnimeList",
+                              params: {
+                                title: "Історія перегляду",
+                                initialData: animeHistory,
+                              },
+                            });
+                          }
+                    }
+                  />
+                )}
+
                 {recommendations?.isCustomedPersonalRecommendations && (
                   <CustomPersonalRecList />
                 )}
@@ -253,6 +308,23 @@ function AnimeTabContent() {
               alignSelf: "center",
             }}
           >
+            <AnimeListHorizontal
+              title="Історія перегляду"
+              animeList={animeHistory.slice(0, 15)}
+              onClickMore={
+                animeHistory.length < 15
+                  ? null
+                  : async () => {
+                      navigation.navigate("HiddenStack", {
+                        screen: "AnimeList",
+                        params: {
+                          title: "Історія перегляду",
+                          initialData: animeHistory,
+                        },
+                      });
+                    }
+              }
+            />
             {recommendations?.isCustomedPersonalRecommendations && (
               <CustomPersonalRecList />
             )}
