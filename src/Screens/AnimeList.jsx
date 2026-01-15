@@ -237,7 +237,7 @@ export default function AnimeListScreen({
       return (
         <AnimePreviewWidget
           anime={item}
-          key={`${item.slug}-${index}` || index}
+          key={keyExtractor(item, index)}
           info={currentItemInfo}
           updateInfo={updateInfos}
           type={type} // Передаємо тип для логіки іконки/дії в AnimePreviewWidget
@@ -248,7 +248,7 @@ export default function AnimeListScreen({
   );
 
   // Унікальний ключ для елементів списку
-  const keyExtractor = useCallback((item, index) => item.slug || index, []);
+  const keyExtractor = (item, index) => `${item.slug}-${index}`;
 
   // Компонент для відображення коли список порожній
   const ListEmptyComponent = useCallback(
