@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import Logger from "../Logger/Logger";
 import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
+import MainConfig, { buildExtra } from "../cfgs/MainConfig";
 
 // ==================== TYPES ====================
 
@@ -157,6 +158,180 @@ export interface AniuaApiConfig {
   timeout?: number;
 }
 
+/**
+ * Токени автентифікації для захищених endpoint-ів AniUA API
+ */
+export interface AniuaAuthHeaders {
+  /** Authorization: Bearer <token> */
+  bearerToken?: string;
+  /** X-JWT-Token */
+  jwtToken?: string;
+}
+
+/**
+ * Тіло запиту на вхід
+ */
+export interface SigninRequest {
+  reference: string;
+  username: string;
+  email: string;
+}
+
+/**
+ * Тіло запиту на реєстрацію
+ */
+export interface SignupRequest extends SigninRequest {
+  download_version: string;
+  download_git_hash: string;
+}
+
+/**
+ * Відповідь від Auth endpoint
+ */
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  expires_at: number;
+  refresh_token: string;
+}
+
+/**
+ * DTO версії застосунку
+ */
+export interface VersionInfo {
+  slug: string;
+  platform: string;
+  name: string;
+  created_at: string;
+  git_hash: string;
+  download_url: string;
+  version: string;
+  description?: string | null;
+}
+
+/**
+ * Параметри для запиту версій
+ */
+export interface VersionsQueryParams {
+  select?: string;
+}
+
+/**
+ * DTO користувача
+ */
+export interface UserDetails {
+  reference: string;
+  avatar?: string | null;
+  created?: string | null;
+  description?: string | null;
+  download_git_hash?: string | null;
+  download_version?: string | null;
+  font?: string | null;
+  frame?: string | null;
+  payment_date?: string | null;
+  push_token?: string | null;
+  role?: string | null;
+  updated?: string | null;
+}
+
+/**
+ * Тіло запиту на оновлення користувача
+ */
+export interface UpdateUserDetails {
+  avatar?: string | null;
+  description?: string | null;
+  font?: string | null;
+  frame?: string | null;
+}
+
+/**
+ * Запит на реєстрацію push-токена
+ */
+export interface RegisterTokenRequest {
+  token: string;
+  slugs: string[];
+}
+
+/**
+ * Запит на оновлення підписок
+ */
+export interface UpdateSubscriptionRequest {
+  token: string;
+  add_slugs?: string[];
+  remove_slugs?: string[];
+}
+
+/**
+ * Запит на видалення push-токена
+ */
+export interface UnregisterTokenRequest {
+  token: string;
+}
+
+/**
+ * Відповідь від notifications endpoint-ів
+ */
+export interface SubscriptionResponse {
+  token: string;
+  slugs: string[];
+  message: string;
+}
+
+/**
+ * Стандартна відповідь з повідомленням
+ */
+export interface SuccessResponse {
+  message: string;
+}
+
+/**
+ * Інформація про помилку API
+ */
+export interface ApiError {
+  status?: number;
+  message: string;
+  code?: string;
+  context: string;
+}
+
+/**
+ * Обгортка відповіді API з даними помилки
+ */
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: ApiError;
+}
+
+/**
+ * Елемент метаданих (key-value пара)
+ */
+export interface MetadataItem {
+  key: string;
+  value: string;
+}
+
+/**
+ * DTO метаданих застосунку (трансформовані з масиву)
+ */
+export interface MetadataResponse {
+  /** URL веб-сайту */
+  website_url?: string;
+  /** URL Telegram каналу */
+  telegram_channel?: string;
+  /** URL для донатів */
+  donation_url?: string;
+  /** URL GitHub репозиторію */
+  github?: string;
+  /** URL Telegram бота підтримки */
+  support_telegram_bot?: string;
+  /** URL каналу для баг-репортів */
+  telegram_bug_report_channel?: string;
+  /** URL TikTok */
+  tiktok?: string;
+}
+
 // ==================== API CLASS ====================
 
 /**
@@ -181,7 +356,11 @@ export interface AniuaApiConfig {
 export class AniuaApi {
   // ==================== CONFIGURATION ====================
 
-  private static baseUrl: string = "https://testapi.yuzka.site";
+  private static baseUrl: string = __DEV__
+    ? "http://rest.server"
+    : "https://api.yuzka.site";
+  private static jwtToken: string = MainConfig.devInfo.expoPublickSupabaseKey;
+  private static authHeader: string | undefined;
   private static cacheTtl: number = 5 * 60 * 1000; // 5 хвилин
   private static timeout: number = 15000;
 
@@ -195,13 +374,21 @@ export class AniuaApi {
     episodes: new Map(),
   };
 
-  private static axiosInstance: AxiosInstance = axios.create({
-    timeout: AniuaApi.timeout,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
+  private static axiosInstance: AxiosInstance = (() => {
+    const instance = axios.create({
+      timeout: AniuaApi.timeout,
+    });
+    // Встановлюємо headers явно через common щоб уникнути конфліктів
+    instance.defaults.headers.common["Accept"] = "application/json";
+    instance.defaults.headers.common["Content-Type"] = "application/json";
+    if (AniuaApi.jwtToken) {
+      instance.defaults.headers.common["X-JWT-Token"] = AniuaApi.jwtToken;
+    }
+    if (AniuaApi.authHeader) {
+      instance.defaults.headers.common["Authorization"] = AniuaApi.authHeader;
+    }
+    return instance;
+  })();
 
   // ==================== CONFIGURATION METHODS ====================
 
@@ -229,7 +416,6 @@ export class AniuaApi {
       AniuaApi.timeout = config.timeout;
       AniuaApi.axiosInstance.defaults.timeout = config.timeout;
     }
-
     Logger.debug("AniuaApi", "API сконфігуровано", {
       baseUrl: AniuaApi.baseUrl,
       cacheTtl: AniuaApi.cacheTtl,
@@ -242,6 +428,33 @@ export class AniuaApi {
    */
   public static getBaseUrl(): string {
     return AniuaApi.baseUrl;
+  }
+
+  public static getJwtToken(): string | undefined {
+    return AniuaApi.jwtToken;
+  }
+
+  /**
+   * Встановлює Authorization header для авторизованих запитів
+   * @param header - Значення Authorization header (наприклад "Bearer token")
+   */
+  public static setAuthHeader(header: string | undefined): void {
+    AniuaApi.authHeader = header;
+    if (header) {
+      AniuaApi.axiosInstance.defaults.headers.common["Authorization"] = header;
+    } else {
+      delete AniuaApi.axiosInstance.defaults.headers.common["Authorization"];
+    }
+    Logger.debug("AniuaApi", "Authorization header оновлено", {
+      hasHeader: !!header,
+    });
+  }
+
+  /**
+   * Отримує поточний Authorization header
+   */
+  public static getAuthHeader(): string | undefined {
+    return AniuaApi.authHeader;
   }
 
   // ==================== CACHE MANAGEMENT ====================
@@ -276,7 +489,54 @@ export class AniuaApi {
   // ==================== ERROR HANDLING ====================
 
   /**
-   * Обробляє помилки API запитів
+   * Обробляє помилки API запитів та повертає дані відповіді (для auth методів)
+   */
+  private static handleErrorWithResponse<T = any>(
+    error: AxiosError | Error,
+    context: string
+  ): ApiResponse<T> {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const responseData = error.response?.data as any;
+      // Сервер повертає помилку в response.data.error
+      const errorData = responseData?.error || responseData;
+      const message =
+        typeof errorData === "string"
+          ? errorData
+          : errorData?.message || error.message;
+
+      Logger.error("AniuaApi", `${context}: HTTP ${status}`, {
+        status,
+        message,
+        url: error.config?.url,
+        responseData,
+      });
+
+      return {
+        success: false,
+        data: responseData,
+        error: {
+          status,
+          message,
+          code: error.code,
+          context,
+        },
+      };
+    }
+
+    Logger.error("AniuaApi", context, error);
+    return {
+      success: false,
+      data: null as T,
+      error: {
+        message: error.message,
+        context,
+      },
+    };
+  }
+
+  /**
+   * Обробляє помилки API запитів (кидає помилку)
    */
   private static handleError(
     error: AxiosError | Error,
@@ -284,34 +544,266 @@ export class AniuaApi {
   ): never {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
+      const responseData = error.response?.data as any;
+      const errorData = responseData?.error || responseData;
       const message =
-        (error.response?.data as { message?: string })?.message ||
-        error.message;
+        typeof errorData === "string"
+          ? errorData
+          : errorData?.message || error.message;
 
       Logger.error("AniuaApi", `${context}: HTTP ${status}`, {
         status,
         message,
         url: error.config?.url,
+        responseData,
       });
 
-      if (status === 404) {
-        throw new Error(`Ресурс не знайдено: ${context}`);
-      }
-      if (status === 500) {
-        throw new Error(`Помилка сервера: ${context}`);
-      }
-      if (error.code === "ECONNABORTED") {
-        throw new Error(`Таймаут запиту: ${context}`);
-      }
-      if (error.code === "ERR_NETWORK") {
-        throw new Error(`Помилка мережі: ${context}`);
-      }
-
-      throw new Error(`Помилка API: ${message}`);
+      throw new Error(`${context}: ${message}`);
     }
 
     Logger.error("AniuaApi", context, error);
     throw error;
+  }
+
+  // ==================== AUTH METHODS ====================
+
+  /**
+   * Вхід користувача через AniUA API
+   */
+  public static async signin(
+    payload: SigninRequest
+  ): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const response = await AniuaApi.axiosInstance.post<AuthResponse>(
+        `${AniuaApi.baseUrl}/v1/auth/signin`,
+        payload
+      );
+      this.setAuthHeader(`Bearer ${response.data.access_token}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return AniuaApi.handleErrorWithResponse<AuthResponse>(
+        error as AxiosError,
+        "Помилка авторизації (signin)"
+      );
+    }
+  }
+
+  /**
+   * Реєстрація користувача у сервісі AniUA
+   */
+  public static async signup(
+    payload: SignupRequest
+  ): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const response = await AniuaApi.axiosInstance.post<AuthResponse>(
+        `${AniuaApi.baseUrl}/v1/auth/signup`,
+        payload
+      );
+      this.setAuthHeader(`Bearer ${response.data.access_token}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return AniuaApi.handleErrorWithResponse<AuthResponse>(
+        error as AxiosError,
+        "Помилка реєстрації користувача"
+      );
+    }
+  }
+
+  // ==================== VERSIONS ====================
+
+  /**
+   * Отримує список версій застосунку
+   */
+  public static async getVersions(
+    params: VersionsQueryParams = {}
+  ): Promise<VersionInfo[]> {
+    try {
+      const response = await AniuaApi.axiosInstance.get<VersionInfo[]>(
+        `${AniuaApi.baseUrl}/v1/versions`,
+        { params }
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Помилка завантаження версій застосунку"
+      );
+    }
+  }
+
+  // ==================== METADATA ====================
+
+  /**
+   * Отримує метадані застосунку (URLs, контакти тощо)
+   * API повертає масив key-value пар, який трансформується в об'єкт
+   *
+   * @example
+   * ```typescript
+   * const metadata = await AniuaApi.getMetadata();
+   * console.log(metadata.website_url);
+   * console.log(metadata.telegram_channel);
+   * ```
+   */
+  public static async getMetadata(): Promise<MetadataResponse> {
+    try {
+      const response = await AniuaApi.axiosInstance.get<MetadataItem[]>(
+        `${AniuaApi.baseUrl}/v1/metadata`
+      );
+
+      // Трансформуємо масив key-value пар у об'єкт
+      const metadata: MetadataResponse = {};
+      for (const item of response.data) {
+        (metadata as Record<string, string>)[item.key] = item.value;
+      }
+
+      return metadata;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Помилка завантаження метаданих застосунку"
+      );
+    }
+  }
+
+  // ==================== USERS ====================
+
+  /**
+   * Отримує деталі користувача
+   */
+  public static async getUsers(): Promise<UserDetails[]> {
+    try {
+      const response = await AniuaApi.axiosInstance.get<UserDetails[]>(
+        `${AniuaApi.baseUrl}/v1/users`
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Помилка завантаження профілю користувача"
+      );
+    }
+  }
+
+  /**
+   * Оновлює профіль користувача
+   */
+  public static async updateUserDetails(
+    payload: UpdateUserDetails
+  ): Promise<UserDetails[]> {
+    try {
+      const response = await AniuaApi.axiosInstance.patch<UserDetails[]>(
+        `${AniuaApi.baseUrl}/v1/users`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося оновити профіль користувача"
+      );
+    }
+  }
+
+  /**
+   * Видаляє користувача за reference (самостійно)
+   */
+  public static async deleteUser(reference: string): Promise<void> {
+    try {
+      await AniuaApi.axiosInstance.delete(
+        `${AniuaApi.baseUrl}/v1/users/${reference}`
+      );
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося видалити користувача"
+      );
+    }
+  }
+
+  // ==================== NOTIFICATIONS ====================
+
+  /**
+   * Реєструє push-токен та підписки
+   */
+  public static async registerNotificationToken(
+    payload: RegisterTokenRequest
+  ): Promise<SubscriptionResponse> {
+    try {
+      const response = await AniuaApi.axiosInstance.post<SubscriptionResponse>(
+        `${AniuaApi.baseUrl}/v1/notifications/register`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося зареєструвати push-токен"
+      );
+    }
+  }
+
+  /**
+   * Оновлює підписки для push-токена
+   */
+  public static async updateNotificationSubscription(
+    payload: UpdateSubscriptionRequest
+  ): Promise<SubscriptionResponse> {
+    try {
+      const response = await AniuaApi.axiosInstance.patch<SubscriptionResponse>(
+        `${AniuaApi.baseUrl}/v1/notifications/subscribe`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося оновити підписки"
+      );
+    }
+  }
+
+  /**
+   * Отримує поточні підписки за токеном
+   */
+  public static async getNotificationSubscriptions(
+    token: string
+  ): Promise<SubscriptionResponse> {
+    try {
+      const response = await AniuaApi.axiosInstance.get<SubscriptionResponse>(
+        `${AniuaApi.baseUrl}/v1/notifications/subscriptions`,
+        {
+          params: { token },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося отримати список підписок"
+      );
+    }
+  }
+
+  /**
+   * Видаляє push-токен та скасовує усі підписки
+   */
+  public static async unregisterNotificationToken(
+    payload: UnregisterTokenRequest
+  ): Promise<SuccessResponse> {
+    try {
+      const response = await AniuaApi.axiosInstance.delete<SuccessResponse>(
+        `${AniuaApi.baseUrl}/v1/notifications/unregister`,
+        {
+          data: payload,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return AniuaApi.handleError(
+        error as AxiosError,
+        "Не вдалося видалити push-токен"
+      );
+    }
   }
 
   // ==================== CORE API METHODS ====================
@@ -889,7 +1381,7 @@ export class AniuaApi {
       Logger.debug("AniuaApi", `Завантаження епізодів для ${slug}`);
 
       const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
-        `${AniuaApi.baseUrl}/v1/anime/${slug}/episodes`
+        `${AniuaApi.baseUrl}/v1/episodes?slug=${slug}`
       );
 
       const episodes = response.data.episodes || [];
@@ -1056,6 +1548,42 @@ export class AniuaApi {
     for (let i = 0; i < toFetch.length; i += concurrency) {
       const batch = toFetch.slice(i, i + concurrency);
       fetchBatch(batch);
+    }
+  }
+
+  /**
+   * Завантажує raw вміст файлу з GitHub репозиторію
+   * @param {string} gitHash - Хеш коміту або назва гілки
+   * @param {string} file - Шлях до файлу в репозиторії
+   * @returns {Promise<string>} Текстовий вміст файлу
+   */
+  public static async getGithubRaw(
+    gitHash: string,
+    file: string
+  ): Promise<string> {
+    try {
+      const response = await fetch(
+        `${(await this.getMetadata()).github}/AniUA/${gitHash}/${file}`.replace(
+          "github.com",
+          "raw.githubusercontent.com"
+        )
+      );
+      Logger.debug(
+        "getGithubRaw",
+        "Завантаження файлу з GitHub",
+        `${(await this.getMetadata()).github}/AniUA/${gitHash}/${file}`.replace(
+          "github.com",
+          "raw.githubusercontent.com"
+        )
+      );
+      return await response.text();
+    } catch (error: any) {
+      Logger.error(
+        "getGithubRaw",
+        "Помилка при отриманні raw файлу з Github",
+        error
+      );
+      return "";
     }
   }
 }

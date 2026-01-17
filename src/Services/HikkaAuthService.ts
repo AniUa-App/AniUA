@@ -4,7 +4,11 @@ import axios from "axios";
 import Constants from "expo-constants";
 import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import { AniuaApi } from "../Api/AniuaApi";
+import AniuaAuthStorage from "../Storage/AniuaAuthStorage";
+import MainConfig from "../cfgs/MainConfig";
 import Logger from "../Logger/Logger";
+import { EventBus } from "../Global/EventBus";
 
 /**
  * Сервіс для OAuth авторизації через Hikka
@@ -156,7 +160,10 @@ export class HikkaAuthService {
         // Встановлюємо токен в API клієнт
         HikkaApiComplete.setAuthToken(tokenData.secret);
 
-        Logger.info("HikkaAuthService", "Авторизація успішна");
+        Logger.info("HikkaAuthService", "Hikka авторизація успішна");
+
+        // Автоматична реєстрація/вхід в AniUA API
+        await this.registerInAniUA(tokenData.secret, tokenData.user);
 
         return {
           success: true,
@@ -246,11 +253,107 @@ export class HikkaAuthService {
   }
 
   /**
+   * Автоматична реєстрація/вхід в AniUA API після успішної Hikka авторизації
+   * @param hikkaToken - Токен Hikka для X-JWT-Token header
+   * @param hikkaUser - Дані користувача Hikka
+   */
+  private static async registerInAniUA(
+    hikkaToken: string,
+    hikkaUser: any
+  ): Promise<void> {
+    try {
+      if (!hikkaUser) {
+        Logger.warn(
+          "HikkaAuthService",
+          "Дані Hikka користувача відсутні, пропускаємо реєстрацію в AniUA"
+        );
+        return;
+      }
+
+      const reference = hikkaUser.reference;
+      const username = hikkaUser.username;
+      const email = hikkaUser.email || `${username}@hikka.io`;
+
+      Logger.debug("HikkaAuthService", "Спроба входу в AniUA", {
+        reference,
+        username,
+        email,
+      });
+
+      try {
+        // Спочатку пробуємо signin
+        const authResponse = await AniuaApi.signin({
+          reference,
+          username,
+          email,
+        });
+
+        AniuaAuthStorage.setAuthFromResponse(authResponse.data, {
+          reference,
+          username,
+          email,
+          download_version: MainConfig.devInfo.version,
+          download_git_hash: MainConfig.devInfo.gitHash,
+        });
+
+        Logger.info("HikkaAuthService", "Успішний вхід в AniUA", { reference });
+      } catch (signinError: any) {
+        // Якщо користувач не існує, реєструємо
+        Logger.debug(
+          "HikkaAuthService",
+          "Користувач не існує в AniUA, реєструємо...",
+          {
+            reference,
+            username,
+            email,
+            download_version: MainConfig.devInfo.version,
+            download_git_hash: MainConfig.devInfo.gitHash,
+            signinError: signinError?.message,
+            jwtToken: AniuaApi.getJwtToken(),
+          }
+        );
+
+        const authResponse = await AniuaApi.signup({
+          reference,
+          username,
+          email,
+          download_version: MainConfig.devInfo.version,
+          download_git_hash: MainConfig.devInfo.gitHash,
+        });
+
+        AniuaAuthStorage.setAuthFromResponse(authResponse.data, {
+          reference,
+          username,
+          email,
+          download_version: MainConfig.devInfo.version,
+          download_git_hash: MainConfig.devInfo.gitHash,
+        });
+
+        Logger.info("HikkaAuthService", "Успішна реєстрація в AniUA", {
+          reference,
+        });
+      }
+
+      // Emit event для інших компонентів
+      EventBus.emit("aniuaUserUpdated", AniuaAuthStorage.getUser());
+    } catch (error) {
+      // Помилка реєстрації в AniUA не критична, логуємо та продовжуємо
+      Logger.warn("HikkaAuthService", "Помилка реєстрації в AniUA", error);
+    }
+  }
+
+  /**
    * Вихід з системи
    */
   public static logout() {
     HikkaAuthStorage.clearAuth();
     HikkaApiComplete.clearAuthToken();
+    AniuaAuthStorage.clearAuth();
+
+    // Emit event для useAniuaUser та інших компонентів
+    EventBus.emit("hikkaLogout");
+    EventBus.emit("aniuaUserUpdated", null);
+
     Logger.info("HikkaAuthService", "Вихід виконано");
   }
 

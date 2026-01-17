@@ -46,6 +46,10 @@ export default function ProfileScreen({ navigation }) {
     SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
   );
 
+  // Dynamic height for tabs
+  const [listTabHeight, setListTabHeight] = useState(300);
+  const [favoritesTabHeight, setFavoritesTabHeight] = useState(300);
+
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const activeTabIndex = TABS.findIndex((tab) => tab.id === activeTab);
@@ -259,7 +263,13 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Tab Content with Slide Animation */}
         <View
-          style={[styles.tabContentWrapper, { backgroundColor: colors.accent }]}
+          style={[
+            styles.tabContentWrapper,
+            {
+              backgroundColor: colors.accent,
+              height: Math.max(listTabHeight, favoritesTabHeight, 300) + 45,
+            },
+          ]}
         >
           <Animated.View
             style={[
@@ -270,7 +280,10 @@ export default function ProfileScreen({ navigation }) {
             ]}
           >
             {/* List Tab */}
-            <View style={{ width: SCREEN_WIDTH }}>
+            <View
+              style={{ width: SCREEN_WIDTH }}
+              onLayout={(e) => setListTabHeight(e.nativeEvent.layout.height)}
+            >
               <View>
                 <FilterChips
                   filters={FILTERS}
@@ -293,7 +306,10 @@ export default function ProfileScreen({ navigation }) {
             </View>
 
             {/* Favorites Tab */}
-            <View style={{ width: SCREEN_WIDTH }}>
+            <View
+              style={{ width: SCREEN_WIDTH }}
+              onLayout={(e) => setFavoritesTabHeight(e.nativeEvent.layout.height)}
+            >
               <View>
                 <FilterChips
                   filters={FAVORITES_FILTERS}
@@ -380,9 +396,7 @@ const styles = StyleSheet.create({
   },
   tabContentWrapper: {
     overflow: "hidden",
-    flex: 1,
     width: "100%",
-    height: "100%",
   },
   tabContentContainer: {
     flexDirection: "row",

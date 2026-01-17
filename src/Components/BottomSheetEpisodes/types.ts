@@ -1,4 +1,4 @@
-import { Episode, Team } from "../../Sources/AniuaApi";
+import { Episode, Team } from "../../Api/AniuaApi";
 
 export interface BottomSheetEpisodesRef {
   open: () => void;

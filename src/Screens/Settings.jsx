@@ -3,7 +3,6 @@ import React, { useState, useCallback, useRef, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 import SettingsSection from "../Widgets/SettingsSectionWidget";
-import { ToggleSettingWidget } from "../Widgets/CustomisationWidgets";
 import Icons from "../Styles/Icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
@@ -15,7 +14,6 @@ import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import AnimeStorage from "../Storage/AnimeStorage";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
-import Api from "../Api/api";
 import * as Expo from "expo";
 import Logger from "../Logger/Logger";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
@@ -29,9 +27,6 @@ export default function SettingsScreen() {
   const themeColors = useThemeColors();
   const { snackbar, showSnackbar, showConfirmSnackbar } = useSnackbar();
   const [isRatingVisible, setIsRatingVisible] = useState(false);
-  const [showAnimeListDetails, setShowAnimeListDetails] = useState(
-    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
-  );
   const [defaultPlayer, setDefaultPlayer] = useState(
     SettingsStorage.getParameter("defaultPlayer")
   );
@@ -43,9 +38,6 @@ export default function SettingsScreen() {
   // Перечитуємо налаштування при фокусі на екран
   useFocusEffect(
     useCallback(() => {
-      setShowAnimeListDetails(
-        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
-      );
       setDefaultPlayer(SettingsStorage.getParameter("defaultPlayer"));
     }, [])
   );
@@ -130,14 +122,14 @@ export default function SettingsScreen() {
         onRatingSubmit={(rating, feedback) => {
           Logger.info("Settings", "Користувач поставив оцінку", { rating });
           Logger.info("Settings", "Користувач залишив відгук", { feedback });
-          Api.sendFeedback(rating, feedback).then((saved) => {
-            Logger.info("Settings", "Відгук відправлено", { saved });
-            if (saved) {
-              showSnackbar("Відгук успішно відправлено.");
-            } else {
-              showSnackbar("Помилка при відправці відгуку.");
-            }
-          });
+          // Api.sendFeedback(rating, feedback).then((saved) => {
+          //   Logger.info("Settings", "Відгук відправлено", { saved });
+          //   if (saved) {
+          //     showSnackbar("Відгук успішно відправлено.");
+          //   } else {
+          //     showSnackbar("Помилка при відправці відгуку.");
+          //   }
+          // });
           setIsRatingVisible(false);
         }}
       />
@@ -190,20 +182,6 @@ export default function SettingsScreen() {
                   title: "Кастомізація",
                 },
               });
-            }}
-          />
-          <ToggleSettingWidget
-            title="Деталі аніме у списках"
-            subtitle="Назва, жанри та епізоди"
-            icon={<Icons.ListBullets />}
-            value={showAnimeListDetails}
-            onToggle={() => {
-              const newValue = !showAnimeListDetails;
-              setShowAnimeListDetails(newValue);
-              SettingsStorage.setParameter(
-                "hideAnimeListDetails",
-                newValue ? "" : "true"
-              );
             }}
           />
         </SettingsSection>

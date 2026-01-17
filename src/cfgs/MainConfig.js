@@ -46,7 +46,7 @@ const getSafeVersion = () => {
 };
 
 // Приводимо значення до безпечного рядка
-const toSafeString = (v, fallback = "unknown") => {
+export const toSafeString = (v, fallback = "unknown") => {
   try {
     if (v === undefined || v === null) return fallback;
     if (
@@ -133,6 +133,9 @@ export default {
     model: getSafeValue(Device.modelName || Device.designName, "Unknown"),
     getUniqueId: () => Application.getAndroidId(),
     packageName: toSafeString(Constants?.expoConfig?.android?.package),
+    expoPublickSupabaseKey: toSafeString(
+      buildExtra.expoPublickSupabaseKey || process.env.EXPO_PUBLIC_SUPABASE_KEY
+    ),
   },
   partners: {
     hikka: {

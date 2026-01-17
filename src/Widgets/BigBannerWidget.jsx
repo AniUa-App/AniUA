@@ -10,7 +10,7 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import BloomImage, { prefetchBloomImage } from "./BloomImage";
-import { AniuaApi } from "../Sources/AniuaApi";
+import { AniuaApi } from "../Api/AniuaApi";
 import FastImage from "react-native-fast-image";
 import Animated, {
   useSharedValue,

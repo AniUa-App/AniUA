@@ -317,6 +317,28 @@ export default function CustomisationScreen() {
           />
         </SettingsSection>
 
+        {/* Списки */}
+        <SettingsSection title="Списки">
+          <ToggleSettingWidget
+            title="Деталі аніме у списках"
+            subtitle="Назва, жанри та епізоди"
+            icon={<Icons.ListBullets />}
+            value={
+              SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+            }
+            onToggle={() => {
+              const currentValue =
+                SettingsStorage.getParameter("hideAnimeListDetails") !== "true";
+              SettingsStorage.setParameter(
+                "hideAnimeListDetails",
+                currentValue ? "true" : ""
+              );
+              // Force re-render
+              SET_USER_CONFIG({ ...USER_CONFIG });
+            }}
+          />
+        </SettingsSection>
+
         {/* Кольори
         <SettingsSection title="Кольори">
           <ToggleSettingWidget

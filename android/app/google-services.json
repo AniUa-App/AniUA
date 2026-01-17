@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "906107792362",
+    "project_id": "aniua-app",
+    "storage_bucket": "aniua-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906107792362:android:479b9fb5e10115592c2093",
+        "android_client_info": {
+          "package_name": "aniua.yuzka.site"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAomKsb8eBn8l5tlH8U3vDXvrtq5EPCnCg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

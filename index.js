@@ -8,7 +8,6 @@ import {
   setupForegroundHandler,
 } from "./src/Global/Actions";
 import MainConfig from "./src/cfgs/MainConfig";
-import { getUniqueAccountId } from "./src/Api/api";
 
 function app() {
   return <App />;

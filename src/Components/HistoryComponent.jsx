@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 import SettingsStorage from "../Storage/SettingsStorage";
 import UserStorage from "../Storage/UserStorage";
 import { useThemeColors } from "../Global/useTheme";
+import { EventBus } from "../Global/EventBus";
 
 const HistoryComponent = () => {
   const [history, setHistory] = useState([]);
@@ -13,25 +14,38 @@ const HistoryComponent = () => {
   const colors = useThemeColors();
   const user = UserStorage.getUser();
 
-  useEffect(() => {
+  const fetchHistory = useCallback(async () => {
     if (!showHistory || !user) {
       setIsLoading(false);
       return;
     }
 
-    const fetchHistory = async () => {
-      try {
-        const historyData = await HikkaApiComplete.getUserHistory(user.username);
-        setHistory(historyData.list.map(item => item.anime));
-      } catch (error) {
-        console.error("Error fetching user history:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHistory();
+    try {
+      setIsLoading(true);
+      const historyData = await HikkaApiComplete.getUserHistory(user.username);
+      setHistory(historyData.list.map(item => item.anime));
+    } catch (error) {
+      console.error("Error fetching user history:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [showHistory, user]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  // Listen for history updates from other components
+  useEffect(() => {
+    const unsubscribe = EventBus.on("historyUpdated", () => {
+      // Debounce: wait a bit for Hikka API to process the update
+      setTimeout(() => {
+        fetchHistory();
+      }, 1000);
+    });
+    return unsubscribe;
+  }, [fetchHistory]);
 
   if (isLoading) {
     return (

@@ -3,7 +3,7 @@ import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as NavigationBar from "expo-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
-import { AniuaApi } from "../Sources/AniuaApi";
+import { AniuaApi } from "../Api/AniuaApi";
 import { HikkaApi } from "../Sources/hikka";
 import { convertHikkaEpisodes } from "../Components/BottomSheetEpisodes/helpers";
 import AnimeStorage from "../Storage/AnimeStorage";

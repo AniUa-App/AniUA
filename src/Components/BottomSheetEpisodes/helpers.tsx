@@ -1,7 +1,7 @@
 import React from "react";
 import Icon from "../../Styles/Icons";
 import { MoonIcon, AshdiIcon } from "../../Styles/Icons";
-import { EpisodesByPlayerAndTeam } from "../../Sources/AniuaApi";
+import { EpisodesByPlayerAndTeam } from "../../Api/AniuaApi";
 import { Player } from "./types";
 
 export const getPlayerInfo = (playerName: string, themeColors: any): Player => {

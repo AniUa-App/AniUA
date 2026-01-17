@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useCallback, useState } from "react";
+import { View, StyleSheet, Pressable, Text } from "react-native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -13,6 +13,8 @@ import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
 import { H4, H5, H3, H7, H6 } from "../Styles/Fonts";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import NotificationsStorage from "../Storage/NotificationsStorage";
+import { EventBus } from "../Global/EventBus";
 
 const TABS = [
   { key: "dorama", label: "Дорама" },
@@ -36,6 +38,31 @@ export default function TopNavigationComponent({
   const activeIndex = TABS.findIndex((tab) => tab.key === activeTab);
   const indicatorPosition = useSharedValue(activeIndex >= 0 ? activeIndex : 1);
   const tabsContainerWidth = TAB_WIDTH * TABS.length + INDICATOR_PADDING * 10;
+
+  // Стан для кількості непрочитаних сповіщень
+  const [unreadCount, setUnreadCount] = useState(
+    NotificationsStorage.getUnreadCount()
+  );
+
+  // Оновлюємо лічильник при фокусі та на події
+  useFocusEffect(
+    useCallback(() => {
+      setUnreadCount(NotificationsStorage.getUnreadCount());
+    }, [])
+  );
+
+  useEffect(() => {
+    const unsubscribeReceived = EventBus.on("notificationReceived", () => {
+      setUnreadCount(NotificationsStorage.getUnreadCount());
+    });
+    const unsubscribeRead = EventBus.on("notificationRead", () => {
+      setUnreadCount(NotificationsStorage.getUnreadCount());
+    });
+    return () => {
+      unsubscribeReceived();
+      unsubscribeRead();
+    };
+  }, []);
 
   useEffect(() => {
     const newIndex = TABS.findIndex((tab) => tab.key === activeTab);
@@ -67,8 +94,10 @@ export default function TopNavigationComponent({
   }, [navigation]);
 
   const handleNotificationPress = useCallback(() => {
-    // TODO: Navigate to notifications screen
-  }, []);
+    navigation.navigate("HiddenStack", {
+      screen: "NotificationsScreen",
+    });
+  }, [navigation]);
 
   return (
     <View
@@ -86,7 +115,18 @@ export default function TopNavigationComponent({
         style={[styles.iconButton, { backgroundColor: themeColors.Text(0.08) }]}
         onPress={handleNotificationPress}
       >
-        <Icons.BellSimple size={28} color={themeColors.text} />
+        <Icons.BellSimple
+          size={28}
+          color={themeColors.text}
+          weight={unreadCount > 0 ? "fill" : "regular"}
+        />
+        {unreadCount > 0 && (
+          <View style={[styles.badge, { backgroundColor: themeColors.primary }]}>
+            <Text style={styles.badgeText}>
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Text>
+          </View>
+        )}
       </Pressable>
 
       {/* Center - Category Tabs */}
@@ -149,6 +189,22 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
+  },
+  badge: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontFamily: "Nunito-Bold",
   },
   tabsContainer: {
     flexDirection: "row",

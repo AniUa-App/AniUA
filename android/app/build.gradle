@@ -177,6 +177,7 @@ dependencies {
     }
 }
 
+apply plugin: 'com.google.gms.google-services'
 
 // Download ffmpeg-kit AAR if not exists
 task downloadAar {

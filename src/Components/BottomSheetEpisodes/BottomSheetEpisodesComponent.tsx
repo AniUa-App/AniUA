@@ -31,7 +31,7 @@ import {
   Episode,
   Team,
   EpisodesByPlayerAndTeam,
-} from "../../Sources/AniuaApi";
+} from "../../Api/AniuaApi";
 import { HikkaApi } from "../../Sources/hikka";
 import Logger from "../../Logger/Logger";
 import DubComponent from "../DubComponent";

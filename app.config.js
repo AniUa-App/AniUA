@@ -53,6 +53,7 @@ export default {
     },
     android: {
       package: "aniua.yuzka.site",
+      googleServicesFile: "./google-services.json",
       versionCode: 1,
       buildType: "apk",
       adaptiveIcon: {

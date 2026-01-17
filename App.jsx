@@ -26,11 +26,6 @@ import { ThemeProvider } from "./src/Global/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
-import Api, {
-  getUniqueAccountId,
-  getMetadata,
-  getGithubRaw,
-} from "./src/Api/api";
 import { isTablet } from "./src/Styles/Responsive";
 import { useSnackbar, SnackbarLink } from "./src/Components/Snackbar";
 import { set } from "date-fns";
@@ -40,7 +35,11 @@ import { fonts } from "@rneui/base";
 import { getCurrentRouteName } from "./src/Global/NavigationService";
 import { Log } from "ffmpeg-kit-react-native";
 import { HikkaAuthService } from "./src/Services/HikkaAuthService";
-import AniuaApi from "./src/Sources/AniuaApi";
+import { AniuaAuthService } from "./src/Services/AniuaAuthService";
+import AniuaApi from "./src/Api/AniuaApi";
+import UpdateCheckerService from "./src/Services/UpdateCheckerService";
+import UpdateCheckerModal from "./src/Components/UpdateCheckerModal";
+import usePushNotifications from "./src/Hooks/usePushNotifications";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +54,8 @@ export default function App() {
   const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
     SettingsStorage.getParameter("isNotFirstLaunch") || false
   );
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
 
   /**
    * Хук завантаження шрифтів повинен викликатися на верхньому рівні компонента
@@ -62,8 +63,14 @@ export default function App() {
    */
   const fontsLoaded = useCustomFonts();
 
-  MainConfig.debug.isDebug = __DEV__;
+  /**
+   * Хук для роботи з push-сповіщеннями
+   * Налаштовує listeners для foreground та response подій
+   */
+  const { registerForPushNotifications } = usePushNotifications();
 
+  MainConfig.debug.isDebug = __DEV__;
+  Logger.info("App", "isDebug", { isDebug: MainConfig.debug.isDebug });
   if (MainConfig.debug.isDebug) {
     require("./src/cfgs/ReactotronConfig");
   }
@@ -149,14 +156,33 @@ export default function App() {
     HikkaAuthService.initialize();
     Logger.debug("App", "Hikka Auth ініціалізовано");
 
-    const isUser = async () => {
-      const isUser = await getUniqueAccountId();
-      SettingsStorage.setParameter("accountId", isUser);
-    };
-    isUser();
+    // Ініціалізація AniUA Auth (автоматичний вхід)
+    AniuaAuthService.initialize()
+      .then((result) => {
+        if (result.success) {
+          Logger.info("App", "AniUA Auth ініціалізовано", {
+            user: result.user?.username,
+            isNewUser: result.isNewUser,
+            usedCachedTokens: result.usedCachedTokens,
+          });
+
+          // Реєстрація push-токену ПІСЛЯ успішної авторизації
+          registerForPushNotifications().catch((err) => {
+            Logger.warn("App", "Помилка реєстрації push-токену", err);
+          });
+        } else {
+          Logger.warn("App", "AniUA Auth не вдалось ініціалізувати", {
+            error: result.error,
+            usedCachedTokens: result.usedCachedTokens,
+          });
+        }
+      })
+      .catch((err) => {
+        Logger.error("App", "Помилка ініціалізації AniUA Auth", err);
+      });
 
     const fetchMetadata = async () => {
-      const metadata = await getMetadata();
+      const metadata = await AniuaApi.getMetadata();
       MainConfig.urls.appUrl = metadata.website_url;
       MainConfig.urls.telegramChannelUrl = metadata.telegram_channel;
       MainConfig.urls.donateUrl = metadata.donation_url;
@@ -227,6 +253,7 @@ export default function App() {
         Logger.logAppInit("Перевірка дозволів.");
         await NotificationPermission();
         await AllowTheVideoFolder();
+
         Logger.debug("FileSystem", "Video folder", await getVideoDir());
 
         // Затримка необхідна для повної ініціалізації Android Activity перед взаємодією з UI
@@ -297,26 +324,10 @@ export default function App() {
 
         const _curAppVer = `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`;
 
+        // Показуємо snackbar якщо версія змінилась
         if (currentAppVersion !== _curAppVer && isNotFirstLaunch) {
           showSnackbar(
-            <View style={{ flexDirection: "column" }}>
-              <Text style={H6}>Додаток оновлено!</Text>
-              <Markdown
-                style={{
-                  body: H6,
-                }}
-              >
-                {(
-                  await getGithubRaw(
-                    MainConfig.devInfo.gitShortHash,
-                    "CHANGELOG.MD"
-                  )
-                )
-                  .replace("# CHANGELOG", "")
-                  .trim()
-                  .split("\n")[2] + "..."}
-              </Markdown>
-            </View>,
+            `Оновлено до ${MainConfig.devInfo.version} (${MainConfig.devInfo.gitShortHash || ""})`,
             {
               actionLabel: "Деталі",
               onActionPress: () => {
@@ -324,11 +335,25 @@ export default function App() {
                   `${MainConfig.urls.github}/AniUA/blob/${MainConfig.devInfo.gitShortHash}/CHANGELOG.MD`
                 );
               },
-              duration: 3000,
+              duration: 5000,
             }
           );
           SettingsStorage.setParameter("currentVersion", _curAppVer);
           setCurrentAppVersion(_curAppVer);
+        }
+
+        // Перевіряємо оновлення через UpdateCheckerService
+        if (isNotFirstLaunch) {
+          try {
+            const result = await UpdateCheckerService.checkForUpdates();
+            if (result.available) {
+              Logger.info("App", "Знайдено оновлення", result);
+              setUpdateInfo(result);
+              setUpdateModalVisible(true);
+            }
+          } catch (updateError) {
+            Logger.warn("App", "Помилка перевірки оновлень", updateError);
+          }
         }
       }
     };
@@ -359,16 +384,23 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <BottomSheetModalProvider style={{ flex: 1 }}>
-          <RootSiblingParent>
-            <ScreenController />
-            {isErrorBoundary && <ErrorTestComponent />}
-            {snackbar}
-            {snackbarTop}
-          </RootSiblingParent>
-        </BottomSheetModalProvider>
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <BottomSheetModalProvider style={{ flex: 1 }}>
+            <RootSiblingParent>
+              <ScreenController />
+              {isErrorBoundary && <ErrorTestComponent />}
+              {snackbar}
+              {snackbarTop}
+              <UpdateCheckerModal
+                visible={updateModalVisible}
+                onClose={() => setUpdateModalVisible(false)}
+                updateInfo={updateInfo}
+              />
+            </RootSiblingParent>
+          </BottomSheetModalProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

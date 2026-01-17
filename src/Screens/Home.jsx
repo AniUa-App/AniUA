@@ -251,7 +251,7 @@ function AnimeTabContent({ historyData, refetchUserData }) {
                 }}
               >
                 <View style={{ height: 20 }} />
-                {animeHistory.length > 0 && (
+                {animeHistory?.length > 0 && (
                   <AnimeListHorizontal
                     title="Історія перегяду"
                     animeList={animeHistory.split(0, 15)}
@@ -284,13 +284,7 @@ function AnimeTabContent({ historyData, refetchUserData }) {
 
   return (
     <DefaultScreenWidget style={{ flex: 1 }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 50,
-        }}
-      >
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {recommendations?.isDefaultBigBanner === true && (
           <View style={{ marginTop: insets.top + 24 }}>
             <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
@@ -308,23 +302,25 @@ function AnimeTabContent({ historyData, refetchUserData }) {
               alignSelf: "center",
             }}
           >
-            <AnimeListHorizontal
-              title="Історія перегляду"
-              animeList={animeHistory.slice(0, 15)}
-              onClickMore={
-                animeHistory.length < 15
-                  ? null
-                  : async () => {
-                      navigation.navigate("HiddenStack", {
-                        screen: "AnimeList",
-                        params: {
-                          title: "Історія перегляду",
-                          initialData: animeHistory,
-                        },
-                      });
-                    }
-              }
-            />
+            {animeHistory?.length > 0 && (
+              <AnimeListHorizontal
+                title="Історія перегляду"
+                animeList={animeHistory.slice(0, 15)}
+                onClickMore={
+                  animeHistory.length < 15
+                    ? null
+                    : async () => {
+                        navigation.navigate("HiddenStack", {
+                          screen: "AnimeList",
+                          params: {
+                            title: "Історія перегляду",
+                            initialData: animeHistory,
+                          },
+                        });
+                      }
+                }
+              />
+            )}
             {recommendations?.isCustomedPersonalRecommendations && (
               <CustomPersonalRecList />
             )}

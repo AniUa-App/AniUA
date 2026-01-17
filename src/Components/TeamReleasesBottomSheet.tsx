@@ -6,7 +6,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H5 } from "../Styles/Fonts";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
-import { Team } from "../Sources/AniuaApi";
+import { Team } from "../Api/AniuaApi";
 
 interface Anime {
   slug: string;

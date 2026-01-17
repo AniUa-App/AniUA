@@ -10,7 +10,7 @@ import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,
 } from "@react-navigation/native";
-import { navigationRef } from "../../Global/NavigationService";
+import { navigationRef, navigateToAnime } from "../../Global/NavigationService";
 import Animated, {
   FadeIn,
   FadeOut,
@@ -55,8 +55,10 @@ import BookmarkScreen from "../Bookmark";
 import SearchScreen from "../SearchScreen";
 import CharacterScreen from "../CharacterScreen";
 import ProfileScreen from "../ProfileScreen";
+import NotificationsScreen from "../NotificationsScreen";
 import { Background, background } from "../../Styles/Colors";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
+import * as Notifications from "expo-notifications";
 
 // Ініціалізуємо auth токен при запуску застосунку
 HikkaAuthService.initialize();
@@ -706,6 +708,13 @@ function HiddenStack() {
           animationDuration: 300,
         }}
       />
+      <HiddenStackNav.Screen
+        name="NotificationsScreen"
+        component={NotificationsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -715,6 +724,39 @@ export default function ScreenController() {
     Logger.warn("ScreenController", "Navigation linking error", error);
     // Не показуємо error користувачу, просто логуємо
   };
+
+  // Слухаємо натискання на push-сповіщення
+  useEffect(() => {
+    // Перевіряємо чи додаток відкрився через натискання на сповіщення (коли був закритий)
+    const checkInitialNotification = async () => {
+      const response = await Notifications.getLastNotificationResponseAsync();
+      if (response) {
+        const data = response.notification.request.content.data;
+        Logger.debug("ScreenController", "Initial notification found", data);
+        if (data?.slug) {
+          // Затримка щоб navigation та MainTabs були готові
+          setTimeout(() => {
+            navigateToAnime(data.slug);
+          }, 500);
+        }
+      }
+    };
+
+    checkInitialNotification();
+
+    // Слухаємо натискання коли додаток вже відкритий
+    const unsubscribe = EventBus.on("notificationTapped", (data) => {
+      Logger.debug("ScreenController", "Notification tapped", data);
+      if (data?.slug) {
+        // Невелика затримка щоб navigation був готовий
+        setTimeout(() => {
+          navigateToAnime(data.slug);
+        }, 100);
+      }
+    });
+
+    return () => unsubscribe && unsubscribe();
+  }, []);
 
   // Перевіряємо, чи користувач пройшов онбордінг
   const hasCompletedOnboarding = SettingsStorage.getParameter(

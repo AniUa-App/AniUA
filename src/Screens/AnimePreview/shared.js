@@ -16,6 +16,9 @@ import { uk } from "date-fns/locale";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import SettingsStorage from "../../Storage/SettingsStorage";
 import AnimeHashStorage from "../../Storage/AnimeHashStorage";
+import NotificationsStorage from "../../Storage/NotificationsStorage";
+import AniuaAuthStorage from "../../Storage/AniuaAuthStorage";
+import { AniuaApi } from "../../Api/AniuaApi";
 import { HikkaApi } from "../../Sources/hikka";
 import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
@@ -452,6 +455,8 @@ export function useAnimePreview({ route, navigation }) {
         return;
       }
 
+      const previousStatus = watchStatus;
+
       try {
         Logger.debug("setWatchStatus", "Change anime status", newStatus);
         if (newStatus === null) {
@@ -463,12 +468,43 @@ export function useAnimePreview({ route, navigation }) {
           });
           setWatchStatus(newStatus);
         }
+
+        // Оновлення підписки на push-сповіщення
+        const pushToken = NotificationsStorage.getPushToken();
+        const aniuaToken = AniuaAuthStorage.getToken();
+
+        if (pushToken && aniuaToken) {
+          try {
+            // Підписуємось на сповіщення коли статус "watching"
+            if (newStatus === "watching" && previousStatus !== "watching") {
+              NotificationsStorage.addSubscribedSlug(anime.slug);
+              await AniuaApi.updateNotificationSubscription(
+                { token: pushToken, add_slugs: [anime.slug] },
+                { bearerToken: aniuaToken }
+              );
+              Logger.debug("AnimePreview", "Підписано на сповіщення", anime.slug);
+            }
+            // Відписуємось коли видаляємо зі списку або змінюємо статус з "watching"
+            else if (
+              (newStatus === null || (previousStatus === "watching" && newStatus !== "watching"))
+            ) {
+              NotificationsStorage.removeSubscribedSlug(anime.slug);
+              await AniuaApi.updateNotificationSubscription(
+                { token: pushToken, remove_slugs: [anime.slug] },
+                { bearerToken: aniuaToken }
+              );
+              Logger.debug("AnimePreview", "Відписано від сповіщень", anime.slug);
+            }
+          } catch (notifError) {
+            Logger.warn("AnimePreview", "Помилка оновлення підписки на сповіщення", notifError);
+          }
+        }
       } catch (error) {
         Logger.error("AnimePreview", "Помилка синхронізації статусу", error);
         showSnackbar("Помилка синхронізації з Hikka");
       }
     },
-    [anime?.slug, showSnackbar]
+    [anime?.slug, watchStatus, showSnackbar]
   );
 
   const handleFavoriteToggle = useCallback(async () => {
@@ -549,6 +585,9 @@ export function useAnimePreview({ route, navigation }) {
         if (!watchStatus) {
           setWatchStatus("watching");
         }
+
+        // Emit event для оновлення історії в HistoryComponent
+        EventBus.emit("historyUpdated", { slug: anime.slug, episode: maxEpisode });
 
         Logger.debug(
           "AnimePreview",

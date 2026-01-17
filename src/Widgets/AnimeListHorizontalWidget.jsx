@@ -13,7 +13,7 @@ import { H3 } from "../Styles/Fonts";
 import { Image } from "./LoadersWidgets";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { AniuaApi } from "../Sources/AniuaApi";
+import { AniuaApi } from "../Api/AniuaApi";
 import { useFocusEffect } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeCard from "../Components/AnimeCard";

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { HikkaApiComplete } from "../../../Sources/HikkaApiComplete";
-import { AniuaApi } from "../../../Sources/AniuaApi";
+import { AniuaApi } from "../../../Api/AniuaApi";
 import {
   Statuses,
   Seasons,

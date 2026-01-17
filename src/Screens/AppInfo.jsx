@@ -11,7 +11,6 @@ import { AppIcon } from "../Styles/Icons";
 import * as Updates from "expo-updates";
 import Constants from "expo-constants";
 import SettingsStorage from "../Storage/SettingsStorage";
-import { getGithubRaw } from "../Api/api.ts";
 import Icon from "../Styles/Icons";
 import Logger from "../Logger/Logger";
 
@@ -57,10 +56,6 @@ export default function AppInfoScreen() {
       title: "Система",
       value:
         `${Config.devInfo.systemName || "OS"} ${Config.devInfo.systemVersion || ""}`.trim(),
-    },
-    {
-      title: "Device ID",
-      value: String(Config.devInfo.getUniqueId() || "unknown"),
     },
     {
       title: "Account ID",

@@ -8,3 +8,27 @@ export function getCurrentRouteName() {
   }
   return null;
 }
+
+/**
+ * Програмна навігація до екрану
+ * @param {string} name - Назва екрану або стеку
+ * @param {object} params - Параметри для екрану
+ */
+export function navigate(name, params) {
+  if (navigationRef.isReady()) {
+    navigationRef.navigate(name, params);
+  }
+}
+
+/**
+ * Навігація до екрану AnimePreview за slug
+ * @param {string} slug - Slug аніме
+ */
+export function navigateToAnime(slug) {
+  if (navigationRef.isReady() && slug) {
+    navigationRef.navigate("HiddenStack", {
+      screen: "AnimePreview",
+      params: { slug },
+    });
+  }
+}
