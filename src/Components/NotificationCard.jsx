@@ -101,27 +101,24 @@ const NotificationCard = memo(function NotificationCard({
             styles.container,
             {
               backgroundColor: item.read
-                ? themeColors.Background(0.3)
-                : themeColors.Primary(0.1),
+                ? themeColors.background
+                : themeColors.Primary(0.6),
             },
           ]}
           onPress={handlePress}
         >
           {/* Постер аніме */}
           {posterImage ? (
-            <Image
-              uri={posterImage}
-              style={styles.poster}
-            />
+            <Image uri={posterImage} style={styles.poster} />
           ) : (
             <View
               style={[
                 styles.poster,
                 styles.posterPlaceholder,
-                { backgroundColor: themeColors.Background(0.5) },
+                { backgroundColor: themeColors.accent },
               ]}
             >
-              <Icons.FilmSlate size={32} color={themeColors.Text(0.3)} />
+              <Icons.FilmSlate size={32} color={themeColors.icon} />3
             </View>
           )}
 
@@ -173,7 +170,10 @@ const NotificationCard = memo(function NotificationCard({
           {/* Індикатор непрочитаного */}
           {!item.read && (
             <View
-              style={[styles.unreadDot, { backgroundColor: themeColors.primary }]}
+              style={[
+                styles.unreadDot,
+                { backgroundColor: themeColors.primary },
+              ]}
             />
           )}
         </TouchableOpacity>

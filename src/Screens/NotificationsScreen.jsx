@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,18 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColors } from "../Global/useTheme";
-import { H5, H7, useScaleFontSize } from "../Styles/Fonts";
+import { H3, H4, H5, H6, H7, useScaleFontSize } from "../Styles/Fonts";
 import Icons from "../Styles/Icons";
 import Header from "../Widgets/HeaderWidget";
 import NotificationsStorage from "../Storage/NotificationsStorage";
 import { EventBus } from "../Global/EventBus";
 import NotificationCard from "../Components/NotificationCard";
+import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
+import SearchCategoryTabsComponent from "../Components/SearchCategoryTabsComponent";
+
+const NOTIFICATION_CATEGORIES = [
+  { id: "anime", label: "Аніме", icon: "MonitorPlay" },
+];
 
 /**
  * Порожній стан екрану сповіщень
@@ -24,18 +30,15 @@ function EmptyNotifications({ colors, scaleFontSize }) {
   return (
     <View style={styles.emptyContainer}>
       <Icons.BellSlash size={64} color={colors.Text(0.3)} />
+      <Text style={H3}>Немає сповіщень</Text>
       <Text
         style={[
-          styles.emptyTitle,
-          { color: colors.Text(0.6), fontSize: scaleFontSize(H5.fontSize) },
-        ]}
-      >
-        Немає сповіщень
-      </Text>
-      <Text
-        style={[
-          styles.emptySubtitle,
-          { color: colors.Text(0.4), fontSize: scaleFontSize(H7.fontSize) },
+          H5,
+          {
+            textAlign: "center",
+            paddingHorizontal: 40,
+            opacity: 0.7,
+          },
         ]}
       >
         Сповіщення про нові епізоди з&apos;являтимуться тут
@@ -55,6 +58,19 @@ export default function NotificationsScreen({ navigation }) {
 
   const [notifications, setNotifications] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("anime");
+
+  const handleCategoryChange = useCallback((categoryId) => {
+    setActiveCategory(categoryId);
+  }, []);
+
+  // Фільтруємо сповіщення за категорією (поки всі - аніме)
+  const filteredNotifications = useMemo(() => {
+    if (activeCategory === "anime") {
+      return notifications.filter((n) => n.data?.slug);
+    }
+    return notifications;
+  }, [notifications, activeCategory]);
 
   /**
    * Завантажує сповіщення зі сховища
@@ -149,34 +165,44 @@ export default function NotificationsScreen({ navigation }) {
   const keyExtractor = useCallback((item) => item.id, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <DefaultScreenWidget style={[styles.container]}>
       <Header navigation={navigation} title="Сповіщення" isArrow={true} />
 
-      {notifications.length > 0 && (
-        <Pressable
-          style={[styles.clearButton, { backgroundColor: colors.Background(0.5) }]}
-          onPress={handleClearAll}
-        >
-          <Icons.Trash size={18} color={colors.Text(0.6)} />
-          <Text
-            style={[
-              styles.clearButtonText,
-              { color: colors.Text(0.6), fontSize: scaleFontSize(H7.fontSize) },
-            ]}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <SearchCategoryTabsComponent
+          categories={NOTIFICATION_CATEGORIES}
+          activeCategory={activeCategory}
+          onCategoryChange={handleCategoryChange}
+        />
+
+        {filteredNotifications.length > 0 && (
+          <Pressable
+            style={[styles.clearButton, { backgroundColor: colors.accent }]}
+            onPress={handleClearAll}
           >
-            Очистити все
-          </Text>
-        </Pressable>
-      )}
+            <Icons.Trash size={28} color={colors.icon} />
+          </Pressable>
+        )}
+      </View>
 
       <FlatList
-        data={notifications}
+        data={filteredNotifications}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: insets.bottom + 20 },
-          notifications.length === 0 && styles.emptyList,
+          {
+            paddingBottom: insets.bottom + 20,
+            backgroundColor: colors.accent,
+            height: "100%",
+          },
+          filteredNotifications.length === 0 && styles.emptyList,
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -190,7 +216,7 @@ export default function NotificationsScreen({ navigation }) {
           <EmptyNotifications colors={colors} scaleFontSize={scaleFontSize} />
         }
       />
-    </View>
+    </DefaultScreenWidget>
   );
 }
 
@@ -200,7 +226,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 80,
+    paddingTop: 8,
   },
   emptyList: {
     flex: 1,
@@ -209,28 +235,23 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 60,
   },
   emptyTitle: {
     fontFamily: "Nunito-SemiBold",
-    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontFamily: "Nunito-Regular",
-    textAlign: "center",
     paddingHorizontal: 40,
   },
   clearButton: {
-    position: "absolute",
-    top: 90,
-    right: 16,
+    marginRight: 16,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 16,
-    zIndex: 10,
+    width: 44,
+    height: 44,
+    justifyContent: "center",
   },
   clearButtonText: {
     fontFamily: "Nunito-Regular",

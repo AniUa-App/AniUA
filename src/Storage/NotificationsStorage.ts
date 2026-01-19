@@ -13,10 +13,6 @@ export interface StoredNotification {
   /** Додаткові дані (slug аніме, episode тощо) */
   data: {
     slug?: string;
-    episode?: number;
-    team?: string;
-    type?: string;
-    [key: string]: any;
   };
   /** Час отримання (timestamp) */
   receivedAt: number;
@@ -38,7 +34,9 @@ class NotificationsStorage extends Storage {
    * Додає нове сповіщення до списку
    * @param notification - Сповіщення для додавання
    */
-  addNotification(notification: Omit<StoredNotification, "id" | "receivedAt" | "read">): StoredNotification {
+  addNotification(
+    notification: Omit<StoredNotification, "id" | "receivedAt" | "read">
+  ): StoredNotification {
     const notifications = this.getNotifications();
 
     const newNotification: StoredNotification = {
