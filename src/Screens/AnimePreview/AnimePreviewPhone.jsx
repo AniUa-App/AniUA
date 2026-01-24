@@ -777,7 +777,7 @@ export default function AnimePreviewPhone({ route }) {
       {anime?.slug && (
         <NewEpisodesBottomSheetMemo
           ref={newEpisodesSheetRef}
-          slug={anime}
+          anime={anime}
           currentEpisode={
             info?.watched_episodes?.[info?.watched_episodes?.length - 1]
           }

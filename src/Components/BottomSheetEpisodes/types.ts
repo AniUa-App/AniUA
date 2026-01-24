@@ -50,17 +50,4 @@ export interface PlayerTabsProps {
   onPlayerSelect: (player: string) => void;
 }
 
-export interface EpisodeItemProps {
-  episode: Episode;
-  isActive: boolean;
-  /** Чи переглянутий цей епізод */
-  isWatched?: boolean;
-  onPress: () => void;
-  onLongPress?: () => void;
-  /** Аніме для формування share URL */
-  anime: any;
-  /** Поточний плеєр (moon/ashdi) */
-  player: string;
-  /** Чи використовується вбудований плеєр */
-  useBuiltIn: boolean;
-}
+// EpisodeItemProps тепер визначені в EpisodeItem.tsx

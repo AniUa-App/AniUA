@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
 import HomeScreen from "../Home";
 import AnimeListScreen from "../AnimeList";
+import DownloadScreen from "../DownloadScreen";
 import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,
@@ -119,10 +120,10 @@ function MainTabs() {
         )}
       </Tab.Screen>
 
-      <Tab.Screen name="Download" initialParams={{ type: "Downloaded" }}>
+      <Tab.Screen name="Download">
         {(props) => (
           <View style={{ flex: 1 }}>
-            <AnimeListScreen
+            <DownloadScreen
               {...props}
               isNavBarPadding={true}
               hasManualHeader={true}

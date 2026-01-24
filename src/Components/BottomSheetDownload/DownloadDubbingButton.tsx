@@ -55,12 +55,16 @@ export const DownloadDubbingButton = React.memo(
               styles.dubbingChip,
               {
                 backgroundColor: themeColors.subtle,
-                paddingHorizontal: 12,
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: 16,
+                width: 44,
+                height: 44,
               },
             ]}
             onPress={onOpenFolder}
           >
-            <Icon.FolderOpen size={24} color={themeColors.primary} />
+            <Icon.FolderOpen size={28} color={themeColors.primary} />
           </TouchableOpacity>
         )}
       </View>

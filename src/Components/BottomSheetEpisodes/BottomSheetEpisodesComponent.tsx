@@ -137,7 +137,10 @@ const BottomSheetEpisodesComponent = forwardRef<
     // ==================== LOAD DATA ====================
 
     useEffect(() => {
-      if (!anime) return;
+      if (!anime?.slug) {
+        setIsLoading(false);
+        return;
+      }
 
       const loadData = async () => {
         setIsLoading(true);
@@ -151,10 +154,19 @@ const BottomSheetEpisodesComponent = forwardRef<
           const episodes = await AniuaApi.getAnimeEpisodes(anime.slug);
 
           // Валідуємо та виправляємо m3u8/poster якщо потрібно
-          const validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
-            episodes,
-            anime.slug
-          );
+          let validatedEpisodes = episodes;
+          try {
+            validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
+              episodes,
+              anime.slug
+            );
+          } catch (validationError) {
+            Logger.warn(
+              "BottomSheetEpisodes",
+              "Validation failed, using original episodes",
+              validationError as Error
+            );
+          }
 
           // Групуємо вже провалідовані епізоди
           grouped = {};
@@ -266,7 +278,7 @@ const BottomSheetEpisodesComponent = forwardRef<
 
       loadData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [anime]);
+    }, [anime?.slug]);
 
     // ==================== COMPUTED VALUES ====================
 
@@ -435,8 +447,8 @@ const BottomSheetEpisodesComponent = forwardRef<
     const renderEpisodeItem = useCallback(
       ({ item }: { item: Episode }) => (
         <EpisodeItem
+          mode="watch"
           episode={item}
-          isActive={currentEpisode === item.episode}
           isWatched={watchedEpisodes.includes(item.episode)}
           onPress={() => handleEpisodePress(item)}
           onLongPress={
@@ -448,7 +460,6 @@ const BottomSheetEpisodesComponent = forwardRef<
         />
       ),
       [
-        currentEpisode,
         watchedEpisodes,
         handleEpisodePress,
         onLongPressEpisode,
@@ -578,11 +589,16 @@ const BottomSheetEpisodesComponent = forwardRef<
                     const episodes = await AniuaApi.getAnimeEpisodes(
                       anime.slug
                     );
-                    const validatedEpisodes =
-                      await AniuaApi.validateAndFixEpisodes(
-                        episodes,
-                        anime.slug
-                      );
+                    let validatedEpisodes = episodes;
+                    try {
+                      validatedEpisodes =
+                        await AniuaApi.validateAndFixEpisodes(
+                          episodes,
+                          anime.slug
+                        );
+                    } catch {
+                      // Use original if validation fails
+                    }
 
                     const grouped: EpisodesByPlayerAndTeam = {};
                     validatedEpisodes.forEach((episode) => {

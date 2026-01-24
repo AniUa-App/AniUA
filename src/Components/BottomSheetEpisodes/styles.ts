@@ -27,7 +27,9 @@ export const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
   },
-  dubbingScreen: {},
+  dubbingScreen: {
+    // Для другого екрану вибору озвучки
+  },
   // Player Type Selector
   playerTypeContainer: {
     flexDirection: "row",
@@ -91,11 +93,6 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  episodePoster: {
-    width: 100,
-    height: 64,
-    borderRadius: 8,
-  },
   episodeInfo: {
     flex: 1,
     justifyContent: "center",
@@ -103,6 +100,19 @@ export const styles = StyleSheet.create({
   },
   shareButton: {
     padding: 4,
+  },
+  downloadButton: {
+    padding: 8,
+    borderRadius: 12,
+  },
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 2,
   },
   // Dubbings
   dubbingListContent: {

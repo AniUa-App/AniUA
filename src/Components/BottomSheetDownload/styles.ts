@@ -27,7 +27,9 @@ export const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
   },
-  dubbingScreen: {},
+  dubbingScreen: {
+    // Для другого екрану вибору озвучки
+  },
   // Player Type Selector
   playerTypeContainer: {
     flexDirection: "row",
@@ -47,6 +49,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
+    gap: 6,
   },
   playerIndicator: {
     width: 32,
@@ -97,6 +100,7 @@ export const styles = StyleSheet.create({
     height: 90,
   },
   episodeInfo: {
+    justifyContent: "center",
     flex: 1,
   },
   downloadButton: {

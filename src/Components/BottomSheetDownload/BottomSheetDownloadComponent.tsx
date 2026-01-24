@@ -46,7 +46,7 @@ import { PLAYER_ORDER, ITEM_HEIGHT } from "./constants";
 import { getPlayerInfo } from "./helpers";
 import { DownloadDubbingButton } from "./DownloadDubbingButton";
 import { PlayerTabs } from "./PlayerTabs";
-import { DownloadEpisodeItem } from "./DownloadEpisodeItem";
+import { EpisodeItem } from "../BottomSheetEpisodes/EpisodeItem";
 import { styles } from "./styles";
 
 // Конвертація даних Hikka API
@@ -222,10 +222,19 @@ const BottomSheetDownloadComponent = forwardRef<
         const episodes = await AniuaApi.getAnimeEpisodes(anime.slug);
 
         // Валідуємо та виправляємо m3u8/poster якщо потрібно
-        const validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
-          episodes,
-          anime.slug
-        );
+        let validatedEpisodes = episodes;
+        try {
+          validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
+            episodes,
+            anime.slug
+          );
+        } catch (validationError) {
+          Logger.warn(
+            "BottomSheetDownload",
+            "Validation failed, using original episodes",
+            validationError as Error
+          );
+        }
 
         // Групуємо вже провалідовані епізоди
         grouped = {};
@@ -655,7 +664,8 @@ const BottomSheetDownloadComponent = forwardRef<
 
   const renderEpisodeItem = useCallback(
     ({ item }: { item: Episode }) => (
-      <DownloadEpisodeItem
+      <EpisodeItem
+        mode="download"
         episode={item}
         anime={anime}
         isDownloaded={downloadedEpisodes.has(item.episode)}
@@ -666,6 +676,7 @@ const BottomSheetDownloadComponent = forwardRef<
       />
     ),
     [
+      anime,
       downloadedEpisodes,
       downloadStatuses,
       handleDownloadEpisode,
@@ -788,8 +799,15 @@ const BottomSheetDownloadComponent = forwardRef<
                 setError(null);
                 try {
                   const episodes = await AniuaApi.getAnimeEpisodes(anime.slug);
-                  const validatedEpisodes =
-                    await AniuaApi.validateAndFixEpisodes(episodes, anime.slug);
+                  let validatedEpisodes = episodes;
+                  try {
+                    validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
+                      episodes,
+                      anime.slug
+                    );
+                  } catch {
+                    // Use original if validation fails
+                  }
 
                   const grouped: EpisodesByPlayerAndTeam = {};
                   validatedEpisodes.forEach((episode) => {

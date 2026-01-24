@@ -5,4 +5,3 @@ export * from "./constants";
 export * from "./helpers";
 export { DownloadDubbingButton } from "./DownloadDubbingButton";
 export { PlayerTabs } from "./PlayerTabs";
-export { DownloadEpisodeItem } from "./DownloadEpisodeItem";

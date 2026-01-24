@@ -1455,6 +1455,28 @@ export class AniuaApi {
   ): Promise<Episode[]> {
     if (episodes.length === 0) return episodes;
 
+    // Загальний таймаут для всієї валідації (10 секунд)
+    const timeoutPromise = new Promise<Episode[]>((_, reject) => {
+      setTimeout(() => reject(new Error("Validation timeout")), 10000);
+    });
+
+    const validationPromise = AniuaApi.doValidateAndFixEpisodes(episodes, slug);
+
+    try {
+      return await Promise.race([validationPromise, timeoutPromise]);
+    } catch (error) {
+      Logger.warn("AniuaApi", `Validation failed/timeout for ${slug}, returning original episodes`, error);
+      return episodes;
+    }
+  }
+
+  /**
+   * Внутрішня функція валідації
+   */
+  private static async doValidateAndFixEpisodes(
+    episodes: Episode[],
+    slug: string
+  ): Promise<Episode[]> {
     // Перевіряємо перший епізод як індикатор
     const firstEpisode = episodes[0];
     const [isM3u8Valid, isPosterValid] = await Promise.all([
