@@ -53,12 +53,22 @@ export interface Episode {
   poster: string | null;
   /** URL відео */
   video_url: string;
+  /** Пряме посилання на m3u8 плейлист (може бути null) */
+  m3u8?: string | null;
+  /** Пряме посилання на відео (може бути null) */
+  real_url?: string | null;
   /** Українська назва епізоду */
   name_ua: string | null;
   /** Англійська назва епізоду */
   name_en: string | null;
   /** Японська назва епізоду */
   name_jp: string | null;
+  /** Українська назва аніме */
+  title_ua?: string | null;
+  /** Англійська назва аніме */
+  title_en?: string | null;
+  /** Японська назва аніме */
+  title_jp?: string | null;
 }
 
 /**
@@ -1341,6 +1351,166 @@ export class AniuaApi {
   }
 
   // ==================== EPISODES METHODS ====================
+
+  /**
+   * Перевіряє чи URL повертає 404
+   * @param url - URL для перевірки
+   * @returns true якщо URL валідний (не 404)
+   */
+  private static async isUrlValid(
+    url: string | null | undefined
+  ): Promise<boolean> {
+    if (!url) return false;
+    try {
+      const response = await AniuaApi.axiosInstance.head(url, {
+        timeout: 5000,
+      });
+      return response.status >= 200 && response.status < 400;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return false;
+      }
+      // Для інших помилок (мережа, таймаут) - вважаємо що URL може бути валідним
+      return true;
+    }
+  }
+
+  /**
+   * Оновлює епізоди через refresh endpoint
+   * @param slug - Slug аніме
+   * @returns Масив оновлених епізодів
+   */
+  public static async refreshEpisodes(slug: string): Promise<Episode[]> {
+    try {
+      Logger.debug("AniuaApi", `Оновлення епізодів для ${slug} через refresh`);
+      const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
+        `${AniuaApi.baseUrl}/v1/episodes/refresh?slug=${slug}`
+      );
+      return response.data.episodes || [];
+    } catch (error) {
+      Logger.warn("AniuaApi", `Помилка refresh епізодів для ${slug}`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Парсить video_url плеєра для отримання m3u8 та poster
+   * @param videoUrl - URL плеєра
+   * @returns Об'єкт з m3u8 та poster або null
+   */
+  private static async parseVideoUrl(
+    videoUrl: string
+  ): Promise<{ m3u8: string | null; poster: string | null } | null> {
+    try {
+      const response = await AniuaApi.axiosInstance.get(videoUrl, {
+        headers: {
+          "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
+        },
+      });
+
+      const htmlContent = response.data;
+      let m3u8: string | null = null;
+      let poster: string | null = null;
+
+      // Пошук file (m3u8)
+      let fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
+      if (!fileMatch) {
+        fileMatch = htmlContent.match(/file:\s*'([^']+)'/);
+      }
+      if (!fileMatch) {
+        fileMatch = htmlContent.match(/file:"([^"]+)"/);
+      }
+
+      if (fileMatch && fileMatch[1]) {
+        const fileUrl = fileMatch[1];
+        // Якщо це не webm формат з якостями, використовуємо як m3u8
+        if (!fileUrl.includes("webm") && !fileUrl.includes("[")) {
+          m3u8 = fileUrl;
+        }
+      }
+
+      // Пошук poster
+      const posterMatch = htmlContent.match(/poster:\s*"([^"]+)"/);
+      if (posterMatch && posterMatch[1]) {
+        poster = posterMatch[1];
+      }
+
+      return { m3u8, poster };
+    } catch (error) {
+      Logger.warn("AniuaApi", `Помилка парсингу video_url: ${videoUrl}`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Валідує та виправляє m3u8/poster для епізодів
+   * Викликати при відкритті bottomsheet для перевірки актуальності URL
+   * @param episodes - Масив епізодів
+   * @param slug - Slug аніме для refresh
+   * @returns Масив епізодів з валідними URL
+   */
+  public static async validateAndFixEpisodes(
+    episodes: Episode[],
+    slug: string
+  ): Promise<Episode[]> {
+    if (episodes.length === 0) return episodes;
+
+    // Перевіряємо перший епізод як індикатор
+    const firstEpisode = episodes[0];
+    const [isM3u8Valid, isPosterValid] = await Promise.all([
+      AniuaApi.isUrlValid(firstEpisode.m3u8),
+      AniuaApi.isUrlValid(firstEpisode.poster),
+    ]);
+
+    // Якщо обидва валідні - повертаємо як є
+    if (isM3u8Valid && isPosterValid) {
+      Logger.debug("AniuaApi", `Епізоди для ${slug} валідні`);
+      return episodes;
+    }
+
+    Logger.debug("AniuaApi", `Невалідні URL для ${slug}, спробуємо refresh`, {
+      m3u8Valid: isM3u8Valid,
+      posterValid: isPosterValid,
+    });
+
+    // Спробуємо refresh
+    const refreshedEpisodes = await AniuaApi.refreshEpisodes(slug);
+    if (refreshedEpisodes.length > 0) {
+      const refreshedFirst = refreshedEpisodes[0];
+      const [isRefreshedM3u8Valid, isRefreshedPosterValid] = await Promise.all([
+        AniuaApi.isUrlValid(refreshedFirst.m3u8),
+        AniuaApi.isUrlValid(refreshedFirst.poster),
+      ]);
+
+      if (isRefreshedM3u8Valid && isRefreshedPosterValid) {
+        Logger.debug("AniuaApi", `Refresh успішний для ${slug}`);
+        return refreshedEpisodes;
+      }
+    }
+
+    Logger.debug(
+      "AniuaApi",
+      `Refresh не допоміг для ${slug}, парсимо video_url`
+    );
+
+    // Fallback: парсимо video_url для всіх епізодів без додаткових перевірок
+    // (перший епізод вже показав що URL невалідні)
+    const fixedEpisodes = await Promise.all(
+      episodes.map(async (episode) => {
+        const parsed = await AniuaApi.parseVideoUrl(episode.video_url);
+        if (parsed) {
+          return {
+            ...episode,
+            m3u8: parsed.m3u8 || episode.m3u8,
+            poster: parsed.poster || episode.poster,
+          };
+        }
+        return episode;
+      })
+    );
+
+    return fixedEpisodes;
+  }
 
   /**
    * Отримує список епізодів для аніме за slug

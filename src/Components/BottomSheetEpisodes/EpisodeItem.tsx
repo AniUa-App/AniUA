@@ -14,14 +14,14 @@ export const EpisodeItem = React.memo(
     isWatched,
     onPress,
     onLongPress,
-    slug,
+    anime,
     player,
     useBuiltIn,
   }: EpisodeItemProps) => {
     const themeColors = useThemeColors();
 
     const handleShare = useCallback(async () => {
-      const shareUrl = `https://aniua.yuzka.site/anime/${slug}/watch?episode=${episode.episode}&studio=${encodeURIComponent(episode.team)}&provider=${player}&time=0&build_in=${useBuiltIn}`;
+      const shareUrl = `https://aniua.yuzka.site/anime/${anime.slug}/watch?episode=${episode.episode}&studio=${encodeURIComponent(episode.team)}&provider=${player}&time=0&build_in=${useBuiltIn}`;
 
       try {
         await Share.share({
@@ -30,12 +30,17 @@ export const EpisodeItem = React.memo(
       } catch (error) {
         console.error("Share error:", error);
       }
-    }, [slug, episode.episode, episode.team, player, useBuiltIn]);
+    }, [anime, episode.episode, episode.team, player, useBuiltIn]);
 
     const episodeName =
-      episode.name_ua || episode.name_en || episode.name_jp || null;
+      episode.title_ua ||
+      episode.title_en ||
+      episode.title_jp ||
+      anime.title_ua ||
+      anime.title_en ||
+      anime.title_jp ||
+      null;
 
-    // Визначаємо колір фону: активний > переглянутий > звичайний
     const getBackgroundColor = () => {
       if (isWatched) return themeColors.primary;
       return themeColors.background;
@@ -77,7 +82,7 @@ export const EpisodeItem = React.memo(
                 },
               ]}
             >
-              {episodeName || `Серія ${episode.episode}`}
+              {episodeName}
             </Text>
             {episodeName && (
               <Text

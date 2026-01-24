@@ -751,7 +751,7 @@ export function useAnimePreview({ route, navigation }) {
           (await RNFS.exists(episode.video_path))
         ) {
           try {
-            await FileOpener.openFile(episode.video_path, "video/*");
+            await FileOpener.openFile(episode.video_path);
           } catch (error) {
             Logger.error("Помилка при відкритті файлу:", error);
           }
@@ -786,10 +786,7 @@ export function useAnimePreview({ route, navigation }) {
                   ).find((ep) => ep.episode === item.episode);
                   if (downloadedEpisode) {
                     try {
-                      await FileOpener.openFile(
-                        downloadedEpisode.video_path,
-                        "video/*"
-                      );
+                      await FileOpener.openFile(downloadedEpisode.video_path);
                     } catch (error) {
                       Logger.error("Помилка при відкритті файлу:", error);
                     }

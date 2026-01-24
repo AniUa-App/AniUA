@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useContext, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -37,6 +43,7 @@ import {
   NewEpisodesBottomSheet,
 } from "./shared";
 import AnimeCard from "../../Components/AnimeCard";
+import BottomSheetDownload from "../../Components/BottomSheetDownload";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -191,6 +198,7 @@ export default function AnimePreviewPhone({ route }) {
     initialAnime,
     slug,
     snackbar,
+    showSnackbar,
     dubbingSheetRef,
     episodesSheetRef,
     downloadEpisodeRef,
@@ -208,6 +216,9 @@ export default function AnimePreviewPhone({ route }) {
     handleBuiltInPlayerToggle,
     keyExtractorSimilar,
   } = useAnimePreview({ route, navigation });
+
+  // Ref for new download bottom sheet
+  const newDownloadSheetRef = useRef(null);
 
   // Get age rating text
   const getAgeRating = (rating) => {
@@ -286,10 +297,10 @@ export default function AnimePreviewPhone({ route }) {
 
   // Handle download button press
   const handleDownloadPress = useCallback(() => {
-    if (Object.keys(episodesList).length > 0) {
-      downloadEpisodeRef.current?.present();
+    if (anime?.slug) {
+      newDownloadSheetRef.current?.open();
     }
-  }, [episodesList]);
+  }, [anime?.slug]);
 
   // Get watch button text
   const getWatchButtonText = () => {
@@ -766,7 +777,7 @@ export default function AnimePreviewPhone({ route }) {
       {anime?.slug && (
         <NewEpisodesBottomSheetMemo
           ref={newEpisodesSheetRef}
-          slug={anime.slug}
+          slug={anime}
           currentEpisode={
             info?.watched_episodes?.[info?.watched_episodes?.length - 1]
           }
@@ -776,6 +787,27 @@ export default function AnimePreviewPhone({ route }) {
           onSelectEpisode={handleNewEpisodeSelect}
           onTeamChange={handleNewTeamChange}
           onBuiltInPlayerToggle={handleBuiltInPlayerToggle}
+        />
+      )}
+
+      {/* New Download Bottom Sheet */}
+      {anime?.slug && (
+        <BottomSheetDownload
+          ref={newDownloadSheetRef}
+          slug={anime.slug}
+          anime={anime}
+          info={info}
+          onInfoChange={setInfo}
+          onDownloadComplete={(episode) => {
+            showSnackbar(`Завантаження епізоду ${episode.episode} завершено`, {
+              duration: 3000,
+            });
+          }}
+          onDownloadError={(error, episode) => {
+            showSnackbar(`Помилка завантаження епізоду ${episode.episode}`, {
+              duration: 5000,
+            });
+          }}
         />
       )}
 

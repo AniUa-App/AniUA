@@ -6,8 +6,8 @@ export interface BottomSheetEpisodesRef {
 }
 
 export interface BottomSheetEpisodesProps {
-  /** Slug аніме для завантаження епізодів */
-  slug: string;
+  /** Аніме для завантаження епізодів */
+  anime: any;
   /** Поточний вибраний епізод */
   currentEpisode?: number;
   /** Поточна вибрана команда */
@@ -57,8 +57,8 @@ export interface EpisodeItemProps {
   isWatched?: boolean;
   onPress: () => void;
   onLongPress?: () => void;
-  /** Slug аніме для формування share URL */
-  slug: string;
+  /** Аніме для формування share URL */
+  anime: any;
   /** Поточний плеєр (moon/ashdi) */
   player: string;
   /** Чи використовується вбудований плеєр */

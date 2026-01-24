@@ -46,6 +46,47 @@ declare class FileOpenerModule {
    * @returns Promise with MIME type string
    */
   static getMimeType(filePath: string): Promise<string>;
+
+  /**
+   * Open a file with app chooser dialog (always shows picker)
+   * @param filePath - Path to the file
+   * @param mimeType - MIME type of the file
+   * @param title - Title for the chooser dialog
+   * @returns Promise with success message
+   */
+  static openFileWithChooser(
+    filePath: string,
+    mimeType?: string,
+    title?: string
+  ): Promise<string>;
+
+  /**
+   * Share a file with other apps
+   * @param filePath - Path to the file
+   * @param mimeType - MIME type of the file
+   * @param title - Title for the share dialog
+   * @returns Promise with success message
+   */
+  static shareFile(
+    filePath: string,
+    mimeType?: string,
+    title?: string
+  ): Promise<string>;
+
+  /**
+   * Open a video file with app chooser
+   * @param filePath - Path to the video file
+   * @param title - Title for the chooser dialog
+   * @returns Promise with success message
+   */
+  static openVideoWithChooser(filePath: string, title?: string): Promise<string>;
+
+  /**
+   * Open a folder in file manager
+   * @param folderPath - Path to the folder
+   * @returns Promise with success message
+   */
+  static openFolder(folderPath: string): Promise<string>;
 }
 
 export default FileOpenerModule; 

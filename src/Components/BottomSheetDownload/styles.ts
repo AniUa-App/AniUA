@@ -45,8 +45,8 @@ export const styles = StyleSheet.create({
   dubbingButtonContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    gap: 6,
   },
   playerIndicator: {
     width: 32,
@@ -92,17 +92,37 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   episodePoster: {
-    width: 100,
-    height: 64,
-    borderRadius: 8,
+    borderRadius: 16,
+    width: 160,
+    height: 90,
   },
   episodeInfo: {
     flex: 1,
-    justifyContent: "center",
-    gap: 8,
   },
-  shareButton: {
-    padding: 4,
+  downloadButton: {
+    borderRadius: 12,
+    position: "absolute",
+    right: 2,
+    bottom: 4,
+  },
+  downloadButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    width: "98%",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 10,
+    textAlign: "center",
   },
   // Dubbings
   dubbingListContent: {
@@ -140,13 +160,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 8,
-  },
-  shareButtonContainer: {
-    position: "absolute",
-    right: 0,
-    bottom: 0,
-
-    alignItems: "stretch",
   },
   emptyContainer: {
     flex: 1,

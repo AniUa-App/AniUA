@@ -212,7 +212,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                   videoPath: episode.video_path,
                 });
 
-                FileOpener.openFile(episode.video_path, "video/*")
+                FileOpener.openFile(episode.video_path)
                   .then(() =>
                     Logger.info("AnimePreviewWidget", "Діалог вибору відкрито")
                   )

@@ -55,7 +55,7 @@ const BottomSheetEpisodesComponent = forwardRef<
 >(
   (
     {
-      slug,
+      anime,
       currentEpisode,
       currentTeam,
       currentPlayer,
@@ -137,7 +137,7 @@ const BottomSheetEpisodesComponent = forwardRef<
     // ==================== LOAD DATA ====================
 
     useEffect(() => {
-      if (!slug) return;
+      if (!anime) return;
 
       const loadData = async () => {
         setIsLoading(true);
@@ -147,7 +147,36 @@ const BottomSheetEpisodesComponent = forwardRef<
         let usedFallback = false;
 
         try {
-          grouped = await AniuaApi.getAnimeEpisodesGroupedByPlayer(slug);
+          // Отримуємо епізоди
+          const episodes = await AniuaApi.getAnimeEpisodes(anime.slug);
+
+          // Валідуємо та виправляємо m3u8/poster якщо потрібно
+          const validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
+            episodes,
+            anime.slug
+          );
+
+          // Групуємо вже провалідовані епізоди
+          grouped = {};
+          validatedEpisodes.forEach((episode) => {
+            const player = episode.player || "unknown";
+            const team = episode.team || "Невідомо";
+
+            if (!grouped[player]) {
+              grouped[player] = {};
+            }
+            if (!grouped[player][team]) {
+              grouped[player][team] = [];
+            }
+            grouped[player][team].push(episode);
+          });
+
+          // Сортуємо епізоди за номером в кожній групі
+          Object.values(grouped).forEach((teams) => {
+            Object.values(teams).forEach((eps) => {
+              eps.sort((a, b) => a.episode - b.episode);
+            });
+          });
         } catch (aniuaError) {
           Logger.warn(
             "BottomSheetEpisodes",
@@ -156,9 +185,9 @@ const BottomSheetEpisodesComponent = forwardRef<
           );
 
           try {
-            const hikkaResult = await HikkaApi.getEpisodes(slug);
+            const hikkaResult = await HikkaApi.getEpisodes(anime.slug);
             if (hikkaResult.data && typeof hikkaResult.data === "object") {
-              grouped = convertHikkaEpisodes(hikkaResult.data, slug);
+              grouped = convertHikkaEpisodes(hikkaResult.data, anime.slug);
               usedFallback = true;
               Logger.info(
                 "BottomSheetEpisodes",
@@ -237,7 +266,7 @@ const BottomSheetEpisodesComponent = forwardRef<
 
       loadData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [slug]);
+    }, [anime]);
 
     // ==================== COMPUTED VALUES ====================
 
@@ -413,7 +442,7 @@ const BottomSheetEpisodesComponent = forwardRef<
           onLongPress={
             onLongPressEpisode ? () => onLongPressEpisode(item) : undefined
           }
-          slug={slug}
+          anime={anime}
           player={selectedPlayer.name}
           useBuiltIn={useBuiltIn}
         />
@@ -423,7 +452,7 @@ const BottomSheetEpisodesComponent = forwardRef<
         watchedEpisodes,
         handleEpisodePress,
         onLongPressEpisode,
-        slug,
+        anime,
         selectedPlayer.name,
         useBuiltIn,
       ]
@@ -542,15 +571,40 @@ const BottomSheetEpisodesComponent = forwardRef<
                   styles.retryButton,
                   { backgroundColor: themeColors.primary },
                 ]}
-                onPress={() => {
+                onPress={async () => {
                   setIsLoading(true);
                   setError(null);
-                  AniuaApi.getAnimeEpisodesGroupedByPlayer(slug)
-                    .then((grouped) => {
-                      setEpisodesByPlayer(grouped);
-                    })
-                    .catch(() => setError("Не вдалося завантажити епізоди"))
-                    .finally(() => setIsLoading(false));
+                  try {
+                    const episodes = await AniuaApi.getAnimeEpisodes(
+                      anime.slug
+                    );
+                    const validatedEpisodes =
+                      await AniuaApi.validateAndFixEpisodes(
+                        episodes,
+                        anime.slug
+                      );
+
+                    const grouped: EpisodesByPlayerAndTeam = {};
+                    validatedEpisodes.forEach((episode) => {
+                      const player = episode.player || "unknown";
+                      const team = episode.team || "Невідомо";
+                      if (!grouped[player]) grouped[player] = {};
+                      if (!grouped[player][team]) grouped[player][team] = [];
+                      grouped[player][team].push(episode);
+                    });
+
+                    Object.values(grouped).forEach((teams) => {
+                      Object.values(teams).forEach((eps) => {
+                        eps.sort((a, b) => a.episode - b.episode);
+                      });
+                    });
+
+                    setEpisodesByPlayer(grouped);
+                  } catch {
+                    setError("Не вдалося завантажити епізоди");
+                  } finally {
+                    setIsLoading(false);
+                  }
                 }}
               >
                 <Text style={[H5, { color: themeColors.background }]}>

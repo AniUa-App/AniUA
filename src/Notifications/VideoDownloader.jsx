@@ -442,55 +442,130 @@ export async function DownloadVideo({
     // 1. Отримання M3U8 файла з описом якостей
     updateStatus("downloading_m3u8_witch_quality_url", {
       progress: 20 + randNumber(16),
-      data: [nameOfFile, item.video_url],
+      data: [nameOfFile, item.m3u8 || item.video_url],
     });
-    let playerResponse = item.video_url.includes("moon")
-      ? await getPlayerDataFrom_MOON_Player(item.video_url)
-      : await getPlayerDataFrom_ASHDI_Player(item.video_url);
 
-    // Перевірка на помилки або відсутність даних плеєра
-    if (!playerResponse || playerResponse.success === false) {
-      updateStatus("error", {
-        progress: -1,
-        data: [playerResponse?.error || "no_player_data_found"],
-      });
-      return {
-        success: false,
-        error: playerResponse?.error || "no_player_data_found",
-      };
+    // Перевіряємо чи є пряме посилання на m3u8
+    let m3u8Url = null;
+    let playerResponse = null;
+
+    // Функція перевірки чи URL валідний (не 404)
+    const isUrlValid = async (url) => {
+      if (!url) return false;
+      try {
+        const response = await axios.head(url, { timeout: 5000 });
+        return response.status >= 200 && response.status < 400;
+      } catch (error) {
+        if (error.response?.status === 404) {
+          return false;
+        }
+        return true; // Для інших помилок вважаємо що URL може бути валідний
+      }
+    };
+
+    if (item.m3u8) {
+      // Перевіряємо чи m3u8 URL валідний
+      Logger.info("DownloadVideo", "Checking m3u8 URL validity", { m3u8: item.m3u8 });
+      const isM3u8Valid = await isUrlValid(item.m3u8);
+
+      if (isM3u8Valid) {
+        // Використовуємо пряме посилання на m3u8
+        Logger.info("DownloadVideo", "Using direct m3u8 URL", { m3u8: item.m3u8 });
+        m3u8Url = item.m3u8;
+      } else {
+        // m3u8 повертає 404, спробуємо refresh
+        Logger.warn("DownloadVideo", "m3u8 URL returns 404, trying refresh", { m3u8: item.m3u8 });
+
+        try {
+          // Динамічний імпорт AniuaApi
+          const { AniuaApi } = require("../Api/AniuaApi");
+          const refreshedEpisodes = await AniuaApi.refreshEpisodes?.(anime.slug);
+
+          if (refreshedEpisodes && refreshedEpisodes.length > 0) {
+            // Шукаємо той самий епізод
+            const refreshedEpisode = refreshedEpisodes.find(
+              (ep) => ep.episode === item.episode && ep.team === item.team && ep.player === item.player
+            );
+
+            if (refreshedEpisode?.m3u8 && await isUrlValid(refreshedEpisode.m3u8)) {
+              Logger.info("DownloadVideo", "Using refreshed m3u8 URL", { m3u8: refreshedEpisode.m3u8 });
+              m3u8Url = refreshedEpisode.m3u8;
+            }
+          }
+        } catch (refreshError) {
+          Logger.warn("DownloadVideo", "Failed to refresh episodes", refreshError);
+        }
+
+        // Якщо refresh не допоміг - парсимо video_url нижче
+        if (!m3u8Url) {
+          Logger.info("DownloadVideo", "Refresh failed, will parse video_url");
+        }
+      }
     }
 
-    if (!playerResponse.file) {
-      updateStatus("error", {
-        progress: -1,
-        data: ["no_video_file_found"],
+    if (!m3u8Url) {
+      // Fallback: отримуємо m3u8 через парсинг плеєра
+      Logger.info("DownloadVideo", "Fetching m3u8 from player", {
+        video_url: item.video_url,
       });
-      return { success: false, error: "no_video_file_found" };
+      playerResponse = item.video_url.includes("moon")
+        ? await getPlayerDataFrom_MOON_Player(item.video_url)
+        : await getPlayerDataFrom_ASHDI_Player(item.video_url);
+
+      // Перевірка на помилки або відсутність даних плеєра
+      if (!playerResponse || playerResponse.success === false) {
+        updateStatus("error", {
+          progress: -1,
+          data: [playerResponse?.error || "no_player_data_found"],
+        });
+        return {
+          success: false,
+          error: playerResponse?.error || "no_player_data_found",
+        };
+      }
+
+      if (!playerResponse.file) {
+        updateStatus("error", {
+          progress: -1,
+          data: ["no_video_file_found"],
+        });
+        return { success: false, error: "no_video_file_found" };
+      }
+
+      // Якщо файл є об'єктом з якостями (webm формат)
+      if (
+        typeof playerResponse.file === "object" &&
+        Object.values(playerResponse.file).some((url) =>
+          typeof url === "string" && url.includes("webm")
+        )
+      ) {
+        selectedQuality.url =
+          playerResponse.file["1080p"] ||
+          playerResponse.file["720p"] ||
+          playerResponse.file["480p"] ||
+          playerResponse.file["360p"];
+        selectedQuality.quality = playerResponse.file["1080p"]
+          ? "1080p"
+          : playerResponse.file["720p"]
+            ? "720p"
+            : playerResponse.file["480p"]
+              ? "480p"
+              : playerResponse.file["360p"]
+                ? "360p"
+                : "";
+
+        const ffprobe = new FFprobe(selectedQuality.url);
+        await ffprobe.getMediaInformation();
+        duration = (await ffprobe.getOriginalDuration()) || 0;
+      } else {
+        // Стандартний m3u8 формат
+        m3u8Url = playerResponse.file;
+      }
     }
 
-    if (
-      Object.values(playerResponse.file).some((url) => url.includes("webm"))
-    ) {
-      selectedQuality.url =
-        playerResponse.file["1080p"] ||
-        playerResponse.file["720p"] ||
-        playerResponse.file["480p"] ||
-        playerResponse.file["360p"];
-      selectedQuality.quality = playerResponse.file["1080p"]
-        ? "1080p"
-        : playerResponse.file["720p"]
-          ? "720p"
-          : playerResponse.file["480p"]
-            ? "480p"
-            : playerResponse.file["360p"]
-              ? "360p"
-              : "";
-
-      const ffprobe = new FFprobe(selectedQuality.url);
-      await ffprobe.getMediaInformation();
-      duration = (await ffprobe.getOriginalDuration()) || 0;
-    } else {
-      let response = await axios.get(playerResponse.file, {
+    // Обробка m3u8 (як з прямого посилання, так і з плеєра)
+    if (m3u8Url && !selectedQuality.url) {
+      let response = await axios.get(m3u8Url, {
         headers: {
           "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
         },

@@ -167,7 +167,7 @@ export function sanitizeFileName(
  * @example
  * await openFileWithChooser("/storage/emulated/0/video.mp4", "video/*")
  */
-export async function openFileWithChooser(filePath, mimeType = "video/*") {
+export async function openFileWithChooser(filePath) {
   const FileOpener = require("./FileOpener").default;
-  return await FileOpener.openFile(filePath, mimeType);
+  return await FileOpener.openFile(filePath);
 }

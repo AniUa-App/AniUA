@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import {
   MoreBottomSheet,
 } from "./shared";
 import { tabletStyles as styles } from "./styles";
+import BottomSheetDownload from "../../Components/BottomSheetDownload";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -128,6 +129,9 @@ export default function AnimePreviewTablet({ route }) {
     handleDownloadEpisode,
     keyExtractorSimilar,
   } = useAnimePreview({ route, navigation });
+
+  // Ref for new download bottom sheet
+  const newDownloadSheetRef = useRef(null);
 
   const landscapePosterHeight = Math.max(260, winHeight * 0.75);
 
@@ -344,7 +348,7 @@ export default function AnimePreviewTablet({ route }) {
                 {/* Download */}
                 <TouchableOpacity
                   style={[styles.actionButton, { backgroundColor: themeColors.subtle }]}
-                  onPress={() => Object.keys(episodesList).length > 0 && downloadEpisodeRef.current?.present()}
+                  onPress={() => anime?.slug && newDownloadSheetRef.current?.open()}
                   activeOpacity={Object.keys(episodesList).length === 0 ? 0.9 : 0.7}
                 >
                   <Icon.DownloadSimple size={34} color={themeColors.text} />
@@ -520,6 +524,27 @@ export default function AnimePreviewTablet({ route }) {
             onSelectEpisode={handleDownloadEpisode}
           />
         </>
+      )}
+
+      {/* New Download Bottom Sheet */}
+      {anime?.slug && (
+        <BottomSheetDownload
+          ref={newDownloadSheetRef}
+          slug={anime.slug}
+          anime={anime}
+          info={info}
+          onInfoChange={setInfo}
+          onDownloadComplete={(episode) => {
+            showSnackbar(`Завантаження епізоду ${episode.episode} завершено`, {
+              duration: 3000,
+            });
+          }}
+          onDownloadError={(error, episode) => {
+            showSnackbar(`Помилка завантаження епізоду ${episode.episode}`, {
+              duration: 5000,
+            });
+          }}
+        />
       )}
 
       {snackbar}
