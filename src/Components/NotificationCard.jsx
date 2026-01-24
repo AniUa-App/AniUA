@@ -78,7 +78,7 @@ const NotificationCard = memo(function NotificationCard({
 
   const renderRightActions = () => {
     return (
-      <View style={[styles.deleteAction, { backgroundColor: themeColors.red }]}>
+      <View style={[styles.deleteAction, {}]}>
         <Icons.Trash size={24} color="#fff" />
       </View>
     );

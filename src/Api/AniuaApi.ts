@@ -356,9 +356,7 @@ export interface MetadataResponse {
 export class AniuaApi {
   // ==================== CONFIGURATION ====================
 
-  private static baseUrl: string = __DEV__
-    ? "http://rest.server"
-    : "https://api.yuzka.site";
+  private static baseUrl: string = "https://api-aniua.yuzka.site";
   private static jwtToken: string = MainConfig.devInfo.expoPublickSupabaseKey;
   private static authHeader: string | undefined;
   private static cacheTtl: number = 5 * 60 * 1000; // 5 хвилин

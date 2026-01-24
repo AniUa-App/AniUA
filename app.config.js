@@ -65,6 +65,7 @@ export default {
       permissions: [
         "android.permission.INTERNET",
         "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.REQUEST_INSTALL_PACKAGES",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",

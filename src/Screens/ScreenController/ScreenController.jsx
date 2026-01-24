@@ -10,7 +10,11 @@ import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,
 } from "@react-navigation/native";
-import { navigationRef, navigateToAnime } from "../../Global/NavigationService";
+import {
+  navigationRef,
+  navigate,
+  navigateToAnime,
+} from "../../Global/NavigationService";
 import Animated, {
   FadeIn,
   FadeOut,
@@ -56,6 +60,7 @@ import SearchScreen from "../SearchScreen";
 import CharacterScreen from "../CharacterScreen";
 import ProfileScreen from "../ProfileScreen";
 import NotificationsScreen from "../NotificationsScreen";
+import UpdateCheckerScreen from "../UpdateCheckerScreen";
 import { Background, background } from "../../Styles/Colors";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import * as Notifications from "expo-notifications";
@@ -719,7 +724,19 @@ function HiddenStack() {
   );
 }
 
-export default function ScreenController() {
+export default function ScreenController({ updateInfo }) {
+  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [hasForcedUpdate, setHasForcedUpdate] = useState(false);
+
+  useEffect(() => {
+    if (!isNavigationReady || hasForcedUpdate || !updateInfo?.available) {
+      return;
+    }
+
+    navigate("UpdateChecker", { updateInfo });
+    setHasForcedUpdate(true);
+  }, [isNavigationReady, hasForcedUpdate, updateInfo]);
+
   const handleNavigationError = (error) => {
     Logger.warn("ScreenController", "Navigation linking error", error);
     // Не показуємо error користувачу, просто логуємо
@@ -729,7 +746,7 @@ export default function ScreenController() {
   useEffect(() => {
     // Перевіряємо чи додаток відкрився через натискання на сповіщення (коли був закритий)
     const checkInitialNotification = async () => {
-      const response = await Notifications.getLastNotificationResponseAsync();
+      const response = await Notifications.getLastNotificationResponseAsync();Notifications;
       if (response) {
         const data = response.notification.request.content.data;
         Logger.debug("ScreenController", "Initial notification found", data);
@@ -770,6 +787,7 @@ export default function ScreenController() {
         ref={navigationRef}
         linking={LinkingConfig}
         onUnhandledAction={handleNavigationError}
+        onReady={() => setIsNavigationReady(true)}
         fallback={null}
       >
         <RootStack.Navigator
@@ -784,6 +802,11 @@ export default function ScreenController() {
           <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="MainTabs" component={MainTabs} />
           <RootStack.Screen name="HiddenStack" component={HiddenStack} />
+          <RootStack.Screen
+            name="UpdateChecker"
+            component={UpdateCheckerScreen}
+            options={{ gestureEnabled: false }}
+          />
         </RootStack.Navigator>
       </NavigationContainer>
       <SnowflakesWidget />

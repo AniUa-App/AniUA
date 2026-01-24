@@ -38,7 +38,6 @@ import { HikkaAuthService } from "./src/Services/HikkaAuthService";
 import { AniuaAuthService } from "./src/Services/AniuaAuthService";
 import AniuaApi from "./src/Api/AniuaApi";
 import UpdateCheckerService from "./src/Services/UpdateCheckerService";
-import UpdateCheckerModal from "./src/Components/UpdateCheckerModal";
 import usePushNotifications from "./src/Hooks/usePushNotifications";
 
 export default function App() {
@@ -54,7 +53,6 @@ export default function App() {
   const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
     SettingsStorage.getParameter("isNotFirstLaunch") || false
   );
-  const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
 
   /**
@@ -349,7 +347,6 @@ export default function App() {
             if (result.available) {
               Logger.info("App", "Знайдено оновлення", result);
               setUpdateInfo(result);
-              setUpdateModalVisible(true);
             }
           } catch (updateError) {
             Logger.warn("App", "Помилка перевірки оновлень", updateError);
@@ -388,15 +385,10 @@ export default function App() {
         <ThemeProvider>
           <BottomSheetModalProvider style={{ flex: 1 }}>
             <RootSiblingParent>
-              <ScreenController />
+              <ScreenController updateInfo={updateInfo} />
               {isErrorBoundary && <ErrorTestComponent />}
               {snackbar}
               {snackbarTop}
-              <UpdateCheckerModal
-                visible={updateModalVisible}
-                onClose={() => setUpdateModalVisible(false)}
-                updateInfo={updateInfo}
-              />
             </RootSiblingParent>
           </BottomSheetModalProvider>
         </ThemeProvider>

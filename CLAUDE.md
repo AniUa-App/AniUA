@@ -19,9 +19,9 @@ npm run setup-ffmpeg         # Download FFmpeg AAR for Android
 
 ### EAS Build & Updates
 ```bash
-npm run update-alpha         # Push OTA update to alpha channel
-npx eas build --profile alpha              # Build APK for alpha channel
-npx eas build --profile aab-alpha          # Build app bundle for alpha channel
+npm run update-beta          # Push OTA update to beta channel
+npx eas build --profile beta               # Build APK for beta channel
+npx eas build --profile aab-beta           # Build app bundle for beta channel
 ```
 
 ### Environment
@@ -48,7 +48,13 @@ The app integrates with multiple anime content providers:
    - Provides genres, search, anime details, franchise info, episodes
    - All API calls are cached with 5-minute TTL
 
-2. **Episode Providers**:
+2. **AniUA API** (`src/Api/AniuaApi.ts`, `AniuaApi` class):
+   - Backend API for AniUA-specific features (https://api-aniua.yuzka.site)
+   - Provides: episodes by slug, dubbing teams data, app versions, user auth, push notifications
+   - JWT token authentication via `X-JWT-Token` header
+   - Episode caching uses both in-memory cache (5min) and persistent `EpisodesCacheStorage` (10min)
+
+3. **Episode Providers**:
    - `moon`: Moonanime video provider
    - `ashdi`: Alternative video provider
    - Episodes are returned from `/watch/:slug` endpoint containing both providers' data
@@ -94,6 +100,20 @@ The app supports multiple video players:
 - Used for theme changes, config updates, navigation events
 - Subscribe with `EventBus.on(eventName, callback)`
 - Emit with `EventBus.emit(eventName, data)`
+
+### Logger System
+**Logger** (`src/Logger/Logger.ts`): Centralized logging with Reactotron integration
+- Levels: `DEBUG`, `INFO`, `WARN`, `ERROR`
+- Auto-disabled in production (only WARN+ in production unless `MainConfig.debug.isDebug`)
+- Usage: `Logger.debug(context, message, data?)`, `Logger.error(context, message, error?)`
+- Integrates with Reactotron in dev mode for visual debugging
+
+### Update System
+**UpdateCheckerService** (`src/Services/UpdateCheckerService.ts`): Handles app updates
+- Supports two update types: OTA (expo-updates) and APK (native binary updates)
+- `checkForUpdates()` - checks for available updates with optional force check
+- `downloadAndInstallAPK(url, onProgress)` - downloads and installs APK updates on Android
+- `applyOTAUpdate()` - applies expo OTA updates and reloads the app
 
 ### Custom Plugins
 The project includes custom Expo config plugins:

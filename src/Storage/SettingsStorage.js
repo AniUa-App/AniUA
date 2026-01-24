@@ -55,6 +55,17 @@ class SettingsStorage extends Storage {
       Logger.error("SettingsStorage", "Error setting parameter", error);
     }
   }
+
+  removeParameter(parameter) {
+    try {
+      const settings = this.getItem(this.storageKey, {});
+      delete settings[parameter];
+      this.setItem(this.storageKey, settings);
+    } catch (error) {
+      Logger.error("SettingsStorage", "Error removing parameter", error);
+    }
+  }
+
   setDefaultUserConfig() {
     try {
       this.setItem("userConfig.recommendations", {

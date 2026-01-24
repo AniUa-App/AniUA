@@ -178,4 +178,41 @@ class FileOpenerModule(reactContext: ReactApplicationContext) : ReactContextBase
             promise.reject("ERROR", "Unable to open file: ${e.message}", e)
         }
     }
+
+    /**
+     * Install APK file
+     */
+    @ReactMethod
+    fun installAPK(filePath: String, promise: Promise) {
+        try {
+            val file = File(filePath)
+
+            if (!file.exists()) {
+                promise.reject("FILE_NOT_FOUND", "APK file does not exist: $filePath")
+                return
+            }
+
+            if (!file.canRead()) {
+                promise.reject("FILE_NOT_READABLE", "APK file is not readable: $filePath")
+                return
+            }
+
+            val uri: Uri = FileProvider.getUriForFile(
+                reactApplicationContext,
+                "${reactApplicationContext.packageName}.fileprovider",
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            reactApplicationContext.startActivity(intent)
+            promise.resolve("APK installer opened successfully")
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Unable to install APK: ${e.message}", e)
+        }
+    }
 } 

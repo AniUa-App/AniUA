@@ -79,12 +79,16 @@ temp/
 *.gz
 *.7z
 
+
 react-native-file-opener/node_modules/
+
 
 build
 test*
 /google-services.json
 assetlinks.json
+openapi.json
+
 
 # ai
 .promts

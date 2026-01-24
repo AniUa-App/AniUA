@@ -7,14 +7,8 @@ import {
   Easing,
   PanResponder,
 } from "react-native";
-import {
-  primary,
-  text,
-  Background,
-  InActiveText,
-  background,
-} from "../../Styles/Colors";
 import Icons from "../../Styles/Icons";
+import { useThemeColors } from "../../Global/useTheme";
 
 // Vertical volume tooltip with auto-hide and icon arrow pointer
 // Props:
@@ -46,6 +40,7 @@ export default function VolumeWidget(props) {
   const isDraggingRef = useRef(false);
   const startPageYRef = useRef(0);
   const startValueRef = useRef(0);
+  const themeColors = useThemeColors();
 
   useEffect(() => {
     // Синхронізуємо з пропом value, але не під час перетягування
@@ -169,10 +164,17 @@ export default function VolumeWidget(props) {
   return (
     <View pointerEvents="box-none" style={styles.overlayContainer}>
       <Animated.View
-        style={[styles.tooltip, { opacity, transform: [{ scale }] }]}
+        style={[
+          styles.tooltip,
+          {
+            opacity,
+            transform: [{ scale }],
+            backgroundColor: themeColors.accent,
+          },
+        ]}
       >
         <View
-          style={styles.sliderVerticalContainer}
+          style={[styles.sliderVerticalContainer]}
           onLayout={(e) => {
             const h = e.nativeEvent.layout.height || 140;
             trackHeightRef.current = h;
@@ -181,26 +183,36 @@ export default function VolumeWidget(props) {
           pointerEvents="box-only"
           {...panResponder.panHandlers}
         >
-          <View style={[styles.sliderTrack]} pointerEvents="none">
+          <View
+            style={[
+              styles.sliderTrack,
+              {
+                backgroundColor: themeColors.background,
+              },
+            ]}
+            pointerEvents="none"
+          >
             <View
               style={[
                 styles.sliderFill,
-                { height: (internalValue / 100) * (trackHeight || 140) },
+                {
+                  height: (internalValue / 100) * (trackHeight || 140),
+                  backgroundColor: themeColors.primary,
+                },
               ]}
               pointerEvents="none"
             />
             <View
               style={[
                 styles.sliderThumb,
-                { bottom: (internalValue / 100) * (trackHeight || 140) - 8 },
+                {
+                  bottom: (internalValue / 100) * (trackHeight || 140) - 8,
+                  backgroundColor: themeColors.primary,
+                },
               ]}
               pointerEvents="none"
             />
           </View>
-        </View>
-
-        <View style={styles.arrowContainer}>
-          <View style={styles.arrow} />
         </View>
       </Animated.View>
     </View>
@@ -216,21 +228,15 @@ const styles = StyleSheet.create({
     height: 220,
     alignItems: "center",
     justifyContent: "flex-end",
-    marginBottom: 10,
+    marginBottom: 16,
   },
   tooltip: {
     width: 32,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: Background(0.95),
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
   valueLabel: {
     fontFamily: "Nunito-SemiBold",
@@ -248,7 +254,6 @@ const styles = StyleSheet.create({
     height: "100%",
     width: 6,
     borderRadius: 3,
-    backgroundColor: InActiveText(0.3),
     alignItems: "center",
     justifyContent: "flex-end",
   },
@@ -278,6 +283,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: Background(0.95),
   },
 });

@@ -1,11 +1,14 @@
 import * as Updates from "expo-updates";
-import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
-import { Platform, Linking } from "react-native";
+import * as Application from "expo-application";
+import { Platform, Linking, NativeModules } from "react-native";
+import RNFS from "react-native-fs";
 import { AniuaApi } from "../Api/AniuaApi";
 import MainConfig from "../cfgs/MainConfig";
 import SettingsStorage from "../Storage/SettingsStorage";
 import Logger from "../Logger/Logger";
+
+const { FileOpener } = NativeModules;
 
 /**
  * Типи оновлень
@@ -234,7 +237,7 @@ class UpdateCheckerService {
                 .split("\n")
                 .filter((line: string) => line.trim());
 
-              changelog = lines.slice(0, 5).join("\n");
+              changelog = lines.join("\n");
             }
           }
         } catch (changelogError) {
@@ -284,6 +287,67 @@ class UpdateCheckerService {
   }
 
   /**
+   * Завантажує APK в папку Downloads
+   * @param url - URL для завантаження APK
+   * @param onProgress - Callback для відстеження прогресу
+   * @returns Шлях до завантаженого файлу
+   */
+  public static async downloadAPK(
+    url: string,
+    onProgress?: DownloadProgressCallback
+  ): Promise<string> {
+    if (Platform.OS !== "android") {
+      throw new Error("Завантаження APK підтримується тільки на Android");
+    }
+
+    try {
+      SettingsStorage.setParameter("lastUpdateUrl", url);
+      Logger.info("UpdateChecker", "Завантаження APK...", { url });
+
+      // Видаляємо старий APK якщо є
+      await this.clearPendingAPK();
+
+      const fileName = `AniUA-update.apk`;
+      const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+
+      // Завантажуємо файл через RNFS
+      const { promise } = RNFS.downloadFile({
+        fromUrl: url,
+        toFile: filePath,
+        progress: (res) => {
+          if (onProgress) {
+            const percent = Math.round(
+              (res.bytesWritten / res.contentLength) * 100
+            );
+            onProgress({
+              downloadedBytes: res.bytesWritten,
+              totalBytes: res.contentLength,
+              percent,
+            });
+          }
+        },
+        progressDivider: 1,
+      });
+
+      const result = await promise;
+
+      if (result.statusCode !== 200) {
+        throw new Error(`Помилка завантаження: ${result.statusCode}`);
+      }
+
+      Logger.info("UpdateChecker", "APK завантажено", { path: filePath });
+
+      // Зберігаємо шлях до завантаженого APK
+      SettingsStorage.setParameter("pendingApkPath", filePath);
+
+      return filePath;
+    } catch (error) {
+      Logger.error("UpdateChecker", "Помилка завантаження APK", error);
+      throw error;
+    }
+  }
+
+  /**
    * Завантажує та встановлює APK
    * @param url - URL для завантаження APK
    * @param onProgress - Callback для відстеження прогресу
@@ -292,74 +356,101 @@ class UpdateCheckerService {
     url: string,
     onProgress?: DownloadProgressCallback
   ): Promise<void> {
-    if (Platform.OS !== "android") {
-      throw new Error("Встановлення APK підтримується тільки на Android");
-    }
+    const filePath = await this.downloadAPK(url, onProgress);
+    await this.openAPKForInstall(filePath);
+  }
+
+  /**
+   * Перевіряє чи є завантажений APK, який чекає на встановлення
+   * @returns Шлях до APK або null
+   */
+  public static async getPendingAPK(): Promise<string | null> {
+    const pendingPath = SettingsStorage.getParameter("pendingApkPath");
+    if (!pendingPath) return null;
 
     try {
-      Logger.info("UpdateChecker", "Завантаження APK...", { url });
-
-      const fileName = `aniua-update-${Date.now()}.apk`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-
-      // Завантажуємо файл
-      const downloadResumable = FileSystem.createDownloadResumable(
-        url,
-        fileUri,
-        {},
-        (downloadProgress) => {
-          if (onProgress) {
-            const percent = Math.round(
-              (downloadProgress.totalBytesWritten /
-                downloadProgress.totalBytesExpectedToWrite) *
-                100
-            );
-            onProgress({
-              downloadedBytes: downloadProgress.totalBytesWritten,
-              totalBytes: downloadProgress.totalBytesExpectedToWrite,
-              percent,
-            });
-          }
-        }
-      );
-
-      const result = await downloadResumable.downloadAsync();
-
-      if (!result?.uri) {
-        throw new Error("Не вдалося завантажити файл");
+      const exists = await RNFS.exists(pendingPath);
+      if (exists) {
+        return pendingPath;
       }
-
-      Logger.info("UpdateChecker", "APK завантажено, встановлення...", {
-        uri: result.uri,
-      });
-
-      // Відкриваємо для встановлення
-      await this.openAPKForInstall(result.uri);
+      // Файл видалено - очищуємо налаштування
+      SettingsStorage.removeParameter("pendingApkPath");
+      return null;
     } catch (error) {
-      Logger.error("UpdateChecker", "Помилка завантаження APK", error);
-      throw error;
+      Logger.warn("UpdateChecker", "Помилка перевірки pending APK", error);
+      return null;
+    }
+  }
+
+  /**
+   * Встановлює завантажений APK
+   */
+  public static async installPendingAPK(): Promise<void> {
+    const pendingPath = await this.getPendingAPK();
+    if (!pendingPath) {
+      throw new Error("Немає завантаженого APK для встановлення");
+    }
+
+    await this.openAPKForInstall(pendingPath);
+  }
+
+  /**
+   * Видаляє завантажений APK
+   */
+  public static async clearPendingAPK(): Promise<void> {
+    const pendingPath = SettingsStorage.getParameter("pendingApkPath");
+    if (pendingPath) {
+      try {
+        const exists = await RNFS.exists(pendingPath);
+        if (exists) {
+          await RNFS.unlink(pendingPath);
+          Logger.debug("UpdateChecker", "Старий APK видалено", {
+            path: pendingPath,
+          });
+        }
+      } catch (error) {
+        Logger.warn("UpdateChecker", "Помилка видалення старого APK", error);
+      }
+      SettingsStorage.removeParameter("pendingApkPath");
     }
   }
 
   /**
    * Відкриває APK файл для встановлення
+   * @param filePath - Шлях до APK файлу (без file:// префіксу)
    */
-  private static async openAPKForInstall(fileUri: string): Promise<void> {
+  public static async openAPKForInstall(filePath: string): Promise<void> {
+    // Видаляємо file:// префікс якщо є
+    const cleanPath = filePath.startsWith("file://")
+      ? filePath.replace("file://", "")
+      : filePath;
+
+    Logger.debug("UpdateChecker", "Відкриття APK для встановлення", {
+      filePath: cleanPath,
+    });
+
     try {
-      // Конвертуємо file:// URI в content:// через FileProvider
-      const contentUri = await FileSystem.getContentUriAsync(fileUri);
-
-      Logger.debug("UpdateChecker", "Відкриття APK для встановлення", {
-        contentUri,
-      });
-
-      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri,
-        flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-        type: "application/vnd.android.package-archive",
-      });
+      // Використовуємо FileOpener для встановлення APK
+      await FileOpener.installAPK(cleanPath);
     } catch (error) {
       Logger.error("UpdateChecker", "Помилка відкриття APK", error);
+
+      // Fallback - відкриваємо налаштування невідомих джерел
+      try {
+        const packageName = Application.applicationId;
+        if (packageName) {
+          await IntentLauncher.startActivityAsync(
+            "android.settings.MANAGE_UNKNOWN_APP_SOURCES",
+            { data: `package:${packageName}` }
+          );
+        }
+      } catch (settingsError) {
+        Logger.warn(
+          "UpdateChecker",
+          "Не вдалося відкрити налаштування невідомих джерел",
+          settingsError
+        );
+      }
 
       // Fallback - відкриваємо URL в браузері
       const downloadUrl = SettingsStorage.getParameter("lastUpdateUrl");
