@@ -83,7 +83,14 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
     } catch (error) {
       console.error("Share error:", error);
     }
-  }, [anime?.slug, episode.episode, episode.team, player, useBuiltIn, isWatchMode]);
+  }, [
+    anime?.slug,
+    episode.episode,
+    episode.team,
+    player,
+    useBuiltIn,
+    isWatchMode,
+  ]);
 
   const getBackgroundColor = () => {
     if (isWatchMode && isWatched) return themeColors.primary;

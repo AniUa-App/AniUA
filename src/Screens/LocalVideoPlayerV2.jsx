@@ -24,18 +24,15 @@ import Animated, {
   FadeOut,
   SlideInRight,
   SlideOutRight,
-  ZoomIn,
-  ZoomOut,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withTiming,
-  withSpring,
   Easing,
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import Icons from "../Styles/Icons";
-import { H3, H4, H5, H6 } from "../Styles/Fonts";
+import { H4, H5, H6 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity as CustomTouchableOpacity } from "../Widgets/Button";
 import {
@@ -56,6 +53,8 @@ import Toast from "react-native-root-toast";
 import { useThemeColors } from "../Global/useTheme";
 import Logger from "../Logger/Logger";
 import { setupNavigationBar } from "../../App";
+import { EpisodeItem } from "../Components/BottomSheetEpisodes/EpisodeItem";
+import { EventBus } from "../Global/EventBus";
 
 const { width, height } = Dimensions.get("window");
 
@@ -90,6 +89,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [quality, setQuality] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const qualitiesList = React.useMemo(() => {
     if (!episodeInfo?.qualitys) return [];
@@ -99,6 +99,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   }, [episodeInfo]);
   const [isLocked, setIsLocked] = useState(false);
   const [info, _setInfo] = useState(AnimeStorage.get(_anime.slug));
+  const [seekIndicator, setSeekIndicator] = useState({
+    visible: false,
+    direction: null,
+    value: 0,
+  });
   const seekTimeout = useRef(null);
   const videoViewRef = useRef(null);
   const qualitySheetRef = useRef(null);
@@ -107,6 +112,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const pendingVolumeRef = useRef(null);
   const lastTapRef = useRef(null);
   const singleTapTimeoutRef = useRef(null);
+  const accumulatedSeekRef = useRef(0);
+  const seekDebounceRef = useRef(null);
+  const lastTapSideRef = useRef(null);
   const isLoadingRef = useRef(false);
   const lastSeekTimeRef = useRef(0);
   const lastTimeUpdateRef = useRef(0);
@@ -202,6 +210,37 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     setEpisodes(_episodes || []);
   }, [_episodes]);
 
+  // Слухаємо прогрес завантаження через EventBus
+  useEffect(() => {
+    const handleDownloadProgress = (data) => {
+      if (data.slug !== _anime.slug) return;
+      if (data.episode !== currentEpisode?.episode) return;
+
+      if (data.status === "success") {
+        setIsDownloading(false);
+        setDownloadProgress(100);
+        // Оновлюємо info
+        const updatedInfo = AnimeStorage.get(_anime.slug);
+        _setInfo(updatedInfo);
+      } else if (data.status === "error") {
+        setIsDownloading(false);
+        setDownloadProgress(0);
+      } else {
+        // Якщо отримали прогрес - значить завантаження активне
+        if (!isDownloading) {
+          setIsDownloading(true);
+        }
+        setDownloadProgress(data.progress || 0);
+      }
+    };
+
+    EventBus.on("downloadProgress", handleDownloadProgress);
+
+    return () => {
+      EventBus.off("downloadProgress", handleDownloadProgress);
+    };
+  }, [_anime.slug, currentEpisode?.episode, isDownloading]);
+
   // Оновлення відео при зміні поточного епізоду
   useEffect(() => {
     if (!currentEpisode?.video_url) return;
@@ -280,8 +319,8 @@ export default function LocalVideoPlayerV2Screen({ route }) {
           if (timeDiff < 0.1) {
             // Час не змінюється, хоча має відтворюватися
             timeUpdateCountRef.current += 1;
-            if (timeUpdateCountRef.current >= 3 && !isLoadingRef.current) {
-              // Відео зависло на 1.5+ секунди (3 * 0.5s)
+            if (timeUpdateCountRef.current >= 4 && !isLoadingRef.current) {
+              // Відео зависло на 2+ секунди (4 * 0.5s)
               isLoadingRef.current = true;
               setIsLoading(true);
             }
@@ -573,6 +612,9 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       if (singleTapTimeoutRef.current) {
         clearTimeout(singleTapTimeoutRef.current);
       }
+      if (seekDebounceRef.current) {
+        clearTimeout(seekDebounceRef.current);
+      }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
       try {
@@ -662,17 +704,60 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     const isDoubleTap = now - last < 280;
     lastTapRef.current = now;
 
+    const tapX = event?.nativeEvent?.locationX ?? width / 2;
+    const isRightSide = tapX > width / 2;
+    const currentSide = isRightSide ? "right" : "left";
+
     if (isDoubleTap) {
       if (singleTapTimeoutRef.current) {
         clearTimeout(singleTapTimeoutRef.current);
         singleTapTimeoutRef.current = null;
       }
-      const tapX = event?.nativeEvent?.locationX ?? width / 2;
-      const isRightSide = tapX > width / 2;
-      seekTo(isRightSide ? 10 : -10);
+
+      // Якщо змінилась сторона - скидаємо накопичення
+      if (
+        lastTapSideRef.current !== null &&
+        lastTapSideRef.current !== currentSide
+      ) {
+        accumulatedSeekRef.current = 0;
+      }
+      lastTapSideRef.current = currentSide;
+
+      // Накопичуємо час перемотування
+      accumulatedSeekRef.current += isRightSide ? 10 : -10;
+
+      // Показуємо індикатор
+      setSeekIndicator({
+        visible: true,
+        direction: isRightSide ? "right" : "left",
+        value: Math.abs(accumulatedSeekRef.current),
+      });
+
+      // Скидаємо попередній таймер
+      if (seekDebounceRef.current) {
+        clearTimeout(seekDebounceRef.current);
+      }
+
+      // Встановлюємо новий таймер для виконання перемотування
+      seekDebounceRef.current = setTimeout(() => {
+        if (accumulatedSeekRef.current !== 0) {
+          seekTo(accumulatedSeekRef.current);
+          accumulatedSeekRef.current = 0;
+          lastTapSideRef.current = null;
+        }
+        // Ховаємо індикатор
+        setSeekIndicator({ visible: false, direction: null, value: 0 });
+        seekDebounceRef.current = null;
+      }, 300);
+
       if (showControls) startHideControlsTimer();
       return;
     }
+
+    // Скидаємо накопичення при одиночному тапі
+    accumulatedSeekRef.current = 0;
+    lastTapSideRef.current = null;
+    setSeekIndicator({ visible: false, direction: null, value: 0 });
 
     if (singleTapTimeoutRef.current) {
       clearTimeout(singleTapTimeoutRef.current);
@@ -827,8 +912,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
       {/* Фон відео */}
       <View style={{ flex: 1, width: "100%" }}>
+        {/* Клік-кетчер для тапів - розміщений першим, щоб бути під контролями */}
+        <Pressable
+          onPress={handleVideoAreaPress}
+          style={StyleSheet.absoluteFill}
+          android_disableSound
+        />
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          pointerEvents="none"
         >
           <VideoView
             style={{ flex: 1, width: "100%" }}
@@ -860,12 +952,63 @@ export default function LocalVideoPlayerV2Screen({ route }) {
             entering={FadeIn.duration(200)}
             exiting={FadeOut.duration(200)}
             style={styles.loadingOverlay}
+            pointerEvents="none"
           >
             <Animated.View
               style={[styles.loadingContainer, animatedLoadingStyle]}
             >
               <ActivityIndicator size="large" color={themeColors.primary} />
             </Animated.View>
+          </Animated.View>
+        )}
+
+        {/* Індикатор перемотування */}
+        {seekIndicator.visible && (
+          <Animated.View
+            entering={FadeIn.duration(100)}
+            exiting={FadeOut.duration(100)}
+            style={[
+              styles.seekIndicator,
+              seekIndicator.direction === "right"
+                ? styles.seekIndicatorRight
+                : styles.seekIndicatorLeft,
+            ]}
+            pointerEvents="none"
+          >
+            <View
+              style={[
+                styles.seekIndicatorContent,
+                {
+                  backgroundColor: themeColors.Background?.(0.7),
+                },
+              ]}
+            >
+              {seekIndicator.direction === "right" ? (
+                <>
+                  <Text
+                    style={[H4, { color: themeColors.text, marginLeft: 8 }]}
+                  >
+                    {seekIndicator.value} сек
+                  </Text>
+                  <Icons.CaretDoubleRight
+                    size={28}
+                    color={themeColors.primary}
+                  />
+                </>
+              ) : (
+                <>
+                  <Icons.CaretDoubleLeft
+                    size={28}
+                    color={themeColors.primary}
+                  />
+                  <Text
+                    style={[H4, { color: themeColors.text, marginLeft: 8 }]}
+                  >
+                    {seekIndicator.value} сек
+                  </Text>
+                </>
+              )}
+            </View>
           </Animated.View>
         )}
       </View>
@@ -1130,32 +1273,50 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                 <View style={styles.mainControls}>
                   {/* Ліві елементи керування */}
                   <View style={styles.leftControlGroup}>
-                    <View>
-                      <CustomTouchableOpacity
-                        style={styles.controlButton}
-                        activeOpacity={1}
-                        delayPressIn={0}
-                        delayPressOut={0}
-                        onPress={() => {
-                          setVolumeTooltipVisible((v) => !v);
-                          if (showControls) {
-                            startHideControlsTimer();
-                          }
-                        }}
+                    <CustomTouchableOpacity
+                      style={styles.controlButton}
+                      activeOpacity={1}
+                      delayPressIn={0}
+                      delayPressOut={0}
+                      onPress={() => {
+                        setVolumeTooltipVisible((v) => !v);
+                        if (showControls) {
+                          startHideControlsTimer();
+                        }
+                      }}
+                    >
+                      <Icons.Volume
+                        volume={volume * 100}
+                        size={24}
+                        color={themeColors.text}
+                      />
+                      <VolumeWidget
+                        visible={volumeTooltipVisible}
+                        value={volume}
+                        onChange={handleVolumeChange}
+                        onClose={() => setVolumeTooltipVisible(false)}
+                      />
+                    </CustomTouchableOpacity>
+                    <CustomTouchableOpacity
+                      style={[styles.controlButton]}
+                      activeOpacity={1}
+                      delayPressIn={0}
+                      delayPressOut={0}
+                      onPress={() => {
+                        qualitySheetRef.current?.present();
+                      }}
+                    >
+                      <Text
+                        style={[
+                          H5,
+                          {
+                            color: themeColors.text,
+                          },
+                        ]}
                       >
-                        <Icons.Volume
-                          volume={volume * 100}
-                          size={24}
-                          color={themeColors.text}
-                        />
-                        <VolumeWidget
-                          visible={volumeTooltipVisible}
-                          value={volume}
-                          onChange={handleVolumeChange}
-                          onClose={() => setVolumeTooltipVisible(false)}
-                        />
-                      </CustomTouchableOpacity>
-                    </View>
+                        {quality || "8=>"}
+                      </Text>
+                    </CustomTouchableOpacity>
                   </View>
 
                   {/* Центральні елементи керування відтворенням */}
@@ -1354,12 +1515,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                         "onStartDownloadCallback"
                                       );
                                       setIsDownloading(true);
+                                      setDownloadProgress(0);
                                     },
-                                    progressCallback: (progressCallback) => {
-                                      // console.log(
-                                      //   "progressCallback",
-                                      //   progressCallback
-                                      // );
+                                    progressCallback: (progress) => {
+                                      setDownloadProgress(progress);
                                     },
                                     completionCallback: (
                                       completionCallback
@@ -1394,10 +1553,28 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                             }}
                           >
                             {isDownloading ? (
-                              <Icons.DownloadAnimated
-                                size={24}
-                                color={themeColors.primary}
-                              />
+                              <View
+                                style={[
+                                  styles.downloadButtonContainer,
+                                  { top: 8 },
+                                ]}
+                              >
+                                <Icons.DownloadAnimated
+                                  size={24}
+                                  color={themeColors.primary}
+                                />
+                                <Text
+                                  style={[
+                                    H6,
+                                    {
+                                      color: themeColors.primary,
+                                      marginTop: 2,
+                                    },
+                                  ]}
+                                >
+                                  {Math.round(downloadProgress)}%
+                                </Text>
+                              </View>
                             ) : (
                               <Icons.DownloadSimple
                                 size={24}
@@ -1432,33 +1609,6 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       </CustomTouchableOpacity>
                     </View>
                   </View>
-                </View>
-
-                {/* Додаткові елементи керування */}
-                <View style={styles.secondaryControls}>
-                  <CustomTouchableOpacity
-                    style={styles.controlButton}
-                    activeOpacity={1}
-                    delayPressIn={0}
-                    delayPressOut={0}
-                    onPress={() => {
-                      qualitySheetRef.current?.present();
-                    }}
-                  >
-                    <View style={styles.centerInfo}>
-                      <Text
-                        style={[
-                          styles.qualityText,
-                          {
-                            color: themeColors.text,
-                            borderColor: themeColors.Text(0.2),
-                          },
-                        ]}
-                      >
-                        {quality || "x_x"}
-                      </Text>
-                    </View>
-                  </CustomTouchableOpacity>
                 </View>
               </LinearGradient>
             </Animated.View>
@@ -1506,121 +1656,51 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
       {/* Панель епізодів */}
       {showEpisodes && (
-        <Animated.View
-          entering={SlideInRight.duration(300).springify()}
-          exiting={SlideOutRight.duration(250)}
-          style={styles.episodesPanel}
-        >
-          <View style={styles.episodesPanelContent}>
-            <View
-              style={[
-                styles.episodesPanelHeader,
-                { borderBottomColor: themeColors.InActiveText(0.2) },
-              ]}
-            >
-              <CustomTouchableOpacity
-                style={styles.episodesBackButton}
-                activeOpacity={1}
-                delayPressIn={0}
-                delayPressOut={0}
-                onPress={hideEpisodesPanel}
+        <>
+          <Pressable
+            style={styles.episodesOverlay}
+            onPress={hideEpisodesPanel}
+          />
+          <Animated.View
+            entering={SlideInRight.duration(250)}
+            exiting={SlideOutRight.duration(200)}
+            style={[
+              styles.episodesPanel,
+              {
+                backgroundColor: themeColors.accent,
+                width: isLandscape ? 400 : 300,
+              },
+            ]}
+          >
+            <View style={styles.episodesPanelContent}>
+              <ScrollView
+                style={styles.episodesList}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingTop: 40, paddingBottom: 20 }}
               >
-                <Icons.ArrowLeft size={34} color={themeColors.primary} />
-              </CustomTouchableOpacity>
-              <Text
-                style={[
-                  H4,
-                  { color: themeColors.text, flex: 1, marginLeft: 12 },
-                ]}
-              >
-                Епізоди
-              </Text>
-              <View
-                style={[
-                  styles.episodeCount,
-                  { borderColor: themeColors.primary },
-                ]}
-              >
-                <Text style={[H6, { color: themeColors.primary }]}>
-                  {episodes.length}
-                </Text>
-              </View>
-            </View>
-
-            <ScrollView
-              style={styles.episodesList}
-              showsVerticalScrollIndicator={false}
-            >
-              {episodes.map((episode, index) => (
-                <Animated.View
-                  key={episode.episode}
-                  entering={FadeIn.delay(index * 50).duration(300)}
-                >
-                  <CustomTouchableOpacity
-                    style={[
-                      styles.episodeItem,
-                      currentEpisode?.episode === episode.episode && [
-                        styles.episodeItemActive,
-                        { borderColor: themeColors.primary },
-                      ],
-                    ]}
-                    activeOpacity={1}
-                    delayPressIn={0}
-                    delayPressOut={0}
-                    onPress={() => onEpisodeSelect(episode)}
+                {episodes.map((episode, index) => (
+                  <Animated.View
+                    key={episode.episode}
+                    entering={FadeIn.delay(index * 50).duration(300)}
                   >
-                    <View style={styles.episodeNumber}>
-                      <Text
-                        style={[
-                          H6,
-                          {
-                            color:
-                              currentEpisode?.episode === episode.episode
-                                ? themeColors.primary
-                                : themeColors.InActiveText(0.7),
-                          },
-                        ]}
-                      >
-                        {episode.episode}
-                      </Text>
-                    </View>
-
-                    <View style={styles.episodeInfo}>
-                      <Text
-                        style={[
-                          H5,
-                          {
-                            color:
-                              currentEpisode?.episode === episode.episode
-                                ? themeColors.primary
-                                : themeColors.text,
-                            marginBottom: 4,
-                          },
-                        ]}
-                      >
-                        Епізод {episode.episode}
-                      </Text>
-                    </View>
-
-                    {currentEpisode?.episode === episode.episode && (
-                      <View style={styles.nowPlayingIndicator}>
-                        <View style={styles.nowPlayingDot} />
-                      </View>
-                    )}
-                  </CustomTouchableOpacity>
-                </Animated.View>
-              ))}
-            </ScrollView>
-          </View>
-        </Animated.View>
+                    <EpisodeItem
+                      mode="watch"
+                      episode={episode}
+                      anime={_anime}
+                      isWatched={info?.watched_episodes?.includes(
+                        episode.episode
+                      )}
+                      player="local"
+                      useBuiltIn={true}
+                      onPress={() => onEpisodeSelect(episode)}
+                    />
+                  </Animated.View>
+                ))}
+              </ScrollView>
+            </View>
+          </Animated.View>
+        </>
       )}
-      {/* Прозорий клік-кетчер над відео для гарантованого тапу в будь-якій орієнтації */}
-      <Pressable
-        onPress={handleVideoAreaPress}
-        style={[StyleSheet.absoluteFill, { zIndex: 5 }]}
-        android_disableSound
-        hitSlop={10}
-      />
 
       {/* Bottom Sheet */}
       <SpeedBottomSheet
@@ -1683,6 +1763,28 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     padding: 20,
+    borderRadius: 16,
+  },
+
+  // Індикатор перемотування
+  seekIndicator: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+    zIndex: 999,
+  },
+  seekIndicatorLeft: {
+    left: 40,
+  },
+  seekIndicatorRight: {
+    right: 40,
+  },
+  seekIndicatorContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 16,
   },
 
@@ -1761,7 +1863,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 0,
+    marginBottom: 16,
   },
   leftControlGroup: {
     flexDirection: "row",
@@ -1778,6 +1880,9 @@ const styles = StyleSheet.create({
   controlButton: {
     padding: 12,
     marginHorizontal: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
 
   // Елементи керування відтворенням
@@ -1808,6 +1913,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  downloadButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   // Додаткові елементи керування
   secondaryControls: {
@@ -1820,15 +1929,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  qualityText: {
-    fontSize: 13,
-    fontFamily: "Nunito-Bold",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
+  qualityText: {},
 
   // Панель епізодів
   episodesPanel: {
@@ -1863,35 +1964,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  episodeItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    marginVertical: 6,
-    borderRadius: 12,
-  },
-  episodeItemActive: {
-    borderWidth: 2,
-  },
-  episodeNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  episodeInfo: {
-    flex: 1,
-  },
-  nowPlayingIndicator: {
-    alignItems: "center",
-  },
-  nowPlayingDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  episodesOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
   },
 });
 

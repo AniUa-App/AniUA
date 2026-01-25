@@ -350,10 +350,10 @@ const BottomSheetEpisodesComponent = forwardRef<
 
     const handleEpisodePress = useCallback(
       (episode: Episode) => {
-        onSelectEpisode?.(episode, useBuiltIn);
+        onSelectEpisode?.(episode, useBuiltIn, currentEpisodes);
         sheetRef.current?.close();
       },
-      [onSelectEpisode, useBuiltIn]
+      [onSelectEpisode, useBuiltIn, currentEpisodes]
     );
 
     const handlePlayerTypeToggle = useCallback(

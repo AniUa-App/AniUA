@@ -2,9 +2,10 @@ import { View, Text, Dimensions, StyleSheet, FlatList } from "react-native";
 import React, { useEffect } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Button";
-import { Background, text, primary, InActiveText } from "../../Styles/Colors";
 import { H3, H4 } from "../../Styles/Fonts";
 import Icons from "../../Styles/Icons";
+import { useThemeColors } from "../../Global/useTheme";
+import { background } from "../../Styles/Colors";
 
 export default function QualityWidget({
   sheetRef,
@@ -18,7 +19,7 @@ export default function QualityWidget({
       Dimensions.get("window").height
     )
   );
-
+  const colors = useThemeColors();
   const handleQualityChange = (quality) => {
     onQualityChange(quality);
     sheetRef.current?.close();
@@ -48,8 +49,8 @@ export default function QualityWidget({
       snapPoints={orientation === "horizontal" ? ["45%"] : ["20%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: Background(0.95) }}
-      handleIndicatorStyle={{ backgroundColor: InActiveText(0.5) }}
+      backgroundStyle={{ backgroundColor: colors.background }}
+      handleIndicatorStyle={{ backgroundColor: colors.inActiveText }}
       backdropComponent={(props) => (
         <TouchableOpacity
           onPress={() => sheetRef.current?.close()}
@@ -67,12 +68,22 @@ export default function QualityWidget({
           </Text>
         </View>
 
-        <View style={styles.flatListContainer}>
+        <View
+          style={[
+            {
+              backgroundColor: colors.accent,
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            },
+          ]}
+        >
           <FlatList
             data={qualities}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.speedOptionsContainer}
+            contentContainerStyle={[styles.speedOptionsContainer, { flex: 1 }]}
             keyExtractor={(item) => item.toString()}
             decelerationRate="fast"
             snapToAlignment="center"
@@ -80,8 +91,13 @@ export default function QualityWidget({
               <TouchableOpacity
                 style={[
                   styles.speedOption,
-                  currentQuality === quality && styles.speedOptionActive,
-                  index !== qualities.length - 1 && { marginRight: 12 },
+                  index !== qualities.length - 1 && {},
+                  {
+                    backgroundColor:
+                      currentQuality === quality
+                        ? colors.primary
+                        : colors.background,
+                  },
                 ]}
                 onPress={() => handleQualityChange(quality)}
               >
@@ -89,7 +105,7 @@ export default function QualityWidget({
                   style={[
                     H4,
                     {
-                      color: currentQuality === quality ? primary : text,
+                      color: colors.text,
                       textAlign: "center",
                     },
                   ]}
@@ -98,7 +114,7 @@ export default function QualityWidget({
                 </Text>
                 {currentQuality === quality && (
                   <View style={styles.checkIcon}>
-                    <Icons.Check size={16} color={primary} />
+                    <Icons.Check size={16} color={colors.primary} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -112,38 +128,31 @@ export default function QualityWidget({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
     alignItems: "center",
+    flex: 1,
   },
   header: {
     paddingHorizontal: 4,
   },
 
   speedOptionsContainer: {
-    paddingHorizontal: 16,
+    justifyContent: "center",
     alignItems: "center",
+    gap: 8,
     flexDirection: "row",
   },
   speedOption: {
+    borderRadius: 16,
     minWidth: 80,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: Background(0.5),
-    borderWidth: 1,
-    borderColor: InActiveText(0.5),
+    minHeight: 44,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     position: "relative",
   },
-  speedOptionActive: {
-    backgroundColor: Background(0.8),
-    borderWidth: 2,
-  },
+  speedOptionActive: {},
   checkIcon: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 2,
+    right: 2,
   },
 });

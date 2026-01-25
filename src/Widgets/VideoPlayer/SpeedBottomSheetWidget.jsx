@@ -81,7 +81,7 @@ export default function SpeedBottomSheet({
             style={styles.slider}
             value={tempRate}
             minimumValue={0.25}
-            maximumValue={3.0}
+            maximumValue={4.0}
             step={0.05}
             minimumTrackTintColor={primary}
             maximumTrackTintColor={themeColors.InActiveText(0.5)}
@@ -101,7 +101,7 @@ export default function SpeedBottomSheet({
               },
             ]}
           >
-            3.0x
+            4.0x
           </Text>
         </View>
       </BottomSheetView>

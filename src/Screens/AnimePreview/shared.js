@@ -671,7 +671,7 @@ export function useAnimePreview({ route, navigation }) {
 
   // Handler for new BottomSheetEpisodesComponent (AniuaApi format)
   const handleNewEpisodeSelect = useCallback(
-    (episode, useBuiltIn) => {
+    (episode, useBuiltIn, allEpisodes = []) => {
       // episode is from AniuaApi: { id, team, episode, video_url, player, ... }
       const watched_episodes = !(info.watched_episodes || []).includes(
         episode.episode
@@ -699,7 +699,7 @@ export function useAnimePreview({ route, navigation }) {
         navigation.navigate("HiddenStack", {
           screen: "LocalVideoPlayer",
           params: {
-            _episodes: [episode],
+            _episodes: allEpisodes.length > 0 ? allEpisodes : [episode],
             _currentEpisode: episode,
             _anime: anime,
           },

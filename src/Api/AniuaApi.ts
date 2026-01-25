@@ -382,6 +382,9 @@ export class AniuaApi {
     episodes: new Map(),
   };
 
+  // Дедуплікація запитів - якщо запит вже виконується, повертаємо той самий Promise
+  private static pendingRequests: Map<string, Promise<any>> = new Map();
+
   private static axiosInstance: AxiosInstance = (() => {
     const instance = axios.create({
       timeout: AniuaApi.timeout,
@@ -463,6 +466,33 @@ export class AniuaApi {
    */
   public static getAuthHeader(): string | undefined {
     return AniuaApi.authHeader;
+  }
+
+  // ==================== REQUEST DEDUPLICATION ====================
+
+  /**
+   * Виконує запит з дедуплікацією - якщо такий запит вже виконується, повертає той самий Promise
+   * @param key - Унікальний ключ запиту
+   * @param requestFn - Функція що виконує запит
+   */
+  private static async deduplicatedRequest<T>(
+    key: string,
+    requestFn: () => Promise<T>
+  ): Promise<T> {
+    // Якщо запит вже виконується - повертаємо існуючий Promise
+    const pending = AniuaApi.pendingRequests.get(key);
+    if (pending) {
+      Logger.debug("AniuaApi", `Дедупліковано запит: ${key}`);
+      return pending;
+    }
+
+    // Створюємо новий запит
+    const promise = requestFn().finally(() => {
+      AniuaApi.pendingRequests.delete(key);
+    });
+
+    AniuaApi.pendingRequests.set(key, promise);
+    return promise;
   }
 
   // ==================== CACHE MANAGEMENT ====================
@@ -836,29 +866,32 @@ export class AniuaApi {
       return AniuaApi.cache.teams.data;
     }
 
-    try {
-      Logger.debug("AniuaApi", "Завантаження команд з API");
+    // Дедуплікація запиту
+    return AniuaApi.deduplicatedRequest("all_teams", async () => {
+      try {
+        Logger.debug("AniuaApi", "Завантаження команд з API");
 
-      const response = await AniuaApi.axiosInstance.get<Team[]>(
-        `${AniuaApi.baseUrl}/v1/teams`
-      );
+        const response = await AniuaApi.axiosInstance.get<Team[]>(
+          `${AniuaApi.baseUrl}/v1/teams`
+        );
 
-      const teams = response.data;
+        const teams = response.data;
 
-      // Зберігаємо в кеш
-      AniuaApi.cache.teams = {
-        data: teams,
-        timestamp: Date.now(),
-      };
+        // Зберігаємо в кеш
+        AniuaApi.cache.teams = {
+          data: teams,
+          timestamp: Date.now(),
+        };
 
-      Logger.debug("AniuaApi", `Завантажено ${teams.length} команд`);
-      return teams;
-    } catch (error) {
-      return AniuaApi.handleError(
-        error as AxiosError,
-        "Помилка завантаження команд"
-      );
-    }
+        Logger.debug("AniuaApi", `Завантажено ${teams.length} команд`);
+        return teams;
+      } catch (error) {
+        return AniuaApi.handleError(
+          error as AxiosError,
+          "Помилка завантаження команд"
+        );
+      }
+    });
   }
 
   /**
@@ -1442,9 +1475,13 @@ export class AniuaApi {
     }
   }
 
+  // Кеш валідації URL - щоб не перевіряти ті самі URL повторно
+  private static validationCache: Map<string, { valid: boolean; timestamp: number }> = new Map();
+  private static VALIDATION_CACHE_TTL = 30 * 60 * 1000; // 30 хвилин
+
   /**
    * Валідує та виправляє m3u8/poster для епізодів
-   * Викликати при відкритті bottomsheet для перевірки актуальності URL
+   * ОПТИМІЗОВАНО: Перевіряє тільки перший епізод, кешує результати валідації
    * @param episodes - Масив епізодів
    * @param slug - Slug аніме для refresh
    * @returns Масив епізодів з валідними URL
@@ -1455,7 +1492,17 @@ export class AniuaApi {
   ): Promise<Episode[]> {
     if (episodes.length === 0) return episodes;
 
-    // Загальний таймаут для всієї валідації (10 секунд)
+    // Перевіряємо кеш валідації для цього slug
+    const validationKey = `validation_${slug}`;
+    const cachedValidation = AniuaApi.validationCache.get(validationKey);
+    if (cachedValidation && Date.now() - cachedValidation.timestamp < AniuaApi.VALIDATION_CACHE_TTL) {
+      if (cachedValidation.valid) {
+        Logger.debug("AniuaApi", `Пропускаємо валідацію для ${slug} (кешовано як валідний)`);
+        return episodes;
+      }
+    }
+
+    // Таймаут 10 секунд замість 60
     const timeoutPromise = new Promise<Episode[]>((_, reject) => {
       setTimeout(() => reject(new Error("Validation timeout")), 10000);
     });
@@ -1463,73 +1510,81 @@ export class AniuaApi {
     const validationPromise = AniuaApi.doValidateAndFixEpisodes(episodes, slug);
 
     try {
-      return await Promise.race([validationPromise, timeoutPromise]);
+      const result = await Promise.race([validationPromise, timeoutPromise]);
+      // Кешуємо результат валідації
+      AniuaApi.validationCache.set(validationKey, { valid: true, timestamp: Date.now() });
+      return result;
     } catch (error) {
-      Logger.warn("AniuaApi", `Validation failed/timeout for ${slug}, returning original episodes`, error);
+      Logger.warn(
+        "AniuaApi",
+        `Validation failed/timeout for ${slug}, returning original episodes`,
+        error
+      );
       return episodes;
     }
   }
 
   /**
    * Внутрішня функція валідації
+   * ОПТИМІЗОВАНО: Мінімум HEAD запитів, парсинг тільки при потребі
    */
   private static async doValidateAndFixEpisodes(
     episodes: Episode[],
     slug: string
   ): Promise<Episode[]> {
-    // Перевіряємо перший епізод як індикатор
+    // Якщо є m3u8 URL - вважаємо валідним без перевірки (HEAD запити дорогі)
     const firstEpisode = episodes[0];
-    const [isM3u8Valid, isPosterValid] = await Promise.all([
-      AniuaApi.isUrlValid(firstEpisode.m3u8),
-      AniuaApi.isUrlValid(firstEpisode.poster),
-    ]);
-
-    // Якщо обидва валідні - повертаємо як є
-    if (isM3u8Valid && isPosterValid) {
-      Logger.debug("AniuaApi", `Епізоди для ${slug} валідні`);
+    if (firstEpisode.m3u8 && firstEpisode.m3u8.includes("http")) {
+      Logger.debug("AniuaApi", `Епізоди для ${slug} мають m3u8, пропускаємо валідацію`);
       return episodes;
     }
 
-    Logger.debug("AniuaApi", `Невалідні URL для ${slug}, спробуємо refresh`, {
-      m3u8Valid: isM3u8Valid,
-      posterValid: isPosterValid,
-    });
-
-    // Спробуємо refresh
+    // Тільки якщо немає m3u8 - спробуємо refresh (1 запит)
+    Logger.debug("AniuaApi", `Немає m3u8 для ${slug}, спробуємо refresh`);
     const refreshedEpisodes = await AniuaApi.refreshEpisodes(slug);
-    if (refreshedEpisodes.length > 0) {
-      const refreshedFirst = refreshedEpisodes[0];
-      const [isRefreshedM3u8Valid, isRefreshedPosterValid] = await Promise.all([
-        AniuaApi.isUrlValid(refreshedFirst.m3u8),
-        AniuaApi.isUrlValid(refreshedFirst.poster),
-      ]);
-
-      if (isRefreshedM3u8Valid && isRefreshedPosterValid) {
-        Logger.debug("AniuaApi", `Refresh успішний для ${slug}`);
-        return refreshedEpisodes;
-      }
+    if (refreshedEpisodes.length > 0 && refreshedEpisodes[0].m3u8) {
+      Logger.debug("AniuaApi", `Refresh успішний для ${slug}`);
+      return refreshedEpisodes;
     }
 
-    Logger.debug(
-      "AniuaApi",
-      `Refresh не допоміг для ${slug}, парсимо video_url`
-    );
+    // Fallback: парсимо video_url ТІЛЬКИ для першого епізоду як тест
+    // Якщо перший не працює - повертаємо оригінал
+    Logger.debug("AniuaApi", `Refresh не допоміг для ${slug}, пробуємо парсинг`);
+    const parsedFirst = await AniuaApi.parseVideoUrl(firstEpisode.video_url);
+    if (!parsedFirst?.m3u8) {
+      Logger.debug("AniuaApi", `Парсинг не допоміг для ${slug}`);
+      return episodes;
+    }
 
-    // Fallback: парсимо video_url для всіх епізодів без додаткових перевірок
-    // (перший епізод вже показав що URL невалідні)
-    const fixedEpisodes = await Promise.all(
-      episodes.map(async (episode) => {
-        const parsed = await AniuaApi.parseVideoUrl(episode.video_url);
-        if (parsed) {
-          return {
-            ...episode,
-            m3u8: parsed.m3u8 || episode.m3u8,
-            poster: parsed.poster || episode.poster,
-          };
-        }
-        return episode;
-      })
-    );
+    // Парсимо інші епізоди паралельно (але з лімітом 5 одночасних)
+    const BATCH_SIZE = 5;
+    const fixedEpisodes: Episode[] = [];
+
+    for (let i = 0; i < episodes.length; i += BATCH_SIZE) {
+      const batch = episodes.slice(i, i + BATCH_SIZE);
+      const fixedBatch = await Promise.all(
+        batch.map(async (episode, idx) => {
+          // Перший вже спарсений
+          if (i === 0 && idx === 0 && parsedFirst) {
+            return {
+              ...episode,
+              m3u8: parsedFirst.m3u8 || episode.m3u8,
+              poster: parsedFirst.poster || episode.poster,
+            };
+          }
+          const parsed = await AniuaApi.parseVideoUrl(episode.video_url);
+          if (parsed) {
+            return {
+              ...episode,
+              m3u8: parsed.m3u8 || episode.m3u8,
+              poster: parsed.poster || episode.poster,
+            };
+          }
+          return episode;
+        })
+      );
+      fixedEpisodes.push(...fixedBatch);
+    }
 
     return fixedEpisodes;
   }
@@ -1567,32 +1622,35 @@ export class AniuaApi {
       return cached.data;
     }
 
-    try {
-      Logger.debug("AniuaApi", `Завантаження епізодів для ${slug}`);
+    // Використовуємо дедуплікацію - якщо той самий запит вже виконується, чекаємо його
+    return AniuaApi.deduplicatedRequest(`episodes_${slug}`, async () => {
+      try {
+        Logger.debug("AniuaApi", `Завантаження епізодів для ${slug}`);
 
-      const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
-        `${AniuaApi.baseUrl}/v1/episodes?slug=${slug}`
-      );
+        const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
+          `${AniuaApi.baseUrl}/v1/episodes?slug=${slug}`
+        );
 
-      const episodes = response.data.episodes || [];
+        const episodes = response.data.episodes || [];
 
-      // Зберігаємо в персистентний кеш (10 хв)
-      EpisodesCacheStorage.set(cacheKey, episodes);
+        // Зберігаємо в персистентний кеш (10 хв)
+        EpisodesCacheStorage.set(cacheKey, episodes);
 
-      // Зберігаємо в in-memory кеш
-      AniuaApi.cache.episodes.set(slug, {
-        data: episodes,
-        timestamp: Date.now(),
-      });
+        // Зберігаємо в in-memory кеш
+        AniuaApi.cache.episodes.set(slug, {
+          data: episodes,
+          timestamp: Date.now(),
+        });
 
-      Logger.debug("AniuaApi", `Завантажено ${episodes.length} епізодів`);
-      return episodes;
-    } catch (error) {
-      return AniuaApi.handleError(
-        error as AxiosError,
-        `Помилка завантаження епізодів для ${slug}`
-      );
-    }
+        Logger.debug("AniuaApi", `Завантажено ${episodes.length} епізодів`);
+        return episodes;
+      } catch (error) {
+        return AniuaApi.handleError(
+          error as AxiosError,
+          `Помилка завантаження епізодів для ${slug}`
+        );
+      }
+    });
   }
 
   /**

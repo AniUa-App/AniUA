@@ -19,7 +19,7 @@ export interface BottomSheetEpisodesProps {
   /** Масив номерів переглянутих епізодів */
   watchedEpisodes?: number[];
   /** Callback при виборі епізоду */
-  onSelectEpisode?: (episode: Episode, useBuiltIn: boolean) => void;
+  onSelectEpisode?: (episode: Episode, useBuiltIn: boolean, allEpisodes: Episode[]) => void;
   /** Callback при довгому натисканні на епізод */
   onLongPressEpisode?: (episode: Episode) => void;
   /** Callback при зміні команди */

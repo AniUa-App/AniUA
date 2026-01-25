@@ -13,7 +13,7 @@ export class HikkaApi {
   protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
   protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
-  protected static CACHE_TTL = 5 * 60 * 1000;
+  protected static CACHE_TTL = 10 * 60 * 1000; // Збільшено до 10 хвилин
   protected static currentYear = new Date().getFullYear();
   protected static axiosInstance = axios.create({
     timeout: 10000,
@@ -23,11 +23,14 @@ export class HikkaApi {
     },
   });
 
+  // Дедуплікація запитів
+  protected static pendingRequests: Map<string, Promise<any>> = new Map();
+
   /**
-   * Виконує запит з кешуванням результату
+   * Виконує запит з кешуванням та дедуплікацією
    * @param {string} cacheKey - Унікальний ключ для кешу
    * @param {Function} requestFn - Функція що виконує запит
-   * @param {number} [ttl] - Час життя кешу в мс (за замовчуванням 5 хвилин)
+   * @param {number} [ttl] - Час життя кешу в мс (за замовчуванням 10 хвилин)
    * @returns {Promise<any>} Результат запиту з кешу або з сервера
    */
   protected static async cachedRequest(
@@ -42,20 +45,34 @@ export class HikkaApi {
       return cachedData.data;
     }
 
-    try {
-      const result = await requestFn();
-      if (result.code === 404) {
-        return { data: [], code: 404 };
-      }
-      HikkaApi.apiCache[cacheKey] = {
-        data: result,
-        timestamp: now,
-      };
-      return result;
-    } catch (error: any) {
-      Logger.error("HikkaApi", `Помилка у запиті ${cacheKey}`, error);
-      throw error;
+    // Дедуплікація - якщо запит вже виконується, чекаємо його
+    const pending = HikkaApi.pendingRequests.get(cacheKey);
+    if (pending) {
+      Logger.debug("HikkaApi", `Дедупліковано запит: ${cacheKey}`);
+      return pending;
     }
+
+    const promise = (async () => {
+      try {
+        const result = await requestFn();
+        if (result.code === 404) {
+          return { data: [], code: 404 };
+        }
+        HikkaApi.apiCache[cacheKey] = {
+          data: result,
+          timestamp: Date.now(),
+        };
+        return result;
+      } catch (error: any) {
+        Logger.error("HikkaApi", `Помилка у запиті ${cacheKey}`, error);
+        throw error;
+      } finally {
+        HikkaApi.pendingRequests.delete(cacheKey);
+      }
+    })();
+
+    HikkaApi.pendingRequests.set(cacheKey, promise);
+    return promise;
   }
 
   /**

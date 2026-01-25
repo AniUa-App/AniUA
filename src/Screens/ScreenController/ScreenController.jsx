@@ -25,12 +25,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useThemeColors } from "../../Global/useTheme";
-import {
-  HomeIcon,
-  LikeIcon,
-  DownloadIcon,
-  AccountIcon,
-} from "../../Styles/Icons";
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
 import AnimeWatchScreen from "../AnimeWatchScreen";
@@ -747,7 +741,8 @@ export default function ScreenController({ updateInfo }) {
   useEffect(() => {
     // Перевіряємо чи додаток відкрився через натискання на сповіщення (коли був закритий)
     const checkInitialNotification = async () => {
-      const response = await Notifications.getLastNotificationResponseAsync();Notifications;
+      const response = await Notifications.getLastNotificationResponseAsync();
+      Notifications;
       if (response) {
         const data = response.notification.request.content.data;
         Logger.debug("ScreenController", "Initial notification found", data);

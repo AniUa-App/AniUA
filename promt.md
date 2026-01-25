@@ -8,7 +8,6 @@
 
 - Видалити усі старі колхозні методи аутентифікації. Я про у усе що робилось з api.yuzka.site, замість цього замінити(або знайти альтернативу) на нове через хук useAniuaUser - Yes
 
-
 - Під'єднати expo-notifications, зробити щоб він працював у будь якому стані(foregraund,background або якщо застосунок закритий) та додати використання сумістого апі, а саме:
   - Підписатись на пуш-розсилку через AniUaApi.registerNotificationToken
   - Якщо людина має аніме у списку "Дивлюсь", то вже використовувати AniUaApi.updateNotificationSubscription щоб додати очікування передавши add_slugs
@@ -17,5 +16,5 @@
 - Зробити окремий скрін де людина може подивитись усі сповіщення, також треба підключити його до Icons.BellSimple у компоненті TopNavigationComponent - Yes
 
 - Додати окремий компонент для перевідри оновлень та замантаження їх, а саме:
-  - Якщо доступне оновлення через ota, то повідомити про це користувача що вийшов патч і зробити красиву анімацію про оновлення(воно знаходиться на `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace("github.com", "raw.githubusercontent.com")), після завантаження перезапустити застосунок, показати користовучеві showSnackbar з інформацією що застосунок оновився до {version, git_short_hash}.
-  - Якщо доступне оновлення через AniUaApi.getVersions(тут перевіряти ЛИШЕ versions та Config.devInfo.buildDate, ні через git_hash), то повідомити про це користувача що вийшов `новий реліз` і зробити красиву анімацію про оновлення(воно знаходиться на `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace("github.com", "raw.githubusercontent.com")), після завантаження, відкрити Apk через встановлення(або через fileOpener, який написано самостійно, він є у проєкті), після встановлення перезапустити застосунок, показати користовучеві showSnackbar з інформацією що застосунок оновився до {version, git_short_hash}.
+  - Якщо доступне оновлення через ota, то повідомити про це користувача що вийшов патч і зробити красиву анімацію про оновлення(воно знаходиться на `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace("github.com", "raw.githubusercontent.com")), після завантаження перезапустити застосунок, показати користовучеві showSnackbar з інформацією що застосунок оновився до {version, git_short_hash}. - Yes
+  - Якщо доступне оновлення через AniUaApi.getVersions(тут перевіряти ЛИШЕ versions та Config.devInfo.buildDate, ні через git_hash), то повідомити про це користувача що вийшов `новий реліз` і зробити красиву анімацію про оновлення(воно знаходиться на `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace("github.com", "raw.githubusercontent.com")), після завантаження, відкрити Apk через встановлення(або через fileOpener, який написано самостійно, він є у проєкті), після встановлення перезапустити застосунок, показати користовучеві showSnackbar з інформацією що застосунок оновився до {version, git_short_hash}. - Yes
