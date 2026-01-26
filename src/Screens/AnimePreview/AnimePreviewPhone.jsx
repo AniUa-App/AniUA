@@ -44,6 +44,7 @@ import {
 } from "./shared";
 import AnimeCard from "../../Components/AnimeCard";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
+import CommentsSection from "../../Components/CommentsSection";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -693,8 +694,8 @@ export default function AnimePreviewPhone({ route }) {
             themeColors={themeColors}
           />
 
-          {/* Similar anime and Characters tabs */}
-          {(animeList.length > 0 || charactersList.length > 0) && (
+          {/* Similar anime, Characters and Comments tabs */}
+          {(animeList.length > 0 || charactersList.length > 0 || anime?.slug) && (
             <SectionTabs
               tabs={[
                 animeList.length > 0 && {
@@ -725,8 +726,15 @@ export default function AnimePreviewPhone({ route }) {
                     />
                   ),
                 },
+                anime?.slug && {
+                  key: "comments",
+                  label: "Коментарі",
+                  content: (
+                    <CommentsSection slug={anime.slug} />
+                  ),
+                },
               ]}
-              defaultTab={animeList.length > 0 ? "similar" : "characters"}
+              defaultTab={animeList.length > 0 ? "similar" : charactersList.length > 0 ? "characters" : "comments"}
               themeColors={themeColors}
             />
           )}

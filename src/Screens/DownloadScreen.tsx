@@ -23,6 +23,7 @@ import { isTabletLandscape, isTablet } from "../Styles/Responsive";
 import { prefetchBloomImage } from "../Widgets/BloomImage";
 import BottomSheetDownloadComponent from "../Components/BottomSheetDownload/BottomSheetDownloadComponent";
 import type { BottomSheetDownloadRef } from "../Components/BottomSheetDownload/types";
+import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 

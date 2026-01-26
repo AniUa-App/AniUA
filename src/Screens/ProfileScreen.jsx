@@ -7,16 +7,20 @@ import {
   StatusBar,
   ActivityIndicator,
   Animated,
+  Modal,
+  TextInput,
+  Pressable,
 } from "react-native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { useFocusEffect } from "@react-navigation/native";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
-import { useScaleFontSize } from "../Styles/Fonts";
+import { H4, H6 } from "../Styles/Fonts";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import { useSnackbar } from "../Components/Snackbar";
 import LoginScreen from "./LoginScreen";
 
 import {
@@ -34,7 +38,7 @@ import {
 
 export default function ProfileScreen({ navigation }) {
   const colors = useThemeColors();
-  const scaleFontSize = useScaleFontSize();
+  const { snackbar, showSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState("list");
   const [activeFilter, setActiveFilter] = useState("watching");
   const [animeList, setAnimeList] = useState([]);
@@ -49,6 +53,11 @@ export default function ProfileScreen({ navigation }) {
   // Dynamic height for tabs
   const [listTabHeight, setListTabHeight] = useState(300);
   const [favoritesTabHeight, setFavoritesTabHeight] = useState(300);
+
+  // Username edit modal
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -77,8 +86,60 @@ export default function ProfileScreen({ navigation }) {
     }).start();
   }, [activeTabIndex]);
 
-  const { user, stats, favorites, isLoading, isAuthenticated, login } =
+  const { user, stats, favorites, isLoading, isAuthenticated, refetch } =
     useHikkaUser();
+
+  const handleUpdateUsername = useCallback(async () => {
+    const trimmedUsername = newUsername.trim();
+
+    if (!trimmedUsername) {
+      showSnackbar("Введіть нове ім'я користувача");
+      return;
+    }
+
+    // Валідація за паттерном API: ^[A-Za-z][A-Za-z0-9_]{4,63}$
+    const usernamePattern = /^[A-Za-z][A-Za-z0-9_]{4,63}$/;
+    if (!usernamePattern.test(trimmedUsername)) {
+      showSnackbar(
+        "Нік має починатися з літери, містити 5-64 символи (літери, цифри, _)"
+      );
+      return;
+    }
+
+    if (trimmedUsername === user?.username) {
+      setIsEditModalVisible(false);
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    try {
+      await HikkaApiComplete.updateUsername(trimmedUsername);
+      await refetch();
+      setIsEditModalVisible(false);
+      setNewUsername("");
+      showSnackbar("Ім'я користувача змінено");
+    } catch (error) {
+      console.error("Error updating username:", error?.response?.data || error);
+      const data = error?.response?.data;
+      let errorMessage = "Не вдалося змінити ім'я користувача";
+
+      if (data?.code === "settings:username_cooldown") {
+        errorMessage = "Змінювати нік можна раз на годину";
+      } else if (data?.code === "settings:username_taken") {
+        errorMessage = "Цей нік вже зайнятий";
+      } else if (data?.message) {
+        errorMessage = data.message;
+      } else if (data?.message_en) {
+        errorMessage = data.message_en;
+      } else if (data?.detail) {
+        errorMessage = data.detail;
+      }
+
+      showSnackbar(errorMessage);
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  }, [newUsername, user?.username, refetch, showSnackbar]);
 
   const fetchAnimeList = useCallback(async () => {
     if (!user?.username || !activeFilter) return;
@@ -221,15 +282,12 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Username */}
         <View style={styles.usernameContainer}>
-          <Text
-            style={[
-              styles.displayName,
-              { color: colors.text, fontSize: scaleFontSize(17) },
-            ]}
-          >
-            {displayName}
-          </Text>
+          <Text style={[H4]}>{displayName}</Text>
           <TouchableOpacity
+            onPress={() => {
+              setNewUsername(user?.username || "");
+              setIsEditModalVisible(true);
+            }}
             style={[
               styles.editButton,
               { backgroundColor: colors.subtle, width: 48 },
@@ -267,7 +325,10 @@ export default function ProfileScreen({ navigation }) {
             styles.tabContentWrapper,
             {
               backgroundColor: colors.accent,
-              height: Math.max(listTabHeight, favoritesTabHeight, 300) + 45,
+              height: Math.max(
+                activeTab === "list" ? listTabHeight : favoritesTabHeight,
+                300
+              ),
             },
           ]}
         >
@@ -298,7 +359,6 @@ export default function ProfileScreen({ navigation }) {
                 emptyIcon="MonitorPlay"
                 emptyText="Список порожній"
                 colors={colors}
-                scaleFontSize={scaleFontSize}
                 navigation={navigation}
                 showAnimeDetails={showAnimeDetails}
                 getAnimeFromItem={(item) => item.anime}
@@ -308,7 +368,9 @@ export default function ProfileScreen({ navigation }) {
             {/* Favorites Tab */}
             <View
               style={{ width: SCREEN_WIDTH }}
-              onLayout={(e) => setFavoritesTabHeight(e.nativeEvent.layout.height)}
+              onLayout={(e) =>
+                setFavoritesTabHeight(e.nativeEvent.layout.height)
+              }
             >
               <View>
                 <FilterChips
@@ -325,16 +387,85 @@ export default function ProfileScreen({ navigation }) {
                 emptyIcon="Heart"
                 emptyText="Список порожній"
                 colors={colors}
-                scaleFontSize={scaleFontSize}
                 navigation={navigation}
                 showAnimeDetails={showAnimeDetails}
                 getAnimeFromItem={(item) => item}
               />
             </View>
           </Animated.View>
-          <View style={{ width: "100%", paddingBottom: 45 }} />
         </View>
+        <View style={{ width: "100%", paddingBottom: 45 }} />
       </ScrollView>
+
+      {/* Username Edit Modal */}
+      <Modal
+        visible={isEditModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsEditModalVisible(false)}
+        >
+          <Pressable
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.background },
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={[H4, styles.modalTitle, { color: colors.text }]}>
+              Змінити ім'я користувача
+            </Text>
+
+            <View
+              style={[
+                styles.modalInputContainer,
+                { backgroundColor: colors.accent },
+              ]}
+            >
+              <TextInput
+                style={[H4, styles.modalInput, { color: colors.text }]}
+                value={newUsername}
+                onChangeText={setNewUsername}
+                placeholder="Нове ім'я користувача"
+                placeholderTextColor={colors.inActiveText}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isUpdatingUsername}
+                autoFocus={true}
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={() => setIsEditModalVisible(false)}
+                style={[styles.modalButton, { backgroundColor: colors.accent }]}
+                disabled={isUpdatingUsername}
+              >
+                <Text style={[H4, { color: colors.text }]}>Скасувати</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleUpdateUsername}
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: colors.primary },
+                ]}
+                disabled={isUpdatingUsername}
+              >
+                {isUpdatingUsername ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={[H4, { color: "#fff" }]}>Зберегти</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+      {snackbar}
     </DefaultScreenWidget>
   );
 }
@@ -374,9 +505,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     gap: 8,
   },
-  displayName: {
-    fontFamily: "Nunito-SemiBold",
-  },
+  displayName: {},
   editButton: {
     padding: 4,
     justifyContent: "center",
@@ -386,7 +515,6 @@ const styles = StyleSheet.create({
   handle: {
     textAlign: "center",
     marginTop: 2,
-    fontFamily: "Nunito-Regular",
   },
   tabsContainer: {
     flexDirection: "row",
@@ -400,5 +528,43 @@ const styles = StyleSheet.create({
   },
   tabContentContainer: {
     flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    width: "100%",
+    borderRadius: 20,
+    padding: 24,
+  },
+  modalTitle: {
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalInputContainer: {
+    height: 52,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+  },
+  modalInput: {
+    flex: 1,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

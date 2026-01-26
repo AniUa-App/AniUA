@@ -63,7 +63,6 @@ const AnimeCard = memo(function AnimeCard({
       : getStatusText(animeData.status);
 
   const handlePress = () => {
-    console.log("pressed");
     if (onPress) {
       onPress(anime);
     } else {

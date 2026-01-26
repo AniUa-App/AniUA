@@ -177,11 +177,11 @@ export class HikkaApiComplete {
   protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
   protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
-  protected static CACHE_TTL = 5 * 60 * 1000;
+  protected static CACHE_TTL = 30 * 60 * 1000;
   protected static currentYear = new Date().getFullYear();
   protected static authToken: string | null = null;
   protected static axiosInstance: AxiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 60000,
     headers: {
       accept: "application/json",
       "Content-Type": "application/json",
@@ -490,6 +490,21 @@ export class HikkaApiComplete {
       `${HikkaApiComplete.apiUrl}user/list`,
       params
     );
+    return response.data;
+  }
+
+  /**
+   * Зміна імені користувача
+   * @param {string} username - Нове ім'я користувача
+   * @returns {Promise<Object>} Оновлений профіль користувача
+   */
+  public static async updateUsername(username: string) {
+    const response = await HikkaApiComplete.axiosInstance.put(
+      `${HikkaApiComplete.apiUrl}settings/username`,
+      { username }
+    );
+    // Очищаємо кеш профілю після зміни
+    delete HikkaApiComplete.apiCache[`user_${username}`];
     return response.data;
   }
 
@@ -1118,6 +1133,25 @@ export class HikkaApiComplete {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}`,
       data
+    );
+    return response.data;
+  }
+
+  /**
+   * Встановлення оцінки (лайк/дизлайк) для контенту
+   * @param {string} contentType - Тип контенту (наприклад: "comment")
+   * @param {string} slug - Slug або reference контенту
+   * @param {number} score - Оцінка (-1, 0, 1)
+   * @returns {Promise<Object>}
+   */
+  public static async setVote(
+    contentType: string,
+    slug: string,
+    score: number
+  ) {
+    const response = await HikkaApiComplete.axiosInstance.put(
+      `${HikkaApiComplete.apiUrl}vote/${contentType}/${slug}`,
+      { score }
     );
     return response.data;
   }

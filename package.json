@@ -64,6 +64,8 @@
     "ffmpeg-kit-react-native": "^6.0.2",
     "lodash": "^4.17.21",
     "m3u8-file-parser": "^0.2.4",
+    "markdown-it": "^14.1.0",
+    "markdown-it-container": "^4.0.0",
     "patch-package": "^8.0.0",
     "phosphor-react-native": "^3.0.0",
     "react": "19.0.0",

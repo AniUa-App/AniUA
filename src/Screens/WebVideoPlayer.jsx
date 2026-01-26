@@ -32,7 +32,6 @@ export default function WebVideoPlayerScreen({ route }) {
 
   useEffect(() => {
     const onBackPress = () => {
-      Logger.debug("WebVideoPlayer", "onBackPress");
       navigation.goBack();
       StatusBar.setHidden(false, "slide");
       // Orientation.lockToPortrait();

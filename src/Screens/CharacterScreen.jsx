@@ -295,7 +295,7 @@ export default function CharacterScreen() {
             <ActivityIndicator size="large" color={themeColors.primary} />
           </View>
         ) : animeList.length > 0 ? (
-          <>
+          <View style={{ width: "100%" }}>
             {/* Anime Section */}
             <View style={styles.sectionHeader}>
               <Text style={[H3, { color: themeColors.text }]}>Аніме</Text>
@@ -306,7 +306,7 @@ export default function CharacterScreen() {
               onClickMore={null}
               navigation={navigation}
             />
-          </>
+          </View>
         ) : (
           <View style={styles.emptyContainer}>
             <Text style={[H4, { color: themeColors.inActiveText }]}>

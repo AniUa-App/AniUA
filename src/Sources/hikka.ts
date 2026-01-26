@@ -13,10 +13,10 @@ export class HikkaApi {
   protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
   protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
-  protected static CACHE_TTL = 10 * 60 * 1000; // Збільшено до 10 хвилин
+  protected static CACHE_TTL = 30 * 60 * 1000; // Збільшено до 30 хвилин
   protected static currentYear = new Date().getFullYear();
   protected static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 60000,
     headers: {
       accept: "application/json",
       "Content-Type": "application/json",

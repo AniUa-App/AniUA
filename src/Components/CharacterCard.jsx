@@ -18,7 +18,6 @@ export default function CharacterCard({ item, width, height }) {
 
   const character = item?.character;
   if (!character?.slug) return null;
-  console.log(character);
 
   return (
     <TouchableOpacity

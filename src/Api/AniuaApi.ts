@@ -1476,7 +1476,10 @@ export class AniuaApi {
   }
 
   // Кеш валідації URL - щоб не перевіряти ті самі URL повторно
-  private static validationCache: Map<string, { valid: boolean; timestamp: number }> = new Map();
+  private static validationCache: Map<
+    string,
+    { valid: boolean; timestamp: number }
+  > = new Map();
   private static VALIDATION_CACHE_TTL = 30 * 60 * 1000; // 30 хвилин
 
   /**
@@ -1495,16 +1498,22 @@ export class AniuaApi {
     // Перевіряємо кеш валідації для цього slug
     const validationKey = `validation_${slug}`;
     const cachedValidation = AniuaApi.validationCache.get(validationKey);
-    if (cachedValidation && Date.now() - cachedValidation.timestamp < AniuaApi.VALIDATION_CACHE_TTL) {
+    if (
+      cachedValidation &&
+      Date.now() - cachedValidation.timestamp < AniuaApi.VALIDATION_CACHE_TTL
+    ) {
       if (cachedValidation.valid) {
-        Logger.debug("AniuaApi", `Пропускаємо валідацію для ${slug} (кешовано як валідний)`);
+        Logger.debug(
+          "AniuaApi",
+          `Пропускаємо валідацію для ${slug} (кешовано як валідний)`
+        );
         return episodes;
       }
     }
 
     // Таймаут 10 секунд замість 60
     const timeoutPromise = new Promise<Episode[]>((_, reject) => {
-      setTimeout(() => reject(new Error("Validation timeout")), 10000);
+      setTimeout(() => reject(new Error("Validation timeout")), 60000);
     });
 
     const validationPromise = AniuaApi.doValidateAndFixEpisodes(episodes, slug);
@@ -1512,7 +1521,10 @@ export class AniuaApi {
     try {
       const result = await Promise.race([validationPromise, timeoutPromise]);
       // Кешуємо результат валідації
-      AniuaApi.validationCache.set(validationKey, { valid: true, timestamp: Date.now() });
+      AniuaApi.validationCache.set(validationKey, {
+        valid: true,
+        timestamp: Date.now(),
+      });
       return result;
     } catch (error) {
       Logger.warn(
@@ -1535,7 +1547,10 @@ export class AniuaApi {
     // Якщо є m3u8 URL - вважаємо валідним без перевірки (HEAD запити дорогі)
     const firstEpisode = episodes[0];
     if (firstEpisode.m3u8 && firstEpisode.m3u8.includes("http")) {
-      Logger.debug("AniuaApi", `Епізоди для ${slug} мають m3u8, пропускаємо валідацію`);
+      Logger.debug(
+        "AniuaApi",
+        `Епізоди для ${slug} мають m3u8, пропускаємо валідацію`
+      );
       return episodes;
     }
 
@@ -1549,7 +1564,10 @@ export class AniuaApi {
 
     // Fallback: парсимо video_url ТІЛЬКИ для першого епізоду як тест
     // Якщо перший не працює - повертаємо оригінал
-    Logger.debug("AniuaApi", `Refresh не допоміг для ${slug}, пробуємо парсинг`);
+    Logger.debug(
+      "AniuaApi",
+      `Refresh не допоміг для ${slug}, пробуємо парсинг`
+    );
     const parsedFirst = await AniuaApi.parseVideoUrl(firstEpisode.video_url);
     if (!parsedFirst?.m3u8) {
       Logger.debug("AniuaApi", `Парсинг не допоміг для ${slug}`);

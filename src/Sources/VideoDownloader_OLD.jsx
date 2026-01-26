@@ -1,12 +1,12 @@
-import React, {useState, useEffect} from 'react';
-import {Alert, ActivityIndicator, View, Text} from 'react-native';
-import {FFmpegKit} from 'ffmpeg-kit-react-native';
-import axios from 'axios';
-import RNFetchBlob from 'rn-fetch-blob';
-import {sanitizeFileName} from '../Global/Functions';
-import {DEBUGCONFIG} from '../cfgs/DebugConfig';
+import React, { useState, useEffect } from "react";
+import { Alert, ActivityIndicator, View, Text } from "react-native";
+import { FFmpegKit } from "ffmpeg-kit-react-native";
+import axios from "axios";
+import RNFetchBlob from "rn-fetch-blob";
+import { sanitizeFileName } from "../Global/Functions";
+import { DEBUGCONFIG } from "../cfgs/DebugConfig";
 
-const getTotalMs = async tsFilesCount => {
+const getTotalMs = async (tsFilesCount) => {
   const avgTsDuration = 10000;
   return tsFilesCount * avgTsDuration;
 };
@@ -14,57 +14,55 @@ const getTotalMs = async tsFilesCount => {
 function dataToQuality(data) {
   const qualityMatches = [
     ...data.matchAll(
-      /#EXT-X-STREAM-INF.*RESOLUTION=\d+x(\d+).*?\n(https:\/\/[^\s]+)/g,
+      /#EXT-X-STREAM-INF.*RESOLUTION=\d+x(\d+).*?\n(https:\/\/[^\s]+)/g
     ),
   ];
 
   if (qualityMatches.length === 0) {
-    return {success: false, error: 'no_quality_options_found'};
+    return { success: false, error: "no_quality_options_found" };
   }
 
-  const availableQualities = qualityMatches.map(match => ({
-    resolution: match[1] + 'p',
+  const availableQualities = qualityMatches.map((match) => ({
+    resolution: match[1] + "p",
     url: match[2],
   }));
 
-  return {success: true, data: availableQualities};
+  return { success: true, data: availableQualities };
 }
 
-function dataToTsLinks(data, baseUrl = '') {
+function dataToTsLinks(data, baseUrl = "") {
   const tsLinks =
     baseUrl.length > 0
       ? [...data.matchAll(/#EXTINF:[^,]*,\s*([^\s]+\.ts)/g)].map(
-          match => baseUrl + '/' + match[1],
+          (match) => baseUrl + "/" + match[1]
         )
-      : [...data.matchAll(/(https:\/\/[^\s]+\.ts)/g)].map(match => match[1]);
-  console.log(tsLinks, 'tsLinks');
+      : [...data.matchAll(/(https:\/\/[^\s]+\.ts)/g)].map((match) => match[1]);
 
   if (tsLinks.length === 0) {
-    return {success: false, error: 'no_ts_segments_found'};
+    return { success: false, error: "no_ts_segments_found" };
   }
 
-  return {success: true, data: tsLinks};
+  return { success: true, data: tsLinks };
 }
 // добавити перевірку на тип файлу, та розподіляти, яку функцію викликати
 export async function DownloadVideo(
   url,
   path,
   progressCallback,
-  completionCallback,
+  completionCallback
 ) {
-  const pathToSaveEpisodes = SettingsStorage.getParameter('pathToSaveEpisodes');
+  const pathToSaveEpisodes = SettingsStorage.getParameter("pathToSaveEpisodes");
 }
 
 export async function DownloadM3U8Video(
   url,
   path,
   progressCallback,
-  completionCallback,
+  completionCallback
 ) {
-  console.log(`DownloadVideo: ${url}`);
   // Функція для сповіщення про зміни статусу та прогрес
   const progressInfo = {
-    status: '',
+    status: "",
     data: {
       progress: 0,
       data: [],
@@ -89,53 +87,53 @@ export async function DownloadM3U8Video(
   try {
     const path_ = `${sanitizeFileName(path, false)}`;
     // 1. Отримання M3U8 файла з описом якостей
-    updateStatus('downloading_m3u8_witch_quality_url', {
+    updateStatus("downloading_m3u8_witch_quality_url", {
       progress: 0,
       data: [path_, url],
     });
-    let playerResponse = url.includes('moon')
+    let playerResponse = url.includes("moon")
       ? await getPlayerDataFrom_MOON_Player(url)
       : await getPlayerDataFrom_ASHDI_Player(url);
     let response = await axios.get(playerResponse.file, {
       headers: {
-        'Accept-Language': 'uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3',
+        "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
       },
       decompress: true,
     });
 
-    updateStatus('downloading_m3u8_witch_quality_url', {
+    updateStatus("downloading_m3u8_witch_quality_url", {
       progress: 100,
       data: [response.data],
     });
 
     // 2. Парсинг доступних якостей
-    updateStatus('parsing_m3u8_witch_quality', {
+    updateStatus("parsing_m3u8_witch_quality", {
       progress: 0,
       data: [response.data],
     });
 
-    var {success, data: availableQualities} = dataToQuality(response.data);
+    var { success, data: availableQualities } = dataToQuality(response.data);
 
     if (!success) {
-      updateStatus('error', {
+      updateStatus("error", {
         progress: -1,
-        data: ['no_quality_options_found'],
+        data: ["no_quality_options_found"],
       });
-      return {success: false, error: 'no_quality_options_found'};
+      return { success: false, error: "no_quality_options_found" };
     }
 
-    updateStatus('parsing_m3u8_witch_quality', {
+    updateStatus("parsing_m3u8_witch_quality", {
       progress: 100,
       data: [availableQualities],
     });
 
     // 3. Вибір якості (обираємо найвищу за замовчуванням)
-    updateStatus('wait_for_quality_selection', {
+    updateStatus("wait_for_quality_selection", {
       progress: 0,
       data: [availableQualities],
     });
     const selectedQuality = availableQualities[availableQualities.length - 1]; // Найвища якість
-    console.log(selectedQuality, 'selectedQuality');
+    console.log(selectedQuality, "selectedQuality");
 
     // // 4. Отримання плейлиста для вибраної якості
     // updateStatus('parsing_clips', {
@@ -257,19 +255,19 @@ export async function DownloadM3U8Video(
 
     // 6. Об'єднання фрагментів
     const outputPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${path_}`;
-    updateStatus('splicing_clips', {
+    updateStatus("splicing_clips", {
       progress: 0,
       data: [outputPath],
     });
 
-    console.log('Шлях для збереження:', outputPath);
+    console.log("Шлях для збереження:", outputPath);
 
     const session = FFmpegKit.executeAsync(
       `-i "${selectedQuality.url}" -c copy "${outputPath}"`,
-      async session => {
+      async (session) => {
         // Отримуємо логи для діагностики
         const logs = await session.getAllLogsAsString();
-        console.log('FFmpeg повні логи:', logs);
+        console.log("FFmpeg повні логи:", logs);
 
         // Переконаємося, що FFmpeg завершив роботу
         const returnCode = await session.getReturnCode();
@@ -312,33 +310,33 @@ export async function DownloadM3U8Video(
         //     });
         // }
       },
-      log => {},
-      async statistics => {
+      (log) => {},
+      async (statistics) => {
         const time = statistics.getTime();
         const totalMs = await getTotalMs(tsLinks.length);
         const pct = Math.max(
           0,
-          Math.min(Math.floor((time / totalMs) * 200), 100),
+          Math.min(Math.floor((time / totalMs) * 200), 100)
         );
-        updateStatus('splicing_clips', {
+        updateStatus("splicing_clips", {
           progress: pct,
           data: [time, totalMs, pct],
         });
-      },
+      }
     );
 
     await session;
 
     // Повертаємо результат, але не оновлюємо статус тут, оскільки це вже зроблено в колбеку
-    return {success: true, filePath: outputPath};
+    return { success: true, filePath: outputPath };
   } catch (error) {
-    console.error('Помилка завантаження відео:', error);
-    updateStatus('error', {
+    console.error("Помилка завантаження відео:", error);
+    updateStatus("error", {
       progress: progressInfo.progress,
       data: [error.toString()],
     });
 
-    return {success: false, error: error.toString()};
+    return { success: false, error: error.toString() };
   }
 }
 
@@ -348,10 +346,9 @@ async function getPlayerDataFrom_ASHDI_Player(url) {
     const response = await axios.get(url);
     const htmlContent = response.data;
     const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
-    console.log(fileMatch);
-    return fileMatch ? {file: fileMatch[1]} : null;
+    return fileMatch ? { file: fileMatch[1] } : null;
   } catch (error) {
-    console.error('Помилка завантаження:', error);
+    console.error("Помилка завантаження:", error);
     return null;
   }
 }
@@ -361,7 +358,7 @@ async function getPlayerDataFrom_MOON_Player(url) {
     // Отримуємо HTML-контент за посиланням
     const response = await axios.get(url, {
       headers: {
-        'Accept-Language': 'uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3',
+        "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
       },
       decompress: true,
     });
@@ -377,10 +374,10 @@ async function getPlayerDataFrom_MOON_Player(url) {
     const posterMatch = htmlContent.match(/poster:\s*"([^"]+)"/);
     const subtitleMatch = htmlContent.match(/subtitle:\s*"([^"]+)"/);
     const forbiddenQualityMatch = htmlContent.match(
-      /forbidden_quality:\s*"([^"]+)"/,
+      /forbidden_quality:\s*"([^"]+)"/
     );
     const defaultQualityMatch = htmlContent.match(
-      /default_quality:\s*"([^"]+)"/,
+      /default_quality:\s*"([^"]+)"/
     );
 
     // Заповнюємо об'єкт даними, якщо вони знайдені
@@ -395,7 +392,7 @@ async function getPlayerDataFrom_MOON_Player(url) {
     // Перевіряємо, чи знайдено хоча б один параметр
     return Object.keys(playerData).length > 0 ? playerData : null;
   } catch (error) {
-    console.error('Помилка при отриманні даних плеєра:', error);
+    console.error("Помилка при отриманні даних плеєра:", error);
     return null;
   }
 }

@@ -13,7 +13,7 @@ interface ApiResponse<T = any> {
 class ServerApi {
   private static readonly BASE_URL = MainConfig.api.url;
   private static readonly API_KEY = MainConfig.api.key;
-  private static readonly REQUEST_TIMEOUT = 100000; // 100 секунд
+  private static readonly REQUEST_TIMEOUT = 100000;
 
   /**
    * Отримує унікальний ID пристрою

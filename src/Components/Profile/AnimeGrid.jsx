@@ -2,6 +2,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import Icons from "../../Styles/Icons";
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from "./constants";
 import AnimeCard from "../AnimeCard";
+import { H6 } from "../../Styles/Fonts";
 
 export default function AnimeGrid({
   data,
@@ -9,7 +10,6 @@ export default function AnimeGrid({
   emptyIcon,
   emptyText,
   colors,
-  scaleFontSize,
   navigation,
   getAnimeFromItem,
   showAnimeDetails,
@@ -27,12 +27,7 @@ export default function AnimeGrid({
     return (
       <View style={styles.emptyState}>
         <EmptyIcon size={48} color={colors.Text(0.3)} weight="regular" />
-        <Text
-          style={[
-            styles.emptyStateText,
-            { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
-          ]}
-        >
+        <Text style={[H6, styles.emptyStateText, { color: colors.Text(0.5) }]}>
           {emptyText}
         </Text>
       </View>
@@ -64,7 +59,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   emptyStateText: {
-    fontFamily: "Nunito-Regular",
     textAlign: "center",
     marginTop: 8,
   },

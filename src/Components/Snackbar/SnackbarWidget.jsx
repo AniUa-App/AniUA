@@ -197,7 +197,7 @@ export default function Snackbar({
         isTop
           ? styles.containerTop
           : {
-              bottom: insets.bottom + 10,
+              bottom: insets.bottom + 72,
             },
       ]}
     >
