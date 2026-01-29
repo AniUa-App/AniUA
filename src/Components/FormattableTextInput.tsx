@@ -17,7 +17,7 @@ const FORMATTING_MENU_ITEMS = [
 const FORMAT_WRAPPERS: Record<string, { prefix: string; suffix: string }> = {
   bold: { prefix: "**", suffix: "**" },
   italic: { prefix: "*", suffix: "*" },
-  spoiler: { prefix: "::: spoiler\n", suffix: "\n:::" },
+  spoiler: { prefix: ":::spoiler\n", suffix: "\n:::" },
   quote: { prefix: "> ", suffix: "" },
 };
 
@@ -91,7 +91,7 @@ interface FormattableTextInputProps {
  * - Native Android context menu with formatting options
  * - Bold (**text**)
  * - Italic (*text*)
- * - Spoiler (::: spoiler\ntext\n:::)
+ * - Spoiler (:::spoiler\ntext\n:::)
  * - Quote (> text)
  *
  * Usage:

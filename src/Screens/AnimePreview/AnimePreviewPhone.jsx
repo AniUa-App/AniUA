@@ -695,7 +695,9 @@ export default function AnimePreviewPhone({ route }) {
           />
 
           {/* Similar anime, Characters and Comments tabs */}
-          {(animeList.length > 0 || charactersList.length > 0 || anime?.slug) && (
+          {(animeList.length > 0 ||
+            charactersList.length > 0 ||
+            anime?.slug) && (
             <SectionTabs
               tabs={[
                 animeList.length > 0 && {
@@ -726,15 +728,29 @@ export default function AnimePreviewPhone({ route }) {
                     />
                   ),
                 },
+              ]}
+              defaultTab={
+                animeList.length > 0
+                  ? "similar"
+                  : charactersList.length > 0
+                    ? "characters"
+                    : "comments"
+              }
+              themeColors={themeColors}
+            />
+          )}
+          {(animeList.length > 0 ||
+            charactersList.length > 0 ||
+            anime?.slug) && (
+            <SectionTabs
+              tabs={[
                 anime?.slug && {
                   key: "comments",
                   label: "Коментарі",
-                  content: (
-                    <CommentsSection slug={anime.slug} />
-                  ),
+                  content: <CommentsSection slug={anime.slug} />,
                 },
               ]}
-              defaultTab={animeList.length > 0 ? "similar" : charactersList.length > 0 ? "characters" : "comments"}
+              defaultTab="comments"
               themeColors={themeColors}
             />
           )}

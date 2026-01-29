@@ -18,7 +18,81 @@ import { HikkaAuthService } from "../Services/HikkaAuthService";
 import Logger from "../Logger/Logger";
 import Clipboard from "@react-native-clipboard/clipboard";
 import MarkdownComponent from "./MarkdownComponent";
-import { SelectableTextInput } from "react-native-selectable-text-input";
+import { SelectableTextInputWrapper } from "react-native-selectable-text-input";
+import {
+  MarkdownTextInput,
+  parseExpensiMark,
+} from "@expensify/react-native-live-markdown";
+
+// Custom parser that extends parseExpensiMark with spoiler support
+function parseWithSpoiler(text) {
+  "worklet";
+  // Get base ranges from ExpensiMark
+  const ranges = parseExpensiMark(text);
+
+  // Find spoiler blocks :::spoiler ... :::
+  const spoilerRegex = /:::\s*spoiler\b/gi;
+  const closingRegex = /:::/g;
+
+  let match;
+  const openings = [];
+  const closings = [];
+
+  // Find all :::spoiler openings
+  while ((match = spoilerRegex.exec(text)) !== null) {
+    openings.push({ index: match.index, length: match[0].length });
+  }
+
+  // Find all ::: closings (that are not openings)
+  while ((match = closingRegex.exec(text)) !== null) {
+    // Skip if this is part of an opening
+    const isOpening = openings.some(
+      (o) => match.index >= o.index && match.index < o.index + o.length
+    );
+    if (!isOpening) {
+      closings.push(match.index);
+    }
+  }
+
+  // Match openings with closings and add blockquote ranges
+  for (let i = 0; i < openings.length; i++) {
+    const opening = openings[i];
+    // Find the next closing after this opening
+    const closingIndex = closings.find(
+      (c) => c > opening.index + opening.length
+    );
+
+    if (closingIndex !== undefined) {
+      // Add syntax range for opening :::spoiler
+      ranges.push({
+        type: "syntax",
+        start: opening.index,
+        length: opening.length,
+      });
+
+      // Add blockquote range for content between opening and closing
+      const contentStart = opening.index + opening.length;
+      const contentLength = closingIndex - contentStart;
+      if (contentLength > 0) {
+        ranges.push({
+          type: "blockquote",
+          start: contentStart,
+          length: contentLength,
+          depth: 1,
+        });
+      }
+
+      // Add syntax range for closing :::
+      ranges.push({
+        type: "syntax",
+        start: closingIndex,
+        length: 3,
+      });
+    }
+  }
+
+  return ranges;
+}
 
 const COMMENT_MENU_COPY = "Копіювати";
 const COMMENT_MENU_OPTIONS = [
@@ -29,10 +103,10 @@ const COMMENT_MENU_OPTIONS = [
   "Цитата",
 ];
 const COMMENT_MENU_FORMATTERS = {
-  "Жирний": { prefix: "**", suffix: "**" },
-  "Курсив": { prefix: "*", suffix: "*" },
-  "Спойлер": { prefix: "::: spoiler\n", suffix: "\n:::" },
-  "Цитата": { prefix: "> ", suffix: "" },
+  Жирний: { prefix: "**", suffix: "**" },
+  Курсив: { prefix: "*", suffix: "*" },
+  Спойлер: { prefix: ":::spoiler\n", suffix: "\n:::" },
+  Цитата: { prefix: "> ", suffix: "" },
 };
 
 /**
@@ -123,65 +197,50 @@ const CommentItem = memo(function CommentItem({
             </Text>
           )}
         </View>
+        {/* Vote row */}
+        <View
+          style={[styles.voteRow, { backgroundColor: themeColors.background }]}
+        >
+          <TouchableOpacity
+            style={[styles.voteButton, {}]}
+            onPress={() => handleVote(comment.my_score === 1 ? 0 : 1)}
+            disabled={isVoting || !HikkaAuthService.isAuthenticated()}
+          >
+            <Icon.ThumbsUp
+              size={18}
+              color={
+                comment.my_score === 1
+                  ? themeColors.primary
+                  : themeColors.inActiveText
+              }
+              weight={comment.my_score === 1 ? "fill" : "regular"}
+            />
+          </TouchableOpacity>
+
+          <Text style={[H6, { color: themeColors.text }]}>
+            {comment.vote_score ?? 0}
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.voteButton, {}]}
+            onPress={() => handleVote(comment.my_score === -1 ? 0 : -1)}
+            disabled={isVoting || !HikkaAuthService.isAuthenticated()}
+          >
+            <Icon.ThumbsDown
+              size={18}
+              color={
+                comment.my_score === -1
+                  ? themeColors.primary
+                  : themeColors.inActiveText
+              }
+              weight={comment.my_score === -1 ? "fill" : "regular"}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Comment text */}
       <MarkdownComponent>{comment.text}</MarkdownComponent>
-
-      {/* Vote row */}
-      <View style={styles.voteRow}>
-        <TouchableOpacity
-          style={[
-            styles.voteButton,
-            {
-              backgroundColor:
-                comment.my_score === 1
-                  ? themeColors.primary
-                  : themeColors.background,
-            },
-          ]}
-          onPress={() => handleVote(comment.my_score === 1 ? 0 : 1)}
-          disabled={isVoting || !HikkaAuthService.isAuthenticated()}
-        >
-          <Icon.ThumbsUp
-            size={18}
-            color={
-              comment.my_score === 1
-                ? themeColors.text
-                : themeColors.inActiveText
-            }
-            weight={comment.my_score === 1 ? "fill" : "regular"}
-          />
-        </TouchableOpacity>
-
-        <Text style={[H6, { color: themeColors.text }]}>
-          {comment.vote_score ?? 0}
-        </Text>
-
-        <TouchableOpacity
-          style={[
-            styles.voteButton,
-            {
-              backgroundColor:
-                comment.my_score === -1
-                  ? themeColors.primary
-                  : themeColors.background,
-            },
-          ]}
-          onPress={() => handleVote(comment.my_score === -1 ? 0 : -1)}
-          disabled={isVoting || !HikkaAuthService.isAuthenticated()}
-        >
-          <Icon.ThumbsDown
-            size={18}
-            color={
-              comment.my_score === -1
-                ? themeColors.text
-                : themeColors.inActiveText
-            }
-            weight={comment.my_score === -1 ? "fill" : "regular"}
-          />
-        </TouchableOpacity>
-      </View>
 
       {/* Reply button */}
       {HikkaAuthService.isAuthenticated() && depth < 2 && (
@@ -264,6 +323,30 @@ const CommentInput = memo(function CommentInput({
   const [text, setText] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
 
+  const markdownStyle = {
+    syntax: {
+      color: themeColors.Text(0.4),
+    },
+    bold: {
+      fontFamily: "Nunito-Bold",
+    },
+    italic: {
+      fontFamily: "Nunito-Italic",
+    },
+    strikethrough: {
+      textDecorationLine: "line-through",
+    },
+    link: {
+      color: themeColors.primary,
+    },
+    blockquote: {
+      borderColor: themeColors.primary,
+      borderWidth: 2,
+      marginLeft: 6,
+      paddingLeft: 6,
+    },
+  };
+
   const handleSubmit = useCallback(() => {
     if (text.trim() && !isSubmitting) {
       onSubmit(text.trim());
@@ -333,26 +416,31 @@ const CommentInput = memo(function CommentInput({
 
       {/* Input row */}
       <View style={styles.inputRow}>
-        <SelectableTextInput
-          value={text}
-          onChangeText={setText}
-          onSelectionChange={handleSelectionChange}
+        <SelectableTextInputWrapper
           menuOptions={COMMENT_MENU_OPTIONS}
           onSelection={handleMenuSelection}
-          placeholder="Написати коментар..."
-          placeholderTextColor={themeColors.Text(0.4)}
-          editable={!isSubmitting}
-          multiline
-          textAlignVertical="top"
           containerStyle={{ flex: 1 }}
-          style={[
-            styles.textInput,
-            {
-              backgroundColor: themeColors.subtle,
-              color: themeColors.text,
-            },
-          ]}
-        />
+        >
+          <MarkdownTextInput
+            value={text}
+            onChangeText={setText}
+            onSelectionChange={handleSelectionChange}
+            parser={parseWithSpoiler}
+            placeholder="Написати коментар..."
+            placeholderTextColor={themeColors.Text(0.4)}
+            editable={!isSubmitting}
+            multiline
+            textAlignVertical="top"
+            markdownStyle={markdownStyle}
+            style={[
+              styles.textInput,
+              {
+                backgroundColor: themeColors.subtle,
+                color: themeColors.text,
+              },
+            ]}
+          />
+        </SelectableTextInputWrapper>
         <TouchableOpacity
           style={[
             styles.sendButton,
@@ -370,10 +458,8 @@ const CommentInput = memo(function CommentInput({
             <ActivityIndicator size="small" color={themeColors.text} />
           ) : (
             <Icon.PaperPlaneTilt
-              size={20}
-              color={
-                text.trim() ? themeColors.inActiveIcon : themeColors.Text(0.3)
-              }
+              size={24}
+              color={text.trim() ? themeColors.text : themeColors.Text(0.3)}
             />
           )}
         </TouchableOpacity>
@@ -707,6 +793,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginTop: 8,
+    borderRadius: 16,
+    padding: 4,
   },
   voteButton: {
     width: 32,
@@ -773,7 +861,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexGrow: 1,
     minHeight: 44,
-    maxHeight: 140,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,

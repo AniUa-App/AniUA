@@ -350,7 +350,7 @@ export default function SettingsScreen() {
                   key={index}
                   style={{
                     backgroundColor: themeColors.primary,
-                    borderRadius: 8,
+                    borderRadius: 16,
                     paddingVertical: 10,
                     paddingHorizontal: 16,
                   }}

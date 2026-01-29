@@ -217,8 +217,13 @@ export default function MarkdownComponent({ children, style, rules, ...rest }) {
         fontFamily: "Nunito-Italic",
       },
       blockquote: {
-        paddingLeft: 12,
-        marginVertical: 8,
+        borderTopRightRadius: 16,
+        borderBottomRightRadius: 16,
+        backgroundColor: colors.background,
+        paddingLeft: 16,
+        paddingVertical: 4,
+        marginVertical: 4,
+        borderColor: colors.primary,
       },
       list_item: {
         marginBottom: 6,

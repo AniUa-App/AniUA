@@ -13,6 +13,7 @@ export interface WatchStats {
 }
 
 export interface HikkaUser {
+  reference: string;
   username: string;
   description: string | null;
   avatar: string | null;

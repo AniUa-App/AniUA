@@ -13,8 +13,10 @@ import Constants from "expo-constants";
 import SettingsStorage from "../Storage/SettingsStorage";
 import Icon from "../Styles/Icons";
 import Logger from "../Logger/Logger";
+import { useHikkaUser } from "../Hooks/useHikkaUser";
 
 export default function AppInfoScreen() {
+  const { user } = useHikkaUser();
   const expoChannel =
     (Updates && Updates.channel) ||
     Constants?.expoConfig?.updates?.channel ||
@@ -59,7 +61,7 @@ export default function AppInfoScreen() {
     },
     {
       title: "Account ID",
-      value: String(SettingsStorage.getParameter("accountId") || "unknown"),
+      value: String(user?.reference || "unknown"),
     },
   ];
 
