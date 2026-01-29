@@ -146,8 +146,8 @@ addToFile(
 // 6. Додати пакет в getPackages()
 addToFile(
   "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
-  "return packages",
-  "            packages.add(FileOpenerPackage())\n            return packages",
+  "// packages.add(MyReactNativePackage())",
+  "            packages.add(FileOpenerPackage())",
   "Додавання FileOpenerPackage в getPackages()"
 );
 

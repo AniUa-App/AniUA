@@ -1163,17 +1163,10 @@ export class HikkaApiComplete {
    * @returns {Promise<Array>}
    */
   public static async getContentComments(contentType: string, slug: string) {
-    const cacheKey = `comments_${contentType}_${slug}`;
-    return HikkaApiComplete.cachedRequest(
-      cacheKey,
-      async () => {
-        const response = await HikkaApiComplete.axiosInstance.get(
-          `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}/list`
-        );
-        return response.data;
-      },
-      60000 // 1 хвилина кеш для коментарів
+    const response = await HikkaApiComplete.axiosInstance.get(
+      `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}/list`
     );
+    return response.data;
   }
 
   /**

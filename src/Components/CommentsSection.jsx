@@ -3,9 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   ActivityIndicator,
   Keyboard,
+  Image,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { useThemeColors } from "../Global/useTheme";
 import { H5, H6 } from "../Styles/Fonts";
@@ -14,7 +16,24 @@ import Icon from "../Styles/Icons";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import Logger from "../Logger/Logger";
+import Clipboard from "@react-native-clipboard/clipboard";
 import MarkdownComponent from "./MarkdownComponent";
+import { SelectableTextInput } from "react-native-selectable-text-input";
+
+const COMMENT_MENU_COPY = "Копіювати";
+const COMMENT_MENU_OPTIONS = [
+  COMMENT_MENU_COPY,
+  "Жирний",
+  "Курсив",
+  "Спойлер",
+  "Цитата",
+];
+const COMMENT_MENU_FORMATTERS = {
+  "Жирний": { prefix: "**", suffix: "**" },
+  "Курсив": { prefix: "*", suffix: "*" },
+  "Спойлер": { prefix: "::: spoiler\n", suffix: "\n:::" },
+  "Цитата": { prefix: "> ", suffix: "" },
+};
 
 /**
  * Single comment item component
@@ -81,11 +100,10 @@ const CommentItem = memo(function CommentItem({
       <View style={styles.commentHeader}>
         {/* Avatar */}
         {comment.author?.avatar ? (
-          <View
+          <Image
+            source={{ uri: comment.author.avatar }}
             style={[styles.avatar, { backgroundColor: themeColors.background }]}
-          >
-            <Icon.User size={24} color={themeColors.primary} />
-          </View>
+          />
         ) : (
           <View
             style={[styles.avatar, { backgroundColor: themeColors.background }]}
@@ -234,7 +252,7 @@ const CommentItem = memo(function CommentItem({
 });
 
 /**
- * Comment input component
+ * Comment input component with native formatting menu
  */
 const CommentInput = memo(function CommentInput({
   themeColors,
@@ -244,6 +262,7 @@ const CommentInput = memo(function CommentInput({
   isSubmitting,
 }) {
   const [text, setText] = useState("");
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
 
   const handleSubmit = useCallback(() => {
     if (text.trim() && !isSubmitting) {
@@ -252,6 +271,46 @@ const CommentInput = memo(function CommentInput({
       Keyboard.dismiss();
     }
   }, [text, onSubmit, isSubmitting]);
+
+  const handleSelectionChange = useCallback((event) => {
+    setSelection(event.nativeEvent.selection);
+  }, []);
+
+  const handleMenuSelection = useCallback(
+    (event) => {
+      if (event.chosenOption === COMMENT_MENU_COPY) {
+        const selectedText =
+          text.substring(selection?.start ?? 0, selection?.end ?? 0) ||
+          event.highlightedText ||
+          "";
+        if (selectedText) {
+          Clipboard.setString(selectedText);
+        }
+        return;
+      }
+
+      const formatter = COMMENT_MENU_FORMATTERS[event.chosenOption];
+      if (!formatter) return;
+
+      const selectionStart = selection?.start ?? 0;
+      const selectionEnd = selection?.end ?? 0;
+      if (selectionStart === selectionEnd) return;
+
+      const selectedText =
+        text.substring(selectionStart, selectionEnd) ||
+        event.highlightedText ||
+        "";
+      const formattedText = `${formatter.prefix}${selectedText}${formatter.suffix}`;
+
+      const newText =
+        text.substring(0, selectionStart) +
+        formattedText +
+        text.substring(selectionEnd);
+
+      setText(newText);
+    },
+    [selection, text]
+  );
 
   return (
     <View style={styles.inputContainer}>
@@ -274,7 +333,18 @@ const CommentInput = memo(function CommentInput({
 
       {/* Input row */}
       <View style={styles.inputRow}>
-        <TextInput
+        <SelectableTextInput
+          value={text}
+          onChangeText={setText}
+          onSelectionChange={handleSelectionChange}
+          menuOptions={COMMENT_MENU_OPTIONS}
+          onSelection={handleMenuSelection}
+          placeholder="Написати коментар..."
+          placeholderTextColor={themeColors.Text(0.4)}
+          editable={!isSubmitting}
+          multiline
+          textAlignVertical="top"
+          containerStyle={{ flex: 1 }}
           style={[
             styles.textInput,
             {
@@ -282,13 +352,6 @@ const CommentInput = memo(function CommentInput({
               color: themeColors.text,
             },
           ]}
-          placeholder="Написати коментар..."
-          placeholderTextColor={themeColors.Text(0.4)}
-          value={text}
-          onChangeText={setText}
-          multiline
-          maxLength={2000}
-          editable={!isSubmitting}
         />
         <TouchableOpacity
           style={[
@@ -329,6 +392,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [votingMap, setVotingMap] = useState({});
   const [replyTo, setReplyTo] = useState(null);
   const [error, setError] = useState(null);
@@ -417,6 +481,13 @@ function CommentsSection({ slug, contentType = "anime" }) {
   // Load comments on mount
   useEffect(() => {
     loadComments();
+  }, [loadComments]);
+
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadComments();
+    setIsRefreshing(false);
   }, [loadComments]);
 
   // Handle reply
@@ -537,7 +608,17 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }
 
   return (
-    <View style={[styles.container]}>
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor={themeColors.primary}
+          colors={[themeColors.primary]}
+        />
+      }
+      contentContainerStyle={styles.container}
+    >
       {/* Comment input (only for authenticated users) */}
       {HikkaAuthService.isAuthenticated() && (
         <CommentInput
@@ -575,7 +656,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
           ))}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -608,6 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
   headerContent: {
     flex: 1,
@@ -672,6 +754,7 @@ const styles = StyleSheet.create({
   // Input styles
   inputContainer: {
     marginBottom: 16,
+    width: "100%",
   },
   replyIndicator: {
     flexDirection: "row",
@@ -684,16 +767,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 8,
+    width: "100%",
   },
   textInput: {
     flex: 1,
+    flexGrow: 1,
     minHeight: 44,
-    maxHeight: 120,
+    maxHeight: 140,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
     fontSize: 15,
     fontFamily: "Nunito-Regular",
+    lineHeight: 20,
   },
   sendButton: {
     width: 44,
