@@ -27,7 +27,10 @@ export default function AnimeGrid({
     return (
       <View style={styles.emptyState}>
         <EmptyIcon size={48} color={colors.Text(0.3)} weight="regular" />
-        <Text style={[H6, styles.emptyStateText, { color: colors.Text(0.5) }]}>
+        <Text
+          selectable={true}
+          style={[H6, styles.emptyStateText, { color: colors.Text(0.5) }]}
+        >
           {emptyText}
         </Text>
       </View>

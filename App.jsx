@@ -93,7 +93,7 @@ export default function App() {
   useEffect(() => {
     if (!isLoading && !isNotFirstLaunch) {
       showSnackbar(
-        <Text style={H6}>
+        <Text selectable={true} style={H6}>
           Використовуючи додаток, ви погоджуєтесь з нашими{" "}
           <SnackbarLink url={MainConfig.urls.appUrl + `#terms`} color={primary}>
             правилами

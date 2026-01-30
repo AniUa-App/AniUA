@@ -11,10 +11,16 @@ export const ErrorWidget = ({ title = "Помилка", message, onRetry }) => {
     <View style={styles.overlay}>
       <View style={styles.container}>
         <View style={styles.errorIcon}>
-          <Text style={H3}>😕</Text>
+          <Text selectable={true} style={H3}>
+            😕
+          </Text>
         </View>
-        <Text style={[H2, styles.title]}>Щось пішло не так...</Text>
-        <Text style={[H4, styles.subtitle]}>{message}</Text>
+        <Text selectable={true} style={[H2, styles.title]}>
+          Щось пішло не так...
+        </Text>
+        <Text selectable={true} style={[H4, styles.subtitle]}>
+          {message}
+        </Text>
 
         {onRetry && (
           <View style={styles.buttonContainer}>
@@ -26,7 +32,7 @@ export const ErrorWidget = ({ title = "Помилка", message, onRetry }) => {
                 )
               }
             >
-              <Text style={[H4, styles.secondaryButtonText]}>
+              <Text selectable={true} style={[H4, styles.secondaryButtonText]}>
                 Надіслати помилку
               </Text>
             </TouchableOpacity>
@@ -34,7 +40,7 @@ export const ErrorWidget = ({ title = "Помилка", message, onRetry }) => {
               style={[styles.button, styles.primaryButton]}
               onPress={onRetry}
             >
-              <Text style={[H4, styles.primaryButtonText]}>
+              <Text selectable={true} style={[H4, styles.primaryButtonText]}>
                 Спробувати знову
               </Text>
             </TouchableOpacity>
@@ -121,8 +127,10 @@ export function InternetError({ onPress }) {
         <View style={styles.errorIcon}>
           <WiFiIcon color={text} width={48} height={48} />
         </View>
-        <Text style={[H2, styles.title]}>Проблеми з мережею</Text>
-        <Text style={[H4, styles.subtitle]}>
+        <Text selectable={true} style={[H2, styles.title]}>
+          Проблеми з мережею
+        </Text>
+        <Text selectable={true} style={[H4, styles.subtitle]}>
           Перевірте підключення до інтернету
         </Text>
 
@@ -132,7 +140,10 @@ export function InternetError({ onPress }) {
         >
           <View style={styles.refreshButtonContent}>
             <Icon.ArrowClockwise size={20} color={text} />
-            <Text style={[H4, styles.primaryButtonText, { marginLeft: 8 }]}>
+            <Text
+              selectable={true}
+              style={[H4, styles.primaryButtonText, { marginLeft: 8 }]}
+            >
               Спробувати знову
             </Text>
           </View>

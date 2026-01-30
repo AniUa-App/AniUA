@@ -6,7 +6,7 @@ import { H6, H7 } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { TouchableOpacity } from "../Widgets/Button";
 import { prefetchBloomImage } from "../Widgets/BloomImage";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 
 /**
  * Компонент картки аніме з підвантаженням деталей
@@ -29,7 +29,7 @@ const AnimeCard = memo(function AnimeCard({
   // Підвантажуємо деталі якщо немає жанрів
   useEffect(() => {
     if (showDetails && !anime.genres && anime.slug) {
-      HikkaApi.getAnimeDetails(anime.slug).then((data) => {
+      HikkaApiComplete.getAnimeDetails(anime.slug).then((data) => {
         if (data) setDetails(data);
       });
     }
@@ -88,6 +88,8 @@ const AnimeCard = memo(function AnimeCard({
       {showDetails && (
         <View style={styles.details}>
           <Text
+            selectable={true}
+            selectable={true}
             style={[H7, styles.title, { color: themeColors.text }]}
             numberOfLines={2}
           >
@@ -96,6 +98,8 @@ const AnimeCard = memo(function AnimeCard({
           <View style={styles.infoRow}>
             {genres && (
               <Text
+                selectable={true}
+                selectable={true}
                 style={[H6, styles.genres, { color: themeColors.primary }]}
                 numberOfLines={1}
               >
@@ -104,6 +108,8 @@ const AnimeCard = memo(function AnimeCard({
             )}
             {episodes && (
               <Text
+                selectable={true}
+                selectable={true}
                 style={[H6, styles.episodes, { color: themeColors.primary }]}
               >
                 {genres?.length > 15

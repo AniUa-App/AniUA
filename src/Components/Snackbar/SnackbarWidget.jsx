@@ -71,7 +71,10 @@ export default function Snackbar({
   const renderMessage = () => {
     if (typeof message === "string" || typeof message === "number") {
       return (
-        <Text style={[H6, styles.message, { color: themeColors.text }]}>
+        <Text
+          selectable={true}
+          style={[H6, styles.message, { color: themeColors.text }]}
+        >
           {String(message)}
         </Text>
       );
@@ -220,6 +223,7 @@ export default function Snackbar({
                     ]}
                   >
                     <Text
+                      selectable={true}
                       style={[
                         H7,
                         styles.actionText,
@@ -241,6 +245,7 @@ export default function Snackbar({
                     ]}
                   >
                     <Text
+                      selectable={true}
                       style={[
                         H7,
                         styles.actionText,
@@ -258,6 +263,7 @@ export default function Snackbar({
                   style={[styles.actionButton, animatedButtonStyle]}
                 >
                   <Text
+                    selectable={true}
                     style={[
                       H6,
                       styles.actionText,
@@ -299,6 +305,7 @@ export function SnackbarLink({ children, url, color }) {
 
   return (
     <Text
+      selectable={true}
       onPress={handlePress}
       suppressHighlighting={false}
       style={[styles.link, { color }]}

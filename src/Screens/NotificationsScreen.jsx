@@ -30,8 +30,11 @@ function EmptyNotifications({ colors, scaleFontSize }) {
   return (
     <View style={styles.emptyContainer}>
       <Icons.BellSlash size={64} color={colors.Text(0.3)} />
-      <Text style={H3}>Немає сповіщень</Text>
+      <Text selectable={true} style={H3}>
+        Немає сповіщень
+      </Text>
       <Text
+        selectable={true}
         style={[
           H5,
           {

@@ -1,7 +1,7 @@
-import { HikkaApi } from "./hikka";
+import { HikkaApiComplete } from "./HikkaApiComplete";
 import axios from "axios";
 
-export class HikkaSets extends HikkaApi {
+export class HikkaSets extends HikkaApiComplete {
   protected static GENRES = {
     popular_year: HikkaSets.getMostPopularAnimeOfTheYear,
     ongoing_anime: HikkaSets.getOngoingAnime,
@@ -34,13 +34,13 @@ export class HikkaSets extends HikkaApi {
   ) {
     return HikkaSets.cachedRequest(cacheKey, async () => {
       const response = await this.axiosInstance.post(
-        `${HikkaApi.apiUrl}anime?page=${page}&size=${size}`,
+        `${HikkaApiComplete.apiUrl}anime?page=${page}&size=${size}`,
         {
           media_type: [],
           status: params.status || [],
           season: [],
           rating: [],
-          years: params.years || [HikkaApi.currentYear, HikkaApi.currentYear],
+          years: params.years || [HikkaApiComplete.currentYear, HikkaApiComplete.currentYear],
           only_translated: params.only_translated ?? true,
           genres: params.genres || [],
           studios: [],
@@ -55,7 +55,7 @@ export class HikkaSets extends HikkaApi {
 
   public static getMostPopularAnimeOfTheYear(page = 1, size = 1) {
     return HikkaSets.fetchAnime(`popular_year_${page}_${size}`, page, size, {
-      years: [HikkaApi.currentYear, HikkaApi.currentYear + 1],
+      years: [HikkaApiComplete.currentYear, HikkaApiComplete.currentYear + 1],
       score: [8, 10],
       sort: ["start_date:desc"],
     });
@@ -63,7 +63,7 @@ export class HikkaSets extends HikkaApi {
 
   public static getMostPopularAnime(page = 1, size = 1, year = 2020) {
     return HikkaSets.fetchAnime(`popular_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       include_multiseason: false,
       only_translated: true,
     });
@@ -72,10 +72,10 @@ export class HikkaSets extends HikkaApi {
   public static getOngoingAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`ongoing_anime_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       status: ["ongoing"],
     });
   }
@@ -83,10 +83,10 @@ export class HikkaSets extends HikkaApi {
   public static getXentaiAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`xentai_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["hentai"],
       only_translated: false,
     });
@@ -95,10 +95,10 @@ export class HikkaSets extends HikkaApi {
   public static getRomanceAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`romance_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       status: ["ongoing"],
       genres: ["romance"],
     });
@@ -107,10 +107,10 @@ export class HikkaSets extends HikkaApi {
   public static getActionAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`action_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["action"],
     });
   }
@@ -118,10 +118,10 @@ export class HikkaSets extends HikkaApi {
   public static getIsekainAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`isekain_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["isekai"],
     });
   }
@@ -129,10 +129,10 @@ export class HikkaSets extends HikkaApi {
   public static getComedyAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`comedy_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["comedy"],
     });
   }
@@ -140,17 +140,17 @@ export class HikkaSets extends HikkaApi {
   public static getFantasyAnime(
     page = 1,
     size = 1,
-    year = HikkaApi.currentYear
+    year = HikkaApiComplete.currentYear
   ) {
     return HikkaSets.fetchAnime(`fantasy_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["fantasy"],
     });
   }
 
-  public static getSciFiAnime(page = 1, size = 1, year = HikkaApi.currentYear) {
+  public static getSciFiAnime(page = 1, size = 1, year = HikkaApiComplete.currentYear) {
     return HikkaSets.fetchAnime(`sci-fi_${page}_${size}`, page, size, {
-      years: [year, HikkaApi.currentYear],
+      years: [year, HikkaApiComplete.currentYear],
       genres: ["sci-fi"],
     });
   }

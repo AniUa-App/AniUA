@@ -22,6 +22,7 @@ export default function ProfileStats({ stats, favorites, colors }) {
           ]}
         >
           <Text
+            selectable={true}
             style={[
               H4,
               {
@@ -32,7 +33,9 @@ export default function ProfileStats({ stats, favorites, colors }) {
           >
             {String(stat.value)}
           </Text>
-          <Text style={[H6, { color: colors.text }]}>{stat.label}</Text>
+          <Text selectable={true} style={[H6, { color: colors.text }]}>
+            {stat.label}
+          </Text>
         </View>
       ))}
     </View>

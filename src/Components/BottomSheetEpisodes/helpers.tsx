@@ -25,23 +25,64 @@ export const getPlayerInfo = (playerName: string, themeColors: any): Player => {
 };
 
 export const convertHikkaEpisodes = (
-  hikkaData: Record<string, Record<string, any[]>>,
+  hikkaData: Record<string, any>,
   slug: string
 ): EpisodesByPlayerAndTeam => {
   const result: EpisodesByPlayerAndTeam = {};
+  const ignoredPlayers = ["vidking", "tortuga"];
 
-  // Плеєри які потрібно ігнорувати
-  const ignoredPlayers = ["vidking"];
+  // Новий формат: { episodes: [...], team: "...", slug: "..." }
+  if (hikkaData.episodes && Array.isArray(hikkaData.episodes)) {
+    hikkaData.episodes.forEach((ep: any, index: number) => {
+      const player = ep.player || "unknown";
+      const teamName = ep.team || hikkaData.team || "Невідомо";
 
+      if (ignoredPlayers.includes(player.toLowerCase())) return;
+
+      if (!result[player]) {
+        result[player] = {};
+      }
+      if (!result[player][teamName]) {
+        result[player][teamName] = [];
+      }
+
+      result[player][teamName].push({
+        id: ep.id || index,
+        created_at: ep.created_at || "",
+        slug: ep.slug || slug,
+        imdb_id: ep.imdb_id || null,
+        mal_id: ep.mal_id || null,
+        player: player,
+        player_id: ep.player_id || ep.episode_id || "",
+        team: teamName,
+        episode: ep.episode || index + 1,
+        poster: ep.poster || null,
+        video_url: ep.video_url || ep.video || "",
+        m3u8: ep.m3u8 || null,
+        real_url: ep.real_url || null,
+        name_ua: ep.name_ua || null,
+        name_en: ep.name_en || null,
+        name_jp: ep.name_jp || null,
+      });
+    });
+
+    // Сортуємо епізоди
+    Object.values(result).forEach((teams) => {
+      Object.values(teams).forEach((eps) => {
+        eps.sort((a, b) => a.episode - b.episode);
+      });
+    });
+
+    return result;
+  }
+
+  // Старий формат: { "ashdi": { "Team": [...] }, "moon": { ... } }
   Object.entries(hikkaData).forEach(([player, teams]) => {
-    // Пропускаємо ігноровані плеєри
-    if (ignoredPlayers.includes(player.toLowerCase())) {
-      return;
-    }
+    if (ignoredPlayers.includes(player.toLowerCase())) return;
 
-    if (typeof teams === "object" && teams !== null) {
+    if (typeof teams === "object" && teams !== null && !Array.isArray(teams)) {
       result[player] = {};
-      Object.entries(teams).forEach(([teamName, episodes]) => {
+      Object.entries(teams as Record<string, any[]>).forEach(([teamName, episodes]) => {
         if (Array.isArray(episodes)) {
           result[player][teamName] = episodes.map((ep, index) => ({
             id: ep.id || index,

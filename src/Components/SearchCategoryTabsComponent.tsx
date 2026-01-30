@@ -65,6 +65,7 @@ export default function SearchCategoryTabsComponent({
                 />
               )}
               <Text
+                selectable={true}
                 style={[
                   H6,
                   {

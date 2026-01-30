@@ -104,7 +104,10 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
     <TouchableOpacity onPress={onCopy} activeOpacity={0.8} style={styles.row}>
       <View style={styles.rowTextContainer}>
         {title?.length > 0 && (
-          <Text style={[H4, { color: themeColors.text, opacity: 0.9 }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, opacity: 0.9 }]}
+          >
             {title}
           </Text>
         )}
@@ -113,6 +116,7 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
         style={[styles.valuePill, { backgroundColor: themeColors.primary }]}
       >
         <Text
+          selectable={true}
           numberOfLines={1}
           ellipsizeMode="tail"
           style={[H4, { color: themeColors.text, maxWidth: 220 }]}
@@ -131,10 +135,16 @@ function Header() {
       <View style={{ flexDirection: "row" }}>
         <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
         <View style={{ marginLeft: 12 }}>
-          <Text style={[H3, { color: themeColors.text, fontWeight: "700" }]}>
+          <Text
+            selectable={true}
+            style={[H3, { color: themeColors.text, fontWeight: "700" }]}
+          >
             Про застосунок
           </Text>
-          <Text style={[H4, { color: themeColors.text, opacity: 0.7 }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, opacity: 0.7 }]}
+          >
             AniUA • {String(Config.devInfo.version || "unknown")}
           </Text>
         </View>

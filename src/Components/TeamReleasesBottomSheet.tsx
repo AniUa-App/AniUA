@@ -48,8 +48,7 @@ export default function TeamReleasesBottomSheet({
           activeOpacity={1}
           style={[
             {
-              ...props.style
-              ,
+              ...props.style,
             },
           ]}
         />
@@ -60,10 +59,13 @@ export default function TeamReleasesBottomSheet({
       >
         {/* Заголовок з назвою команди */}
         <View style={styles.header}>
-          <Text style={[H3, { color: themeColors.text }]}>
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             {selectedTeam?.name}
           </Text>
-          <Text style={[H5, { color: themeColors.inActiveText, marginTop: 4 }]}>
+          <Text
+            selectable={true}
+            style={[H5, { color: themeColors.inActiveText, marginTop: 4 }]}
+          >
             {selectedTeam?.releases?.length || 0} релізів
           </Text>
         </View>
@@ -82,7 +84,10 @@ export default function TeamReleasesBottomSheet({
           />
         ) : (
           <View style={styles.loadingContainer}>
-            <Text style={[H5, { color: themeColors.inActiveText }]}>
+            <Text
+              selectable={true}
+              style={[H5, { color: themeColors.inActiveText }]}
+            >
               Релізи не знайдено
             </Text>
           </View>

@@ -2,7 +2,11 @@ import { View, Text, StyleSheet } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import Icons from "../../Styles/Icons";
 
-export default function NotAuthenticatedView({ colors, scaleFontSize, onLogin }) {
+export default function NotAuthenticatedView({
+  colors,
+  scaleFontSize,
+  onLogin,
+}) {
   return (
     <View style={styles.notAuthContainer}>
       <View style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}>
@@ -10,6 +14,7 @@ export default function NotAuthenticatedView({ colors, scaleFontSize, onLogin })
       </View>
 
       <Text
+        selectable={true}
         style={[
           styles.notAuthTitle,
           { color: colors.text, fontSize: scaleFontSize(18) },
@@ -19,6 +24,7 @@ export default function NotAuthenticatedView({ colors, scaleFontSize, onLogin })
       </Text>
 
       <Text
+        selectable={true}
         style={[
           styles.notAuthSubtitle,
           { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
@@ -33,6 +39,7 @@ export default function NotAuthenticatedView({ colors, scaleFontSize, onLogin })
       >
         <Icons.SignIn size={20} color={colors.background} weight="bold" />
         <Text
+          selectable={true}
           style={[
             styles.loginButtonText,
             { color: colors.background, fontSize: scaleFontSize(15) },

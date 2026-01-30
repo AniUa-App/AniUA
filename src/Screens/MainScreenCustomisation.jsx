@@ -309,7 +309,10 @@ function PersonalRecList({
       {!loading && loadedAnimeLists.length === 0 && (
         <View style={styles.emptyState}>
           <Icons.ListDashes size={48} color={themeColors.inActiveText} />
-          <Text style={[H6, { color: themeColors.inActiveText, marginTop: 8 }]}>
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.inActiveText, marginTop: 8 }]}
+          >
             Списків ще немає
           </Text>
         </View>
@@ -474,7 +477,10 @@ export function PersonalRecListFilter({
         <View style={{ flex: 1, paddingBottom: 100 }}>
           {/* Заголовок */}
           <View style={styles.sheetHeader}>
-            <Text style={[H4, { color: themeColors.text, fontWeight: "bold" }]}>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.text, fontWeight: "bold" }]}
+            >
               {isEditMode ? "Редагувати список" : "Новий список"}
             </Text>
           </View>
@@ -543,6 +549,7 @@ export function PersonalRecListFilter({
           {/* Фільтри */}
           <View style={styles.filtersContainer}>
             <Text
+              selectable={true}
               style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}
             >
               Статус
@@ -561,6 +568,7 @@ export function PersonalRecListFilter({
             />
 
             <Text
+              selectable={true}
               style={[
                 H6,
                 {
@@ -587,6 +595,7 @@ export function PersonalRecListFilter({
             />
 
             <Text
+              selectable={true}
               style={[
                 H6,
                 {

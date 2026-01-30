@@ -47,7 +47,9 @@ export default function ButtonsScreen({ route }) {
             ]}
             onPress={item.onPress}
           >
-            <Text style={H4}>{item.title}</Text>
+            <Text selectable={true} style={H4}>
+              {item.title}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -192,7 +194,9 @@ export function SegmentedControlImageWidget({
           activeOpacity={0.8}
         >
           {seg.icon ?? (
-            <Text style={{ color: colors.text }}>{String(seg.label)}</Text>
+            <Text selectable={true} style={{ color: colors.text }}>
+              {String(seg.label)}
+            </Text>
           )}
         </TouchableOpacity>
       ))}

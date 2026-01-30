@@ -29,7 +29,7 @@ import {
   subtle,
   text,
 } from "../Styles/Colors";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { H3, H4 } from "../Styles/Fonts";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { EventBus } from "../Global/EventBus";
@@ -201,6 +201,7 @@ const EpisodeItem = React.memo(
               }}
             >
               <Text
+                selectable={true}
                 style={[
                   H3,
                   {
@@ -428,7 +429,10 @@ export default function EpisodesBottomSheet({
           />
         ) : episodesData.length === 0 ? (
           <View style={styles.content}>
-            <Text style={[H3, { textAlign: "center", padding: 20 }]}>
+            <Text
+              selectable={true}
+              style={[H3, { textAlign: "center", padding: 20 }]}
+            >
               Немає доступних епізодів
             </Text>
           </View>

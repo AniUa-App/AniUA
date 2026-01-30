@@ -1,10 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
-import { Text, View, PixelRatio, useWindowDimensions } from "react-native";
+import { Text as RNText, View, PixelRatio, useWindowDimensions } from "react-native";
 import { text } from "./Colors";
 import { useFonts } from "expo-font";
 import { useThemeColors } from "../Global/useTheme";
 import { isTablet, isTabletLandscape } from "./Responsive";
 import { FontWeight } from "@shopify/react-native-skia";
+
+// Text з selectable={true} за замовчуванням
+export const Text = (props) => <RNText selectable={true} {...props} />;
+
+// Експортуємо оригінальний Text на випадок якщо треба без selectable
+export { RNText };
 
 export function useCustomFonts() {
   const [fontsLoaded] = useFonts({
@@ -37,7 +43,7 @@ export function Fonts() {
   if (!fontsLoaded) {
     return (
       <View>
-        <Text style={{ color: text }}>Завантаження шрифтів...</Text>
+        <RNText style={{ color: text }}>Завантаження шрифтів...</RNText>
       </View>
     );
   }

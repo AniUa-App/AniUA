@@ -6,7 +6,7 @@ import Icon from "../Styles/Icons";
 import { H3, H4 } from "../Styles/Fonts";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "./LoadersWidgets";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useState, useEffect } from "react";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
@@ -31,7 +31,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   const [episodesList, setEpisodesList] = useState([]);
 
   useEffect(() => {
-    HikkaApi.getEpisodes(anime.slug)
+    HikkaApiComplete.getEpisodes(anime.slug)
       .then((res) => {
         if (res.error) {
           Logger.error("AnimePreviewWidget", "Помилка завантаження епізодів", {
@@ -114,6 +114,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         />
         <View style={[styles.infoContainer]}>
           <Text
+            selectable={true}
             numberOfLines={4}
             ellipsizeMode="tail"
             style={[H3, { marginBottom: maxHeight ? 0 : 20 }]}
@@ -125,9 +126,10 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                   .join(" ") + "..."
               : anime.title_ua || anime.title_en || anime.title_ja}
           </Text>
-          <Text style={[H4, { marginBottom: 8 }]}>
+          <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
             Рейтинг:{" "}
             <Text
+              selectable={true}
               style={[styles.animeHighlight, { color: themeColors.primary }]}
             >
               {anime.rating === "g"
@@ -141,9 +143,10 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                       : "18+"}
             </Text>
           </Text>
-          <Text style={[H4, { marginBottom: 8 }]}>
+          <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
             Дата виходу:{" "}
             <Text
+              selectable={true}
               style={[styles.animeHighlight, { color: themeColors.primary }]}
             >
               {anime.year}
@@ -151,12 +154,14 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           </Text>
           {anime.genres && anime.genres.length > 0 && (
             <Text
+              selectable={true}
               numberOfLines={maxHeight ? 1 : 2}
               ellipsizeMode="tail"
               style={H4}
             >
               Жанри:{" "}
               <Text
+                selectable={true}
                 style={[styles.animeHighlight, { color: themeColors.primary }]}
               >
                 {anime.genres.map((genre) => genre.name_ua).join(", ")}

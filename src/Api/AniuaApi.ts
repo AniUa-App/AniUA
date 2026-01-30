@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 import Logger from "../Logger/Logger";
 import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
 import MainConfig, { buildExtra } from "../cfgs/MainConfig";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 
 // ==================== TYPES ====================
 
@@ -372,6 +373,9 @@ export class AniuaApi {
   private static cacheTtl: number = 5 * 60 * 1000; // 5 хвилин
   private static timeout: number = 15000;
 
+  // Блокування запитів при отриманні 530 (Cloudflare)
+  private static isServerBlocked: boolean = false;
+
   private static cache: {
     teams: { data: Team[] | null; timestamp: number };
     byName: Map<string, { data: Team | null; timestamp: number }>;
@@ -398,6 +402,39 @@ export class AniuaApi {
     if (AniuaApi.authHeader) {
       instance.defaults.headers.common["Authorization"] = AniuaApi.authHeader;
     }
+
+    // Request interceptor - блокуємо запити якщо сервер повернув 530
+    instance.interceptors.request.use(
+      (config) => {
+        if (AniuaApi.isServerBlocked) {
+          Logger.warn(
+            "AniuaApi",
+            "Запит заблоковано - сервер недоступний (530)"
+          );
+          return Promise.reject(
+            new axios.Cancel("Сервер тимчасово недоступний (530)")
+          );
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Response interceptor - перевіряємо на 530
+    instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (axios.isAxiosError(error) && error.response?.status === 530) {
+          AniuaApi.isServerBlocked = true;
+          Logger.error(
+            "AniuaApi",
+            "Сервер повернув 530 - запити заблоковано до перезавантаження"
+          );
+        }
+        return Promise.reject(error);
+      }
+    );
+
     return instance;
   })();
 
@@ -466,6 +503,24 @@ export class AniuaApi {
    */
   public static getAuthHeader(): string | undefined {
     return AniuaApi.authHeader;
+  }
+
+  /**
+   * Перевіряє чи сервер заблоковано (отримано 530)
+   * @returns true якщо сервер заблоковано
+   */
+  public static isBlocked(): boolean {
+    return AniuaApi.isServerBlocked;
+  }
+
+  /**
+   * Перевіряє чи сервер заблоковано і кидає помилку якщо так
+   * @throws Error якщо сервер заблоковано
+   */
+  private static ensureNotBlocked(): void {
+    if (AniuaApi.isServerBlocked) {
+      throw new Error("Сервер тимчасово недоступний (530)");
+    }
   }
 
   // ==================== REQUEST DEDUPLICATION ====================
@@ -612,6 +667,7 @@ export class AniuaApi {
     payload: SigninRequest
   ): Promise<ApiResponse<AuthResponse>> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.post<AuthResponse>(
         `${AniuaApi.baseUrl}/v1/auth/signin`,
         payload
@@ -633,6 +689,7 @@ export class AniuaApi {
     payload: SignupRequest
   ): Promise<ApiResponse<AuthResponse>> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.post<AuthResponse>(
         `${AniuaApi.baseUrl}/v1/auth/signup`,
         payload
@@ -656,6 +713,7 @@ export class AniuaApi {
     params: VersionsQueryParams = {}
   ): Promise<VersionInfo[]> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.get<VersionInfo[]>(
         `${AniuaApi.baseUrl}/v1/versions`,
         { params }
@@ -684,6 +742,7 @@ export class AniuaApi {
    */
   public static async getMetadata(): Promise<MetadataResponse> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.get<MetadataItem[]>(
         `${AniuaApi.baseUrl}/v1/metadata`
       );
@@ -710,6 +769,7 @@ export class AniuaApi {
    */
   public static async getUsers(): Promise<UserDetails[]> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.get<UserDetails[]>(
         `${AniuaApi.baseUrl}/v1/users`
       );
@@ -729,6 +789,7 @@ export class AniuaApi {
     payload: UpdateUserDetails
   ): Promise<UserDetails[]> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.patch<UserDetails[]>(
         `${AniuaApi.baseUrl}/v1/users`,
         payload
@@ -747,6 +808,7 @@ export class AniuaApi {
    */
   public static async deleteUser(reference: string): Promise<void> {
     try {
+      AniuaApi.ensureNotBlocked();
       await AniuaApi.axiosInstance.delete(
         `${AniuaApi.baseUrl}/v1/users/${reference}`
       );
@@ -767,6 +829,7 @@ export class AniuaApi {
     payload: RegisterTokenRequest
   ): Promise<SubscriptionResponse> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.post<SubscriptionResponse>(
         `${AniuaApi.baseUrl}/v1/notifications/register`,
         payload
@@ -787,6 +850,7 @@ export class AniuaApi {
     payload: UpdateSubscriptionRequest
   ): Promise<SubscriptionResponse> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.patch<SubscriptionResponse>(
         `${AniuaApi.baseUrl}/v1/notifications/subscribe`,
         payload
@@ -807,6 +871,7 @@ export class AniuaApi {
     token: string
   ): Promise<SubscriptionResponse> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.get<SubscriptionResponse>(
         `${AniuaApi.baseUrl}/v1/notifications/subscriptions`,
         {
@@ -829,6 +894,7 @@ export class AniuaApi {
     payload: UnregisterTokenRequest
   ): Promise<SuccessResponse> {
     try {
+      AniuaApi.ensureNotBlocked();
       const response = await AniuaApi.axiosInstance.delete<SuccessResponse>(
         `${AniuaApi.baseUrl}/v1/notifications/unregister`,
         {
@@ -864,6 +930,18 @@ export class AniuaApi {
     ) {
       Logger.debug("AniuaApi", "Повернуто дані з кешу");
       return AniuaApi.cache.teams.data;
+    }
+
+    // Якщо сервер заблоковано - повертаємо застарілі дані з кешу якщо є
+    if (AniuaApi.isServerBlocked) {
+      if (AniuaApi.cache.teams.data) {
+        Logger.debug(
+          "AniuaApi",
+          "Сервер заблоковано, повернуто застарілі дані з кешу"
+        );
+        return AniuaApi.cache.teams.data;
+      }
+      throw new Error("Сервер тимчасово недоступний (530)");
     }
 
     // Дедуплікація запиту
@@ -904,6 +982,18 @@ export class AniuaApi {
    * ```
    */
   public static async getVerifiedTeams(): Promise<Team[]> {
+    // Якщо сервер заблоковано - використовуємо кешовані дані з getAllTeams
+    if (AniuaApi.isServerBlocked) {
+      if (AniuaApi.cache.teams.data) {
+        Logger.debug(
+          "AniuaApi",
+          "Сервер заблоковано, фільтруємо верифіковані з кешу"
+        );
+        return AniuaApi.cache.teams.data.filter((team) => team.is_verified);
+      }
+      return [];
+    }
+
     try {
       const response = await AniuaApi.axiosInstance.get<Team[]>(
         `${AniuaApi.baseUrl}/v1/teams`,
@@ -1372,6 +1462,10 @@ export class AniuaApi {
    * ```
    */
   public static async healthCheck(): Promise<boolean> {
+    // Якщо сервер заблоковано - одразу повертаємо false
+    if (AniuaApi.isServerBlocked) {
+      return false;
+    }
     try {
       await AniuaApi.axiosInstance.get(`${AniuaApi.baseUrl}/v1/teams`, {
         timeout: 5000,
@@ -1415,6 +1509,7 @@ export class AniuaApi {
    */
   public static async refreshEpisodes(slug: string): Promise<Episode[]> {
     try {
+      AniuaApi.ensureNotBlocked();
       Logger.debug("AniuaApi", `Оновлення епізодів для ${slug} через refresh`);
       const response = await AniuaApi.axiosInstance.get<EpisodesResponse>(
         `${AniuaApi.baseUrl}/v1/episodes/refresh?slug=${slug}`
@@ -1434,6 +1529,7 @@ export class AniuaApi {
   private static async parseVideoUrl(
     videoUrl: string
   ): Promise<{ m3u8: string | null; poster: string | null } | null> {
+    if (AniuaApi.isServerBlocked) return null;
     try {
       const response = await AniuaApi.axiosInstance.get(videoUrl, {
         headers: {
@@ -1638,6 +1734,62 @@ export class AniuaApi {
     if (cached && AniuaApi.isCacheValid(cached.timestamp)) {
       Logger.debug("AniuaApi", `Епізоди для ${slug} з in-memory кешу`);
       return cached.data;
+    }
+
+    // Якщо сервер заблоковано - повертаємо застарілі дані з кешу або fallback до HikkaApiComplete
+    if (AniuaApi.isServerBlocked) {
+      // Спробуємо in-memory кеш (навіть застарілий)
+      if (cached) {
+        Logger.debug(
+          "AniuaApi",
+          `Сервер заблоковано, повернуто застарілі епізоди для ${slug} з in-memory кешу`
+        );
+        return cached.data;
+      }
+      // Fallback до HikkaApiComplete (api.hikka-features)
+      Logger.debug(
+        "AniuaApi",
+        `Сервер заблоковано, спроба fallback до HikkaApiComplete для ${slug}`
+      );
+      try {
+        const hikkaResult = await HikkaApiComplete.getEpisodes(slug);
+        // hikkaResult.data = { episodes: [...], slug, team, notification_type }
+        if (hikkaResult.data?.episodes && Array.isArray(hikkaResult.data.episodes)) {
+          const ignoredPlayers = ["vidking", "tortuga"];
+          const episodes: Episode[] = hikkaResult.data.episodes
+            .filter((ep: any) => !ignoredPlayers.includes(ep.player?.toLowerCase()))
+            .map((ep: any, index: number) => ({
+              id: ep.id || index,
+              created_at: ep.created_at || "",
+              slug: ep.slug || slug,
+              imdb_id: ep.imdb_id || null,
+              mal_id: ep.mal_id || null,
+              player: ep.player || "unknown",
+              player_id: ep.player_id || ep.episode_id || "",
+              team: ep.team || hikkaResult.data.team || "Невідомо",
+              episode: ep.episode || index + 1,
+              poster: ep.poster || null,
+              video_url: ep.video_url || "",
+              m3u8: ep.m3u8 || null,
+              real_url: ep.real_url || null,
+              name_ua: ep.name_ua || null,
+              name_en: ep.name_en || null,
+              name_jp: ep.name_jp || null,
+            }));
+          Logger.debug(
+            "AniuaApi",
+            `Fallback: завантажено ${episodes.length} епізодів з HikkaApiComplete`
+          );
+          return episodes;
+        }
+      } catch (error) {
+        Logger.warn(
+          "AniuaApi",
+          `Fallback: помилка HikkaApiComplete для ${slug}`,
+          error
+        );
+      }
+      return [];
     }
 
     // Використовуємо дедуплікацію - якщо той самий запит вже виконується, чекаємо його

@@ -198,6 +198,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
         )}
         <View style={styles.episodeInfo}>
           <Text
+            selectable={true}
             numberOfLines={2}
             style={[
               H4,
@@ -212,11 +213,13 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           </Text>
           {episodeName && (
             <Text
+              selectable={true}
               style={[
                 H6,
                 {
                   color: themeColors.text,
                   marginTop: isDownloadMode ? 8 : 0,
+                  marginLeft: 8,
                 },
               ]}
               numberOfLines={isDownloadMode ? 1 : 2}
@@ -244,6 +247,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           )}
           {isDownloadMode && hasError && (
             <Text
+              selectable={true}
               style={[H6, { color: themeColors.primary, marginTop: 2 }]}
               numberOfLines={1}
             >

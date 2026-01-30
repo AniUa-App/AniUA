@@ -13,7 +13,7 @@ import HomeTab from "./Home";
 const DummyTabScene = () => {
   return (
     <View>
-      <Text>Tab Screen</Text>
+      <Text selectable={true}>Tab Screen</Text>
     </View>
   );
 };

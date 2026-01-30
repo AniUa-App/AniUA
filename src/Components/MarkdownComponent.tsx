@@ -90,6 +90,7 @@ function CollapsibleContainer({ type, title, children, styles, accentColor }) {
           <View style={styles.containerContent}>{children}</View>
         ) : (
           <Text
+            selectable={true}
             style={[
               styles.containerTitle,
               styles[`container_${type}_title`],
@@ -115,6 +116,7 @@ function CalloutContainer({ type, title, children, styles, accentColor }) {
     >
       <View style={[styles.containerHeader, { borderColor: accentColor }]}>
         <Text
+          selectable={true}
           style={[
             styles.containerTitle,
             styles[`container_${type}_title`],
@@ -288,12 +290,64 @@ export default function MarkdownComponent({ children, style, rules, ...rest }) {
 
   const containerRules = useMemo(() => buildContainerRules(colors), [colors]);
 
+  const selectableTextRules = useMemo(
+    () => ({
+      text: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.text}>
+          {node.content}
+        </Text>
+      ),
+      paragraph: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.paragraph}>
+          {children}
+        </Text>
+      ),
+      heading1: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.heading1}>
+          {children}
+        </Text>
+      ),
+      heading2: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.heading2}>
+          {children}
+        </Text>
+      ),
+      heading3: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.heading3}>
+          {children}
+        </Text>
+      ),
+      heading4: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.heading4}>
+          {children}
+        </Text>
+      ),
+      strong: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.strong}>
+          {children}
+        </Text>
+      ),
+      em: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.em}>
+          {children}
+        </Text>
+      ),
+      link: (node, children, parent, styles) => (
+        <Text key={node.key} selectable={true} style={styles.link}>
+          {children}
+        </Text>
+      ),
+    }),
+    []
+  );
+
   const mergedRules = useMemo(
     () => ({
+      ...selectableTextRules,
       ...containerRules,
       ...(rules || {}),
     }),
-    [containerRules, rules]
+    [selectableTextRules, containerRules, rules]
   );
 
   const mergedStyles = useMemo(
@@ -309,6 +363,7 @@ export default function MarkdownComponent({ children, style, rules, ...rest }) {
       markdownit={markdownItInstance}
       rules={mergedRules}
       style={mergedStyles}
+      selectable={true}
       {...rest}
     >
       {children}

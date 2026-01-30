@@ -11,7 +11,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
 import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
-import { HikkaApi } from "../Sources/hikka";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -75,7 +74,7 @@ export default function AnimeListScreen({
   // Оптимізована функція для паралельного завантаження аніме
   const fetchAnimeDetails = useCallback(async (animeSlug) => {
     try {
-      return await HikkaApi.getAnimeDetails(animeSlug);
+      return await HikkaApiComplete.getAnimeDetails(animeSlug);
     } catch (error) {
       Logger.error("AnimeList", "Помилка при отриманні деталей аніме", {
         animeSlug,
@@ -256,7 +255,7 @@ export default function AnimeListScreen({
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
           {/* Додано контейнер для кращого центрування */}
-          <Text style={[styles.emptyMessage, H2, {}]}>
+          <Text selectable={true} style={[styles.emptyMessage, H2, {}]}>
             {type === "Liked"
               ? HikkaAuthService.isAuthenticated()
                 ? "Список улюбленого порожній"

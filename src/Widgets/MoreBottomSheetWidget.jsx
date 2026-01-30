@@ -24,7 +24,7 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
         onPress: () => {
           Share.share({
             title: anime.title_ua,
-            message: `Подивись ${anime.title_ua}\nзa посиланням: ${MainConfig.urls.appUrl}/anime/${anime.slug}`,
+            message: `Подивись ${anime.title_ua || anime.title_en || anime.title_ja}\nзa посиланням: ${MainConfig.urls.appUrl}/anime/${anime.slug}`,
             url: `${MainConfig.urls.appUrl}/anime/${anime.slug}`,
           });
           sheetRef.current?.close();
@@ -121,7 +121,9 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
             onPress={element.onPress}
           >
             <View style={styles.iconContainer}>{element.icon}</View>
-            <Text style={[H3, styles.menuText]}>{element.title}</Text>
+            <Text selectable={true} style={[H3, styles.menuText]}>
+              {element.title}
+            </Text>
           </TouchableOpacity>
         ))}
       </BottomSheetView>

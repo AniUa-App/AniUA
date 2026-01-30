@@ -10,11 +10,8 @@ export default function SettingsSection({ title, children }) {
     <View style={styles.container}>
       {title && (
         <Text
-          style={[
-            H5,
-            styles.title,
-            { color: themeColors.Text(0.6) },
-          ]}
+          selectable={true}
+          style={[H5, styles.title, { color: themeColors.Text(0.6) }]}
         >
           {title}
         </Text>

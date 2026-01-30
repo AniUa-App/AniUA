@@ -67,7 +67,11 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
 
           {/* Badge */}
           <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-            <Text style={[H6, { color: "#FFFFFF" }]}>
+            <Text
+              selectable={true}
+              selectable={true}
+              style={[H6, { color: "#FFFFFF" }]}
+            >
               {getOSTLabel(item.ost_type, item.index)}
             </Text>
           </View>
@@ -82,10 +86,18 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
             colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.bottomGradient}
           >
-            <Text style={[H5, styles.title]} numberOfLines={1}>
+            <Text
+              selectable={true}
+              style={[H5, styles.title]}
+              numberOfLines={1}
+            >
               {item.title}
             </Text>
-            <Text style={[H6, styles.author]} numberOfLines={1}>
+            <Text
+              selectable={true}
+              style={[H6, styles.author]}
+              numberOfLines={1}
+            >
               {item.author}
             </Text>
           </LinearGradient>

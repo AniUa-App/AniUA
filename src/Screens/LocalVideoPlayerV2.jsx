@@ -986,6 +986,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
               {seekIndicator.direction === "right" ? (
                 <>
                   <Text
+                    selectable={true}
                     style={[H4, { color: themeColors.text, marginLeft: 8 }]}
                   >
                     {seekIndicator.value} сек
@@ -1002,6 +1003,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     color={themeColors.primary}
                   />
                   <Text
+                    selectable={true}
                     style={[H4, { color: themeColors.text, marginLeft: 8 }]}
                   >
                     {seekIndicator.value} сек
@@ -1060,12 +1062,14 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
                   <View style={styles.titleContainer}>
                     <Text
+                      selectable={true}
                       style={[H4, { color: themeColors.text }]}
                       numberOfLines={1}
                     >
                       {title || "Відео"}
                     </Text>
                     <Text
+                      selectable={true}
                       style={[H6, { color: themeColors.InActiveText(0.7) }]}
                     >
                       Епізод {currentEpisode?.episode || "1"}
@@ -1199,6 +1203,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                   </View>
                   <View style={styles.progressContainer}>
                     <Text
+                      selectable={true}
                       style={[
                         H6,
                         {
@@ -1255,6 +1260,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                     </View>
 
                     <Text
+                      selectable={true}
                       style={[
                         H6,
                         {
@@ -1307,6 +1313,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                       }}
                     >
                       <Text
+                        selectable={true}
                         style={[
                           H5,
                           {
@@ -1564,6 +1571,7 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                                   color={themeColors.primary}
                                 />
                                 <Text
+                                  selectable={true}
                                   style={[
                                     H6,
                                     {

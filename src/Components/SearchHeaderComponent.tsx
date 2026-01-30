@@ -53,7 +53,9 @@ export default function SearchHeaderComponent({
 
       {/* Search Input */}
       <View style={styles.searchInputContainer}>
-        <TextInputComponent
+        <Text
+          selectable={true}
+          InputComponent
           title={searchText}
           onChangeText={onChangeText}
           onSubmitEditing={onSubmitEditing}

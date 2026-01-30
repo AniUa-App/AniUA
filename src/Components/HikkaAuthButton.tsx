@@ -76,22 +76,18 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      "Вихід",
-      "Ви впевнені що хочете вийти з акаунту Hikka?",
-      [
-        { text: "Скасувати", style: "cancel" },
-        {
-          text: "Вийти",
-          style: "destructive",
-          onPress: () => {
-            HikkaAuthService.logout();
-            setIsAuthenticated(false);
-            setUser(null);
-          },
+    Alert.alert("Вихід", "Ви впевнені що хочете вийти з акаунту Hikka?", [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Вийти",
+        style: "destructive",
+        onPress: () => {
+          HikkaAuthService.logout();
+          setIsAuthenticated(false);
+          setUser(null);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const styles = StyleSheet.create({
@@ -129,7 +125,7 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
     return (
       <View style={[styles.button, styles.buttonDisabled, style]}>
         <ActivityIndicator color={theme.text} size="small" />
-        <Text style={[styles.buttonText, { marginLeft: 8 }]}>
+        <Text selectable={true} style={[styles.buttonText, { marginLeft: 8 }]}>
           Авторизація...
         </Text>
       </View>
@@ -144,8 +140,12 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
         activeOpacity={0.7}
       >
         <View style={styles.userInfo}>
-          <Text style={styles.username}>@{user.username}</Text>
-          <Text style={styles.buttonText}>Вийти</Text>
+          <Text selectable={true} style={styles.username}>
+            @{user.username}
+          </Text>
+          <Text selectable={true} style={styles.buttonText}>
+            Вийти
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -157,7 +157,9 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
       onPress={handleLogin}
       activeOpacity={0.7}
     >
-      <Text style={styles.buttonText}>Увійти через Hikka</Text>
+      <Text selectable={true} style={styles.buttonText}>
+        Увійти через Hikka
+      </Text>
     </TouchableOpacity>
   );
 };

@@ -104,7 +104,10 @@ export default function SearchFilterBottomSheet({
           <View style={styles.content}>
             {/* Заголовок */}
             <View style={styles.headerRow}>
-              <Text style={[H4, { color: themeColors.text, fontSize: 18 }]}>
+              <Text
+                selectable={true}
+                style={[H4, { color: themeColors.text, fontSize: 18 }]}
+              >
                 Фільтри пошуку
               </Text>
               <View style={styles.headerButtons}>
@@ -130,7 +133,10 @@ export default function SearchFilterBottomSheet({
             </View>
 
             {/* Статус */}
-            <Text style={[H4, { color: themeColors.text, marginBottom: 8 }]}>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.text, marginBottom: 8 }]}
+            >
               Статус
             </Text>
             <SegmentedControlLabelWidget
@@ -147,7 +153,9 @@ export default function SearchFilterBottomSheet({
             />
 
             {/* Сезон */}
-            <Text style={[H4, styles.sectionLabel]}>Сезон</Text>
+            <Text selectable={true} style={[H4, styles.sectionLabel]}>
+              Сезон
+            </Text>
             <SegmentedControlLabelWidget
               segments={[
                 { label: "Байдуже" },
@@ -165,7 +173,9 @@ export default function SearchFilterBottomSheet({
             />
 
             {/* Жанри */}
-            <Text style={[H4, styles.sectionLabel]}>Жанри</Text>
+            <Text selectable={true} style={[H4, styles.sectionLabel]}>
+              Жанри
+            </Text>
             <InputPickerWidget
               items={loadedGenres}
               placeholder="Виберіть жанр/жанри..."

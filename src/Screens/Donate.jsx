@@ -18,6 +18,7 @@ export default function DonateScreen() {
     <DefaultScreenWidget>
       <View style={styles.container}>
         <Text
+          selectable={true}
           style={[
             H2,
             {
@@ -38,6 +39,7 @@ export default function DonateScreen() {
             onChangeText={setAmount}
           />
           <Text
+            selectable={true}
             style={[
               H2,
               styles.currency,
@@ -57,10 +59,14 @@ export default function DonateScreen() {
             /* TODO: handle donate */
           }}
         >
-          <Text style={[H2, styles.primaryButtonText]}>Пожертвувати</Text>
+          <Text selectable={true} style={[H2, styles.primaryButtonText]}>
+            Пожертвувати
+          </Text>
         </TouchableOpacity>
 
-        <Text style={[H7, styles.caption]}>Мінімальна сума донату: 30₴</Text>
+        <Text selectable={true} style={[H7, styles.caption]}>
+          Мінімальна сума донату: 30₴
+        </Text>
       </View>
     </DefaultScreenWidget>
   );

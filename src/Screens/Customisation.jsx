@@ -426,7 +426,7 @@ export default function CustomisationScreen() {
               />
 
               <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                <Text style={[H6, { color: themeColors.inActiveText, textAlign: "center" }]}>
+                <Text selectable={true} style={[H6, { color: themeColors.inActiveText, textAlign: "center" }]}>
                   Може знадобитися перезапуск додатку
                 </Text>
               </View>

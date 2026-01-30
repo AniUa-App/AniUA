@@ -5,7 +5,7 @@ import DefaultScreenWidget from "./../Widgets/DefaultScreenWidget";
 export default function BookmarkTabsScreen({ tabType }) {
   return (
     <DefaultScreenWidget>
-      <Text>BookmarkTabsScreen</Text>
+      <Text selectable={true}>BookmarkTabsScreen</Text>
     </DefaultScreenWidget>
   );
 }

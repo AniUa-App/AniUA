@@ -61,6 +61,7 @@ export default function Header({
       )}
 
       <Text
+        selectable={true}
         style={[
           H3,
           {

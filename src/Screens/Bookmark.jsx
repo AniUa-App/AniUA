@@ -157,7 +157,7 @@ export default function BookmarkScreen({ ...props }) {
     () =>
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
-          <Text style={[styles.emptyMessage, H2]}>
+          <Text selectable={true} style={[styles.emptyMessage, H2]}>
             {`Список "${STATUS_TITLES[currentStatus] || "аніме"}" порожній`}
           </Text>
         </View>

@@ -129,6 +129,7 @@ export default function CharacterDetailBottomSheet({
           style={[styles.namePill, { backgroundColor: themeColors.primary }]}
         >
           <Text
+            selectable={true}
             style={[
               styles.nameText,
               { fontSize: scaleFontSize(18), color: themeColors.text },
@@ -171,7 +172,9 @@ export default function CharacterDetailBottomSheet({
           <>
             {/* Anime Section */}
             <View style={styles.sectionHeader}>
-              <Text style={[H3, { color: themeColors.text }]}>Аніме</Text>
+              <Text selectable={true} style={[H3, { color: themeColors.text }]}>
+                Аніме
+              </Text>
             </View>
             <AnimeListHorizontal
               animeList={animeList}
@@ -185,7 +188,10 @@ export default function CharacterDetailBottomSheet({
           </>
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={[H4, { color: themeColors.inActiveText }]}>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.inActiveText }]}
+            >
               Немає пов'язаного аніме
             </Text>
           </View>

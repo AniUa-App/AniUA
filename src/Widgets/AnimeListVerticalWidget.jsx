@@ -29,7 +29,9 @@ export default function AnimeListVertical({
         activeOpacity={0.9}
         onPress={onClickMore}
       >
-        <Text style={[styles.title, H3]}>{title}</Text>
+        <Text selectable={true} style={[styles.title, H3]}>
+          {title}
+        </Text>
         <View style={styles.arrowRightIcon}>
           {onClickMore && <Icon.ArrowRight size={34} color={primary} />}
         </View>

@@ -1,4 +1,4 @@
-import { HikkaApi } from "./hikka";
+import { HikkaApiComplete } from "./HikkaApiComplete";
 import axios from "axios";
 import { CustomAnimeSet } from "../Storage/PersonalRecListStorage";
 import Logger from "../Logger/Logger";
@@ -123,7 +123,7 @@ async function _sendRequest(
   page: number,
   size: number
 ): Promise<any> {
-  const query = HikkaApi.getApiUrl() + `anime?page=${page}&size=${size}`;
+  const query = HikkaApiComplete.getApiUrl() + `anime?page=${page}&size=${size}`;
   const toArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
   const mapUsingDict = (input: any | any[], dict: Record<string, string>) =>
     toArray(input).map((item) => dict[item as any] ?? String(item)) || [];
@@ -158,7 +158,7 @@ export async function getPagesAndSizes(
     Score: score,
   } = customSet;
 
-  const query = HikkaApi.getApiUrl() + `anime?page=1&size=1`;
+  const query = HikkaApiComplete.getApiUrl() + `anime?page=1&size=1`;
   const toArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
 
   const body = {
@@ -206,7 +206,7 @@ export async function test() {
 }
 
 export async function getGenres() {
-  const list = await HikkaApi.getGenres();
+  const list = await HikkaApiComplete.getGenres();
   const genres: string[] = [];
   Genres = {};
   if (Array.isArray(list)) {
@@ -223,7 +223,7 @@ export async function getGenres() {
 }
 
 export async function getGenresPairs(): Promise<Array<Record<string, string>>> {
-  const list = await HikkaApi.getGenres();
+  const list = await HikkaApiComplete.getGenres();
   if (!Array.isArray(list)) return [];
   return list
     .filter((item: any) => item?.name_ua && item?.slug)

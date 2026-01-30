@@ -12,7 +12,9 @@ function Row({ icon, label, color }) {
   return (
     <View style={styles.row}>
       <View style={[styles.iconBox, {}]}>{icon}</View>
-      <Text style={[H4, { color: color ?? theme.Text(0.7) }]}>{label}</Text>
+      <Text selectable={true} style={[H4, { color: color ?? theme.Text(0.7) }]}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -32,7 +34,9 @@ export default function PrivilegesScreen() {
     <DefaultScreenWidget>
       <View style={styles.container}>
         {/* Кохай */}
-        <Text style={[H2, { paddingLeft: 0 }]}>Кохай</Text>
+        <Text selectable={true} style={[H2, { paddingLeft: 0 }]}>
+          Кохай
+        </Text>
         <View style={[styles.card]}>
           <Row
             label="Перегляд аніме"
@@ -49,12 +53,12 @@ export default function PrivilegesScreen() {
         </View>
 
         {/* Divider */}
-        <View
-          style={[styles.divider, { backgroundColor: theme.Text(0.12) }]}
-        />
+        <View style={[styles.divider, { backgroundColor: theme.Text(0.12) }]} />
 
         {/* Сенпай */}
-        <Text style={[H2, {}]}>Сенпай</Text>
+        <Text selectable={true} style={[H2, {}]}>
+          Сенпай
+        </Text>
         <View style={[styles.card, {}]}>
           <Row
             label="Кастомізація головного меню"
@@ -82,7 +86,10 @@ export default function PrivilegesScreen() {
             color={theme.text}
             icon={<Icons.DownloadSimple size={34} color={theme.primary} />}
           />
-          <Text style={[H6, { alignSelf: "center", color: theme.Text(0.3) }]}>
+          <Text
+            selectable={true}
+            style={[H6, { alignSelf: "center", color: theme.Text(0.3) }]}
+          >
             Лише за пожертву від 30 ₴
           </Text>
         </View>
@@ -91,7 +98,9 @@ export default function PrivilegesScreen() {
           onPress={goDonate}
           style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
         >
-          <Text style={[H4, { color: theme.text }]}>Пожертвувати</Text>
+          <Text selectable={true} style={[H4, { color: theme.text }]}>
+            Пожертвувати
+          </Text>
         </TouchableOpacity>
       </View>
     </DefaultScreenWidget>

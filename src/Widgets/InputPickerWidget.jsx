@@ -129,7 +129,9 @@ export default function InputPickerWidget({
             justifyContent: "space-between",
           }}
         >
-          <Text style={[H5, { color: colors.text }]}>{item.label}</Text>
+          <Text selectable={true} style={[H5, { color: colors.text }]}>
+            {item.label}
+          </Text>
           {active ? (
             <Icons.Check size={18} color={colors.primary} />
           ) : (
@@ -293,7 +295,9 @@ export default function InputPickerWidget({
               >
                 <Icons.XCircle size={16} color={colors.text} />
               </TouchableOpacity>
-              <Text style={[H5, { color: colors.text }]}>{value}</Text>
+              <Text selectable={true} style={[H5, { color: colors.text }]}>
+                {value}
+              </Text>
             </View>
           ))}
         </View>

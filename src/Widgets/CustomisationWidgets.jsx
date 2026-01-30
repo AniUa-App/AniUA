@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { primary, background, text } from "../Styles/Colors";
 import { useThemeColors } from "../Global/useTheme";
@@ -41,14 +47,28 @@ export function SliderWidget({
       <View style={styles.sliderHeader}>
         <View style={styles.sliderTitleRow}>
           {icon && (
-            <View style={[styles.sliderIcon, { backgroundColor: themeColors.Background(0.5) }]}>
+            <View
+              style={[
+                styles.sliderIcon,
+                { backgroundColor: themeColors.Background(0.5) },
+              ]}
+            >
               {icon}
             </View>
           )}
-          <Text style={[H4, { color: themeColors.text }]}>{title}</Text>
+          <Text selectable={true} style={[H4, { color: themeColors.text }]}>
+            {title}
+          </Text>
         </View>
-        <View style={[styles.valueContainer, { backgroundColor: themeColors.primary }]}>
-          <Text style={[H4, { color: themeColors.text }]}>{sliderValue}</Text>
+        <View
+          style={[
+            styles.valueContainer,
+            { backgroundColor: themeColors.primary },
+          ]}
+        >
+          <Text selectable={true} style={[H4, { color: themeColors.text }]}>
+            {sliderValue}
+          </Text>
         </View>
       </View>
       <View style={styles.sliderWrapper}>
@@ -67,8 +87,18 @@ export function SliderWidget({
           }}
         />
         <View style={styles.rangeLabels}>
-          <Text style={[H6, { color: themeColors.Text(0.5) }]}>{minimumValue}</Text>
-          <Text style={[H6, { color: themeColors.Text(0.5) }]}>{maximumValue}</Text>
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.Text(0.5) }]}
+          >
+            {minimumValue}
+          </Text>
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.Text(0.5) }]}
+          >
+            {maximumValue}
+          </Text>
         </View>
       </View>
     </View>
@@ -101,9 +131,16 @@ export function ColorPickerWidget({
   }
 
   return (
-    <View style={[styles.colorPickerContainer, { borderColor: themeColors.subtle }]}>
+    <View
+      style={[styles.colorPickerContainer, { borderColor: themeColors.subtle }]}
+    >
       <View style={styles.colorPickerHeader}>
-        <Text style={[H4, { color: themeColors.text, paddingLeft: 8 }]}>{title}</Text>
+        <Text
+          selectable={true}
+          style={[H4, { color: themeColors.text, paddingLeft: 8 }]}
+        >
+          {title}
+        </Text>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => setIsOpened(false)}
@@ -222,7 +259,11 @@ export function ToggleSettingWidget({
       iconColor={iconColor}
       button={{
         Icon: value ? (
-          <Icons.ToggleRight size={34} color={themeColors.primary} weight="fill" />
+          <Icons.ToggleRight
+            size={34}
+            color={themeColors.primary}
+            weight="fill"
+          />
         ) : (
           <Icons.ToggleLeft size={34} color={themeColors.inActiveText} />
         ),
@@ -232,7 +273,14 @@ export function ToggleSettingWidget({
   );
 }
 
-export function ExpandableSection({ title, icon, iconColor, expanded, onToggle, children }) {
+export function ExpandableSection({
+  title,
+  icon,
+  iconColor,
+  expanded,
+  onToggle,
+  children,
+}) {
   const themeColors = useThemeColors();
   const [animatedHeight] = useState(new Animated.Value(expanded ? 1 : 0));
 

@@ -39,6 +39,7 @@ export default function FilterChips({
               weight={isActive ? "fill" : "regular"}
             />
             <Text
+              selectable={true}
               style={[
                 H5,
                 {

@@ -63,16 +63,23 @@ export default function SpeedBottomSheet({
     >
       <BottomSheetView style={styles.container}>
         <View style={styles.header}>
-          <Text style={[H3, { color: themeColors.text, marginBottom: 8 }]}>
+          <Text
+            selectable={true}
+            style={[H3, { color: themeColors.text, marginBottom: 8 }]}
+          >
             Швидкість відтворення
           </Text>
-          <Text style={[H4, { color: primary, textAlign: "center" }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: primary, textAlign: "center" }]}
+          >
             {tempRate.toFixed(2)}x
           </Text>
         </View>
 
         <View style={styles.sliderContainer}>
           <Text
+            selectable={true}
             style={[H5, { color: themeColors.InActiveText(0.7), minWidth: 40 }]}
           >
             0.25x
@@ -92,6 +99,7 @@ export default function SpeedBottomSheet({
             }}
           />
           <Text
+            selectable={true}
             style={[
               H5,
               {

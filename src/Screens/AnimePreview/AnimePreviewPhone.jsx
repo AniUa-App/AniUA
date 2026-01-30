@@ -62,10 +62,16 @@ const InfoRow = ({ icon, label, value, themeColors }) => (
     >
       {icon}
     </View>
-    <Text style={[H5, styles.infoLabel, { color: themeColors.text }]}>
+    <Text
+      selectable={true}
+      style={[H5, styles.infoLabel, { color: themeColors.text }]}
+    >
       {label}:
     </Text>
-    <Text style={[H5, styles.infoValue, { color: themeColors.primary }]}>
+    <Text
+      selectable={true}
+      style={[H5, styles.infoValue, { color: themeColors.primary }]}
+    >
       {value}
     </Text>
   </View>
@@ -74,7 +80,9 @@ const InfoRow = ({ icon, label, value, themeColors }) => (
 // Genre tag component
 const GenreTag = ({ name, themeColors }) => (
   <View style={[{ borderColor: themeColors.primary, padding: 4 }]}>
-    <Text style={[H5, { color: themeColors.primary }]}>{name}</Text>
+    <Text selectable={true} style={[H5, { color: themeColors.primary }]}>
+      {name}
+    </Text>
   </View>
 );
 
@@ -152,6 +160,7 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
               onPress={() => handleTabChange(tab.key)}
             >
               <Text
+                selectable={true}
                 style={[
                   H5,
                   {
@@ -356,7 +365,7 @@ export default function AnimePreviewPhone({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: themeColors.text }]}>
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Помилка: неправильні параметри навігації
           </Text>
         </View>
@@ -370,7 +379,7 @@ export default function AnimePreviewPhone({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: themeColors.text }]}>
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Помилка: відсутні необхідні параметри
           </Text>
         </View>
@@ -396,7 +405,7 @@ export default function AnimePreviewPhone({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={[H3, { color: themeColors.text }]}>
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Аніме не знайдено
           </Text>
         </View>
@@ -467,6 +476,7 @@ export default function AnimePreviewPhone({ route }) {
               ]}
             >
               <Text
+                selectable={true}
                 style={[H3, { color: themeColors.text }]}
                 numberOfLines={2}
                 onTextLayout={handleTitleLayout}
@@ -479,6 +489,7 @@ export default function AnimePreviewPhone({ route }) {
               </Text>
               <View style={styles.subtitleRow}>
                 <Text
+                  selectable={true}
                   style={[
                     H5,
                     {
@@ -569,11 +580,17 @@ export default function AnimePreviewPhone({ route }) {
                 <View style={styles.genresContainer}>
                   {anime.genres.slice(0, 3).map((genre, index) => (
                     <React.Fragment key={genre.name_ua}>
-                      <Text style={[H5, { color: themeColors.primary }]}>
+                      <Text
+                        selectable={true}
+                        style={[H5, { color: themeColors.primary }]}
+                      >
                         {genre.name_ua}
                       </Text>
                       {index < anime.genres.slice(0, 3).length - 1 && (
-                        <Text style={[H5, { color: themeColors.primary }]}>
+                        <Text
+                          selectable={true}
+                          style={[H5, { color: themeColors.primary }]}
+                        >
                           ,{"\t"}
                         </Text>
                       )}
@@ -652,7 +669,7 @@ export default function AnimePreviewPhone({ route }) {
             </Markdown>
             {/* 
             {anime?.source && (
-              <Text
+              <Text selectable={true}
                 style={[H6, styles.sourceText, { color: themeColors.text }]}
               >
                 Джерело:{" "}
@@ -672,6 +689,7 @@ export default function AnimePreviewPhone({ route }) {
           {/* Rating section */}
           <View style={styles.ratingSection}>
             <Text
+              selectable={true}
               style={[
                 H4,
                 styles.ratingSectionTitle,

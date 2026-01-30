@@ -81,13 +81,19 @@ export default function SliderWidget({
   return (
     <View style={[styles.container, { backgroundColor: colors.accent }, style]}>
       {label && (
-        <Text style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}>
+        <Text
+          selectable={true}
+          style={[H5, { color: colors.inActiveText, marginBottom: 12 }]}
+        >
           {label}
         </Text>
       )}
 
       <View style={styles.row}>
-        <Text style={[H4, { color: colors.text, minWidth: 40 }]}>
+        <Text
+          selectable={true}
+          style={[H4, { color: colors.text, minWidth: 40 }]}
+        >
           {displayValue}
         </Text>
         <View style={styles.sliderWrap}>
@@ -114,6 +120,7 @@ export default function SliderWidget({
           />
         </View>
         <Text
+          selectable={true}
           style={[H4, { color: colors.text, minWidth: 40, textAlign: "right" }]}
         >
           {max}

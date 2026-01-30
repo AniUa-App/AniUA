@@ -227,7 +227,7 @@ const Mobile = React.memo(({ animes }) => {
               ]}
             >
               <Icons.StarFour size={32} color={themeColors.primary} />
-              <Text style={[H4, { color: themeColors.text }]}>
+              <Text selectable={true} style={[H4, { color: themeColors.text }]}>
                 {score.toFixed(1)}
               </Text>
             </View>
@@ -243,6 +243,7 @@ const Mobile = React.memo(({ animes }) => {
           >
             <View style={styles.titleContainer}>
               <Text
+                selectable={true}
                 style={[
                   H2,
                   {

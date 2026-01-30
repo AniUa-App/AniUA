@@ -129,12 +129,16 @@ export default function LoginScreen({ isCanSkip = true }) {
           }}
         >
           {/* Заголовок */}
-          <Text style={[H2, styles.title, { color: themeColors.text }]}>
+          <Text
+            selectable={true}
+            style={[H2, styles.title, { color: themeColors.text }]}
+          >
             Вітаємо в AniUA
           </Text>
 
           {/* Підзаголовок */}
           <Text
+            selectable={true}
             style={[H6, styles.subtitle, { color: themeColors.inActiveText }]}
           >
             Увійдіть в аккаунт, щоб зберігати та синхронізувати ваш прогрес.
@@ -147,7 +151,7 @@ export default function LoginScreen({ isCanSkip = true }) {
               onPress={handleLogin}
               disabled={isLoading}
             >
-              <Text style={[H5, styles.loginButtonText]}>
+              <Text selectable={true} style={[H5, styles.loginButtonText]}>
                 {isLoading ? "Завантаження..." : "Увійти"}
               </Text>
             </TouchableOpacity>
@@ -159,6 +163,7 @@ export default function LoginScreen({ isCanSkip = true }) {
                   disabled={isLoading}
                 >
                   <Text
+                    selectable={true}
                     style={[
                       H5,
                       styles.skipButtonText,

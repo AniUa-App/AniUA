@@ -282,7 +282,9 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Username */}
         <View style={styles.usernameContainer}>
-          <Text style={[H4]}>{displayName}</Text>
+          <Text selectable={true} style={[H4]}>
+            {displayName}
+          </Text>
           <TouchableOpacity
             onPress={() => {
               setNewUsername(user?.username || "");
@@ -297,7 +299,10 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.handle, { color: colors.Text(0.5) }]}>
+        <Text
+          selectable={true}
+          style={[styles.handle, { color: colors.Text(0.5) }]}
+        >
           {handle}
         </Text>
 
@@ -415,7 +420,10 @@ export default function ProfileScreen({ navigation }) {
             ]}
             onPress={(e) => e.stopPropagation()}
           >
-            <Text style={[H4, styles.modalTitle, { color: colors.text }]}>
+            <Text
+              selectable={true}
+              style={[H4, styles.modalTitle, { color: colors.text }]}
+            >
               Змінити ім'я користувача
             </Text>
 
@@ -425,7 +433,9 @@ export default function ProfileScreen({ navigation }) {
                 { backgroundColor: colors.accent },
               ]}
             >
-              <TextInput
+              <Text
+                selectable={true}
+                Input
                 style={[H4, styles.modalInput, { color: colors.text }]}
                 value={newUsername}
                 onChangeText={setNewUsername}
@@ -444,7 +454,9 @@ export default function ProfileScreen({ navigation }) {
                 style={[styles.modalButton, { backgroundColor: colors.accent }]}
                 disabled={isUpdatingUsername}
               >
-                <Text style={[H4, { color: colors.text }]}>Скасувати</Text>
+                <Text selectable={true} style={[H4, { color: colors.text }]}>
+                  Скасувати
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -458,7 +470,9 @@ export default function ProfileScreen({ navigation }) {
                 {isUpdatingUsername ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={[H4, { color: "#fff" }]}>Зберегти</Text>
+                  <Text selectable={true} style={[H4, { color: "#fff" }]}>
+                    Зберегти
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

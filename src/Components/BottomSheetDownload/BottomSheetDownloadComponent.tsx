@@ -28,7 +28,7 @@ import {
   Team,
   EpisodesByPlayerAndTeam,
 } from "../../Api/AniuaApi";
-import { HikkaApi } from "../../Sources/hikka";
+import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import Logger from "../../Logger/Logger";
 import DubComponent from "../DubComponent";
 import { sortDubbingsByPartnerStudios } from "../../Widgets/DubbingBottomSheetWidget";
@@ -221,6 +221,11 @@ const BottomSheetDownloadComponent = forwardRef<
         // Отримуємо епізоди
         const episodes = await AniuaApi.getAnimeEpisodes(anime.slug);
 
+        // Якщо пустий масив і сервер заблоковано - йдемо до fallback
+        if (episodes.length === 0 && AniuaApi.isBlocked()) {
+          throw new Error("Server blocked, trying fallback");
+        }
+
         // Валідуємо та виправляємо m3u8/poster якщо потрібно
         let validatedEpisodes = episodes;
         try {
@@ -265,7 +270,7 @@ const BottomSheetDownloadComponent = forwardRef<
         );
 
         try {
-          const hikkaResult = await HikkaApi.getEpisodes(anime.slug);
+          const hikkaResult = await HikkaApiComplete.getEpisodes(anime.slug);
           if (hikkaResult.data && typeof hikkaResult.data === "object") {
             grouped = convertHikkaEpisodes(hikkaResult.data, anime.slug);
             usedFallback = true;
@@ -784,6 +789,7 @@ const BottomSheetDownloadComponent = forwardRef<
           <View style={styles.errorContainer}>
             <Icon.WarningCircle size={48} color={themeColors.inActiveText} />
             <Text
+              selectable={true}
               style={[H4, { color: themeColors.inActiveText, marginTop: 12 }]}
             >
               {error}
@@ -832,7 +838,10 @@ const BottomSheetDownloadComponent = forwardRef<
                 }
               }}
             >
-              <Text style={[H5, { color: themeColors.background }]}>
+              <Text
+                selectable={true}
+                style={[H5, { color: themeColors.background }]}
+              >
                 Спробувати знову
               </Text>
             </TouchableOpacity>
@@ -873,6 +882,7 @@ const BottomSheetDownloadComponent = forwardRef<
                 >
                   <Icon.FilmStrip size={48} color={themeColors.inActiveText} />
                   <Text
+                    selectable={true}
                     style={[
                       H4,
                       {

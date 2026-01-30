@@ -13,22 +13,66 @@ export default function InvalidLinkScreen({ route, navigation }) {
   return (
     <DefaultScreenWidget>
       <View
-        style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 24 }}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: 24,
+        }}
       >
         <Icons.LinkBreak size={56} color={themeColors.primary} />
-        <Text style={[H3, { color: themeColors.text, marginTop: 16, textAlign: "center" }]}>
+        <Text
+          selectable={true}
+          style={[
+            H3,
+            { color: themeColors.text, marginTop: 16, textAlign: "center" },
+          ]}
+        >
           Посилання недійсне
         </Text>
         {slug ? (
-          <Text style={[H4, { color: themeColors.text, opacity: 0.8, marginTop: 8, textAlign: "center" }]}>
+          <Text
+            selectable={true}
+            style={[
+              H4,
+              {
+                color: themeColors.text,
+                opacity: 0.8,
+                marginTop: 8,
+                textAlign: "center",
+              },
+            ]}
+          >
             Не вдалося знайти сторінку для «{slug}».
           </Text>
         ) : null}
-        <Text style={[H4, { color: themeColors.text, opacity: 0.6, marginTop: 4, textAlign: "center" }]}>
+        <Text
+          selectable={true}
+          style={[
+            H4,
+            {
+              color: themeColors.text,
+              opacity: 0.6,
+              marginTop: 4,
+              textAlign: "center",
+            },
+          ]}
+        >
           Код помилки: {code ?? 404}
         </Text>
         {message ? (
-          <Text style={[H4, { color: themeColors.text, opacity: 0.6, marginTop: 4, textAlign: "center" }]}>
+          <Text
+            selectable={true}
+            style={[
+              H4,
+              {
+                color: themeColors.text,
+                opacity: 0.6,
+                marginTop: 4,
+                textAlign: "center",
+              },
+            ]}
+          >
             {String(message)}
           </Text>
         ) : null}
@@ -46,7 +90,12 @@ export default function InvalidLinkScreen({ route, navigation }) {
             onPress={() => navigation.navigate("MainTabs", { screen: "Home" })}
           >
             <Icons.House size={22} color={themeColors.background} />
-            <Text style={[H4, { color: themeColors.background, marginLeft: 8 }]}>На головну</Text>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.background, marginLeft: 8 }]}
+            >
+              На головну
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -63,7 +112,12 @@ export default function InvalidLinkScreen({ route, navigation }) {
             onPress={() => navigation.goBack()}
           >
             <Icons.ArrowLeft size={22} color={themeColors.text} />
-            <Text style={[H4, { color: themeColors.text, marginLeft: 8 }]}>Назад</Text>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.text, marginLeft: 8 }]}
+            >
+              Назад
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

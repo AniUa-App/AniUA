@@ -19,7 +19,6 @@ import AnimeHashStorage from "../../Storage/AnimeHashStorage";
 import NotificationsStorage from "../../Storage/NotificationsStorage";
 import AniuaAuthStorage from "../../Storage/AniuaAuthStorage";
 import { AniuaApi } from "../../Api/AniuaApi";
-import { HikkaApi } from "../../Sources/hikka";
 import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import {
@@ -115,7 +114,7 @@ export function useAnimePreview({ route, navigation }) {
       if (slug && !initialAnime) {
         setIsLoading(true);
         try {
-          const animeData = await HikkaApi.getAnimeDetails(slug);
+          const animeData = await HikkaApiComplete.getAnimeDetails(slug);
           if (animeData) {
             setAnime(animeData);
             const animeInfo = AnimeStorage.get(slug);
@@ -206,7 +205,9 @@ export function useAnimePreview({ route, navigation }) {
           }
           if (!anime.synopsis_ua) {
             try {
-              const details = await HikkaApi.getAnimeDetails(anime.slug);
+              const details = await HikkaApiComplete.getAnimeDetails(
+                anime.slug
+              );
               if (isMounted) {
                 setAnime((prevAnime) => ({ ...prevAnime, ...details }));
                 AnimeHashStorage.addHash(anime.slug, {
@@ -223,7 +224,9 @@ export function useAnimePreview({ route, navigation }) {
 
         const fetchFranchise = async () => {
           try {
-            const data = await HikkaApi.getAnimeFranchiseByFilter(anime.slug);
+            const data = await HikkaApiComplete.getAnimeFranchiseByFilter(
+              anime.slug
+            );
             if (isMounted) {
               setAnimeList(Array.isArray(data) ? data : []);
             }
@@ -321,7 +324,7 @@ export function useAnimePreview({ route, navigation }) {
             try {
               let currentInfo = infoRef.current;
 
-              const result = await HikkaApi.getEpisodes(anime.slug);
+              const result = await HikkaApiComplete.getEpisodes(anime.slug);
 
               if (!isMounted) return;
 
@@ -482,21 +485,34 @@ export function useAnimePreview({ route, navigation }) {
                 { token: pushToken, add_slugs: [anime.slug] },
                 { bearerToken: aniuaToken }
               );
-              Logger.debug("AnimePreview", "Підписано на сповіщення", anime.slug);
+              Logger.debug(
+                "AnimePreview",
+                "Підписано на сповіщення",
+                anime.slug
+              );
             }
             // Відписуємось коли видаляємо зі списку або змінюємо статус з "watching"
             else if (
-              (newStatus === null || (previousStatus === "watching" && newStatus !== "watching"))
+              newStatus === null ||
+              (previousStatus === "watching" && newStatus !== "watching")
             ) {
               NotificationsStorage.removeSubscribedSlug(anime.slug);
               await AniuaApi.updateNotificationSubscription(
                 { token: pushToken, remove_slugs: [anime.slug] },
                 { bearerToken: aniuaToken }
               );
-              Logger.debug("AnimePreview", "Відписано від сповіщень", anime.slug);
+              Logger.debug(
+                "AnimePreview",
+                "Відписано від сповіщень",
+                anime.slug
+              );
             }
           } catch (notifError) {
-            Logger.warn("AnimePreview", "Помилка оновлення підписки на сповіщення", notifError);
+            Logger.warn(
+              "AnimePreview",
+              "Помилка оновлення підписки на сповіщення",
+              notifError
+            );
           }
         }
       } catch (error) {
@@ -587,7 +603,10 @@ export function useAnimePreview({ route, navigation }) {
         }
 
         // Emit event для оновлення історії в HistoryComponent
-        EventBus.emit("historyUpdated", { slug: anime.slug, episode: maxEpisode });
+        EventBus.emit("historyUpdated", {
+          slug: anime.slug,
+          episode: maxEpisode,
+        });
 
         Logger.debug(
           "AnimePreview",

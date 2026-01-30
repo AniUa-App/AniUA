@@ -154,7 +154,7 @@ export const ErrorTestComponent = () => {
     >
       {/* Заголовок */}
       <TouchableOpacity onPress={toggleMinimize} style={styles.header}>
-        <Text style={styles.title}>
+        <Text selectable={true} style={styles.title}>
           {isMinimized ? "Продв. фун." : "Продвинуті функції"}
         </Text>
         <Icon.Bug size={30} color={primary} />
@@ -164,19 +164,27 @@ export const ErrorTestComponent = () => {
       {!isMinimized && (
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.button} onPress={throwRenderError}>
-            <Text style={styles.buttonText}>Помилка рендерингу</Text>
+            <Text selectable={true} style={styles.buttonText}>
+              Помилка рендерингу
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} onPress={throwAsyncError}>
-            <Text style={styles.buttonText}>Асинхронна помилка</Text>
+            <Text selectable={true} style={styles.buttonText}>
+              Асинхронна помилка
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} onPress={throwNetworkError}>
-            <Text style={styles.buttonText}>Мережева помилка</Text>
+            <Text selectable={true} style={styles.buttonText}>
+              Мережева помилка
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} onPress={throwUndefinedError}>
-            <Text style={styles.buttonText}>Undefined помилка</Text>
+            <Text selectable={true} style={styles.buttonText}>
+              Undefined помилка
+            </Text>
           </TouchableOpacity>
         </View>
       )}

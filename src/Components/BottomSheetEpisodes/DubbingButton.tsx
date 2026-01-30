@@ -19,13 +19,16 @@ export const DubbingButton = React.memo(
 
     return (
       <View style={styles.dubbingButtonContainer}>
-        <Text style={[H4, { color: themeColors.text }]}>Озвучка:</Text>
+        <Text selectable={true} style={[H4, { color: themeColors.text }]}>
+          Озвучка:
+        </Text>
         <TouchableOpacity
           style={[styles.dubbingChip, { backgroundColor: themeColors.subtle }]}
           onPress={onPress}
         >
           {currentPlayer.icon}
           <Text
+            selectable={true}
             style={[H5, { color: themeColors.primary, marginLeft: 8 }]}
             numberOfLines={1}
           >

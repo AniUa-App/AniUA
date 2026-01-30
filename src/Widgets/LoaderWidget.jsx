@@ -71,23 +71,27 @@ export default function Loader({ isNotFirstLaunch = false }) {
     }, 2000);
   }, []);
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    logo: {
-      width: 300,
-      height: 300,
-    },
-    versionContainer: {
-      position: "absolute",
-      bottom: 20,
-      alignItems: "center",
-    },
-  }), [colors]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        logo: {
+          width: 300,
+          height: 300,
+        },
+        versionContainer: {
+          position: "absolute",
+          bottom: 20,
+          alignItems: "center",
+        },
+      }),
+    [colors]
+  );
 
   return (
     <View style={styles.container}>
@@ -128,6 +132,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
           }}
         >
           <Text
+            selectable={true}
             style={[
               H2,
               {
@@ -149,7 +154,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
           },
         ]}
       >
-        <Text style={[H4, { color: colors.text }]}>
+        <Text selectable={true} style={[H4, { color: colors.text }]}>
           {`${appVersion || "1.0.0"}-${gitHash || "unknown"}`}
         </Text>
       </Animated.View>

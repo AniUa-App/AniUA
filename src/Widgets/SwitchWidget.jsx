@@ -22,12 +22,20 @@ export default function SwitchWidget({
     <TouchableOpacity onPress={onPressBody} style={styles.cacheBox}>
       <View style={styles.textContainer}>
         {len > 1 && (
-          <Text style={[H4, { color: themeColors.text, fontWeight: "600" }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, fontWeight: "600" }]}
+          >
             {title}
           </Text>
         )}
         {lenSub > 1 && (
-          <Text style={[H6, { color: themeColors.Text(0.7) }]}>{subtitle}</Text>
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.Text(0.7) }]}
+          >
+            {subtitle}
+          </Text>
         )}
       </View>
       <TouchableOpacity

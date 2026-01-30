@@ -16,7 +16,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { Image } from "../Widgets/LoadersWidgets";
 import Icon, { DownloadIcon } from "../Styles/Icons";
 import { H2, H3, H4 } from "../Styles/Fonts";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import AnimeStorage from "../Storage/AnimeStorage";
 import Logger from "../Logger/Logger";
 import { isTabletLandscape, isTablet } from "../Styles/Responsive";
@@ -96,7 +96,7 @@ export default function DownloadScreen({
 
   const fetchAnimeDetails = useCallback(async (animeSlug: string) => {
     try {
-      return await HikkaApi.getAnimeDetails(animeSlug);
+      return await HikkaApiComplete.getAnimeDetails(animeSlug);
     } catch (error) {
       Logger.error("DownloadScreen", "Помилка при отриманні деталей аніме", {
         animeSlug,
@@ -239,6 +239,7 @@ export default function DownloadScreen({
               }}
             >
               <Text
+                selectable={true}
                 numberOfLines={4}
                 ellipsizeMode="tail"
                 style={[H3, { marginBottom: 8 }]}
@@ -254,15 +255,22 @@ export default function DownloadScreen({
             </TouchableOpacity>
 
             {item.year && (
-              <Text style={[H4, { marginBottom: 4 }]}>
+              <Text selectable={true} style={[H4, { marginBottom: 4 }]}>
                 Рік:{" "}
-                <Text style={{ color: themeColors.primary }}>{item.year}</Text>
+                <Text selectable={true} style={{ color: themeColors.primary }}>
+                  {item.year}
+                </Text>
               </Text>
             )}
             {item.genres && item.genres.length > 0 && (
-              <Text numberOfLines={2} ellipsizeMode="tail" style={H4}>
+              <Text
+                selectable={true}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={H4}
+              >
                 Жанри:{" "}
-                <Text style={{ color: themeColors.primary }}>
+                <Text selectable={true} style={{ color: themeColors.primary }}>
                   {item.genres.map((genre) => genre.name_ua).join(", ")}
                 </Text>
               </Text>
@@ -295,6 +303,7 @@ export default function DownloadScreen({
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
           <Icon.DownloadSimple size={64} color={themeColors.inActiveText} />
           <Text
+            selectable={true}
             style={[
               styles.emptyMessage,
               H2,

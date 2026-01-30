@@ -63,7 +63,10 @@ export default function QualityWidget({
     >
       <BottomSheetView style={styles.container}>
         <View style={styles.header}>
-          <Text style={[H3, { textAlign: "left", marginBottom: 12 }]}>
+          <Text
+            selectable={true}
+            style={[H3, { textAlign: "left", marginBottom: 12 }]}
+          >
             Якість відтворення
           </Text>
         </View>
@@ -102,6 +105,7 @@ export default function QualityWidget({
                 onPress={() => handleQualityChange(quality)}
               >
                 <Text
+                  selectable={true}
                   style={[
                     H4,
                     {

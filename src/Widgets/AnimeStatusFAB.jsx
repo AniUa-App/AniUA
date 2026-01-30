@@ -204,7 +204,13 @@ export default function AnimeStatusFAB({
                     color={item.color}
                     weight={isSelected ? "fill" : "regular"}
                   />
-                  <Text style={[H4, { marginLeft: 5 }]}>{item.label}</Text>
+                  <Text
+                    selectable={true}
+                    selectable={true}
+                    style={[H4, { marginLeft: 5 }]}
+                  >
+                    {item.label}
+                  </Text>
                 </TouchableOpacity>
               </Animated.View>
             );

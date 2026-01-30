@@ -656,6 +656,35 @@ export class HikkaApiComplete {
     }).catch(() => []);
   }
 
+  /**
+   * Отримує франшизу з фільтром по типу TV та сортуванням по року
+   * @param {string} slug - Slug аніме
+   * @returns {Promise<Array>} Масив TV аніме з франшизи, відсортованих за роком
+   */
+  public static async getAnimeFranchiseByFilter(slug: string) {
+    const cacheKey = `franchise_filtered_${slug}`;
+    return HikkaApiComplete.cachedRequest(cacheKey, async () => {
+      try {
+        const response = await HikkaApiComplete.axiosInstance.get(
+          `${HikkaApiComplete.apiUrl}anime/${slug}/franchise?page=1&size=15`
+        );
+        return response.data.list
+          .filter((item: any) => item.media_type === "tv")
+          .sort((a: any, b: any) => (a.year ?? 0) - (b.year ?? 0));
+      } catch (error: any) {
+        if (error?.response?.status === 400) {
+          return [];
+        }
+        Logger.error(
+          "HikkaApiComplete",
+          "Помилка при завантаженні франшизи",
+          error
+        );
+        return [];
+      }
+    }).catch(() => []);
+  }
+
   // ==================== MANGA/NOVEL ENDPOINTS ====================
 
   /**

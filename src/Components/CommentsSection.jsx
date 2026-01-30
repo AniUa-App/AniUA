@@ -188,11 +188,17 @@ const CommentItem = memo(function CommentItem({
 
         {/* Username */}
         <View style={styles.headerContent}>
-          <Text style={[H5, styles.username, { color: themeColors.text }]}>
+          <Text
+            selectable={true}
+            style={[H5, styles.username, { color: themeColors.text }]}
+          >
             {comment.author?.username || "Користувач AniUa"}
           </Text>
           {comment.created && (
-            <Text style={[H6, { color: themeColors.Text(0.5) }]}>
+            <Text
+              selectable={true}
+              style={[H6, { color: themeColors.Text(0.5) }]}
+            >
               {formatDate(comment.created)}
             </Text>
           )}
@@ -217,7 +223,7 @@ const CommentItem = memo(function CommentItem({
             />
           </TouchableOpacity>
 
-          <Text style={[H6, { color: themeColors.text }]}>
+          <Text selectable={true} style={[H6, { color: themeColors.text }]}>
             {comment.vote_score ?? 0}
           </Text>
 
@@ -251,7 +257,9 @@ const CommentItem = memo(function CommentItem({
           ]}
           onPress={handleReply}
         >
-          <Text style={[H6, { color: themeColors.text }]}>Відповісти</Text>
+          <Text selectable={true} style={[H6, { color: themeColors.text }]}>
+            Відповісти
+          </Text>
         </TouchableOpacity>
       )}
 
@@ -274,7 +282,7 @@ const CommentItem = memo(function CommentItem({
 
             {/* Toggle replies button */}
 
-            <Text style={[H5, { color: themeColors.text }]}>
+            <Text selectable={true} style={[H5, { color: themeColors.text }]}>
               {showReplies ? "Сховати" : `Подивитись відповіді`}
             </Text>
             <View
@@ -405,7 +413,10 @@ const CommentInput = memo(function CommentInput({
             { backgroundColor: themeColors.subtle },
           ]}
         >
-          <Text style={[H6, { color: themeColors.Text(0.7), flex: 1 }]}>
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.Text(0.7), flex: 1 }]}
+          >
             Відповідь для {replyTo.author?.username || "користувача"}
           </Text>
           <TouchableOpacity onPress={onCancelReply}>
@@ -680,12 +691,14 @@ function CommentsSection({ slug, contentType = "anime" }) {
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={[H5, { color: themeColors.Text(0.5) }]}>{error}</Text>
+        <Text selectable={true} style={[H5, { color: themeColors.Text(0.5) }]}>
+          {error}
+        </Text>
         <TouchableOpacity
           style={[styles.retryButton, { backgroundColor: themeColors.subtle }]}
           onPress={loadComments}
         >
-          <Text style={[H5, { color: themeColors.primary }]}>
+          <Text selectable={true} style={[H5, { color: themeColors.primary }]}>
             Спробувати ще
           </Text>
         </TouchableOpacity>
@@ -719,11 +732,17 @@ function CommentsSection({ slug, contentType = "anime" }) {
       {/* Comments list */}
       {comments.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={[H5, { color: themeColors.Text(0.5) }]}>
+          <Text
+            selectable={true}
+            style={[H5, { color: themeColors.Text(0.5) }]}
+          >
             Коментарів поки немає
           </Text>
           {HikkaAuthService.isAuthenticated() && (
-            <Text style={[H6, { color: themeColors.Text(0.3), marginTop: 4 }]}>
+            <Text
+              selectable={true}
+              style={[H6, { color: themeColors.Text(0.3), marginTop: 4 }]}
+            >
               Будьте першим, хто залишить коментар
             </Text>
           )}

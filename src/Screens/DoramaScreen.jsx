@@ -43,7 +43,10 @@ export default function DoramaScreen() {
             </View>
 
             {/* Заголовок */}
-            <Text style={[H3, styles.title, { color: themeColors.text }]}>
+            <Text
+              selectable={true}
+              style={[H3, styles.title, { color: themeColors.text }]}
+            >
               Дорами
             </Text>
 
@@ -55,13 +58,17 @@ export default function DoramaScreen() {
               ]}
             >
               <Timer size={16} color={themeColors.primary} weight="bold" />
-              <Text style={[styles.statusText, { color: themeColors.primary }]}>
+              <Text
+                selectable={true}
+                style={[styles.statusText, { color: themeColors.primary }]}
+              >
                 Йде збір коштів
               </Text>
             </View>
 
             {/* Опис */}
             <Text
+              selectable={true}
               style={[
                 styles.description,
                 { color: themeColors.text, opacity: 0.7 },
@@ -82,6 +89,7 @@ export default function DoramaScreen() {
             >
               <HeartStraight size={22} color={themeColors.text} weight="fill" />
               <Text
+                selectable={true}
                 style={[
                   H4,
                   styles.donateButtonText,
@@ -94,6 +102,7 @@ export default function DoramaScreen() {
 
             {/* Додаткова інформація */}
             <Text
+              selectable={true}
               style={[
                 styles.footnote,
                 { color: themeColors.text, opacity: 0.5 },

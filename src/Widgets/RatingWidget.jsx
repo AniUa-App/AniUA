@@ -177,6 +177,7 @@ const RatingWidget = ({
       >
         {showTitle && (
           <Text
+            selectable={true}
             style={[
               H3,
               {
@@ -206,7 +207,9 @@ const RatingWidget = ({
           onChangeText={setFeedback}
           placeholder="Напишіть ваші побажання"
           placeholderTextColor={
-            themeColors.InActiveText ? themeColors.InActiveText(0.6) : themeColors.text
+            themeColors.InActiveText
+              ? themeColors.InActiveText(0.6)
+              : themeColors.text
           }
           multiline
           numberOfLines={3}
@@ -236,6 +239,7 @@ const RatingWidget = ({
           activeOpacity={0.8}
         >
           <Text
+            selectable={true}
             style={[
               H5,
               {

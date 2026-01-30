@@ -134,6 +134,7 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
   return (
     <>
       <Text
+        selectable={true}
         style={[
           H3,
           {
@@ -145,6 +146,7 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
       </Text>
       {playersWithAds.includes(playerType) && (
         <Text
+          selectable={true}
           style={[
             H5,
             {
@@ -390,7 +392,12 @@ export default function DubbingBottomSheet({
             />
           )}
         </View>
-        <Text style={[H3, { paddingBottom: 16, paddingLeft: 16 }]}>Плеєр:</Text>
+        <Text
+          selectable={true}
+          style={[H3, { paddingBottom: 16, paddingLeft: 16 }]}
+        >
+          Плеєр:
+        </Text>
         <View style={styles.tabsContainer}>
           {Object.entries(playersIcons).map(([name, icon]) => {
             if (name in episodesList) {

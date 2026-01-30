@@ -49,6 +49,7 @@ export default function WatchButton({
         activeOpacity={0.7}
       >
         <Text
+          selectable={true}
           style={[H5, { color: isActive ? colors.text : colors.inActiveText }]}
         >
           {label || WatchButtonState.LOADING}

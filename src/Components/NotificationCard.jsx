@@ -8,7 +8,7 @@ import { H6, H7 } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { TouchableOpacity } from "../Widgets/Button";
 import { prefetchBloomImage } from "../Widgets/BloomImage";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import Icons from "../Styles/Icons";
 import { format, formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
@@ -51,7 +51,7 @@ const NotificationCard = memo(function NotificationCard({
   // Підвантажуємо деталі аніме якщо є slug
   useEffect(() => {
     if (item.data?.slug) {
-      HikkaApi.getAnimeDetails(item.data.slug).then((data) => {
+      HikkaApiComplete.getAnimeDetails(item.data.slug).then((data) => {
         if (data) setAnimeDetails(data);
       });
     }
@@ -126,6 +126,8 @@ const NotificationCard = memo(function NotificationCard({
           <View style={styles.content}>
             {/* Заголовок (назва аніме або title сповіщення) */}
             <Text
+              selectable={true}
+              selectable={true}
               style={[
                 styles.title,
                 {
@@ -141,6 +143,7 @@ const NotificationCard = memo(function NotificationCard({
             {/* Тіло сповіщення (інфо про серію) */}
             {item.body ? (
               <Text
+                selectable={true}
                 style={[styles.body, { color: themeColors.primary }]}
                 numberOfLines={1}
               >
@@ -153,6 +156,7 @@ const NotificationCard = memo(function NotificationCard({
               <View style={styles.teamRow}>
                 <Icons.Microphone size={14} color={themeColors.Text(0.5)} />
                 <Text
+                  selectable={true}
                   style={[styles.team, { color: themeColors.Text(0.6) }]}
                   numberOfLines={1}
                 >
@@ -162,7 +166,10 @@ const NotificationCard = memo(function NotificationCard({
             )}
 
             {/* Час отримання */}
-            <Text style={[styles.time, { color: themeColors.Text(0.5) }]}>
+            <Text
+              selectable={true}
+              style={[styles.time, { color: themeColors.Text(0.5) }]}
+            >
               {formatNotificationTime(item.receivedAt)}
             </Text>
           </View>

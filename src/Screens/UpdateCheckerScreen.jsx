@@ -192,7 +192,7 @@ export default function UpdateCheckerScreen({ route }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[H5, { color: colors.text }]}>
+          <Text selectable={true} style={[H5, { color: colors.text }]}>
             Перевіряємо оновлення...
           </Text>
         </View>
@@ -241,6 +241,7 @@ export default function UpdateCheckerScreen({ route }) {
                 <Icons.ArrowUp size={44} color={colors.primary} weight="bold" />
               </View>
               <Text
+                selectable={true}
                 style={[
                   H4,
                   {
@@ -252,6 +253,7 @@ export default function UpdateCheckerScreen({ route }) {
                 Потрібне оновлення
               </Text>
               <Text
+                selectable={true}
                 style={[
                   H5,
                   {
@@ -403,7 +405,10 @@ export default function UpdateCheckerScreen({ route }) {
             {/* Error message */}
             {error && (
               <View style={[styles.errorContainer]}>
-                <Text style={[styles.errorText, { color: "red" }]}>
+                <Text
+                  selectable={true}
+                  style={[styles.errorText, { color: "red" }]}
+                >
                   Помилка оновлення: {error}
                 </Text>
               </View>
@@ -431,6 +436,7 @@ export default function UpdateCheckerScreen({ route }) {
                     />
                   </View>
                   <Text
+                    selectable={true}
                     style={[
                       H7,
                       { textAlign: "center", color: colors.Text(0.7) },
@@ -454,6 +460,7 @@ export default function UpdateCheckerScreen({ route }) {
                     weight="fill"
                   />
                   <Text
+                    selectable={true}
                     style={[
                       H7,
                       {
@@ -472,7 +479,9 @@ export default function UpdateCheckerScreen({ route }) {
                   onPress={handleInstallPending}
                 >
                   <Icons.Download size={20} color="#fff" weight="bold" />
-                  <Text style={[H5]}>Встановити оновлення</Text>
+                  <Text selectable={true} style={[H5]}>
+                    Встановити оновлення
+                  </Text>
                 </Pressable>
               </Animated.View>
             )}
@@ -483,7 +492,7 @@ export default function UpdateCheckerScreen({ route }) {
                 style={styles.fallbackLink}
                 onPress={handleOpenInBrowser}
               >
-                <Text style={[H5, { color: colors.primary }]}>
+                <Text selectable={true} style={[H5, { color: colors.primary }]}>
                   Завантажити через браузер
                 </Text>
               </Pressable>
@@ -494,7 +503,7 @@ export default function UpdateCheckerScreen({ route }) {
         {/* Type indicator - внизу */}
         <View style={styles.typeIndicator}>
           <Icons.Info size={14} color={colors.Text(0.4)} />
-          <Text style={[H7, { color: colors.Text(0.4) }]}>
+          <Text selectable={true} style={[H7, { color: colors.Text(0.4) }]}>
             {isOTA ? "OTA оновлення (швидке)" : "APK оновлення"}
           </Text>
         </View>

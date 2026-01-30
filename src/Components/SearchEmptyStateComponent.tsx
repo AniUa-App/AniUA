@@ -20,7 +20,10 @@ export default function SearchEmptyStateComponent({
   return (
     <View style={[styles.container, { backgroundColor: themeColors.subtle }]}>
       <Icons.MagnifyingGlass size={64} color={themeColors.text} weight="thin" />
-      <Text style={[H5, styles.text, { color: themeColors.text }]}>
+      <Text
+        selectable={true}
+        style={[H5, styles.text, { color: themeColors.text }]}
+      >
         {hasSearched ? "Нічого не знайдено" : "Введіть запит для пошуку"}
       </Text>
     </View>

@@ -26,7 +26,10 @@ export const DownloadDubbingButton = React.memo(
     return (
       <View style={styles.dubbingButtonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text style={[H4, { color: themeColors.text, marginLeft: 4 }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, marginLeft: 4 }]}
+          >
             Озвучка:
           </Text>
           <TouchableOpacity
@@ -38,6 +41,7 @@ export const DownloadDubbingButton = React.memo(
           >
             {currentPlayer.icon}
             <Text
+              selectable={true}
               style={[H5, { color: themeColors.primary, marginLeft: 8 }]}
               numberOfLines={1}
             >

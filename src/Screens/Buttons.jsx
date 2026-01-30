@@ -14,7 +14,15 @@ export default function ButtonsScreen({ route }) {
   const navigation = useNavigation();
   const colors = useThemeColors();
   const { snackbar, showSnackbar } = useSnackbar();
-  const { list, title, buttonStyle, isGoBack, Sbutton, value, playerSelection } = route.params;
+  const {
+    list,
+    title,
+    buttonStyle,
+    isGoBack,
+    Sbutton,
+    value,
+    playerSelection,
+  } = route.params;
 
   // Знаходимо початкове значення - порівнюємо з value (повне ім'я) для playerSelection
   const getInitialValue = () => {
@@ -71,7 +79,9 @@ export default function ButtonsScreen({ route }) {
               ]}
               onPress={() => handleItemSelect(item)}
             >
-              <Text style={H4}>{item.title}</Text>
+              <Text selectable={true} style={H4}>
+                {item.title}
+              </Text>
             </TouchableOpacity>
           ))
         ) : (

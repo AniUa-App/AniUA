@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as NavigationBar from "expo-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
 import { AniuaApi } from "../Api/AniuaApi";
-import { HikkaApi } from "../Sources/hikka";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { convertHikkaEpisodes } from "../Components/BottomSheetEpisodes/helpers";
 import AnimeStorage from "../Storage/AnimeStorage";
 import Logger from "../Logger/Logger";
@@ -61,7 +61,7 @@ export default function AnimeWatchScreen({ route }) {
 
         // Fetch anime details
         setMessage("Завантаження аніме...");
-        const animeData = await HikkaApi.getAnimeDetails(slug);
+        const animeData = await HikkaApiComplete.getAnimeDetails(slug);
         if (!animeData) {
           setStatus("error");
           setMessage("Аніме не знайдено");
@@ -83,7 +83,7 @@ export default function AnimeWatchScreen({ route }) {
           );
 
           try {
-            const hikkaResult = await HikkaApi.getEpisodes(slug);
+            const hikkaResult = await HikkaApiComplete.getEpisodes(slug);
             if (hikkaResult.data && typeof hikkaResult.data === "object") {
               episodesByPlayer = convertHikkaEpisodes(hikkaResult.data, slug);
               Logger.info(
@@ -248,16 +248,23 @@ export default function AnimeWatchScreen({ route }) {
       {status === "loading" ? (
         <>
           <ActivityIndicator size="large" color={themeColors.primary} />
-          <Text style={[H4, { color: themeColors.text, marginTop: 16 }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, marginTop: 16 }]}
+          >
             {message}
           </Text>
         </>
       ) : (
         <>
-          <Text style={[H4, { color: themeColors.text, textAlign: "center" }]}>
+          <Text
+            selectable={true}
+            style={[H4, { color: themeColors.text, textAlign: "center" }]}
+          >
             {message}
           </Text>
           <Text
+            selectable={true}
             style={[H4, { color: themeColors.primary, marginTop: 16 }]}
             onPress={() => navigation.goBack()}
           >

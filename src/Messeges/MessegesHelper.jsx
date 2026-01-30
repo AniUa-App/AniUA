@@ -1,24 +1,24 @@
-import {View, Text} from 'react-native';
-import React from 'react';
+import { View, Text } from "react-native";
+import React from "react";
 
 const MESSAGE_HELPER_DATA = {
   Error: {
     InternetError: {
-      title: 'Internet Error',
-      message: 'Please check your internet connection and try again.',
-      button: 'Retry',
+      title: "Internet Error",
+      message: "Please check your internet connection and try again.",
+      button: "Retry",
     },
     ServerError: {
-      title: 'Server Error',
-      message: 'Please try again later.',
-      button: 'Retry',
+      title: "Server Error",
+      message: "Please try again later.",
+      button: "Retry",
     },
   },
   Information: {
     NewUpdateAvailable: {
-      title: 'New Update Available',
-      message: 'Please update your app to the latest version.',
-      button: 'Update',
+      title: "New Update Available",
+      message: "Please update your app to the latest version.",
+      button: "Update",
     },
   },
 };
@@ -26,7 +26,7 @@ const MESSAGE_HELPER_DATA = {
 export default function MessegeHelper() {
   return (
     <View>
-      <Text>MessegesHelper</Text>
+      <Text selectable={true}>MessegesHelper</Text>
     </View>
   );
 }
@@ -34,7 +34,7 @@ export default function MessegeHelper() {
 export function ErrorHelper() {
   return (
     <View>
-      <Text>ErrorHelper</Text>
+      <Text selectable={true}>ErrorHelper</Text>
     </View>
   );
 }
@@ -42,7 +42,7 @@ export function ErrorHelper() {
 export function InformationMessage() {
   return (
     <View>
-      <Text>InformationMessage</Text>
+      <Text selectable={true}>InformationMessage</Text>
     </View>
   );
 }

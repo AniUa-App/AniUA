@@ -72,6 +72,7 @@ export const PlayerTabs = React.memo(
             >
               {getPlayerIcon(player, isActive)}
               <Text
+                selectable={true}
                 style={[
                   H5,
                   {

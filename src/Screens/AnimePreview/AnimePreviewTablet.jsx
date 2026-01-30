@@ -75,6 +75,7 @@ const SectionTabs = ({ tabs, defaultTab, themeColors }) => {
               onPress={() => handleTabChange(tab.key)}
             >
               <Text
+                selectable={true}
                 style={[
                   H5,
                   {
@@ -139,8 +140,10 @@ export default function AnimePreviewTablet({ route }) {
   if (!route || !route.params) {
     return (
       <DefaultScreenWidget>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <Text style={[H3, { color: themeColors.text }]}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Помилка: неправильні параметри навігації
           </Text>
         </View>
@@ -151,8 +154,10 @@ export default function AnimePreviewTablet({ route }) {
   if (!initialAnime && !slug) {
     return (
       <DefaultScreenWidget>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <Text style={[H3, { color: themeColors.text }]}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Помилка: відсутні необхідні параметри
           </Text>
         </View>
@@ -163,7 +168,9 @@ export default function AnimePreviewTablet({ route }) {
   if (isLoading) {
     return (
       <DefaultScreenWidget>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       </DefaultScreenWidget>
@@ -173,8 +180,10 @@ export default function AnimePreviewTablet({ route }) {
   if (!anime) {
     return (
       <DefaultScreenWidget>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <Text style={[H3, { color: themeColors.text }]}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             Аніме не знайдено
           </Text>
         </View>
@@ -224,18 +233,29 @@ export default function AnimePreviewTablet({ route }) {
             showsVerticalScrollIndicator={false}
           >
             {/* Poster */}
-            <View style={[styles.posterContainer, { height: landscapePosterHeight }]}>
+            <View
+              style={[
+                styles.posterContainer,
+                { height: landscapePosterHeight },
+              ]}
+            >
               <Image style={styles.posterImage} uri={anime?.image} />
               {isFocused ? <View style={styles.overlay} /> : null}
 
               {/* Back button */}
               <TouchableOpacity
-                style={[styles.backButton, { backgroundColor: themeColors.primary }]}
+                style={[
+                  styles.backButton,
+                  { backgroundColor: themeColors.primary },
+                ]}
                 onPress={() => {
                   try {
                     navigation.goBack();
                   } catch {
-                    navigation.navigate("MainTabs", { screen: "Home", params: { anime } });
+                    navigation.navigate("MainTabs", {
+                      screen: "Home",
+                      params: { anime },
+                    });
                   }
                 }}
               >
@@ -243,25 +263,40 @@ export default function AnimePreviewTablet({ route }) {
               </TouchableOpacity>
 
               {/* Rating */}
-              <View style={[styles.ratingContainer, { backgroundColor: themeColors.subtle }]}>
+              <View
+                style={[
+                  styles.ratingContainer,
+                  { backgroundColor: themeColors.subtle },
+                ]}
+              >
                 <Icon.Star size={24} color={themeColors.yellow} />
-                <Text style={[H3, { color: themeColors.text, paddingRight: 10 }]}>
+                <Text
+                  selectable={true}
+                  style={[H3, { color: themeColors.text, paddingRight: 10 }]}
+                >
                   {anime?.score || 0}
                 </Text>
               </View>
 
               {/* Trailer button */}
-              {anime?.videos?.find((v) => v.video_type === "video_promo")?.url && (
+              {anime?.videos?.find((v) => v.video_type === "video_promo")
+                ?.url && (
                 <TouchableOpacity
-                  style={[styles.playTrailerBtn, { backgroundColor: themeColors.Background(0.5) }]}
+                  style={[
+                    styles.playTrailerBtn,
+                    { backgroundColor: themeColors.Background(0.5) },
+                  ]}
                   onPress={() =>
                     Linking.openURL(
-                      anime.videos.find((v) => v.video_type === "video_promo")?.url
+                      anime.videos.find((v) => v.video_type === "video_promo")
+                        ?.url
                     )
                   }
                 >
                   <Icon.PlayCircle size={34} color={themeColors.primary} />
-                  <Text style={[H4, { marginLeft: 10 }]}>Дивитися трейлер</Text>
+                  <Text selectable={true} style={[H4, { marginLeft: 10 }]}>
+                    Дивитися трейлер
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -272,26 +307,51 @@ export default function AnimePreviewTablet({ route }) {
                 anime={anime}
                 errorCode={errorCode}
                 episodesList={episodesList}
-                style={[styles.continueWatchingBtn, { marginBottom: 18, backgroundColor: themeColors.primary }]}
+                style={[
+                  styles.continueWatchingBtn,
+                  { marginBottom: 18, backgroundColor: themeColors.primary },
+                ]}
                 data={info}
                 onDataChange={(newData) => setInfo(newData)}
               />
 
               {/* Dubbing selector */}
-              <View style={{ flexDirection: "row", marginBottom: 6, marginLeft: "2%" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginBottom: 6,
+                  marginLeft: "2%",
+                }}
+              >
                 {info?.watched?.player && (
                   <>
-                    <Text style={[H3, { color: themeColors.text }]}>Озвучення:</Text>
+                    <Text
+                      selectable={true}
+                      style={[H3, { color: themeColors.text }]}
+                    >
+                      Озвучення:
+                    </Text>
                     <TouchableOpacity
-                      style={{ marginLeft: 10, flexDirection: "row", alignItems: "center" }}
+                      style={{
+                        marginLeft: 10,
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
                       onPress={() => dubbingSheetRef.current?.present()}
                     >
                       <Text
+                        selectable={true}
                         numberOfLines={1}
                         ellipsizeMode="tail"
-                        style={[H3, { color: themeColors.primary, paddingRight: 3 }]}
+                        style={[
+                          H3,
+                          { color: themeColors.primary, paddingRight: 3 },
+                        ]}
                       >
-                        {(info?.watched?.dubbing || "Вибрати дубляж").slice(0, 15)}
+                        {(info?.watched?.dubbing || "Вибрати дубляж").slice(
+                          0,
+                          15
+                        )}
                       </Text>
                       <View
                         style={{
@@ -303,7 +363,11 @@ export default function AnimePreviewTablet({ route }) {
                       >
                         {playersIcons[info?.watched?.player]}
                       </View>
-                      <Icon.CaretDown size={30} color={themeColors.text} style={{ marginLeft: 10 }} />
+                      <Icon.CaretDown
+                        size={30}
+                        color={themeColors.text}
+                        style={{ marginLeft: 10 }}
+                      />
                     </TouchableOpacity>
                   </>
                 )}
@@ -313,9 +377,17 @@ export default function AnimePreviewTablet({ route }) {
               <View style={styles.actionsRow}>
                 {/* Episodes */}
                 <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: themeColors.subtle }]}
-                  onPress={() => Object.keys(episodesList).length > 0 && episodesSheetRef.current?.present()}
-                  activeOpacity={Object.keys(episodesList).length === 0 ? 0.9 : 0.7}
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: themeColors.subtle },
+                  ]}
+                  onPress={() =>
+                    Object.keys(episodesList).length > 0 &&
+                    episodesSheetRef.current?.present()
+                  }
+                  activeOpacity={
+                    Object.keys(episodesList).length === 0 ? 0.9 : 0.7
+                  }
                 >
                   <Icon.Queue size={34} color={themeColors.text} />
                   {Object.keys(episodesList).length === 0 && (
@@ -335,11 +407,22 @@ export default function AnimePreviewTablet({ route }) {
 
                 {/* Favorite */}
                 <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: themeColors.subtle }]}
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: themeColors.subtle },
+                  ]}
                   onPress={handleFavoriteToggle}
                 >
-                  {(HikkaAuthService.isAuthenticated() ? isFavoriteHikka : info?.isFavorite) ? (
-                    <Icon.Heart size={34} color={themeColors.primary} weight="fill" />
+                  {(
+                    HikkaAuthService.isAuthenticated()
+                      ? isFavoriteHikka
+                      : info?.isFavorite
+                  ) ? (
+                    <Icon.Heart
+                      size={34}
+                      color={themeColors.primary}
+                      weight="fill"
+                    />
                   ) : (
                     <Icon.Heart size={34} color={themeColors.text} />
                   )}
@@ -347,9 +430,16 @@ export default function AnimePreviewTablet({ route }) {
 
                 {/* Download */}
                 <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: themeColors.subtle }]}
-                  onPress={() => anime?.slug && newDownloadSheetRef.current?.open()}
-                  activeOpacity={Object.keys(episodesList).length === 0 ? 0.9 : 0.7}
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: themeColors.subtle },
+                  ]}
+                  onPress={() =>
+                    anime?.slug && newDownloadSheetRef.current?.open()
+                  }
+                  activeOpacity={
+                    Object.keys(episodesList).length === 0 ? 0.9 : 0.7
+                  }
                 >
                   <Icon.DownloadSimple size={34} color={themeColors.text} />
                   {Object.keys(episodesList).length === 0 && (
@@ -369,7 +459,10 @@ export default function AnimePreviewTablet({ route }) {
 
                 {/* More */}
                 <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: themeColors.subtle }]}
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: themeColors.subtle },
+                  ]}
                   onPress={() => moreSheetRef.current?.present()}
                 >
                   <Icon.DotsThreeVertical size={34} color={themeColors.text} />
@@ -388,29 +481,55 @@ export default function AnimePreviewTablet({ route }) {
           >
             {/* Title and info */}
             <View style={styles.headerRow}>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: "10%", width: "80%" }}>
-                {anime.episodes_total !== null && anime.episodes_released !== null && (
-                  <Text style={[H5, styles.yearEpisodes]}>
-                    {anime.year} |{" "}
-                    {anime.episodes_total === anime.episodes_released
-                      ? anime.episodes_released
-                      : `${anime.episodes_released} з ${anime.episodes_total}`}
-                  </Text>
-                )}
-                <Text style={[H5, styles.yearEpisodes, { color: themeColors.primary }]}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  gap: "10%",
+                  width: "80%",
+                }}
+              >
+                {anime.episodes_total !== null &&
+                  anime.episodes_released !== null && (
+                    <Text selectable={true} style={[H5, styles.yearEpisodes]}>
+                      {anime.year} |{" "}
+                      {anime.episodes_total === anime.episodes_released
+                        ? anime.episodes_released
+                        : `${anime.episodes_released} з ${anime.episodes_total}`}
+                    </Text>
+                  )}
+                <Text
+                  selectable={true}
+                  style={[
+                    H5,
+                    styles.yearEpisodes,
+                    { color: themeColors.primary },
+                  ]}
+                >
                   {getEpisodeDateOrType(anime)}
                 </Text>
               </View>
 
               <TouchableOpacity
                 style={styles.titleContainer}
-                onLongPress={() => anime.title_ua && Clipboard.setString(anime.title_ua)}
+                onLongPress={() =>
+                  anime.title_ua && Clipboard.setString(anime.title_ua)
+                }
                 delayLongPress={400}
               >
-                <Text style={[H3, { fontWeight: "bold", width: "90%", flexWrap: "wrap" }]}>
+                <Text
+                  selectable={true}
+                  style={[
+                    H3,
+                    { fontWeight: "bold", width: "90%", flexWrap: "wrap" },
+                  ]}
+                >
                   {anime.title_ua || anime.title_en || anime.title_ja}
                 </Text>
-                <Text style={[H3, { color: themeColors.primary }]}>
+                <Text
+                  selectable={true}
+                  style={[H3, { color: themeColors.primary }]}
+                >
                   {anime.rating === "g"
                     ? "0+"
                     : anime.rating === "pg"
@@ -426,7 +545,10 @@ export default function AnimePreviewTablet({ route }) {
 
             {/* Genres */}
             <TouchableOpacity style={styles.tagsRow}>
-              <Text style={[H4, styles.tagItem, { color: themeColors.primary }]}>
+              <Text
+                selectable={true}
+                style={[H4, styles.tagItem, { color: themeColors.primary }]}
+              >
                 {anime.genres?.length > 0
                   ? anime.genres.map((genre) => genre.name_ua).join(", ")
                   : ""}
@@ -434,11 +556,18 @@ export default function AnimePreviewTablet({ route }) {
             </TouchableOpacity>
 
             {/* Description */}
-            <Text style={[H4, { marginBottom: 25 }]}>
+            <Text selectable={true} style={[H4, { marginBottom: 25 }]}>
               <Markdown
                 style={{
                   body: [H4, { marginBottom: 25 }],
-                  link: [H4, { marginBottom: 25, color: themeColors.primary, textDecorationLine: "underline" }],
+                  link: [
+                    H4,
+                    {
+                      marginBottom: 25,
+                      color: themeColors.primary,
+                      textDecorationLine: "underline",
+                    },
+                  ],
                 }}
               >
                 {anime?.synopsis_ua || anime?.synopsis_en}
@@ -492,39 +621,44 @@ export default function AnimePreviewTablet({ route }) {
       </View>
 
       {/* Bottom sheets */}
-      {info?.watched?.dubbing && info?.watched?.player && episodesList && Object.keys(episodesList).length > 0 && (
-        <>
-          <DubbingBottomSheetMemo
-            sheetRef={dubbingSheetRef}
-            episodesList={episodesList}
-            storage_data={info}
-            isChanges={setInfo}
-          />
+      {info?.watched?.dubbing &&
+        info?.watched?.player &&
+        episodesList &&
+        Object.keys(episodesList).length > 0 && (
+          <>
+            <DubbingBottomSheetMemo
+              sheetRef={dubbingSheetRef}
+              episodesList={episodesList}
+              storage_data={info}
+              isChanges={setInfo}
+            />
 
-          <EpisodesBottomSheetMemo
-            sheetRef={episodesSheetRef}
-            episodesList={episodesList}
-            storage_data={{ ...info, slug: anime?.slug }}
-            type="list"
-            isChanges={setInfo}
-            customIcon={null}
-            onSelectEpisode={handleEpisodeSelect}
-            onLongSelectEpisode={handleEpisodeLongSelect}
-            onSwipeEpisode={handleEpisodeSwipe}
-            checkForStyle={(item) => (info.watched_episodes || []).includes(item.episode)}
-          />
+            <EpisodesBottomSheetMemo
+              sheetRef={episodesSheetRef}
+              episodesList={episodesList}
+              storage_data={{ ...info, slug: anime?.slug }}
+              type="list"
+              isChanges={setInfo}
+              customIcon={null}
+              onSelectEpisode={handleEpisodeSelect}
+              onLongSelectEpisode={handleEpisodeLongSelect}
+              onSwipeEpisode={handleEpisodeSwipe}
+              checkForStyle={(item) =>
+                (info.watched_episodes || []).includes(item.episode)
+              }
+            />
 
-          <EpisodesBottomSheetMemo
-            sheetRef={downloadEpisodeRef}
-            episodesList={episodesList}
-            storage_data={{ ...info, slug: anime?.slug }}
-            type="download"
-            isChanges={null}
-            checkForStyle={(item) => existingFiles.has(item.episode)}
-            onSelectEpisode={handleDownloadEpisode}
-          />
-        </>
-      )}
+            <EpisodesBottomSheetMemo
+              sheetRef={downloadEpisodeRef}
+              episodesList={episodesList}
+              storage_data={{ ...info, slug: anime?.slug }}
+              type="download"
+              isChanges={null}
+              checkForStyle={(item) => existingFiles.has(item.episode)}
+              onSelectEpisode={handleDownloadEpisode}
+            />
+          </>
+        )}
 
       {/* New Download Bottom Sheet */}
       {anime?.slug && (

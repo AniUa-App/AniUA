@@ -121,8 +121,10 @@ export default function TopNavigationComponent({
           weight={unreadCount > 0 ? "fill" : "regular"}
         />
         {unreadCount > 0 && (
-          <View style={[styles.badge, { backgroundColor: themeColors.primary }]}>
-            <Text style={styles.badgeText}>
+          <View
+            style={[styles.badge, { backgroundColor: themeColors.primary }]}
+          >
+            <Text selectable={true} style={styles.badgeText}>
               {unreadCount > 9 ? "9+" : unreadCount}
             </Text>
           </View>

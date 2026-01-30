@@ -43,6 +43,7 @@ export default function SettingsItem({
       <View style={[styles.textContainer, !icon && { marginLeft: 0 }]}>
         {title.length > 0 && (
           <Text
+            selectable={true}
             style={[
               H4,
               {
@@ -57,6 +58,7 @@ export default function SettingsItem({
         )}
         {subtitle.length > 0 && (
           <Text
+            selectable={true}
             style={[
               H6,
               {
@@ -86,6 +88,7 @@ export default function SettingsItem({
             button?.Icon
           ) : (
             <Text
+              selectable={true}
               style={[H4, { color: themeColors.text, textAlign: "center" }]}
             >
               {button.Text}

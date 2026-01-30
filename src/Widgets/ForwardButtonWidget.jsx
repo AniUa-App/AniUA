@@ -29,7 +29,14 @@ const WATCH_STATUS = {
   ON_HOLD: "on_hold",
 };
 
-function navigateToPlayer(navigation, player, episode, episodesList, anime, dubbing) {
+function navigateToPlayer(
+  navigation,
+  player,
+  episode,
+  episodesList,
+  anime,
+  dubbing
+) {
   const isBuiltInPlayer = player === "Вбудований плеєр";
 
   const screen = isBuiltInPlayer ? "LocalVideoPlayer" : "WebVideoPlayer";
@@ -67,7 +74,9 @@ function determineButtonState({ watchData, episodes, anime }) {
   }
 
   if (watchedCount === 0) {
-    return episodes?.[0] ? BUTTON_STATES.START_WATCHING : BUTTON_STATES.NO_EPISODES;
+    return episodes?.[0]
+      ? BUTTON_STATES.START_WATCHING
+      : BUTTON_STATES.NO_EPISODES;
   }
 
   const nextEpisodeIndex = watchedCount;
@@ -133,7 +142,10 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
 
   const updateWatchViaApi = async (count, status) => {
     try {
-      await HikkaApiComplete.addToWatchList(anime.slug, { status, episodes: count });
+      await HikkaApiComplete.addToWatchList(anime.slug, {
+        status,
+        episodes: count,
+      });
     } catch (error) {
       Logger.error("ViewEpisode", "API update failed", error);
     }
@@ -158,10 +170,24 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
     },
     [BUTTON_STATES.START_WATCHING]: {
       text: "Почати перегляд",
-      data: { ...info, watched: { ...info?.watched, episodes: 1, status: WATCH_STATUS.WATCHING } },
+      data: {
+        ...info,
+        watched: {
+          ...info?.watched,
+          episodes: 1,
+          status: WATCH_STATUS.WATCHING,
+        },
+      },
       function: async () => {
         await updateWatchViaApi(1, WATCH_STATUS.WATCHING);
-        navigateToPlayer(navigation, player, firstEpisode, episodesList, anime, dubbing);
+        navigateToPlayer(
+          navigation,
+          player,
+          firstEpisode,
+          episodesList,
+          anime,
+          dubbing
+        );
       },
     },
     [BUTTON_STATES.CONTINUE_WATCHING]: {
@@ -171,14 +197,27 @@ export function ViewEpisode({ navigation, episodesList, info, anime, theme }) {
         watched: {
           ...info?.watched,
           episodes: nextEpisodeIndex + 1,
-          status: nextEpisodeIndex + 1 >= totalEpisodes ? WATCH_STATUS.COMPLETED : WATCH_STATUS.WATCHING,
+          status:
+            nextEpisodeIndex + 1 >= totalEpisodes
+              ? WATCH_STATUS.COMPLETED
+              : WATCH_STATUS.WATCHING,
         },
       },
       function: async () => {
         const newCount = nextEpisodeIndex + 1;
-        const newStatus = newCount >= totalEpisodes ? WATCH_STATUS.COMPLETED : WATCH_STATUS.WATCHING;
+        const newStatus =
+          newCount >= totalEpisodes
+            ? WATCH_STATUS.COMPLETED
+            : WATCH_STATUS.WATCHING;
         await updateWatchViaApi(newCount, newStatus);
-        navigateToPlayer(navigation, player, nextEpisode, episodesList, anime, dubbing);
+        navigateToPlayer(
+          navigation,
+          player,
+          nextEpisode,
+          episodesList,
+          anime,
+          dubbing
+        );
       },
     },
     [BUTTON_STATES.EPISODE_NOT_RELEASED]: {
@@ -251,7 +290,14 @@ function createButtonConfig({
       text: "Почати перегляд",
       onPress: async () => {
         await onUpdateWatch(1, WATCH_STATUS.WATCHING);
-        navigateToPlayer(navigation, player, firstEpisode, episodesList, anime, dubbing);
+        navigateToPlayer(
+          navigation,
+          player,
+          firstEpisode,
+          episodesList,
+          anime,
+          dubbing
+        );
       },
     },
     [BUTTON_STATES.CONTINUE_WATCHING]: {
@@ -259,8 +305,18 @@ function createButtonConfig({
       onPress: async () => {
         const newCount = nextEpisodeIndex + 1;
         const isCompleted = newCount >= totalEpisodes;
-        await onUpdateWatch(newCount, isCompleted ? WATCH_STATUS.COMPLETED : WATCH_STATUS.WATCHING);
-        navigateToPlayer(navigation, player, nextEpisode, episodesList, anime, dubbing);
+        await onUpdateWatch(
+          newCount,
+          isCompleted ? WATCH_STATUS.COMPLETED : WATCH_STATUS.WATCHING
+        );
+        navigateToPlayer(
+          navigation,
+          player,
+          nextEpisode,
+          episodesList,
+          anime,
+          dubbing
+        );
       },
     },
     [BUTTON_STATES.EPISODE_NOT_RELEASED]: {
@@ -349,7 +405,9 @@ export function ForwardButton({
 
     setIsUpdating(true);
     try {
-      Logger.debug("ForwardButton", "Додавання в обрані через API", { slug: anime.slug });
+      Logger.debug("ForwardButton", "Додавання в обрані через API", {
+        slug: anime.slug,
+      });
 
       await HikkaApiComplete.addToFavorites("anime", anime.slug);
 
@@ -468,7 +526,9 @@ export function ForwardButton({
         activeOpacity={0.7}
         {...props}
       >
-        <Text style={[H3, { color: themeColors?.text }]}>Немає перекладу</Text>
+        <Text selectable={true} style={[H3, { color: themeColors?.text }]}>
+          Немає перекладу
+        </Text>
       </TouchableOpacity>
     );
   }
@@ -483,6 +543,7 @@ export function ForwardButton({
     >
       <Icon.Play size={34} color={themeColors?.text} weight="fill" />
       <Text
+        selectable={true}
         style={[
           H3,
           {

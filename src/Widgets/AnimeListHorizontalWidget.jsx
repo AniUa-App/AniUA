@@ -104,7 +104,10 @@ export function AnimeListHorizontal({
         onPress={onClickMore}
       >
         {title?.length > 0 && (
-          <Text style={[styles.title, H3, { color: themeColors.text }]}>
+          <Text
+            selectable={true}
+            style={[styles.title, H3, { color: themeColors.text }]}
+          >
             {title || ""}
           </Text>
         )}
@@ -155,7 +158,10 @@ export function PreviewAnimeListHorizontal({
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
       <View style={styles.header} activeOpacity={1}>
         {title?.length > 0 && (
-          <Text style={[styles.title, H3, { color: themeColors.text }]}>
+          <Text
+            selectable={true}
+            style={[styles.title, H3, { color: themeColors.text }]}
+          >
             {title || ""}
           </Text>
         )}

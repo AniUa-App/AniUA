@@ -354,6 +354,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
               })()}
             </View>
             <Text
+              selectable={true}
               style={[
                 styles.textBelow,
                 { color: themeColors.text, paddingVertical: 4 },

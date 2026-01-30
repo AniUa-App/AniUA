@@ -287,6 +287,7 @@ export default function SettingsScreen() {
       >
         <View style={{ padding: 16 }}>
           <Text
+            selectable={true}
             style={[
               H4,
               {
@@ -332,6 +333,7 @@ export default function SettingsScreen() {
       >
         <View style={{ padding: 16 }}>
           <Text
+            selectable={true}
             style={[
               H4,
               {
@@ -359,7 +361,10 @@ export default function SettingsScreen() {
                     partnersSheetRef.current?.close();
                   }}
                 >
-                  <Text style={[H6, { color: themeColors.text }]}>
+                  <Text
+                    selectable={true}
+                    style={[H6, { color: themeColors.text }]}
+                  >
                     {partner.title}
                   </Text>
                 </TouchableOpacity>
