@@ -5,7 +5,9 @@ import { useThemeColors } from "../Global/useTheme";
 import { H2, H4 } from "../Styles/Fonts";
 import FastImage from "react-native-fast-image";
 import MainConfig from "../cfgs/MainConfig";
-
+import * as Updates from "expo-updates";
+import Constants from "expo-constants";
+import Icon from "../Styles/Icons";
 export default function Loader({ isNotFirstLaunch = false }) {
   const colors = useThemeColors();
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -21,6 +23,10 @@ export default function Loader({ isNotFirstLaunch = false }) {
   // Отримуємо версію додатку з безпечною перевіркою
   const appVersion = MainConfig.devInfo.version || "1.0.0";
   const gitHash = MainConfig.devInfo.gitShortHash || "unknown";
+  const expoChannel =
+    (Updates && Updates.channel) ||
+    Constants?.expoConfig?.updates?.channel ||
+    "unknown";
 
   useEffect(() => {
     setTimeout(() => {
@@ -88,6 +94,8 @@ export default function Loader({ isNotFirstLaunch = false }) {
           position: "absolute",
           bottom: 20,
           alignItems: "center",
+          flexDirection: "row",
+          gap: 5,
         },
       }),
     [colors]
@@ -155,8 +163,11 @@ export default function Loader({ isNotFirstLaunch = false }) {
         ]}
       >
         <Text selectable={true} style={[H4, { color: colors.text }]}>
-          {`${appVersion || "1.0.0"}-${gitHash || "unknown"}`}
+          {`${appVersion || "1.0.0"}-${gitHash || "unknown"}-${expoChannel !== "release" ? `${expoChannel}` : ""}`}
         </Text>
+        {expoChannel !== "release" && (
+          <Icon.WarningCircleIcon color={"red"} size={24} style={{ top: 3 }} />
+        )}
       </Animated.View>
     </View>
   );
