@@ -20,6 +20,11 @@ export default {
       checkAutomatically: "ON_LOAD",
       channel: "beta",
     },
+    ios: {
+      infoPlist: {
+        EXUpdatesEnabled: false,
+      },
+    },
     runtimeVersion: `0.0.2-${CHANNEL}`,
     extra: {
       hermes: true,
@@ -52,7 +57,10 @@ export default {
       },
     },
     android: {
-      package: CHANNEL === "release" ? "aniua.yuzka.site" : `aniua.yuzka.site.${CHANNEL}`,
+      package:
+        CHANNEL === "release"
+          ? "aniua.yuzka.site"
+          : `aniua.yuzka.site.${CHANNEL}`,
       googleServicesFile: "./google-services.json",
       versionCode: 1,
       buildType: "apk",
