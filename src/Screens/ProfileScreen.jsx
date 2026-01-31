@@ -433,9 +433,7 @@ export default function ProfileScreen({ navigation }) {
                 { backgroundColor: colors.accent },
               ]}
             >
-              <Text
-                selectable={true}
-                Input
+              <TextInput
                 style={[H4, styles.modalInput, { color: colors.text }]}
                 value={newUsername}
                 onChangeText={setNewUsername}

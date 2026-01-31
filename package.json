@@ -14,7 +14,7 @@
     "postinstall": "patch-package",
     "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
     "set-env": "node ./scripts/set-environment.js",
-    "update-beta": "npm run set-env && npx eas update --branch beta -m 'Update!'",
+    "update-beta": "npm run set-env && node scripts/update-beta.js",
     "build-beta": "npm run prebuild && npm run set-env && npx eas build --platform android --profile beta --local"
   },
   "dependencies": {
@@ -62,7 +62,7 @@
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.10",
     "expo-updates": "~0.28.17",
-    "expo-video": "~2.2.2",
+    "expo-video": "^3.0.15",
     "expo-web-browser": "~14.2.0",
     "ffmpeg-kit-react-native": "^6.0.2",
     "html-entities": "2.5.3",

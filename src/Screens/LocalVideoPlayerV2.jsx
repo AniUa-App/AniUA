@@ -71,6 +71,12 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   const { _episodes, _currentEpisode, _anime } = route.params;
   const title = _anime?.title_ua || _anime?.title_en || "Назва аніме";
+
+  Logger.debug("LocalVideoPlayer", "Component mounted", {
+    episodesCount: _episodes?.length,
+    currentEpisode: _currentEpisode?.episode,
+    animeSlug: _anime?.slug,
+  });
   // const episodes = _episodes || [];
 
   const [episodeInfo, setEpisodeInfo] = useState(null);
@@ -244,6 +250,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   // Оновлення відео при зміні поточного епізоду
   useEffect(() => {
     if (!currentEpisode?.video_url) return;
+    Logger.debug("LocalVideoPlayer", "Episode changed, updating video", {
+      episode: currentEpisode.episode,
+      videoUrl: currentEpisode.video_url,
+    });
     const updateEpisode = async () => {
       try {
         lastSeekTimeRef.current = Date.now();
@@ -251,14 +261,24 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         lastTimeUpdateRef.current = 0;
         isLoadingRef.current = true;
         setIsLoading(true);
+        Logger.debug("LocalVideoPlayer", "Fetching episode info...");
         const episodeInfo = await getEpisodeInfo(currentEpisode.video_url);
+        Logger.debug("LocalVideoPlayer", "Episode info received", {
+          qualities: Object.keys(episodeInfo?.qualitys || {}),
+          defaultQuality: episodeInfo?.defaultQuality,
+        });
         setEpisodeInfo(episodeInfo);
         const available = Object.keys(episodeInfo?.qualitys || {});
         const defaultQ = episodeInfo?.defaultQuality;
         const chosenKey =
           defaultQ && episodeInfo.qualitys[defaultQ] ? defaultQ : available[0];
         setQuality(chosenKey || null);
-        setCurrentUrl(chosenKey ? episodeInfo.qualitys[chosenKey] : null);
+        const newUrl = chosenKey ? episodeInfo.qualitys[chosenKey] : null;
+        Logger.debug("LocalVideoPlayer", "Setting video URL", {
+          quality: chosenKey,
+          url: newUrl?.substring(0, 100) + "...",
+        });
+        setCurrentUrl(newUrl);
       } catch (e) {
         Logger.error("LocalVideoPlayer", "Не вдалося отримати дані епізоду", e);
         isLoadingRef.current = false;
@@ -268,15 +288,52 @@ export default function LocalVideoPlayerV2Screen({ route }) {
     updateEpisode();
   }, [currentEpisode]);
 
+  Logger.debug("LocalVideoPlayer", "useVideoPlayer called", {
+    hasUrl: !!currentUrl,
+    urlPreview: currentUrl?.substring(0, 80),
+  });
+
   const player = useVideoPlayer(currentUrl, (player) => {
+    Logger.debug("LocalVideoPlayer", "Player callback, configuring player");
     player.play();
     player.preservesPitch = true;
     player.timeUpdateEventInterval = 0.5;
     player.startsPictureInPictureAutomatically = true;
     // Колбек плеєра
     if (player) {
-      player.addListener("statusChange", ({ status }) => {
+      player.addListener("statusChange", ({ status, error }) => {
+        Logger.debug("LocalVideoPlayer", "Player status changed", {
+          status,
+          error: error?.message || error,
+          currentUrl: currentUrl?.substring(0, 80),
+        });
+        if (status === "error") {
+          Logger.error("LocalVideoPlayer", "Player status error", {
+            error,
+            url: currentUrl,
+            quality,
+            episode: currentEpisode?.episode,
+          });
+
+          // Спроба відновити при помилці track selection
+          if (error?.message?.includes("onTracksSelected")) {
+            Logger.warn(
+              "LocalVideoPlayer",
+              "Track selection error, retrying play..."
+            );
+            setTimeout(() => {
+              try {
+                player.play();
+              } catch (e) {
+                Logger.error("LocalVideoPlayer", "Retry play failed", e);
+              }
+            }, 300);
+          }
+        }
         if (status === "readyToPlay") {
+          Logger.info("LocalVideoPlayer", "Video ready to play", {
+            duration: player.duration,
+          });
           setDuration(player.duration);
           // Зачекаємо трохи перед скиданням, щоб індикатор був видимим
           setTimeout(() => {
@@ -358,17 +415,45 @@ export default function LocalVideoPlayerV2Screen({ route }) {
       });
 
       player.addListener("ended", () => {
+        Logger.info("LocalVideoPlayer", "Video ended", {
+          episode: currentEpisode.episode,
+        });
         // Автоматичне відтворення наступного епізоду
         const currentIndex = episodes.findIndex(
           (ep) => ep.episode === currentEpisode.episode
         );
         if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
+          Logger.info("LocalVideoPlayer", "Auto-playing next episode", {
+            nextEpisode: episodes[currentIndex + 1]?.episode,
+          });
           setCurrentEpisode(episodes[currentIndex + 1]);
         }
       });
 
       player.addListener("error", (error) => {
-        Logger.error("LocalVideoPlayer", "Video error", error);
+        Logger.error("LocalVideoPlayer", "Video playback error", {
+          error,
+          currentUrl,
+          quality,
+          episode: currentEpisode?.episode,
+        });
+
+        // Спроба відновити відтворення при помилці onTracksSelected
+        if (error?.message?.includes("onTracksSelected")) {
+          Logger.warn(
+            "LocalVideoPlayer",
+            "Attempting to recover from track selection error"
+          );
+          setTimeout(() => {
+            try {
+              player.play();
+            } catch (e) {
+              Logger.error("LocalVideoPlayer", "Recovery failed", e);
+            }
+          }, 500);
+          return;
+        }
+
         isLoadingRef.current = true;
         setIsLoading(true);
       });
@@ -391,6 +476,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const togglePlayPause = useCallback(() => {
     if (player) {
       const willPlay = !player.playing;
+      Logger.debug("LocalVideoPlayer", "Toggle play/pause", {
+        wasPlaying: player.playing,
+        willPlay,
+      });
       // Оновлюємо стейт негайно для миттєвого відгуку UI
       setIsPlaying(willPlay);
 
@@ -408,6 +497,11 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   const seekTo = (seconds) => {
     if (player && duration > 0) {
       const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
+      Logger.debug("LocalVideoPlayer", "Seeking", {
+        from: currentTime,
+        to: newTime,
+        delta: seconds,
+      });
       setCurrentTime(newTime);
       lastSeekTimeRef.current = Date.now();
       timeUpdateCountRef.current = 0;
@@ -470,6 +564,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const changePlaybackRate = (newRate) => {
+    Logger.debug("LocalVideoPlayer", "Playback rate changed", {
+      from: rate,
+      to: newRate,
+    });
     setRate(newRate);
     if (player) {
       player.playbackRate = newRate;
@@ -861,10 +959,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
 
   // Перехід між епізодами
   const goToPreviousEpisode = () => {
+    Logger.debug("LocalVideoPlayer", "goToPreviousEpisode called");
     const currentIndex = episodes.findIndex(
       (ep) => ep.episode === currentEpisode?.episode
     );
     if (currentIndex > 0) {
+      Logger.info("LocalVideoPlayer", "Switching to previous episode", {
+        from: currentEpisode?.episode,
+        to: episodes[currentIndex - 1]?.episode,
+      });
       setCurrentTime(0);
       setDuration(0);
       setCurrentEpisode(episodes[currentIndex - 1]);
@@ -881,10 +984,15 @@ export default function LocalVideoPlayerV2Screen({ route }) {
   };
 
   const goToNextEpisode = () => {
+    Logger.debug("LocalVideoPlayer", "goToNextEpisode called");
     const currentIndex = episodes.findIndex(
       (ep) => ep.episode === currentEpisode?.episode
     );
     if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
+      Logger.info("LocalVideoPlayer", "Switching to next episode", {
+        from: currentEpisode?.episode,
+        to: episodes[currentIndex + 1]?.episode,
+      });
       setCurrentTime(0);
       setDuration(0);
       setCurrentEpisode(episodes[currentIndex + 1]);
@@ -1303,27 +1411,29 @@ export default function LocalVideoPlayerV2Screen({ route }) {
                         onClose={() => setVolumeTooltipVisible(false)}
                       />
                     </CustomTouchableOpacity>
-                    <CustomTouchableOpacity
-                      style={[styles.controlButton]}
-                      activeOpacity={1}
-                      delayPressIn={0}
-                      delayPressOut={0}
-                      onPress={() => {
-                        qualitySheetRef.current?.present();
-                      }}
-                    >
-                      <Text
-                        selectable={true}
-                        style={[
-                          H5,
-                          {
-                            color: themeColors.text,
-                          },
-                        ]}
+                    {isLandscape && (
+                      <CustomTouchableOpacity
+                        style={[styles.controlButton]}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
+                        onPress={() => {
+                          qualitySheetRef.current?.present();
+                        }}
                       >
-                        {quality || "8=>"}
-                      </Text>
-                    </CustomTouchableOpacity>
+                        <Text
+                          selectable={true}
+                          style={[
+                            H5,
+                            {
+                              color: themeColors.text,
+                            },
+                          ]}
+                        >
+                          {quality || "8=>"}
+                        </Text>
+                      </CustomTouchableOpacity>
+                    )}
                   </View>
 
                   {/* Центральні елементи керування відтворенням */}
@@ -1722,6 +1832,10 @@ export default function LocalVideoPlayerV2Screen({ route }) {
         qualities={qualitiesList}
         onQualityChange={(nextQuality) => {
           if (!episodeInfo?.qualitys) return;
+          Logger.info("LocalVideoPlayer", "Quality changed", {
+            from: quality,
+            to: nextQuality,
+          });
           const wasPlaying = !!latestPlayerRef.current?.playing;
           const savedTime = latestPlayerRef.current?.currentTime || 0;
           setQuality(nextQuality);
@@ -1983,45 +2097,66 @@ const styles = StyleSheet.create({
 });
 
 async function ___getQualities(file) {
+  Logger.debug("LocalVideoPlayer", "___getQualities", { file });
   const qualities = {};
   const m3u8 = new M3U8FileParser();
-  m3u8.read(
-    await axios
-      .get(file, {
-        headers: {
-          "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
-        },
-        decompress: true,
-      })
-      .then((res) => res.data)
-  );
+  try {
+    const response = await axios.get(file, {
+      headers: {
+        "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
+      },
+      decompress: true,
+    });
+    Logger.debug("LocalVideoPlayer", "M3U8 response received", {
+      dataLength: response.data?.length,
+    });
+    m3u8.read(response.data);
+  } catch (err) {
+    Logger.error("LocalVideoPlayer", "Failed to fetch M3U8", { file, err });
+    return qualities;
+  }
 
   // Отримання якостей з M3U8 файлу
-  m3u8.getResult().segments.forEach((item) => {
-    if (item.streamInf.resolution) {
-      qualities[
-        item.url.match(/\/(\d+)\//)?.[1].length > 1
+  const segments = m3u8.getResult()?.segments || [];
+  Logger.debug("LocalVideoPlayer", "M3U8 segments", { count: segments.length });
+  segments.forEach((item) => {
+    if (item.streamInf?.resolution) {
+      const qualityKey =
+        item.url.match(/\/(\d+)\//)?.[1]?.length > 1
           ? item.url.match(/\/(\d+)\//)?.[1] + "p"
-          : item.url.match(/\/hls\/(\d+)\//)?.[1] + "p"
-      ] = item.url;
+          : item.url.match(/\/hls\/(\d+)\//)?.[1] + "p";
+      qualities[qualityKey] = item.url;
     }
+  });
+  Logger.debug("LocalVideoPlayer", "___getQualities result", {
+    qualities: Object.keys(qualities),
   });
   return qualities;
 }
 
 async function ___getPlayerDataFrom_ASHDI_Player(url) {
+  Logger.debug("LocalVideoPlayer", "ASHDI: fetching player data", { url });
   try {
     const response = await axios.get(url);
     const htmlContent = response.data;
     const fileMatch = htmlContent.match(/file:\s*['"]([^'"]+)['"]/);
+    Logger.debug("LocalVideoPlayer", "ASHDI: file match", {
+      found: !!fileMatch,
+      file: fileMatch?.[1]?.substring(0, 80),
+    });
+    if (!fileMatch?.[1]) {
+      Logger.warn("LocalVideoPlayer", "ASHDI: no file found in response");
+      return null;
+    }
     const qualitys = await ___getQualities(fileMatch[1]);
-    return fileMatch
-      ? {
-          file: fileMatch[1],
-          qualitys: qualitys,
-          poster: htmlContent.match(/poster:\s*"([^"]+)"/)?.[1],
-        }
-      : null;
+    Logger.debug("LocalVideoPlayer", "ASHDI: qualities fetched", {
+      count: Object.keys(qualitys).length,
+    });
+    return {
+      file: fileMatch[1],
+      qualitys: qualitys,
+      poster: htmlContent.match(/poster:\s*"([^"]+)"/)?.[1],
+    };
   } catch (error) {
     Logger.error(
       "___getPlayerDataFrom_ASHDI_Player",
@@ -2033,6 +2168,7 @@ async function ___getPlayerDataFrom_ASHDI_Player(url) {
 }
 
 async function ___getPlayerDataFrom_MOON_Player(url) {
+  Logger.debug("LocalVideoPlayer", "MOON: fetching player data", { url });
   try {
     // Отримуємо HTML-контент за посиланням
     const response = await axios.get(url, {
@@ -2042,13 +2178,25 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
       decompress: true,
     });
     const htmlContent = response.data;
+    Logger.debug("LocalVideoPlayer", "MOON: response received", {
+      length: htmlContent?.length,
+    });
     // Шукаємо дані плеєра за допомогою регулярних виразів
     const playerData = {};
 
     // Використовуємо регулярні вирази для пошуку параметрів плеєра
     const idMatch = htmlContent.match(/id:\s*"([^"]+)"/);
     const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
+    Logger.debug("LocalVideoPlayer", "MOON: file match", {
+      found: !!fileMatch,
+      file: fileMatch?.[1]?.substring(0, 80),
+    });
+    if (!fileMatch?.[1]) {
+      Logger.warn("LocalVideoPlayer", "MOON: no file found in response");
+      return null;
+    }
     if (fileMatch[1].includes("webm")) {
+      Logger.debug("LocalVideoPlayer", "MOON: webm format detected");
       const data = {};
       const temp_ = fileMatch[1].split(",");
       temp_.forEach((item) => {
@@ -2070,6 +2218,11 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     if (subtitleMatch) playerData.subtitle = subtitleMatch[1];
     if (defaultQualityMatch) playerData.defaultQuality = defaultQualityMatch[1];
     playerData.qualitys = await ___getQualities(fileMatch[1]);
+    Logger.debug("LocalVideoPlayer", "MOON: player data prepared", {
+      hasFile: !!playerData.file,
+      qualitiesCount: Object.keys(playerData.qualitys || {}).length,
+      defaultQuality: playerData.defaultQuality,
+    });
 
     // Перевіряємо, чи знайдено хоча б один параметр
     return Object.keys(playerData).length > 0 ? playerData : null;
@@ -2083,8 +2236,14 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
 }
 
 async function getEpisodeInfo(episodeUrl) {
+  const provider = episodeUrl.includes("moon") ? "moon" : "ashdi";
+  Logger.debug("LocalVideoPlayer", "getEpisodeInfo", { episodeUrl, provider });
   let data = episodeUrl.includes("moon")
     ? await ___getPlayerDataFrom_MOON_Player(episodeUrl)
     : await ___getPlayerDataFrom_ASHDI_Player(episodeUrl);
+  Logger.debug("LocalVideoPlayer", "getEpisodeInfo result", {
+    hasData: !!data,
+    qualities: data?.qualitys ? Object.keys(data.qualitys) : [],
+  });
   return data;
 }

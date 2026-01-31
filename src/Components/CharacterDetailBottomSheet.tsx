@@ -145,6 +145,7 @@ export default function CharacterDetailBottomSheet({
                   lineHeight: 24,
                 },
               }}
+              navigation={navigation}
               onNavigate={() => sheetRef.current?.close()}
             >
               {description}

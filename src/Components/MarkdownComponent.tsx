@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react";
 import { Pressable, StyleSheet, Text, View, Linking } from "react-native";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import markdownItContainer from "markdown-it-container";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4, H5, H6, H7 } from "../Styles/Fonts";
-import { useNavigation, StackActions } from "@react-navigation/native";
+import {
+  StackActions,
+  NavigationContainerRefContext,
+} from "@react-navigation/native";
 
 const CONTAINER_TYPES = [
   "spoiler",
@@ -183,12 +186,14 @@ export default function MarkdownComponent({
   style,
   rules = {},
   onNavigate,
+  navigation: navigationProp,
   ...rest
 }: {
   children: string;
   style?: any;
   rules?: any;
   onNavigate?: () => void;
+  navigation?: any;
   [key: string]: any;
 }) {
   const colors = useThemeColors();
@@ -370,7 +375,8 @@ export default function MarkdownComponent({
     [baseStyles, style]
   );
 
-  const navigation = useNavigation<any>();
+  const navigationContext = useContext(NavigationContainerRefContext);
+  const navigation = navigationProp || navigationContext;
 
   return (
     <Markdown
@@ -378,7 +384,7 @@ export default function MarkdownComponent({
       rules={mergedRules}
       style={mergedStyles}
       onLinkPress={(link) => {
-        if (link.includes("/characters/")) {
+        if (navigation && link.includes("/characters/")) {
           onNavigate?.();
           navigation.dispatch(
             StackActions.push("CharacterScreen", {
@@ -386,7 +392,7 @@ export default function MarkdownComponent({
             })
           );
           return false;
-        } else if (link.includes("/anime/")) {
+        } else if (navigation && link.includes("/anime/")) {
           onNavigate?.();
           navigation.dispatch(
             StackActions.push("AnimePreview", {
