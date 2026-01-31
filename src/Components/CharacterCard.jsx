@@ -28,7 +28,10 @@ export default function CharacterCard({ item, width, height }) {
     <TouchableOpacity
       style={styles.container}
       onPress={() =>
-        Linking.openURL(`https://aniua.yuzka.site/characters/${character.slug}`)
+        navigation.navigate("HiddenStack", {
+          screen: "CharacterScreen",
+          params: { slug: character.slug },
+        })
       }
     >
       <Image style={[styles.image, { width, height }]} uri={character.image} />

@@ -16,9 +16,8 @@ import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 import LinearGradient from "react-native-linear-gradient";
 import { isTablet, isTabletLandscape } from "../Styles/Responsive";
 import { Shadow } from "react-native-shadow-2";
-import Markdown from "react-native-markdown-display";
+import MarkdownComponent from "./MarkdownComponent";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { Linking } from "react-native";
 import BloomImage from "../Widgets/BloomImage";
 
 interface Character {
@@ -68,11 +67,7 @@ export default function CharacterDetailBottomSheet({
     character?.name ||
     "";
   const image = character?.image;
-  const description = (
-    character?.description_ua ||
-    character?.description ||
-    ""
-  ).replaceAll("hikka.io", "aniua.yuzka.site");
+  const description = character?.description_ua || character?.description || "";
 
   const imageSize = (() => {
     if (isTabletLandscape()) {
@@ -142,26 +137,19 @@ export default function CharacterDetailBottomSheet({
 
         {/* Description */}
         {description ? (
-          <Markdown
-            style={{
-              body: {
-                ...H4,
-                ...styles.description,
-              },
-              link: {
-                ...H4,
-                color: themeColors.primary,
-                textDecorationLine: "underline",
-              },
-            }}
-            onLinkPress={(link) => {
-              sheetRef.current?.close();
-              Linking.openURL(link);
-              return true;
-            }}
-          >
-            {description}
-          </Markdown>
+          <View style={styles.descriptionContainer}>
+            <MarkdownComponent
+              style={{
+                body: {
+                  ...H4,
+                  lineHeight: 24,
+                },
+              }}
+              onNavigate={() => sheetRef.current?.close()}
+            >
+              {description}
+            </MarkdownComponent>
+          </View>
         ) : null}
 
         {isLoading ? (
@@ -235,11 +223,10 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-SemiBold",
     textAlign: "center",
   },
-  description: {
+  descriptionContainer: {
     marginTop: 20,
-    marginHorizontal: 20,
-    textAlign: "left",
-    lineHeight: 24,
+    paddingHorizontal: 20,
+    width: "100%",
   },
   sectionHeader: {
     width: "100%",

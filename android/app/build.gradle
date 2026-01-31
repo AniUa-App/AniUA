@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'aniua.yuzka.site.undefined'
+    namespace 'aniua.yuzka.site.beta'
     defaultConfig {
-        applicationId 'aniua.yuzka.site.undefined'
+        applicationId 'aniua.yuzka.site.beta'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

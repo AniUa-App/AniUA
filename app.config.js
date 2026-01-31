@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 dotenv.config({ path: ".env.local", override: true });
-const CHANNEL = process.env.CHANNEL;
+const CHANNEL = process.env.CHANNEL || "beta";
 export default {
   expo: {
     name: CHANNEL !== "release" ? `AniUA ${CHANNEL}` : "AniUA",
@@ -52,7 +52,7 @@ export default {
       },
     },
     android: {
-      package: `aniua.yuzka.site.${CHANNEL}`,
+      package: CHANNEL === "release" ? "aniua.yuzka.site" : `aniua.yuzka.site.${CHANNEL}`,
       googleServicesFile: "./google-services.json",
       versionCode: 1,
       buildType: "apk",

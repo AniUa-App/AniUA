@@ -67,7 +67,10 @@ const AnimeCard = memo(function AnimeCard({
       onPress(anime);
     } else {
       prefetchBloomImage(anime.image);
-      Linking.openURL(`https://aniua.yuzka.site/anime/${anime.slug}`);
+      navigation.navigate("HiddenStack", {
+        screen: "AnimePreview",
+        params: { slug: anime.slug },
+      });
     }
   };
 
@@ -89,7 +92,6 @@ const AnimeCard = memo(function AnimeCard({
         <View style={styles.details}>
           <Text
             selectable={true}
-            selectable={true}
             style={[H7, styles.title, { color: themeColors.text }]}
             numberOfLines={2}
           >
@@ -99,7 +101,6 @@ const AnimeCard = memo(function AnimeCard({
             {genres && (
               <Text
                 selectable={true}
-                selectable={true}
                 style={[H6, styles.genres, { color: themeColors.primary }]}
                 numberOfLines={1}
               >
@@ -108,7 +109,6 @@ const AnimeCard = memo(function AnimeCard({
             )}
             {episodes && (
               <Text
-                selectable={true}
                 selectable={true}
                 style={[H6, styles.episodes, { color: themeColors.primary }]}
               >

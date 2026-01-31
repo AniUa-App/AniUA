@@ -5,12 +5,18 @@
   "build": {
     "beta": {
       "channel": "beta",
+      "env": {
+        "CHANNEL": "beta"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "aab-beta": {
       "channel": "beta",
+      "env": {
+        "CHANNEL": "beta"
+      },
       "android": {
         "buildType": "app-bundle"
       }

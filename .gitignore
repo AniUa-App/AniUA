@@ -89,7 +89,7 @@ test*
 /google-services.json
 assetlinks.json
 openapi.json
-
+android/app/google-services.json
 
 # ai
 .promts

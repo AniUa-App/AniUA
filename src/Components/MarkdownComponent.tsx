@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, Linking } from "react-native";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import markdownItContainer from "markdown-it-container";
 import { useThemeColors } from "../Global/useTheme";
 import { H3, H4, H5, H6, H7 } from "../Styles/Fonts";
+import { useNavigation, StackActions } from "@react-navigation/native";
 
 const CONTAINER_TYPES = [
   "spoiler",
@@ -177,9 +178,25 @@ const buildContainerRules = (colors) => {
   return base;
 };
 
-export default function MarkdownComponent({ children, style, rules, ...rest }) {
+export default function MarkdownComponent({
+  children,
+  style,
+  rules = {},
+  onNavigate,
+  ...rest
+}: {
+  children: string;
+  style?: any;
+  rules?: any;
+  onNavigate?: () => void;
+  [key: string]: any;
+}) {
   const colors = useThemeColors();
-  children = children.replaceAll("hikka.io", "aniua.yuzka.site");
+  children = children.replaceAll("hikka.io/anime/", "aniua.yuzka.site/anime/");
+  children = children.replaceAll(
+    "hikka.io/characters/",
+    "aniua.yuzka.site/characters/"
+  );
 
   const baseStyles = useMemo(
     () => ({
@@ -332,11 +349,6 @@ export default function MarkdownComponent({ children, style, rules, ...rest }) {
           {children}
         </Text>
       ),
-      link: (node, children, parent, styles) => (
-        <Text key={node.key} selectable={true} style={styles.link}>
-          {children}
-        </Text>
-      ),
     }),
     []
   );
@@ -358,12 +370,35 @@ export default function MarkdownComponent({ children, style, rules, ...rest }) {
     [baseStyles, style]
   );
 
+  const navigation = useNavigation<any>();
+
   return (
     <Markdown
       markdownit={markdownItInstance}
       rules={mergedRules}
       style={mergedStyles}
-      selectable={true}
+      onLinkPress={(link) => {
+        if (link.includes("/characters/")) {
+          onNavigate?.();
+          navigation.dispatch(
+            StackActions.push("CharacterScreen", {
+              slug: link.split("/").pop(),
+            })
+          );
+          return false;
+        } else if (link.includes("/anime/")) {
+          onNavigate?.();
+          navigation.dispatch(
+            StackActions.push("AnimePreview", {
+              slug: link.split("/").pop(),
+            })
+          );
+          return false;
+        }
+        onNavigate?.();
+        Linking.openURL(link);
+        return false;
+      }}
       {...rest}
     >
       {children}
