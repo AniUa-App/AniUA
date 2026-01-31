@@ -61,6 +61,7 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+
 # Tests/coverage
 coverage/
 
@@ -90,6 +91,7 @@ test*
 assetlinks.json
 openapi.json
 android/app/google-services.json
+ANALYTICS_API.md
 
 # ai
 .promts

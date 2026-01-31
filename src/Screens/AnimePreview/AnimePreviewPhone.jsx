@@ -720,7 +720,7 @@ export default function AnimePreviewPhone({ route }) {
               tabs={[
                 animeList.length > 0 && {
                   key: "similar",
-                  label: "Схожі",
+                  label: "Пов'язані",
                   content: (
                     <AnimeListHorizontal
                       animeList={animeList}
