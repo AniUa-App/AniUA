@@ -90,7 +90,6 @@ test*
 /google-services.json
 assetlinks.json
 openapi.json
-android/app/google-services.json
 ANALYTICS_API.md
 
 # ai
@@ -98,6 +97,7 @@ ANALYTICS_API.md
 
 .anime/
 
+android/app/google-services.json
 *.aar
 *.jar
 # Local env files
