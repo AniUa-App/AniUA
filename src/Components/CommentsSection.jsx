@@ -8,7 +8,10 @@ import {
   Image,
   ScrollView,
   RefreshControl,
+  Alert,
+  Modal,
 } from "react-native";
+import Snackbar from "./Snackbar/SnackbarWidget";
 import { useThemeColors } from "../Global/useTheme";
 import { H5, H6 } from "../Styles/Fonts";
 import { TouchableOpacity } from "../Widgets/Button";
@@ -118,10 +121,17 @@ const CommentItem = memo(function CommentItem({
   isReply = false,
   onReply,
   onVote,
+  onEdit,
+  onDelete,
   votingMap,
   depth = 0,
+  currentUsername,
 }) {
   const [showReplies, setShowReplies] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
+
+  const isAuthor =
+    currentUsername && comment.author?.username === currentUsername;
 
   const handleToggleReplies = useCallback(() => {
     setShowReplies((prev) => !prev);
@@ -130,6 +140,35 @@ const CommentItem = memo(function CommentItem({
   const handleReply = useCallback(() => {
     onReply?.(comment);
   }, [comment, onReply]);
+
+  const openActions = useCallback(() => {
+    if (!isAuthor) return;
+    setShowButtons(true);
+  }, [isAuthor]);
+
+  const closeActions = useCallback(() => {
+    setShowButtons(false);
+  }, []);
+
+  const handleToggleActions = useCallback(() => {
+    if (showButtons) {
+      closeActions();
+      return;
+    }
+    openActions();
+  }, [showButtons, openActions, closeActions]);
+
+  const handleEdit = useCallback(() => {
+    closeActions();
+    setTimeout(() => onEdit?.(comment), 400);
+  }, [comment, onEdit, closeActions]);
+
+  const handleDelete = useCallback(() => {
+    closeActions();
+    setTimeout(() => {
+      onDelete?.(comment);
+    }, 400);
+  }, [comment, onDelete, closeActions]);
 
   const isVoting = Boolean(votingMap?.[comment.reference]);
   const handleVote = useCallback(
@@ -163,7 +202,8 @@ const CommentItem = memo(function CommentItem({
   };
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={1}
       style={[
         styles.commentContainer,
         isReply && styles.replyContainer,
@@ -250,17 +290,49 @@ const CommentItem = memo(function CommentItem({
 
       {/* Reply button */}
       {HikkaAuthService.isAuthenticated() && depth < 2 && (
-        <TouchableOpacity
+        <View
           style={[
-            styles.replyButton,
-            { backgroundColor: themeColors.background },
+            styles.commentActions,
+            {
+              justifyContent: isAuthor ? "space-between" : "flex-end",
+            },
           ]}
-          onPress={handleReply}
         >
-          <Text selectable={true} style={[H6, { color: themeColors.text }]}>
-            Відповісти
-          </Text>
-        </TouchableOpacity>
+          {isAuthor && (
+            <View style={styles.bottomLeftButtonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.editAndDeleteButton,
+                  { backgroundColor: themeColors.background },
+                ]}
+                onPress={handleEdit}
+              >
+                <Icon.PencilSimple size={24} color={themeColors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.editAndDeleteButton,
+                  { backgroundColor: themeColors.background },
+                ]}
+                onPress={handleDelete}
+              >
+                <Icon.Trash size={24} color={themeColors.redBookmark} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.replyButton,
+              { backgroundColor: themeColors.background },
+            ]}
+            onPress={handleReply}
+          >
+            <Text selectable={true} style={[H6, { color: themeColors.text }]}>
+              Відповісти
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Replies section */}
@@ -306,15 +378,18 @@ const CommentItem = memo(function CommentItem({
                   isReply={true}
                   onReply={onReply}
                   onVote={onVote}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
                   votingMap={votingMap}
                   depth={depth + 1}
+                  currentUsername={currentUsername}
                 />
               ))}
             </View>
           )}
         </>
       )}
-    </View>
+    </TouchableOpacity>
   );
 });
 
@@ -326,10 +401,19 @@ const CommentInput = memo(function CommentInput({
   onSubmit,
   replyTo,
   onCancelReply,
+  editingComment,
+  onCancelEdit,
   isSubmitting,
 }) {
   const [text, setText] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+
+  // Set text when editing starts
+  useEffect(() => {
+    if (editingComment) {
+      setText(editingComment.text || "");
+    }
+  }, [editingComment]);
 
   const markdownStyle = {
     syntax: {
@@ -357,11 +441,20 @@ const CommentInput = memo(function CommentInput({
 
   const handleSubmit = useCallback(() => {
     if (text.trim() && !isSubmitting) {
-      onSubmit(text.trim());
+      onSubmit(text.trim(), editingComment);
       setText("");
       Keyboard.dismiss();
     }
-  }, [text, onSubmit, isSubmitting]);
+  }, [text, onSubmit, isSubmitting, editingComment]);
+
+  const handleCancel = useCallback(() => {
+    if (editingComment) {
+      onCancelEdit?.();
+      setText("");
+    } else if (replyTo) {
+      onCancelReply?.();
+    }
+  }, [editingComment, replyTo, onCancelEdit, onCancelReply]);
 
   const handleSelectionChange = useCallback((event) => {
     setSelection(event.nativeEvent.selection);
@@ -405,8 +498,32 @@ const CommentInput = memo(function CommentInput({
 
   return (
     <View style={styles.inputContainer}>
+      {/* Edit indicator */}
+      {editingComment && (
+        <View
+          style={[
+            styles.replyIndicator,
+            { backgroundColor: themeColors.subtle },
+          ]}
+        >
+          <Icon.PencilSimple size={16} color={themeColors.primary} />
+          <Text
+            selectable={true}
+            style={[
+              H6,
+              { color: themeColors.Text(0.7), flex: 1, marginLeft: 8 },
+            ]}
+          >
+            Редагування коментаря
+          </Text>
+          <TouchableOpacity onPress={handleCancel}>
+            <Icon.X size={18} color={themeColors.text} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Reply indicator */}
-      {replyTo && (
+      {replyTo && !editingComment && (
         <View
           style={[
             styles.replyIndicator,
@@ -419,7 +536,7 @@ const CommentInput = memo(function CommentInput({
           >
             Відповідь для {replyTo.author?.username || "користувача"}
           </Text>
-          <TouchableOpacity onPress={onCancelReply}>
+          <TouchableOpacity onPress={handleCancel}>
             <Icon.X size={18} color={themeColors.text} />
           </TouchableOpacity>
         </View>
@@ -492,7 +609,28 @@ function CommentsSection({ slug, contentType = "anime" }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [votingMap, setVotingMap] = useState({});
   const [replyTo, setReplyTo] = useState(null);
+  const [editingComment, setEditingComment] = useState(null);
   const [error, setError] = useState(null);
+  const [currentUsername, setCurrentUsername] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    visible: false,
+    comment: null,
+  });
+
+  // Get current user's username
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (HikkaAuthService.isAuthenticated()) {
+        try {
+          const user = await HikkaApiComplete.getCurrentUser();
+          setCurrentUsername(user?.username || null);
+        } catch (err) {
+          Logger.warn("CommentsSection", "Failed to get current user", err);
+        }
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   // Load comments from API
   const loadComments = useCallback(async () => {
@@ -597,6 +735,44 @@ function CommentsSection({ slug, contentType = "anime" }) {
     setReplyTo(null);
   }, []);
 
+  // Handle edit comment
+  const handleEditComment = useCallback((comment) => {
+    setEditingComment(comment);
+    setReplyTo(null); // Cancel reply if editing
+  }, []);
+
+  // Cancel edit
+  const handleCancelEdit = useCallback(() => {
+    setEditingComment(null);
+  }, []);
+
+  // Show delete confirmation
+  const handleDeleteComment = useCallback((comment) => {
+    if (!HikkaAuthService.isAuthenticated()) return;
+    if (!comment?.reference) return;
+    setDeleteConfirm({ visible: true, comment });
+  }, []);
+
+  // Confirm delete
+  const confirmDeleteComment = useCallback(async () => {
+    const comment = deleteConfirm.comment;
+    if (!comment?.reference) return;
+
+    setDeleteConfirm({ visible: false, comment: null });
+
+    try {
+      await HikkaApiComplete.deleteComment(comment.reference);
+      await loadComments();
+    } catch (err) {
+      Logger.error("CommentsSection", "Failed to delete comment", err);
+    }
+  }, [deleteConfirm.comment, loadComments]);
+
+  // Cancel delete
+  const cancelDeleteComment = useCallback(() => {
+    setDeleteConfirm({ visible: false, comment: null });
+  }, []);
+
   const updateCommentVote = useCallback((items, reference, updater) => {
     return items.map((item) => {
       if (item.reference === reference) {
@@ -648,9 +824,9 @@ function CommentsSection({ slug, contentType = "anime" }) {
     [updateCommentVote]
   );
 
-  // Submit comment
+  // Submit comment (create or edit)
   const handleSubmitComment = useCallback(
-    async (text) => {
+    async (text, commentToEdit) => {
       if (!HikkaAuthService.isAuthenticated()) {
         Logger.warn("CommentsSection", "User not authenticated");
         return;
@@ -659,18 +835,30 @@ function CommentsSection({ slug, contentType = "anime" }) {
       setIsSubmitting(true);
 
       try {
-        const data = {
-          text,
-          ...(replyTo && { parent: replyTo.reference }),
-        };
-
-        await HikkaApiComplete.writeComment(contentType, slug, data);
+        if (commentToEdit) {
+          // Edit existing comment
+          await HikkaApiComplete.editComment(commentToEdit.reference, { text });
+          setEditingComment(null);
+        } else {
+          // Create new comment
+          const data = {
+            text,
+            ...(replyTo && { parent: replyTo.reference }),
+          };
+          await HikkaApiComplete.writeComment(contentType, slug, data);
+          setReplyTo(null);
+        }
 
         // Reload comments after successful submission
         await loadComments();
-        setReplyTo(null);
       } catch (err) {
         Logger.error("CommentsSection", "Failed to submit comment", err);
+        Alert.alert(
+          "Помилка",
+          commentToEdit
+            ? "Не вдалося редагувати коментар"
+            : "Не вдалося додати коментар"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -691,7 +879,10 @@ function CommentsSection({ slug, contentType = "anime" }) {
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text selectable={true} style={[H5, { color: themeColors.Text(0.5) }]}>
+        <Text
+          selectable={true}
+          style={[H5, { color: themeColors.inActiveText }]}
+        >
           {error}
         </Text>
         <TouchableOpacity
@@ -707,65 +898,103 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }
 
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor={themeColors.primary}
-          colors={[themeColors.primary]}
-        />
-      }
-      contentContainerStyle={styles.container}
-    >
-      {/* Comment input (only for authenticated users) */}
-      {HikkaAuthService.isAuthenticated() && (
-        <CommentInput
-          themeColors={themeColors}
-          onSubmit={handleSubmitComment}
-          replyTo={replyTo}
-          onCancelReply={handleCancelReply}
-          isSubmitting={isSubmitting}
-        />
-      )}
+    <View style={styles.sectionContainer}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={themeColors.primary}
+            colors={[themeColors.primary]}
+          />
+        }
+        contentContainerStyle={styles.container}
+      >
+        {/* Comment input (only for authenticated users) */}
+        {HikkaAuthService.isAuthenticated() && (
+          <CommentInput
+            themeColors={themeColors}
+            onSubmit={handleSubmitComment}
+            replyTo={replyTo}
+            onCancelReply={handleCancelReply}
+            editingComment={editingComment}
+            onCancelEdit={handleCancelEdit}
+            isSubmitting={isSubmitting}
+          />
+        )}
 
-      {/* Comments list */}
-      {comments.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text
-            selectable={true}
-            style={[H5, { color: themeColors.Text(0.5) }]}
-          >
-            Коментарів поки немає
-          </Text>
-          {HikkaAuthService.isAuthenticated() && (
+        {/* Comments list */}
+        {comments.length === 0 ? (
+          <View style={styles.emptyContainer}>
             <Text
               selectable={true}
-              style={[H6, { color: themeColors.Text(0.3), marginTop: 4 }]}
+              style={[H5, { color: themeColors.inActiveText }]}
             >
-              Будьте першим, хто залишить коментар
+              Коментарів поки немає
             </Text>
-          )}
+            {HikkaAuthService.isAuthenticated() && (
+              <Text
+                selectable={true}
+                style={[H6, { color: themeColors.inActiveText, marginTop: 4 }]}
+              >
+                Будьте першим, хто залишить коментар
+              </Text>
+            )}
+          </View>
+        ) : (
+          <View style={{ gap: 16 }}>
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.reference}
+                comment={comment}
+                themeColors={themeColors}
+                onReply={handleReply}
+                onVote={handleVote}
+                onEdit={handleEditComment}
+                onDelete={handleDeleteComment}
+                votingMap={votingMap}
+                currentUsername={currentUsername}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Delete confirmation Snackbar in Modal */}
+      <Modal
+        visible={deleteConfirm.visible}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={cancelDeleteComment}
+      >
+        <View style={styles.modalOverlay}>
+          <Snackbar
+            visible={deleteConfirm.visible}
+            message="Видалити цей коментар?"
+            isConfirm
+            confirmLabel="Так"
+            declineLabel="Ні"
+            onConfirm={confirmDeleteComment}
+            onDecline={cancelDeleteComment}
+            onDismiss={cancelDeleteComment}
+            position="bottom"
+          />
         </View>
-      ) : (
-        <View style={{ gap: 16 }}>
-          {comments.map((comment) => (
-            <CommentItem
-              key={comment.reference}
-              comment={comment}
-              themeColors={themeColors}
-              onReply={handleReply}
-              onVote={handleVote}
-              votingMap={votingMap}
-            />
-          ))}
-        </View>
-      )}
-    </ScrollView>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  sectionContainer: {
+    flex: 1,
+    width: "100%",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
   container: {
     width: "100%",
   },
@@ -822,11 +1051,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  editAndDeleteButton: {
+    marginTop: 4,
+    padding: 16,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    width: 38,
+    height: 38,
+  },
   replyButton: {
     marginTop: 4,
-    padding: 10,
+    paddingHorizontal: 10,
     borderRadius: 16,
-    alignSelf: "flex-end",
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
   },
   divider: {
     height: 1,
@@ -869,6 +1109,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     marginBottom: 8,
+  },
+  commentActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  bottomLeftButtonsContainer: {
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-between",
   },
   inputRow: {
     flexDirection: "row",

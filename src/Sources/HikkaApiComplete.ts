@@ -1,3 +1,5 @@
+// https://api.hikka.io/openapi.json
+
 import axios, { AxiosInstance } from "axios";
 import Logger from "../Logger/Logger";
 
