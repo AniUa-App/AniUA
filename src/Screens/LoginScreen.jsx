@@ -22,11 +22,6 @@ export default function LoginScreen({ isCanSkip = true }) {
   const themeOptions = [
     { key: "greenApple", label: "Зелене яблуко", colors: themes.greenApple },
     { key: "orange_dark", label: "Помаранч темна", colors: themes.orange_dark },
-    {
-      key: "orange_white",
-      label: "Помаранч світла",
-      colors: themes.orange_white,
-    },
   ];
 
   const handleThemeSelect = (themeKey) => {

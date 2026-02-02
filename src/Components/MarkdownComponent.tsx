@@ -262,7 +262,7 @@ export default function MarkdownComponent({
       },
       container: {
         borderRadius: 16,
-        padding: 12,
+        padding: 8,
         marginVertical: 8,
       },
       containerHeader: {
@@ -280,7 +280,7 @@ export default function MarkdownComponent({
         fontFamily: "Nunito-SemiBold",
       },
       containerContent: {
-        marginTop: 2,
+        maxWidth: "100%",
       },
       container_spoiler: {
         backgroundColor: colors.background,

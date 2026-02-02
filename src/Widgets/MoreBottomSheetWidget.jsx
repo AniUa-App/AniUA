@@ -49,11 +49,11 @@ export default function MoreBottomSheet({ sheetRef, anime }) {
         },
       },
       {
-        title: "Hалаштування",
+        title: "Налаштування",
         icon: <Icon.Gear size={28} color={colors.text} weight="regular" />,
         onPress: () => {
-          navigation.navigate("MainTabs", {
-            screen: "Settings",
+          navigation.navigate("HiddenStack", {
+            screen: "SettingsScreen",
           });
           sheetRef.current?.close();
         },

@@ -854,62 +854,52 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     }
   };
 
-  const handleVideoAreaPress = (event: GestureResponderEvent) => {
-    const now = Date.now();
-    const last = lastTapRef.current || 0;
-    const isDoubleTap = now - last < 280;
-    lastTapRef.current = now;
-
-    const tapX = event?.nativeEvent?.locationX ?? width / 2;
-    const isRightSide = tapX > width / 2;
-    const currentSide = isRightSide ? "right" : "left";
-
-    if (isDoubleTap) {
-      if (singleTapTimeoutRef.current) {
-        clearTimeout(singleTapTimeoutRef.current);
-        singleTapTimeoutRef.current = null;
-      }
-
-      // Якщо змінилась сторона - скидаємо накопичення
-      if (
-        lastTapSideRef.current !== null &&
-        lastTapSideRef.current !== currentSide
-      ) {
-        accumulatedSeekRef.current = 0;
-      }
-      lastTapSideRef.current = currentSide;
-
-      // Накопичуємо час перемотування
-      accumulatedSeekRef.current += isRightSide ? 10 : -10;
-
-      // Показуємо індикатор
-      setSeekIndicator({
-        visible: true,
-        direction: isRightSide ? "right" : "left",
-        value: Math.abs(accumulatedSeekRef.current),
-      });
-
-      // Скидаємо попередній таймер
-      if (seekDebounceRef.current) {
-        clearTimeout(seekDebounceRef.current);
-      }
-
-      // Встановлюємо новий таймер для виконання перемотування
-      seekDebounceRef.current = setTimeout(() => {
-        if (accumulatedSeekRef.current !== 0) {
-          seekTo(accumulatedSeekRef.current);
-          accumulatedSeekRef.current = 0;
-          lastTapSideRef.current = null;
-        }
-        // Ховаємо індикатор
-        setSeekIndicator({ visible: false, direction: null, value: 0 });
-        seekDebounceRef.current = null;
-      }, 300);
-
-      if (showControls) startHideControlsTimer();
-      return;
+  const handleDoubleTapSeek = (direction: "left" | "right") => {
+    if (singleTapTimeoutRef.current) {
+      clearTimeout(singleTapTimeoutRef.current);
+      singleTapTimeoutRef.current = null;
     }
 
+    // Якщо змінилась сторона - скидаємо накопичення
+    if (
+      lastTapSideRef.current !== null &&
+      lastTapSideRef.current !== direction
+    ) {
+      accumulatedSeekRef.current = 0;
+    }
+    lastTapSideRef.current = direction;
+
+    // Накопичуємо час перемотування
+    accumulatedSeekRef.current += direction === "right" ? 10 : -10;
+
+    // Показуємо індикатор
+    setSeekIndicator({
+      visible: true,
+      direction: direction,
+      value: Math.abs(accumulatedSeekRef.current),
+    });
+
+    // Скидаємо попередній таймер
+    if (seekDebounceRef.current) {
+      clearTimeout(seekDebounceRef.current);
+    }
+
+    // Встановлюємо новий таймер для виконання перемотування
+    seekDebounceRef.current = setTimeout(() => {
+      if (accumulatedSeekRef.current !== 0) {
+        seekTo(accumulatedSeekRef.current);
+        accumulatedSeekRef.current = 0;
+        lastTapSideRef.current = null;
+      }
+      // Ховаємо індикатор
+      setSeekIndicator({ visible: false, direction: null, value: 0 });
+      seekDebounceRef.current = null;
+    }, 300);
+
+    if (showControls) startHideControlsTimer();
+  };
+
+  const handleSingleTap = () => {
     // Скидаємо накопичення при одиночному тапі
     accumulatedSeekRef.current = 0;
     lastTapSideRef.current = null;
@@ -922,6 +912,34 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       toggleControls();
       singleTapTimeoutRef.current = null;
     }, 280);
+  };
+
+  const handleLeftSidePress = () => {
+    const now = Date.now();
+    const last = lastTapRef.current || 0;
+    const isDoubleTap = now - last < 280;
+    lastTapRef.current = now;
+
+    if (isDoubleTap) {
+      handleDoubleTapSeek("left");
+      return;
+    }
+
+    handleSingleTap();
+  };
+
+  const handleRightSidePress = () => {
+    const now = Date.now();
+    const last = lastTapRef.current || 0;
+    const isDoubleTap = now - last < 280;
+    lastTapRef.current = now;
+
+    if (isDoubleTap) {
+      handleDoubleTapSeek("right");
+      return;
+    }
+
+    handleSingleTap();
   };
 
   const startHideControlsTimer = () => {
@@ -1078,12 +1096,21 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
       {/* Фон відео */}
       <View style={{ flex: 1, width: "100%" }}>
-        {/* Клік-кетчер для тапів - розміщений першим, щоб бути під контролями */}
-        <Pressable
-          onPress={handleVideoAreaPress}
-          style={StyleSheet.absoluteFill}
-          android_disableSound
-        />
+        {/* Клік-кетчери для тапів - розміщені першими, щоб бути під контролями */}
+        <View style={[StyleSheet.absoluteFill, { flexDirection: "row" }]}>
+          {/* Ліва сторона - перемотування назад */}
+          <Pressable
+            onPress={handleLeftSidePress}
+            style={{ flex: 1, zIndex: 5 }}
+            android_disableSound
+          />
+          {/* Права сторона - перемотування вперед */}
+          <Pressable
+            onPress={handleRightSidePress}
+            style={{ flex: 1, zIndex: 5 }}
+            android_disableSound
+          />
+        </View>
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           pointerEvents="none"
