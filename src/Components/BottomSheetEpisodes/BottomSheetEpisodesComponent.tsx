@@ -528,10 +528,12 @@ const BottomSheetEpisodesComponent = forwardRef<
               borderRadius: 8,
             }}
             icon={
-              <Icon.TelegramLogo
-                size={32}
-                color={isSelected ? themeColors.text : themeColors.primary}
-              />
+              teamInfo?.is_verified && (
+                <Icon.TelegramLogo
+                  size={32}
+                  color={isSelected ? themeColors.text : themeColors.primary}
+                />
+              )
             }
           />
         );

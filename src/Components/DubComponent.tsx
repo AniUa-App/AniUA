@@ -16,7 +16,7 @@ interface DubComponentProps {
   logo?: string;
   name: string;
   subtitle?: string;
-  icon: React.ReactNode;
+  icon: React.ReactNode | void;
   isPartner?: boolean;
   onBodyClick?: (name: string) => void;
   onButtonClick?: (name: string) => void;

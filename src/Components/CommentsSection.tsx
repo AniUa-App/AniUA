@@ -10,6 +10,8 @@ import {
   RefreshControl,
   Alert,
   Modal,
+  NativeSyntheticEvent,
+  TextInputSelectionChangeEventData,
 } from "react-native";
 import Snackbar from "./Snackbar/SnackbarWidget";
 import { useThemeColors } from "../Global/useTheme";
@@ -28,7 +30,7 @@ import {
 } from "@expensify/react-native-live-markdown";
 
 // Custom parser that extends parseExpensiMark with spoiler support
-function parseWithSpoiler(text) {
+function parseWithSpoiler(text: string) {
   "worklet";
   // Get base ranges from ExpensiMark
   const ranges = parseExpensiMark(text);
@@ -38,8 +40,8 @@ function parseWithSpoiler(text) {
   const closingRegex = /:::/g;
 
   let match;
-  const openings = [];
-  const closings = [];
+  const openings: { index: number; length: number }[] = [];
+  const closings: number[] = [];
 
   // Find all :::spoiler openings
   while ((match = spoilerRegex.exec(text)) !== null) {
@@ -105,12 +107,49 @@ const COMMENT_MENU_OPTIONS = [
   "Спойлер",
   "Цитата",
 ];
-const COMMENT_MENU_FORMATTERS = {
+const COMMENT_MENU_FORMATTERS: Record<
+  string,
+  { prefix: string; suffix: string }
+> = {
   Жирний: { prefix: "**", suffix: "**" },
   Курсив: { prefix: "*", suffix: "*" },
   Спойлер: { prefix: ":::spoiler\n", suffix: "\n:::" },
   Цитата: { prefix: "> ", suffix: "" },
 };
+
+interface Author {
+  username?: string;
+  avatar?: string;
+}
+
+interface Comment {
+  reference: string;
+  text: string;
+  author?: Author;
+  created?: number;
+  my_score?: number;
+  vote_score?: number;
+  replies?: Comment[];
+  total_replies?: number;
+  parent?: string | { reference: string };
+}
+
+interface VotingMap {
+  [key: string]: boolean;
+}
+
+interface CommentItemProps {
+  comment: Comment;
+  themeColors: any;
+  isReply?: boolean;
+  onReply?: (comment: Comment) => void;
+  onVote?: (comment: Comment, score: number) => void;
+  onEdit?: (comment: Comment) => void;
+  onDelete?: (comment: Comment) => void;
+  votingMap?: VotingMap;
+  depth?: number;
+  currentUsername?: string | null;
+}
 
 /**
  * Single comment item component
@@ -126,9 +165,8 @@ const CommentItem = memo(function CommentItem({
   votingMap,
   depth = 0,
   currentUsername,
-}) {
+}: CommentItemProps) {
   const [showReplies, setShowReplies] = useState(false);
-  const [showButtons, setShowButtons] = useState(false);
 
   const isAuthor =
     currentUsername && comment.author?.username === currentUsername;
@@ -141,38 +179,19 @@ const CommentItem = memo(function CommentItem({
     onReply?.(comment);
   }, [comment, onReply]);
 
-  const openActions = useCallback(() => {
-    if (!isAuthor) return;
-    setShowButtons(true);
-  }, [isAuthor]);
-
-  const closeActions = useCallback(() => {
-    setShowButtons(false);
-  }, []);
-
-  const handleToggleActions = useCallback(() => {
-    if (showButtons) {
-      closeActions();
-      return;
-    }
-    openActions();
-  }, [showButtons, openActions, closeActions]);
-
   const handleEdit = useCallback(() => {
-    closeActions();
     setTimeout(() => onEdit?.(comment), 400);
-  }, [comment, onEdit, closeActions]);
+  }, [comment, onEdit]);
 
   const handleDelete = useCallback(() => {
-    closeActions();
     setTimeout(() => {
       onDelete?.(comment);
     }, 400);
-  }, [comment, onDelete, closeActions]);
+  }, [comment, onDelete]);
 
   const isVoting = Boolean(votingMap?.[comment.reference]);
   const handleVote = useCallback(
-    (score) => {
+    (score: number) => {
       if (isVoting) return;
       onVote?.(comment, score);
     },
@@ -185,11 +204,11 @@ const CommentItem = memo(function CommentItem({
   );
 
   // Format date
-  const formatDate = (timestamp) => {
+  const formatDate = (timestamp?: number) => {
     if (!timestamp) return "";
     const date = new Date(timestamp * 1000);
     const now = new Date();
-    const diff = now - date;
+    const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -202,8 +221,7 @@ const CommentItem = memo(function CommentItem({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={1}
+    <View
       style={[
         styles.commentContainer,
         isReply && styles.replyContainer,
@@ -370,7 +388,7 @@ const CommentItem = memo(function CommentItem({
           {/* Replies list */}
           {showReplies && (
             <View style={styles.repliesList}>
-              {comment.replies.map((reply) => (
+              {comment.replies?.map((reply) => (
                 <CommentItem
                   key={reply.reference}
                   comment={reply}
@@ -389,9 +407,19 @@ const CommentItem = memo(function CommentItem({
           )}
         </>
       )}
-    </TouchableOpacity>
+    </View>
   );
 });
+
+interface CommentInputProps {
+  themeColors: any;
+  onSubmit: (text: string, editingComment: Comment | null) => void;
+  replyTo: Comment | null;
+  onCancelReply: () => void;
+  editingComment: Comment | null;
+  onCancelEdit: () => void;
+  isSubmitting: boolean;
+}
 
 /**
  * Comment input component with native formatting menu
@@ -404,7 +432,7 @@ const CommentInput = memo(function CommentInput({
   editingComment,
   onCancelEdit,
   isSubmitting,
-}) {
+}: CommentInputProps) {
   const [text, setText] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
 
@@ -456,12 +484,15 @@ const CommentInput = memo(function CommentInput({
     }
   }, [editingComment, replyTo, onCancelEdit, onCancelReply]);
 
-  const handleSelectionChange = useCallback((event) => {
-    setSelection(event.nativeEvent.selection);
-  }, []);
+  const handleSelectionChange = useCallback(
+    (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+      setSelection(event.nativeEvent.selection);
+    },
+    []
+  );
 
   const handleMenuSelection = useCallback(
-    (event) => {
+    (event: any) => {
       if (event.chosenOption === COMMENT_MENU_COPY) {
         const selectedText =
           text.substring(selection?.start ?? 0, selection?.end ?? 0) ||
@@ -596,23 +627,34 @@ const CommentInput = memo(function CommentInput({
   );
 });
 
+interface CommentsSectionProps {
+  slug: string;
+  contentType?: string;
+}
+
 /**
  * Comments section component for anime preview
  * @param {string} slug - Anime slug for loading comments
  * @param {string} contentType - Content type (default: "anime")
  */
-function CommentsSection({ slug, contentType = "anime" }) {
+function CommentsSection({
+  slug,
+  contentType = "anime",
+}: CommentsSectionProps) {
   const themeColors = useThemeColors();
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [votingMap, setVotingMap] = useState({});
-  const [replyTo, setReplyTo] = useState(null);
-  const [editingComment, setEditingComment] = useState(null);
-  const [error, setError] = useState(null);
-  const [currentUsername, setCurrentUsername] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState({
+  const [votingMap, setVotingMap] = useState<VotingMap>({});
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    visible: boolean;
+    comment: Comment | null;
+  }>({
     visible: false,
     comment: null,
   });
@@ -657,21 +699,21 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }, [slug, contentType]);
 
   // Transform API comments to nested structure
-  const transformComments = (apiComments) => {
+  const transformComments = (apiComments: any[]) => {
     if (!apiComments || !Array.isArray(apiComments)) return [];
 
     const hasNestedReplies = apiComments.some(
       (comment) => Array.isArray(comment.replies) && comment.replies.length > 0
     );
 
-    const getParentRef = (parent) => {
+    const getParentRef = (parent: any) => {
       if (!parent) return null;
       if (typeof parent === "string") return parent;
       if (typeof parent === "object") return parent.reference || null;
       return null;
     };
 
-    const normalizeReplies = (comment) => ({
+    const normalizeReplies = (comment: any): Comment => ({
       ...comment,
       replies: (comment.replies || []).map(normalizeReplies),
     });
@@ -683,8 +725,8 @@ function CommentsSection({ slug, contentType = "anime" }) {
     }
 
     // Flat list fallback
-    const commentMap = new Map();
-    const rootComments = [];
+    const commentMap = new Map<string, Comment>();
+    const rootComments: Comment[] = [];
 
     apiComments.forEach((comment) => {
       commentMap.set(comment.reference, {
@@ -695,10 +737,12 @@ function CommentsSection({ slug, contentType = "anime" }) {
 
     apiComments.forEach((comment) => {
       const commentObj = commentMap.get(comment.reference);
+      if (!commentObj) return;
+
       const parentRef = getParentRef(comment.parent);
       if (parentRef) {
         const parent = commentMap.get(parentRef);
-        if (parent) {
+        if (parent && parent.replies) {
           parent.replies.push(commentObj);
         } else {
           rootComments.push(commentObj);
@@ -726,7 +770,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }, [loadComments]);
 
   // Handle reply
-  const handleReply = useCallback((comment) => {
+  const handleReply = useCallback((comment: Comment) => {
     setReplyTo(comment);
   }, []);
 
@@ -736,7 +780,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }, []);
 
   // Handle edit comment
-  const handleEditComment = useCallback((comment) => {
+  const handleEditComment = useCallback((comment: Comment) => {
     setEditingComment(comment);
     setReplyTo(null); // Cancel reply if editing
   }, []);
@@ -747,7 +791,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
   }, []);
 
   // Show delete confirmation
-  const handleDeleteComment = useCallback((comment) => {
+  const handleDeleteComment = useCallback((comment: Comment) => {
     if (!HikkaAuthService.isAuthenticated()) return;
     if (!comment?.reference) return;
     setDeleteConfirm({ visible: true, comment });
@@ -773,23 +817,30 @@ function CommentsSection({ slug, contentType = "anime" }) {
     setDeleteConfirm({ visible: false, comment: null });
   }, []);
 
-  const updateCommentVote = useCallback((items, reference, updater) => {
-    return items.map((item) => {
-      if (item.reference === reference) {
-        return updater(item);
-      }
-      if (item.replies?.length) {
-        return {
-          ...item,
-          replies: updateCommentVote(item.replies, reference, updater),
-        };
-      }
-      return item;
-    });
-  }, []);
+  const updateCommentVote = useCallback(
+    (
+      items: Comment[],
+      reference: string,
+      updater: (item: Comment) => Comment
+    ): Comment[] => {
+      return items.map((item) => {
+        if (item.reference === reference) {
+          return updater(item);
+        }
+        if (item.replies?.length) {
+          return {
+            ...item,
+            replies: updateCommentVote(item.replies, reference, updater),
+          };
+        }
+        return item;
+      });
+    },
+    []
+  );
 
   const handleVote = useCallback(
-    async (comment, score) => {
+    async (comment: Comment, score: number) => {
       if (!HikkaAuthService.isAuthenticated()) return;
       if (!comment?.reference) return;
 
@@ -826,7 +877,7 @@ function CommentsSection({ slug, contentType = "anime" }) {
 
   // Submit comment (create or edit)
   const handleSubmitComment = useCallback(
-    async (text, commentToEdit) => {
+    async (text: string, commentToEdit: Comment | null) => {
       if (!HikkaAuthService.isAuthenticated()) {
         Logger.warn("CommentsSection", "User not authenticated");
         return;
