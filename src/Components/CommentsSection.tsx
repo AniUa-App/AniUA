@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import Snackbar from "./Snackbar/SnackbarWidget";
 import { useThemeColors } from "../Global/useTheme";
-import { H5, H6 } from "../Styles/Fonts";
+import { H5, H6, H7 } from "../Styles/Fonts";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icon from "../Styles/Icons";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
@@ -28,6 +28,7 @@ import {
   MarkdownTextInput,
   parseExpensiMark,
 } from "@expensify/react-native-live-markdown";
+import { useIsTabletLandscape } from "../Styles/Responsive";
 
 // Custom parser that extends parseExpensiMark with spoiler support
 function parseWithSpoiler(text: string) {
@@ -167,7 +168,7 @@ const CommentItem = memo(function CommentItem({
   currentUsername,
 }: CommentItemProps) {
   const [showReplies, setShowReplies] = useState(false);
-
+  const isTabletLandscape = useIsTabletLandscape();
   const isAuthor =
     currentUsername && comment.author?.username === currentUsername;
 
@@ -321,20 +322,50 @@ const CommentItem = memo(function CommentItem({
               <TouchableOpacity
                 style={[
                   styles.editAndDeleteButton,
-                  { backgroundColor: themeColors.background },
+                  {
+                    backgroundColor: themeColors.background,
+                  },
+                  isTabletLandscape && {
+                    width: 144,
+                    height: 48,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  },
                 ]}
                 onPress={handleEdit}
               >
                 <Icon.PencilSimple size={24} color={themeColors.primary} />
+                {isTabletLandscape && (
+                  <Text
+                    selectable={true}
+                    style={[H7, { color: themeColors.Text(0.8), bottom: -1 }]}
+                  >
+                    Редагувати
+                  </Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.editAndDeleteButton,
                   { backgroundColor: themeColors.background },
+                  isTabletLandscape && {
+                    width: 135,
+                    height: 48,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  },
                 ]}
                 onPress={handleDelete}
               >
                 <Icon.Trash size={24} color={themeColors.redBookmark} />
+                {isTabletLandscape && (
+                  <Text
+                    selectable={true}
+                    style={[H7, { color: themeColors.redBookmark, bottom: -1 }]}
+                  >
+                    Видалити
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           )}

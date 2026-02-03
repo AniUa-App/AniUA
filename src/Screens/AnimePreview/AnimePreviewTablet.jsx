@@ -111,9 +111,12 @@ const StarRating = ({ rating = 0, onRate, themeColors }) => {
         {
           flexDirection: "row",
           backgroundColor: themeColors.subtle,
-          padding: 8,
+          padding: 16,
           borderRadius: 12,
+          flex: 1,
           gap: 10,
+          justifyContent: "space-between",
+          width: "100%",
         },
       ]}
     >
@@ -349,8 +352,8 @@ export default function AnimePreviewTablet({ route }) {
     ({ item }) => (
       <CharacterCard
         item={item}
-        width={winWidth * 0.18} // Adjusted for tablet
-        height={winHeight * 0.22}
+        width={winWidth * 0.1} // Adjusted for tablet
+        height={winHeight * 0.26}
       />
     ),
     [winWidth, winHeight]
@@ -744,9 +747,8 @@ export default function AnimePreviewTablet({ route }) {
             {/* Rating section */}
             <View
               style={{
-                width: "95%",
+                width: "100%",
                 alignItems: "center",
-                marginBottom: 20,
               }}
             >
               <Text
@@ -771,7 +773,6 @@ export default function AnimePreviewTablet({ route }) {
               />
             </View>
 
-            {/* Similar anime, Characters and Comments tabs */}
             {/* Similar anime and Characters tabs */}
             {(animeList.length > 0 || charactersList.length > 0) && (
               <SectionTabs
