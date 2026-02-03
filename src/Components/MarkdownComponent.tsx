@@ -197,8 +197,8 @@ export default function MarkdownComponent({
   [key: string]: any;
 }) {
   const colors = useThemeColors();
-  children = children.replaceAll("hikka.io/anime/", "aniua.yuzka.site/anime/");
-  children = children.replaceAll(
+  children = children?.replaceAll("hikka.io/anime/", "aniua.yuzka.site/anime/");
+  children = children?.replaceAll(
     "hikka.io/characters/",
     "aniua.yuzka.site/characters/"
   );

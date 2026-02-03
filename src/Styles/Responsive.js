@@ -103,18 +103,18 @@ export function useIsTV() {
 
 // Get device type for component selection
 export function getDeviceType() {
-  if (isTV()) return 'tv';
-  if (isTabletLandscape()) return 'tablet';
-  return 'phone';
+  if (isTV()) return "tv";
+  if (isTabletLandscape()) return "tablet";
+  return "phone";
 }
 
 export function useDeviceType() {
   const tv = useIsTV();
   const tabletLandscape = useIsTabletLandscape();
 
-  if (tv) return 'tv';
-  if (tabletLandscape) return 'tablet';
-  return 'phone';
+  if (tv) return "tv";
+  if (tabletLandscape) return "tablet";
+  return "phone";
 }
 
 // Hook to detect tablet in portrait mode

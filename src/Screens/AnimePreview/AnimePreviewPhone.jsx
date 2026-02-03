@@ -34,7 +34,6 @@ import YouTubeVideos from "../../Components/YouTubeVideos";
 import MusicOST from "../../Components/MusicOST";
 import CharacterCard from "../../Components/CharacterCard";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
-
 import {
   useAnimePreview,
   DubbingBottomSheet,
@@ -45,6 +44,7 @@ import {
 import AnimeCard from "../../Components/AnimeCard";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import CommentsSection from "../../Components/CommentsSection";
+import { useIsTabletLandscape } from "../../Styles/Responsive";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -665,7 +665,7 @@ export default function AnimePreviewPhone({ route }) {
                 anime?.synopsis_ua ||
                 anime?.synopsis_en ||
                 "Опис відсутній"
-              ).replaceAll("hikka.io", "aniua.yuzka.site")}
+              )?.replaceAll("hikka.io", "aniua.yuzka.site")}
             </Markdown>
             {/* 
             {anime?.source && (

@@ -11,6 +11,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { Image } from "../Widgets/LoadersWidgets";
 import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
+import { useIsLandscape } from "../Styles/Responsive";
 
 interface VideoItem {
   url: string;
@@ -43,14 +44,12 @@ function getThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
 }
 
-export default function YouTubeVideos({
-  videos,
-  style,
-}: YouTubeVideosProps) {
+export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
   const { width: windowWidth } = useWindowDimensions();
   const colors = useThemeColors();
+  const isLandscape = useIsLandscape();
 
-  const videoWidth = windowWidth * 0.65;
+  const videoWidth = isLandscape ? windowWidth * 0.2 : windowWidth * 0.65;
   const videoHeight = videoWidth * (9 / 16);
 
   const handlePress = useCallback((url: string) => {
