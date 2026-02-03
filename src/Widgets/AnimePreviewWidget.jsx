@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
-import { isTabletLandscape, isTablet } from "../Styles/Responsive";
+import { isTabletLandscape, isTablet, useIsTablet } from "../Styles/Responsive";
 import { useWindowDimensions } from "react-native";
 import Logger from "../Logger/Logger";
 import { prefetchBloomImage } from "./BloomImage";
@@ -23,10 +23,13 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   type,
   maxHeight,
   maxWidth,
+  gridMode = false, // New prop for tablet grid layout
+  cardWidth = null, // Explicit card width for grids
 }) {
   if (!anime || !anime.slug) return null;
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
+  const isTabletDevice = useIsTablet();
 
   const [episodesList, setEpisodesList] = useState([]);
 
@@ -85,12 +88,33 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   const IconComponent = Component.icon[type];
   const handlePress = Component.onPress[type];
 
+  // Calculate image dimensions based on mode
+  const getImageDimensions = () => {
+    if (gridMode && cardWidth) {
+      // Grid mode: use card width for proportional sizing
+      const imgWidth = cardWidth - 16; // Account for padding
+      const imgHeight = imgWidth * 1.4; // Poster aspect ratio
+      return { width: imgWidth, height: imgHeight };
+    }
+    // Default list mode
+    if (isTabletLandscape()) {
+      return { width: width * 0.12, height: height * 0.3 };
+    }
+    if (isTablet()) {
+      return { width: width * 0.2, height: height * 0.2 };
+    }
+    return { width: width * 0.35, height: height * 0.25 };
+  };
+
+  const imageDims = getImageDimensions();
+
   return (
     <>
       <TouchableOpacity
         style={[
-          styles.cardContainer,
+          gridMode ? styles.gridCardContainer : styles.cardContainer,
           { backgroundColor: themeColors.background },
+          gridMode && cardWidth ? { width: cardWidth } : null,
         ]}
         onPress={() => {
           // Prefetch зображення перед навігацією
@@ -105,19 +129,15 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           uri={anime.image}
           style={[
             styles.animeImage,
-            isTabletLandscape()
-              ? { width: width * 0.12, height: height * 0.3 }
-              : isTablet()
-                ? { width: width * 0.2, height: height * 0.2 }
-                : { width: width * 0.35, height: height * 0.25 },
+            { width: imageDims.width, height: imageDims.height },
           ]}
         />
-        <View style={[styles.infoContainer]}>
+        <View style={[gridMode ? styles.gridInfoContainer : styles.infoContainer]}>
           <Text
             selectable={true}
-            numberOfLines={4}
+            numberOfLines={gridMode ? 2 : 4}
             ellipsizeMode="tail"
-            style={[H3, { marginBottom: maxHeight ? 0 : 20 }]}
+            style={[H3, { marginBottom: gridMode ? 4 : (maxHeight ? 0 : 20) }]}
           >
             {(anime.title_ua || anime.title_en || anime.title_ja).length > 20
               ? (anime.title_ua || anime.title_en || anime.title_ja)
@@ -126,33 +146,42 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                   .join(" ") + "..."
               : anime.title_ua || anime.title_en || anime.title_ja}
           </Text>
-          <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
-            Рейтинг:{" "}
-            <Text
-              selectable={true}
-              style={[styles.animeHighlight, { color: themeColors.primary }]}
-            >
-              {anime.rating === "g"
-                ? "0+"
-                : anime.rating === "pg"
-                  ? "6+"
-                  : anime.rating === "pg_13"
-                    ? "13+"
-                    : anime.rating === "r"
-                      ? "16+"
-                      : "18+"}
-            </Text>
-          </Text>
-          <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
-            Дата виходу:{" "}
-            <Text
-              selectable={true}
-              style={[styles.animeHighlight, { color: themeColors.primary }]}
-            >
+          {!gridMode && (
+            <>
+              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
+                Рейтинг:{" "}
+                <Text
+                  selectable={true}
+                  style={[styles.animeHighlight, { color: themeColors.primary }]}
+                >
+                  {anime.rating === "g"
+                    ? "0+"
+                    : anime.rating === "pg"
+                      ? "6+"
+                      : anime.rating === "pg_13"
+                        ? "13+"
+                        : anime.rating === "r"
+                          ? "16+"
+                          : "18+"}
+                </Text>
+              </Text>
+              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
+                Дата виходу:{" "}
+                <Text
+                  selectable={true}
+                  style={[styles.animeHighlight, { color: themeColors.primary }]}
+                >
+                  {anime.year}
+                </Text>
+              </Text>
+            </>
+          )}
+          {gridMode && anime.year && (
+            <Text selectable={true} style={[H4, { color: themeColors.inActiveText }]}>
               {anime.year}
             </Text>
-          </Text>
-          {anime.genres && anime.genres.length > 0 && (
+          )}
+          {!gridMode && anime.genres && anime.genres.length > 0 && (
             <Text
               selectable={true}
               numberOfLines={maxHeight ? 1 : 2}
@@ -172,14 +201,14 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         {IconComponent && (
           <TouchableOpacity
             style={[
-              styles.favoriteButton,
-              { padding: maxHeight ? maxHeight / 100 : 20 },
+              gridMode ? styles.gridFavoriteButton : styles.favoriteButton,
+              { padding: gridMode ? 8 : (maxHeight ? maxHeight / 100 : 20) },
             ]}
             onPress={handlePress}
           >
             <IconComponent
               fill={isIconFilled ? themeColors.primary : themeColors.text}
-              size={34}
+              size={gridMode ? 24 : 34}
             />
           </TouchableOpacity>
         )}
@@ -252,6 +281,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
 export default AnimePreviewWidget;
 
 const styles = StyleSheet.create({
+  // List mode styles (default)
   cardContainer: {
     flexDirection: "row",
     backgroundColor: "transparent",
@@ -275,5 +305,27 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     bottom: 0,
+  },
+  // Grid mode styles (for tablet)
+  gridCardContainer: {
+    flexDirection: "column",
+    backgroundColor: "transparent",
+    padding: 8,
+    borderRadius: 18,
+    marginVertical: 4,
+    alignItems: "center",
+    position: "relative",
+  },
+  gridInfoContainer: {
+    width: "100%",
+    paddingTop: 8,
+    paddingHorizontal: 4,
+  },
+  gridFavoriteButton: {
+    position: "absolute",
+    right: 4,
+    top: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 12,
   },
 });

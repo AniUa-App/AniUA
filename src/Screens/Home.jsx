@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import {
   View,
   ScrollView,
@@ -19,7 +25,10 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { sendRequest } from "../Sources/CustomSet";
-import { useIsTabletLandscape } from "../Styles/Responsive";
+import {
+  useIsTabletLandscape,
+  useIsTabletPortrait,
+} from "../Styles/Responsive";
 import DoramaScreen from "./DoramaScreen";
 import MangaScreen from "./MangaScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -63,6 +72,48 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const hikkaUser = useHikkaUser();
+  const isTL = useIsTabletLandscape();
+  const navigatorRef = useRef(null);
+  const [bannerAnimes, setBannerAnimes] = useState([]);
+  const [activeTabKey, setActiveTabKey] = useState("anime");
+  const [recommendations, setRecommendations] = useState(
+    SettingsStorage.getParameter("userConfig.recommendations")
+  );
+
+  // Завантаження даних для банера на рівні HomeScreen (для планшетів)
+  useEffect(() => {
+    if (isTL) {
+      HikkaSets.getMostPopularAnime(1, 6, 2025)
+        .then(setBannerAnimes)
+        .catch((err) =>
+          Logger.error("Home", "Помилка завантаження банера", err)
+        );
+    }
+  }, [isTL]);
+
+  useEffect(() => {
+    const unsubscribe = EventBus.on("recommendations", (newRecommendations) => {
+      setRecommendations(newRecommendations);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Обробник зміни вкладок для планшета
+  const handleTabChange = useCallback((tabKey) => {
+    setActiveTabKey(tabKey);
+  }, []);
+
+  // Навігація при зміні активної вкладки на планшеті
+  useEffect(() => {
+    if (isTL && navigatorRef.current) {
+      const routeMap = {
+        dorama: "DoramaTab",
+        anime: "AnimeTab",
+        manga: "MangaTab",
+      };
+      navigatorRef.current.navigate(routeMap[activeTabKey]);
+    }
+  }, [activeTabKey, isTL]);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,6 +123,78 @@ export default function HomeScreen() {
     }, [hikkaUser?.refetch])
   );
 
+  // Планшет landscape - банер завжди видно зліва, навігатор над банером
+  if (isTL) {
+    return (
+      <DefaultScreenWidget isNavBarPadding={true}>
+        <View style={{ flex: 1, flexDirection: "row", marginTop: insets.top }}>
+          {/* Ліва частина - навігатор зверху, банер знизу */}
+          <View
+            style={{
+              width: "40%",
+              height: "100%",
+            }}
+          >
+            {/* Навігатор (вкладки) */}
+            <View
+              style={{
+                backgroundColor: "transparent",
+                zIndex: 2,
+              }}
+            >
+              <TopNavigationComponent
+                activeTab={activeTabKey}
+                onTabChange={handleTabChange}
+              />
+            </View>
+            {/* Банер */}
+            {recommendations?.isDefaultBigBanner !== false && (
+              <View style={{ flex: 1 }}>
+                <BigBannerWidget.Tablet animes={bannerAnimes} />
+              </View>
+            )}
+          </View>
+          {/* Права частина - контент */}
+          <View style={{ flex: 1, height: "100%" }}>
+            <ContentTypeTab.Navigator
+              initialRouteName="AnimeTab"
+              tabBar={({ navigation }) => {
+                // Зберігаємо navigation ref для використання зовні
+                if (!navigatorRef.current) {
+                  navigatorRef.current = navigation;
+                }
+                return null;
+              }}
+              screenOptions={{
+                swipeEnabled: false,
+                animationEnabled: true,
+                lazy: true,
+              }}
+              sceneContainerStyle={{ backgroundColor: "transparent" }}
+              style={{ backgroundColor: "transparent" }}
+            >
+              <ContentTypeTab.Screen
+                name="DoramaTab"
+                component={DoramaScreen}
+              />
+              <ContentTypeTab.Screen name="AnimeTab">
+                {() => (
+                  <AnimeTabContent
+                    historyData={hikkaUser?.history}
+                    refetchUserData={hikkaUser?.refetch}
+                    isTabletMode={true}
+                  />
+                )}
+              </ContentTypeTab.Screen>
+              <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
+            </ContentTypeTab.Navigator>
+          </View>
+        </View>
+      </DefaultScreenWidget>
+    );
+  }
+
+  // Телефон - звичайний layout
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
       <View style={{ flex: 1 }}>
@@ -104,6 +227,7 @@ export default function HomeScreen() {
               <AnimeTabContent
                 historyData={hikkaUser?.history}
                 refetchUserData={hikkaUser?.refetch}
+                isTabletMode={false}
               />
             )}
           </ContentTypeTab.Screen>
@@ -117,9 +241,13 @@ export default function HomeScreen() {
 /**
  * Компонент для вкладки Аніме
  */
-function AnimeTabContent({ historyData, refetchUserData }) {
+function AnimeTabContent({
+  historyData,
+  refetchUserData,
+  isTabletMode = false,
+}) {
   const colors = useThemeColors();
-  const isTL = useIsTabletLandscape();
+  const isTabletPort = useIsTabletPortrait();
   const insets = useSafeAreaInsets();
   const [animeList_popularity_this_year, setAnimeList_popularity_this_year] =
     useState([]);
@@ -199,6 +327,11 @@ function AnimeTabContent({ historyData, refetchUserData }) {
   }, []);
 
   const loadPopularAnime = useCallback(async () => {
+    // На планшеті банер завантажується в HomeScreen, тут не потрібно
+    if (isTabletMode) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const yearData = await HikkaSets.getMostPopularAnime(1, 6, 2025);
@@ -208,96 +341,24 @@ function AnimeTabContent({ historyData, refetchUserData }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isTabletMode]);
 
   useFocusEffect(
     useCallback(() => {
-      // Оновлюємо дані при кожному поверненні на вкладку, щоб синхронізувати головний екран
       loadPopularAnime();
       refetchUserData?.();
     }, [loadPopularAnime, refetchUserData])
   );
-  if (isTL) {
+
+  // Планшет landscape - тільки контент, банер рендериться в HomeScreen
+  if (isTabletMode) {
     return (
-      <DefaultScreenWidget
-        style={{
-          flex: 1,
-          flexDirection: "row",
-        }}
-      >
-        {recommendations?.isDefaultBigBanner === true && (
-          <View
-            style={{
-              width: "40%",
-              height: "100%",
-            }}
-          >
-            <BigBannerWidget.Tablet animes={animeList_popularity_this_year} />
-          </View>
-        )}
-        <View style={{ flex: 1, height: "100%" }}>
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            {isLoading ? (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color={colors.primary} />
-              </View>
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  paddingBottom: 50,
-                  width: "95%",
-                  alignSelf: "center",
-                }}
-              >
-                <View style={{ height: 20 }} />
-                {animeHistory?.length > 0 && (
-                  <AnimeListHorizontal
-                    title="Історія перегяду"
-                    animeList={animeHistory.split(0, 15)}
-                    onClickMore={
-                      animeHistory.length < 15
-                        ? null
-                        : async () => {
-                            navigation.navigate("HiddenStack", {
-                              screen: "AnimeList",
-                              params: {
-                                title: "Історія перегляду",
-                                initialData: animeHistory,
-                              },
-                            });
-                          }
-                    }
-                  />
-                )}
-
-                {recommendations?.isCustomedPersonalRecommendations && (
-                  <CustomPersonalRecList />
-                )}
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      </DefaultScreenWidget>
-    );
-  }
-
-  return (
-    <DefaultScreenWidget style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {recommendations?.isDefaultBigBanner === true && (
-          <View style={{ marginTop: insets.top + 24 }}>
-            <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
-          </View>
-        )}
-        {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : (
+      <DefaultScreenWidget isNavBarPadding={false}>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View
             style={{
               flex: 1,
+              paddingBottom: 50,
               width: "95%",
               alignSelf: "center",
             }}
@@ -321,7 +382,58 @@ function AnimeTabContent({ historyData, refetchUserData }) {
                 }
               />
             )}
-            {recommendations?.isCustomedPersonalRecommendations && (
+
+            {recommendations?.isCustomedPersonalRecommendations !== false && (
+              <CustomPersonalRecList />
+            )}
+          </View>
+        </ScrollView>
+      </DefaultScreenWidget>
+    );
+  }
+
+  // Телефон - повний layout з банером
+  return (
+    <DefaultScreenWidget isNavBarPadding={false}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        {recommendations?.isDefaultBigBanner !== false && (
+          <View style={{ marginTop: insets.top + 24 }}>
+            <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
+          </View>
+        )}
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              width: isTabletPort ? "90%" : "95%",
+              alignSelf: "center",
+              paddingHorizontal: isTabletPort ? 8 : 0,
+            }}
+          >
+            {animeHistory?.length > 0 && (
+              <AnimeListHorizontal
+                title="Історія перегляду"
+                animeList={animeHistory.slice(0, isTabletPort ? 20 : 15)}
+                onClickMore={
+                  animeHistory.length < (isTabletPort ? 20 : 15)
+                    ? null
+                    : async () => {
+                        navigation.navigate("HiddenStack", {
+                          screen: "AnimeList",
+                          params: {
+                            title: "Історія перегляду",
+                            initialData: animeHistory,
+                          },
+                        });
+                      }
+                }
+              />
+            )}
+            {recommendations?.isCustomedPersonalRecommendations !== false && (
               <CustomPersonalRecList />
             )}
           </View>
@@ -345,6 +457,8 @@ const CustomPersonalRecList = React.memo(() => {
   useEffect(() => {
     try {
       setIsLoading(true);
+      // Ensure default lists are initialized before loading
+      PersonalRecListStorage.initializeDefaultLists();
       const data = PersonalRecListStorage.getSettingsList();
       setPersonalRecList(data);
     } catch (error) {
@@ -395,34 +509,46 @@ const CustomPersonalRecList = React.memo(() => {
       </View>
     );
   }
-  if (loadedAnimeLists.length === 0) return null;
+
+  // Filter out lists with empty animeList
+  const nonEmptyLists = loadedAnimeLists.filter(
+    (list) => list.animeList && list.animeList.length > 0
+  );
+
+  if (nonEmptyLists.length === 0) return null;
 
   return (
     <>
-      {loadedAnimeLists.map((animeList, index) => (
-        <AnimeListHorizontal
-          key={index}
-          title={animeList.name}
-          animeList={animeList.animeList}
-          onClickMore={
-            loadedAnimeLists[index].animeList.length < 10
-              ? null
-              : async () => {
-                  const data = await sendRequest(
-                    personalRecList[index],
-                    "full"
-                  );
-                  navigation.navigate("HiddenStack", {
-                    screen: "AnimeList",
-                    params: {
-                      title: personalRecList[index].name,
-                      initialData: data,
-                    },
-                  });
-                }
-          }
-        />
-      ))}
+      {nonEmptyLists.map((animeList, index) => {
+        // Find the original index in personalRecList for onClickMore
+        const originalIndex = personalRecList.findIndex(
+          (item) => item.name === animeList.name
+        );
+        return (
+          <AnimeListHorizontal
+            key={animeList.name}
+            title={animeList.name}
+            animeList={animeList.animeList}
+            onClickMore={
+              animeList.animeList.length < 10
+                ? null
+                : async () => {
+                    const data = await sendRequest(
+                      personalRecList[originalIndex],
+                      "full"
+                    );
+                    navigation.navigate("HiddenStack", {
+                      screen: "AnimeList",
+                      params: {
+                        title: personalRecList[originalIndex].name,
+                        initialData: data,
+                      },
+                    });
+                  }
+            }
+          />
+        );
+      })}
     </>
   );
 });

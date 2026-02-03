@@ -116,3 +116,37 @@ export function useDeviceType() {
   if (tabletLandscape) return 'tablet';
   return 'phone';
 }
+
+// Hook to detect tablet in portrait mode
+export function useIsTabletPortrait() {
+  const tablet = useIsTablet();
+  const landscape = useIsLandscape();
+  return tablet && !landscape;
+}
+
+// Hook to calculate optimal number of grid columns based on screen width
+export function useGridColumns(minCardWidth = 180) {
+  const { width } = useWindowDimensions();
+  const isTabletDevice = useIsTablet();
+
+  if (!isTabletDevice) return 1;
+
+  // Calculate columns based on available width and minimum card width
+  // Account for padding (16px on each side)
+  const availableWidth = width - 32;
+  const columns = Math.floor(availableWidth / minCardWidth);
+
+  return Math.max(2, Math.min(columns, 4)); // Between 2-4 columns
+}
+
+// Static version of grid columns (for non-hook contexts)
+export function getGridColumns(minCardWidth = 180) {
+  const { width } = getDims();
+
+  if (!isTablet()) return 1;
+
+  const availableWidth = width - 32;
+  const columns = Math.floor(availableWidth / minCardWidth);
+
+  return Math.max(2, Math.min(columns, 4));
+}

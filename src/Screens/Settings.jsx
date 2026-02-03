@@ -1,4 +1,4 @@
-import { View, ScrollView, Linking, Text } from "react-native";
+import { View, ScrollView, Linking, Text, useWindowDimensions } from "react-native";
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
@@ -21,6 +21,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { H4, H6 } from "../Styles/Fonts";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
+import { useIsTablet, maxContentWidth, horizontalPadding } from "../Styles/Responsive";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -30,10 +31,16 @@ export default function SettingsScreen() {
   const [defaultPlayer, setDefaultPlayer] = useState(
     SettingsStorage.getParameter("defaultPlayer")
   );
+  const isTablet = useIsTablet();
+  const { width } = useWindowDimensions();
 
   // Refs для BottomSheet
   const playerSheetRef = useRef(null);
   const partnersSheetRef = useRef(null);
+
+  // Calculate content width for tablet
+  const contentMaxWidth = isTablet ? Math.min(maxContentWidth(), width - 48) : width;
+  const contentPadding = isTablet ? horizontalPadding() : 0;
 
   // Перечитуємо налаштування при фокусі на екран
   useFocusEffect(
@@ -136,6 +143,16 @@ export default function SettingsScreen() {
       <ScrollView
         style={{ flex: 1, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          isTablet
+            ? {
+                maxWidth: contentMaxWidth,
+                alignSelf: "center",
+                width: "100%",
+                paddingHorizontal: contentPadding,
+              }
+            : undefined
+        }
       >
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">

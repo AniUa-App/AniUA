@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   useWindowDimensions,
@@ -10,69 +9,52 @@ import {
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { useThemeColors } from "../Global/useTheme";
-import { TouchableOpacity } from "../Widgets/Button";
-import { Image } from "../Widgets/LoadersWidgets";
-import Icon, { DownloadIcon } from "../Styles/Icons";
-import { H2, H3, H4 } from "../Styles/Fonts";
-import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
-import AnimeStorage from "../Storage/AnimeStorage";
-import Logger from "../Logger/Logger";
-import { isTabletLandscape, isTablet } from "../Styles/Responsive";
-import { prefetchBloomImage } from "../Widgets/BloomImage";
-import BottomSheetDownloadComponent from "../Components/BottomSheetDownload/BottomSheetDownloadComponent";
-import type { BottomSheetDownloadRef } from "../Components/BottomSheetDownload/types";
-import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
+import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
+import { useThemeColors } from "../../Global/useTheme";
+import { TouchableOpacity } from "../../Widgets/Button";
+import { Image } from "../../Widgets/LoadersWidgets";
+import Icon, { DownloadIcon } from "../../Styles/Icons";
+import { H2, H3, H4 } from "../../Styles/Fonts";
+import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
+import AnimeStorage from "../../Storage/AnimeStorage";
+import Logger from "../../Logger/Logger";
+import { useGridColumns } from "../../Styles/Responsive";
+import { prefetchBloomImage } from "../../Widgets/BloomImage";
+import BottomSheetDownloadComponent from "../../Components/BottomSheetDownload/BottomSheetDownloadComponent";
+import { styles, getGridItemWidth } from "./styles";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 
-interface AnimeInfo {
-  downloaded_episodes?: Array<{
-    episode: number;
-    video_path: string;
-  }>;
-  [key: string]: any;
-}
-
-interface AnimeItem {
-  slug: string;
-  title_ua?: string;
-  title_en?: string;
-  title_ja?: string;
-  image?: string;
-  rating?: string;
-  year?: number;
-  genres?: Array<{ name_ua: string }>;
-}
-
-export default function DownloadScreen({
+// Tablet version of Download screen (grid layout)
+export default function DownloadTablet({
   isNavBarPadding,
   hasManualHeader,
-}: {
-  isNavBarPadding?: boolean;
-  hasManualHeader?: boolean;
 }) {
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
+  const numColumns = useGridColumns(180);
 
-  const [animeList, setAnimeList] = useState<AnimeItem[]>([]);
+  const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [info, setInfo] = useState<Record<string, AnimeInfo>>({});
+  const [info, setInfo] = useState({});
 
-  // Для BottomSheet
-  const [selectedAnime, setSelectedAnime] = useState<AnimeItem | null>(null);
-  const downloadSheetRef = useRef<BottomSheetDownloadRef>(null);
+  const [selectedAnime, setSelectedAnime] = useState(null);
+  const downloadSheetRef = useRef(null);
+
+  // Calculate card width based on grid columns
+  const cardWidth = useMemo(() => {
+    return getGridItemWidth(width, numColumns, 16);
+  }, [width, numColumns]);
 
   const getInfos = useCallback(() => {
     try {
       const storedInfos = AnimeStorage.getAll();
       setInfo(storedInfos || {});
-      Logger.debug("DownloadScreen", "Інформація завантажена");
+      Logger.debug("DownloadTablet", "Інформація завантажена");
     } catch (error) {
       Logger.error(
-        "DownloadScreen",
+        "DownloadTablet",
         "Помилка при завантаженні інформації",
         error
       );
@@ -81,7 +63,7 @@ export default function DownloadScreen({
   }, []);
 
   const updateInfo = useCallback(
-    (slug: string, newInfoData: Partial<AnimeInfo>) => {
+    (slug, newInfoData) => {
       setInfo((prevInfo) => {
         const updatedInfo = {
           ...prevInfo,
@@ -94,11 +76,11 @@ export default function DownloadScreen({
     []
   );
 
-  const fetchAnimeDetails = useCallback(async (animeSlug: string) => {
+  const fetchAnimeDetails = useCallback(async (animeSlug) => {
     try {
       return await HikkaApiComplete.getAnimeDetails(animeSlug);
     } catch (error) {
-      Logger.error("DownloadScreen", "Помилка при отриманні деталей аніме", {
+      Logger.error("DownloadTablet", "Помилка при отриманні деталей аніме", {
         animeSlug,
         error,
       });
@@ -107,8 +89,8 @@ export default function DownloadScreen({
   }, []);
 
   const fetchWithConcurrencyLimit = useCallback(
-    async (tasks: Array<() => Promise<any>>) => {
-      const results: any[] = [];
+    async (tasks) => {
+      const results = [];
 
       for (let i = 0; i < tasks.length; i += MAX_CONCURRENT_REQUESTS) {
         const batch = tasks.slice(i, i + MAX_CONCURRENT_REQUESTS);
@@ -137,7 +119,7 @@ export default function DownloadScreen({
       (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0
     );
 
-    Logger.debug("DownloadScreen", "Завантаження завантаженого", {
+    Logger.debug("DownloadTablet", "Завантаження завантаженого", {
       slugs: downloadedSlugs,
     });
 
@@ -165,7 +147,7 @@ export default function DownloadScreen({
     }, [getInfos, fetchDownloadedAnime])
   );
 
-  const handleOpenDownloadSheet = useCallback((anime: AnimeItem) => {
+  const handleOpenDownloadSheet = useCallback((anime) => {
     setSelectedAnime(anime);
     setTimeout(() => {
       downloadSheetRef.current?.open();
@@ -173,7 +155,7 @@ export default function DownloadScreen({
   }, []);
 
   const handleInfoChange = useCallback(
-    (updatedInfo: AnimeInfo) => {
+    (updatedInfo) => {
       if (selectedAnime) {
         updateInfo(selectedAnime.slug, updatedInfo);
       }
@@ -182,25 +164,24 @@ export default function DownloadScreen({
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: AnimeItem; index: number }) => {
+    ({ item, index }) => {
       if (!item?.slug) {
         return null;
       }
 
       const currentItemInfo = info?.[item.slug] || {};
       const downloadedCount = currentItemInfo.downloaded_episodes?.length || 0;
+      const imgWidth = cardWidth - 16;
+      const imgHeight = imgWidth * 1.4;
+
       return (
         <TouchableOpacity
           style={[
-            styles.cardContainer,
+            styles.gridCardContainer,
             {
               backgroundColor: themeColors.background,
+              width: cardWidth,
             },
-            isTabletLandscape()
-              ? { height: height * 0.3 }
-              : isTablet()
-                ? { height: height * 0.2 }
-                : { height: height * 0.25 },
           ]}
           onPress={() => {
             handleOpenDownloadSheet(item);
@@ -219,16 +200,12 @@ export default function DownloadScreen({
               uri={item.image}
               style={[
                 styles.animeImage,
-                isTabletLandscape()
-                  ? { width: width * 0.12, height: height * 0.3 }
-                  : isTablet()
-                    ? { width: width * 0.2, height: height * 0.2 }
-                    : { width: width * 0.35, height: height * 0.25 },
+                { width: imgWidth, height: imgHeight },
               ]}
             />
           </TouchableOpacity>
 
-          <View style={styles.infoContainer}>
+          <View style={styles.gridInfoContainer}>
             <TouchableOpacity
               onPress={() => {
                 prefetchBloomImage(item.image);
@@ -240,62 +217,46 @@ export default function DownloadScreen({
             >
               <Text
                 selectable={true}
-                numberOfLines={4}
+                numberOfLines={2}
                 ellipsizeMode="tail"
-                style={[H3, { marginBottom: 8 }]}
+                style={[H3, { marginBottom: 4 }]}
               >
-                {(item.title_ua || item.title_en || item.title_ja || "")
-                  .length > 20
-                  ? (item.title_ua || item.title_en || item.title_ja || "")
-                      .split(" ")
-                      .slice(0, 6)
-                      .join(" ") + "..."
-                  : item.title_ua || item.title_en || item.title_ja}
+                {item.title_ua || item.title_en || item.title_ja || ""}
               </Text>
             </TouchableOpacity>
 
             {item.year && (
-              <Text selectable={true} style={[H4, { marginBottom: 4 }]}>
-                Рік:{" "}
-                <Text selectable={true} style={{ color: themeColors.primary }}>
-                  {item.year}
-                </Text>
-              </Text>
-            )}
-            {item.genres && item.genres.length > 0 && (
               <Text
                 selectable={true}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-                style={H4}
+                style={[H4, { color: themeColors.inActiveText }]}
               >
-                Жанри:{" "}
-                <Text selectable={true} style={{ color: themeColors.primary }}>
-                  {item.genres.map((genre) => genre.name_ua).join(", ")}
-                </Text>
+                {item.year}
               </Text>
             )}
-            <View
-              style={[
-                styles.downloadButton,
-                { backgroundColor: themeColors.accent },
-              ]}
-            >
-              <DownloadIcon
-                fill={themeColors.primary}
-                size={24}
-                label={String(downloadedCount)}
-              />
-            </View>
+          </View>
+
+          <View
+            style={[
+              styles.gridDownloadButton,
+              { backgroundColor: themeColors.Background(0.7) },
+            ]}
+          >
+            <DownloadIcon
+              fill={themeColors.primary}
+              size={20}
+              label={String(downloadedCount)}
+            />
           </View>
         </TouchableOpacity>
       );
     },
-    [info, themeColors, navigation, width, height, handleOpenDownloadSheet]
+    [info, themeColors, navigation, cardWidth, handleOpenDownloadSheet]
   );
 
-  const keyExtractor = (item: AnimeItem, index: number) =>
-    `${item.slug}-${index}`;
+  const keyExtractor = useCallback(
+    (item, index) => `${item.slug}-${index}`,
+    []
+  );
 
   const ListEmptyComponent = useCallback(
     () =>
@@ -338,27 +299,31 @@ export default function DownloadScreen({
           data={animeList}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          numColumns={numColumns}
+          key={`grid-${numColumns}`}
           showsVerticalScrollIndicator={false}
-          initialNumToRender={5}
-          maxToRenderPerBatch={10}
+          initialNumToRender={numColumns * 3}
+          maxToRenderPerBatch={numColumns * 4}
           windowSize={10}
           removeClippedSubviews={true}
           ListEmptyComponent={ListEmptyComponent}
           ListFooterComponent={ListFooterComponent}
-          contentContainerStyle={styles.listContentContainer}
+          contentContainerStyle={[styles.listContentContainer, styles.gridContainer]}
+          columnWrapperStyle={styles.gridColumnWrapper}
         />
 
         {selectedAnime && (
           <BottomSheetDownloadComponent
             ref={downloadSheetRef}
+            slug={selectedAnime.slug}
             anime={selectedAnime}
             info={info[selectedAnime.slug] || {}}
             onInfoChange={handleInfoChange}
             onDownloadComplete={(episode, updatedInfo) => {
-              Logger.info("DownloadScreen", "Download complete", { episode });
+              Logger.info("DownloadTablet", "Download complete", { episode });
             }}
             onDownloadError={(error, episode) => {
-              Logger.error("DownloadScreen", "Download error", {
+              Logger.error("DownloadTablet", "Download error", {
                 error,
                 episode,
               });
@@ -369,51 +334,3 @@ export default function DownloadScreen({
     </BottomSheetModalProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    marginHorizontal: 8,
-    marginVertical: 4,
-  },
-  animeImage: {
-    borderRadius: 16,
-  },
-  infoContainer: {
-    flex: 1,
-    marginLeft: 16,
-    height: "100%",
-  },
-  downloadButton: {
-    position: "absolute",
-    justifyContent: "center",
-    alignItems: "center",
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    right: 0,
-    bottom: 8,
-  },
-  loaderContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  emptyMessage: {
-    textAlign: "center",
-    padding: "5%",
-    marginTop: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  listContentContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-});

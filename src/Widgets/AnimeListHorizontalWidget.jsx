@@ -106,7 +106,11 @@ export function AnimeListHorizontal({
         {title?.length > 0 && (
           <Text
             selectable={true}
-            style={[styles.title, H3, { color: themeColors.text }]}
+            style={[
+              styles.title,
+              H3,
+              { color: themeColors.text, padding: 0, margin: 0 },
+            ]}
           >
             {title || ""}
           </Text>
@@ -116,7 +120,6 @@ export function AnimeListHorizontal({
             style={[
               styles.arrowRightIcon,
               {
-                padding: 6,
                 borderRadius: 16,
                 backgroundColor: themeColors.accent,
               },
@@ -169,7 +172,6 @@ export function PreviewAnimeListHorizontal({
           style={[
             styles.arrowRightIcon,
             {
-              padding: 6,
               borderRadius: 16,
               backgroundColor: themeColors.accent,
             },
@@ -209,22 +211,21 @@ export function PreviewAnimeListHorizontal({
 const styles = StyleSheet.create({
   imageContainer: {
     borderRadius: 8,
-    paddingHorizontal: 8,
   },
   arrowRightIcon: {
-    marginVertical: isTabletLandscape() ? 4 : 12,
+    width: 38,
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: "transparent",
     width: "100%",
+    margin: 10,
   },
-  title: {
-    paddingLeft: 8,
-    marginVertical: isTabletLandscape() ? 6 : 16,
-  },
-  listContent: {
-    paddingHorizontal: 4,
-  },
+  listContent: {},
 });

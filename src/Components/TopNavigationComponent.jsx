@@ -1,20 +1,16 @@
-import React, { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-  Extrapolation,
-} from "react-native-reanimated";
+import { useSharedValue, withSpring } from "react-native-reanimated";
 import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
-import { H4, H5, H3, H7, H6 } from "../Styles/Fonts";
+import { H5 } from "../Styles/Fonts";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import NotificationsStorage from "../Storage/NotificationsStorage";
 import { EventBus } from "../Global/EventBus";
+import { useIsTabletLandscape } from "../Styles/Responsive";
+import { useWindowDimensions } from "react-native";
 
 const TABS = [
   { key: "dorama", label: "Дорама" },
@@ -29,15 +25,16 @@ const INDICATOR_PADDING = 4;
 export default function TopNavigationComponent({
   activeTab = "anime",
   onTabChange,
-  scrollY = null,
 }) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const isTabletLandscape = useIsTabletLandscape();
+  const { width: PAGE_WIDTH } = useWindowDimensions();
+  const BANNER_WIDTH = Math.round(PAGE_WIDTH * 0.4);
 
   const activeIndex = TABS.findIndex((tab) => tab.key === activeTab);
   const indicatorPosition = useSharedValue(activeIndex >= 0 ? activeIndex : 1);
-  const tabsContainerWidth = TAB_WIDTH * TABS.length + INDICATOR_PADDING * 10;
 
   // Стан для кількості непрочитаних сповіщень
   const [unreadCount, setUnreadCount] = useState(
@@ -107,6 +104,7 @@ export default function TopNavigationComponent({
           paddingTop: insets.top + 2,
           backgroundColor: "transparent",
           flex: 1,
+          width: isTabletLandscape ? BANNER_WIDTH : "100%",
         },
       ]}
     >
@@ -131,7 +129,7 @@ export default function TopNavigationComponent({
         )}
       </Pressable>
 
-      {/* Center - Category Tabs */}
+      {/* Category Tabs */}
       <SegmentedControl
         values={TABS.map((s) => String(s.label))}
         selectedIndex={activeIndex}
@@ -160,6 +158,7 @@ export default function TopNavigationComponent({
           color: themeColors.text,
         }}
       />
+      {/* Spacer to push tabs to the right - only on tablet landscape */}
 
       {/* Right - Search Icon */}
       <Pressable

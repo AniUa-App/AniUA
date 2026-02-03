@@ -136,6 +136,17 @@ export default function AnimePreviewTablet({ route }) {
 
   const landscapePosterHeight = Math.max(260, winHeight * 0.75);
 
+  // Callbacks MUST be defined before any conditional returns (Rules of Hooks)
+  const renderCharacter = useCallback(
+    ({ item }) => <CharacterCard item={item} imageSize={80} />,
+    []
+  );
+
+  const keyExtractorCharacter = useCallback(
+    (item) => item?.character?.slug || "",
+    []
+  );
+
   // Error states
   if (!route || !route.params) {
     return (
@@ -211,16 +222,6 @@ export default function AnimePreviewTablet({ route }) {
       </TouchableOpacity>
     );
   };
-
-  const renderCharacter = useCallback(
-    ({ item }) => <CharacterCard item={item} imageSize={80} />,
-    []
-  );
-
-  const keyExtractorCharacter = useCallback(
-    (item) => item?.character?.slug || "",
-    []
-  );
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection}>

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
 import HomeScreen from "../Home";
 import AnimeListScreen from "../AnimeList";
-import DownloadScreen from "../DownloadScreen";
+import DownloadScreen from "../Download";
 import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,

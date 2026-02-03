@@ -3,30 +3,22 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { useState, useCallback, useEffect } from "react";
-import AnimeStatusFAB from "../Widgets/AnimeStatusFAB";
-import AnimePreviewWidget from "../Widgets/AnimePreviewWidget";
-import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import Logger from "../Logger/Logger";
-import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
-import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
-import LoginScreen from "./LoginScreen";
-import { useThemeColors } from "../Global/useTheme";
-import { H2 } from "../Styles/Fonts";
+import AnimeStatusFAB from "../../Widgets/AnimeStatusFAB";
+import AnimePreviewWidget from "../../Widgets/AnimePreviewWidget";
+import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
+import Logger from "../../Logger/Logger";
+import HikkaAuthStorage from "../../Storage/HikkaAuthStorage";
+import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
+import LoginScreen from "../LoginScreen";
+import { useThemeColors } from "../../Global/useTheme";
+import { H2 } from "../../Styles/Fonts";
+import { styles, STATUS_TITLES } from "./styles";
 
-// Мапінг статусів FAB до назв для заголовка
-const STATUS_TITLES = {
-  favourite: "Улюблене",
-  watching: "Дивлюсь",
-  completed: "Переглянуто",
-  planned: "Заплановано",
-  dropped: "Закинуто",
-};
-
-export default function BookmarkScreen({ ...props }) {
+// Phone version of Bookmark screen (vertical list)
+export default function BookmarkPhone({ ...props }) {
   const colors = useThemeColors();
   const [currentStatus, setCurrentStatus] = useState("favourite");
   const [animeList, setAnimeList] = useState([]);
@@ -35,14 +27,13 @@ export default function BookmarkScreen({ ...props }) {
   const [hasMore, setHasMore] = useState(true);
   const { height } = useWindowDimensions();
 
-  Logger.debug("BookmarkScreen", "props", { ...props });
+  Logger.debug("BookmarkPhone", "props", { ...props });
 
-  // Функція для завантаження аніме з API
   const fetchAnimeList = useCallback(
     async (statusToFetch, pageToFetch = 1, append = false) => {
       const user = HikkaAuthStorage.getUser();
       if (!user?.username) {
-        Logger.error("BookmarkScreen", "Користувач не знайдений");
+        Logger.error("BookmarkPhone", "Користувач не знайдений");
         setIsLoading(false);
         return;
       }
@@ -53,26 +44,22 @@ export default function BookmarkScreen({ ...props }) {
         let response;
 
         if (statusToFetch === "favourite") {
-          // Завантаження улюблених
           response = await HikkaApiComplete.getUserFavorites(
             "anime",
             user.username,
             { page: pageToFetch, size: 15 }
           );
-          Logger.debug("BookmarkScreen", "Отримано улюблені", response);
+          Logger.debug("BookmarkPhone", "Отримано улюблені", response);
         } else {
-          // Завантаження watch list з фільтром по статусу
           response = await HikkaApiComplete.getUserWatchList(user.username, {
             watch_status: statusToFetch,
             page: pageToFetch,
             size: 15,
           });
-          Logger.debug("BookmarkScreen", "Отримано watch list", response);
+          Logger.debug("BookmarkPhone", "Отримано watch list", response);
         }
 
         if (response?.list) {
-          // Для favourite list - дані аніме в полі anime
-          // Для watch list - дані аніме також в полі anime
           const animeData = response.list.map((item) => item.anime || item);
 
           if (append) {
@@ -81,7 +68,6 @@ export default function BookmarkScreen({ ...props }) {
             setAnimeList(animeData);
           }
 
-          // Оновлення пагінації
           const pagination = response.pagination;
           if (pagination) {
             setHasMore(pageToFetch < (pagination.pages || 1));
@@ -95,7 +81,7 @@ export default function BookmarkScreen({ ...props }) {
           setHasMore(false);
         }
       } catch (error) {
-        Logger.error("BookmarkScreen", "Помилка завантаження", error);
+        Logger.error("BookmarkPhone", "Помилка завантаження", error);
         if (!append) {
           setAnimeList([]);
         }
@@ -107,14 +93,12 @@ export default function BookmarkScreen({ ...props }) {
     []
   );
 
-  // Завантаження при зміні статусу
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     fetchAnimeList(currentStatus, 1, false);
   }, [currentStatus, fetchAnimeList]);
 
-  // Оновлення при фокусі екрану
   useEffect(() => {
     const unsubscribe = props.navigation.addListener("focus", () => {
       setPage(1);
@@ -124,7 +108,6 @@ export default function BookmarkScreen({ ...props }) {
     return unsubscribe;
   }, [props.navigation, currentStatus, fetchAnimeList]);
 
-  // Завантаження наступної сторінки
   const loadMore = useCallback(() => {
     if (!isLoading && hasMore) {
       const nextPage = page + 1;
@@ -133,11 +116,10 @@ export default function BookmarkScreen({ ...props }) {
     }
   }, [isLoading, hasMore, page, currentStatus, fetchAnimeList]);
 
-  // Рендер елемента списку
   const renderItem = useCallback(
     ({ item }) => {
       if (!item?.slug) {
-        Logger.warn("BookmarkScreen", "Невалідний елемент", { item });
+        Logger.warn("BookmarkPhone", "Невалідний елемент", { item });
         return null;
       }
 
@@ -146,13 +128,11 @@ export default function BookmarkScreen({ ...props }) {
     [currentStatus]
   );
 
-  // Ключ для елемента
   const keyExtractor = useCallback(
     (item, index) => item?.slug || `${index}`,
     []
   );
 
-  // Компонент порожнього списку
   const ListEmptyComponent = useCallback(
     () =>
       !isLoading ? (
@@ -165,7 +145,6 @@ export default function BookmarkScreen({ ...props }) {
     [isLoading, currentStatus, height]
   );
 
-  // Індикатор завантаження
   const ListFooterComponent = useCallback(
     () =>
       isLoading ? (
@@ -173,7 +152,7 @@ export default function BookmarkScreen({ ...props }) {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null,
-    [isLoading]
+    [isLoading, colors.primary]
   );
 
   if (HikkaAuthStorage.isAuthenticated()) {
@@ -199,7 +178,7 @@ export default function BookmarkScreen({ ...props }) {
         <AnimeStatusFAB
           bottomOffset={80}
           onStatusChange={(item) => {
-            Logger.debug("BookmarkScreen", "FAB", { item });
+            Logger.debug("BookmarkPhone", "FAB", { item });
             if (item !== currentStatus) {
               setCurrentStatus(item || "favourite");
             }
@@ -213,25 +192,3 @@ export default function BookmarkScreen({ ...props }) {
     return <LoginScreen isCanSkip={false} />;
   }
 }
-
-const styles = StyleSheet.create({
-  loaderContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  emptyMessage: {
-    textAlign: "center",
-    padding: "5%",
-    color: "grey",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  listContentContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-});

@@ -318,12 +318,15 @@ const Mobile = React.memo(({ animes }) => {
 
 const Tablet = React.memo(({ animes }) => {
   const { width: PAGE_WIDTH, height: PAGE_HEIGHT } = useWindowDimensions();
-  const CARD_WIDTH = Math.round(PAGE_WIDTH / 2.5);
-  const BANNER_HEIGHT = Math.round(PAGE_HEIGHT * 0.8);
+  const BANNER_WIDTH = Math.round(PAGE_WIDTH * 0.4);
+  const BANNER_HEIGHT = Math.round(PAGE_HEIGHT * 0.85);
   const navigation = useNavigation();
   const flatListRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const progress = useSharedValue(0);
+  const themeColors = useThemeColors();
+  const currentIndexRef = useRef(0);
   const autoPlayRef = useRef(null);
+  const isTouchingRef = useRef(false);
 
   useEffect(() => {
     if (animes?.length > 0) {
@@ -337,14 +340,15 @@ const Tablet = React.memo(({ animes }) => {
     if (!animes?.length || animes.length <= 1) return;
 
     autoPlayRef.current = setInterval(() => {
-      setCurrentIndex((prev) => {
-        const nextIndex = (prev + 1) % animes.length;
-        flatListRef.current?.scrollToIndex({
-          index: nextIndex,
-          animated: true,
-        });
-        return nextIndex;
+      if (isTouchingRef.current) return;
+
+      const nextIndex = (currentIndexRef.current + 1) % animes.length;
+      currentIndexRef.current = nextIndex;
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
       });
+      progress.value = withTiming(nextIndex, { duration: 300 });
     }, 4000);
 
     return () => {
@@ -353,6 +357,14 @@ const Tablet = React.memo(({ animes }) => {
       }
     };
   }, [animes?.length]);
+
+  const onTouchStart = useCallback(() => {
+    isTouchingRef.current = true;
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    isTouchingRef.current = false;
+  }, []);
 
   const handlePress = useCallback(
     (item) => {
@@ -365,48 +377,137 @@ const Tablet = React.memo(({ animes }) => {
     [navigation]
   );
 
+  const onPressPagination = useCallback((index) => {
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+    currentIndexRef.current = index;
+  }, []);
+
+  const onScroll = useCallback(
+    (event) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      progress.value = offsetX / BANNER_WIDTH;
+    },
+    [BANNER_WIDTH]
+  );
+
   const onMomentumScrollEnd = useCallback(
     (event) => {
       const newIndex = Math.round(
-        event.nativeEvent.contentOffset.x / CARD_WIDTH
+        event.nativeEvent.contentOffset.x / BANNER_WIDTH
       );
-      setCurrentIndex(newIndex);
+      currentIndexRef.current = newIndex;
     },
-    [CARD_WIDTH]
+    [BANNER_WIDTH]
   );
 
   const getItemLayout = useCallback(
     (_, index) => ({
-      length: CARD_WIDTH,
-      offset: CARD_WIDTH * index,
+      length: BANNER_WIDTH,
+      offset: BANNER_WIDTH * index,
       index,
     }),
-    [CARD_WIDTH]
+    [BANNER_WIDTH]
   );
 
   const renderItem = useCallback(
-    ({ item }) => (
-      <Pressable
-        onPress={() => handlePress(item)}
-        style={[
-          styles.itemContainer,
-          { width: CARD_WIDTH, height: BANNER_HEIGHT },
-        ]}
-      >
-        <FastImage
-          source={{ uri: item.image }}
-          style={styles.itemImage}
-          resizeMode={FastImage.resizeMode.cover}
-        />
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.8)"]}
-          style={styles.bottomGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      </Pressable>
-    ),
-    [handlePress, CARD_WIDTH, BANNER_HEIGHT]
+    ({ item }) => {
+      const title = item.title_ua || item.title_en || item.title_ja || "";
+      const year = item.year;
+      const score = item.score;
+
+      return (
+        <Pressable
+          onPress={() => handlePress(item)}
+          style={[
+            styles.itemContainer,
+            {
+              width: BANNER_WIDTH,
+              height: BANNER_HEIGHT,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
+        >
+          <BloomImage
+            uri={item.image}
+            width={BANNER_WIDTH * 0.9}
+            height={BANNER_HEIGHT * 0.9}
+            blurRadius={100}
+            borderRadius={16}
+            blurBorderRadius={0}
+            glowScale={1.15}
+            resizeMode={FastImage.resizeMode.cover}
+            fadePercent={0.2}
+          />
+          {/* Darkening gradient overlay */}
+          <LinearGradient
+            colors={["transparent", themeColors.Background(0.5)]}
+            locations={[0, 1]}
+            style={[
+              styles.gradientOverlay,
+              {
+                width: BANNER_WIDTH * 0.83,
+                height: BANNER_HEIGHT * 0.85,
+              },
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          {/* Rating badge */}
+          {score > 0 && (
+            <View
+              style={[
+                styles.ratingBadge,
+                { backgroundColor: themeColors.Background(0.8) },
+              ]}
+            >
+              <Icons.StarFour size={28} color={themeColors.primary} />
+              <Text selectable={true} style={[H4, { color: themeColors.text }]}>
+                {score.toFixed(1)}
+              </Text>
+            </View>
+          )}
+          {/* Title and play button */}
+          <View
+            style={[
+              styles.bottomOverlay,
+              {
+                alignItems: title.length > 20 ? "flex-start" : "center",
+              },
+            ]}
+          >
+            <View style={styles.titleContainer}>
+              <Text
+                selectable={true}
+                style={[
+                  H2,
+                  {
+                    color: themeColors.text,
+                  },
+                ]}
+                numberOfLines={2}
+              >
+                {title}
+                {year ? ` (${year})` : ""}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.playButton,
+                {
+                  backgroundColor: themeColors.background,
+                  width: 48,
+                  height: 48,
+                },
+              ]}
+            >
+              <Icons.PlayCircle size={28} color={themeColors.primary} />
+            </View>
+          </View>
+        </Pressable>
+      );
+    },
+    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT]
   );
 
   if (!animes?.length) return null;
@@ -416,9 +517,9 @@ const Tablet = React.memo(({ animes }) => {
       style={[
         styles.container,
         {
-          width: CARD_WIDTH,
           height: BANNER_HEIGHT,
           backgroundColor: "transparent",
+          alignItems: "center",
         },
       ]}
     >
@@ -430,12 +531,21 @@ const Tablet = React.memo(({ animes }) => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
         getItemLayout={getItemLayout}
-        style={{ width: CARD_WIDTH, height: BANNER_HEIGHT }}
+        style={{ width: BANNER_WIDTH, height: BANNER_HEIGHT }}
         decelerationRate="fast"
-        snapToInterval={CARD_WIDTH}
+        snapToInterval={BANNER_WIDTH}
         snapToAlignment="start"
+        scrollEventThrottle={16}
+      />
+      <PaginationDots
+        total={animes.length}
+        progress={progress}
+        onPress={onPressPagination}
       />
     </View>
   );
