@@ -33,6 +33,7 @@ import {
 } from "./shared";
 import { tvStyles as styles } from "./styles";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
+import { ErrorScreen } from "../ErrorScreen";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -199,6 +200,16 @@ export default function AnimePreviewTV({ route }) {
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       </DefaultScreenWidget>
+    );
+  }
+
+  if (errorCode) {
+    return (
+      <ErrorScreen
+        title="Помилка"
+        message={`Не вдалося завантажити дані. Код помилки: ${errorCode}`}
+        onRetry={() => navigation.goBack()}
+      />
     );
   }
 

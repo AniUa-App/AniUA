@@ -20,13 +20,15 @@ npm run setup-ffmpeg         # Download FFmpeg AAR for Android
 ### EAS Build & Updates
 ```bash
 npm run update-beta          # Push OTA update to beta channel
-npx eas build --profile beta               # Build APK for beta channel
-npx eas build --profile aab-beta           # Build app bundle for beta channel
+npm run build-beta           # Local APK build for beta channel
+npx eas build --profile beta               # Remote EAS build APK for beta channel
+npx eas build --profile aab-beta           # Remote EAS build app bundle for beta channel
 ```
 
 ### Environment
 - The app uses environment variables from `.env` and `.env.local` files
 - Required env vars: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY`, `EXPO_PUBLIC_MOON_KEY`, `APP_URI`
+- Hikka OAuth vars: `EXPO_PUBLIC_HIKKA_CLIENT_ID`, `HIKKA_CLIENT_SECRET`, `EXPO_PUBLIC_HIKKA_REDIRECT_URL`
 - Build-time variables are injected via `app.config.js`
 
 ## Architecture
@@ -44,15 +46,17 @@ The app integrates with multiple anime content providers:
 
 1. **Hikka API** (`src/Sources/hikka.ts`, `HikkaApi` class):
    - Main anime metadata source (https://api.hikka.io/)
-   - Episode data from https://api.hikka-features.pp.ua/
-   - Provides genres, search, anime details, franchise info, episodes
-   - All API calls are cached with 5-minute TTL
+   - Provides genres, search, anime details, franchise info
+   - All API calls are cached with 30-minute TTL
+   - `HikkaApiComplete` (`src/Sources/HikkaApiComplete.ts`) extends this for episode data from https://api.hikka-features.pp.ua/
 
 2. **AniUA API** (`src/Api/AniuaApi.ts`, `AniuaApi` class):
    - Backend API for AniUA-specific features (https://api-aniua.yuzka.site)
    - Provides: episodes by slug, dubbing teams data, app versions, user auth, push notifications
-   - JWT token authentication via `X-JWT-Token` header
+   - JWT token authentication via `X-JWT-Token` header, Bearer token via `Authorization` header
    - Episode caching uses both in-memory cache (5min) and persistent `EpisodesCacheStorage` (10min)
+   - Implements request deduplication to prevent duplicate concurrent requests
+   - Handles Cloudflare 530 errors by blocking subsequent requests until app restart
 
 3. **Episode Providers**:
    - `moon`: Moonanime video provider

@@ -72,7 +72,7 @@ export function CustomAnimeListsPreviewScreen({
         } catch (e) {
           return { name: anime.name, animeList: [] };
         }
-      })
+      }),
     )
       .then((results) => {
         setLoadedAnimeLists(results);
@@ -327,7 +327,7 @@ export function AnimatedView({
   const translateX = useSharedValue(
     animation === "left"
       ? -(distance ?? screenWidth)
-      : (distance ?? screenWidth)
+      : (distance ?? screenWidth),
   );
 
   useEffect(() => {
@@ -341,7 +341,7 @@ export function AnimatedView({
       withTiming(0, {
         duration,
         easing: Easing.out(Easing.cubic),
-      })
+      }),
     );
   }, [animation, duration, delay, distance]);
 

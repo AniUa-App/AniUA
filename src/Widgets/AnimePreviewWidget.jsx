@@ -96,6 +96,12 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       const imgHeight = imgWidth * 1.4; // Poster aspect ratio
       return { width: imgWidth, height: imgHeight };
     }
+    // List mode with maxWidth (tablet horizontal cards)
+    if (maxWidth) {
+      const imgWidth = maxWidth * 0.28;
+      const imgHeight = imgWidth * 1.4;
+      return { width: imgWidth, height: imgHeight };
+    }
     // Default list mode
     if (isTabletLandscape()) {
       return { width: width * 0.12, height: height * 0.3 };

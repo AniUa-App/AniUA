@@ -13,7 +13,7 @@ import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { H5 } from "../Styles/Fonts";
 
 export enum WatchButtonState {
-  LOADING = "Завантаження...",
+  LOADING = "Завантаження контенту...",
   NO_TRANSLATION = "Немає перекладу",
   START_WATCHING = "Почати перегляд",
   CONTINUE_WATCHING = "Дивитись",

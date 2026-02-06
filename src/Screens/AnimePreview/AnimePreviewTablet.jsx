@@ -46,6 +46,7 @@ import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import CommentsSection from "../../Components/CommentsSection";
 import { tabletStyles as styles } from "./styles"; // Using tabletStyles but relying on manual styles for consistency
 import { useIsTabletLandscape } from "../../Styles/Responsive";
+import { ErrorScreen } from "../ErrorScreen";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -230,6 +231,7 @@ export default function AnimePreviewTablet({ route }) {
     existingFiles,
     animeList,
     charactersList,
+    errorCode,
     episodesList,
     setIsConnection,
     watchStatus,
@@ -426,6 +428,16 @@ export default function AnimePreviewTablet({ route }) {
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       </DefaultScreenWidget>
+    );
+  }
+
+  if (errorCode) {
+    return (
+      <ErrorScreen
+        title="Помилка"
+        message={`Не вдалося завантажити дані. Код помилки: ${errorCode}`}
+        onRetry={() => navigation.goBack()}
+      />
     );
   }
 

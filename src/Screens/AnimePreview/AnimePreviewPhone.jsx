@@ -45,6 +45,7 @@ import AnimeCard from "../../Components/AnimeCard";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import CommentsSection from "../../Components/CommentsSection";
 import { useIsTabletLandscape } from "../../Styles/Responsive";
+import { ErrorScreen } from "../ErrorScreen";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -196,6 +197,7 @@ export default function AnimePreviewPhone({ route }) {
     existingFiles,
     animeList,
     charactersList,
+    errorCode,
     episodesList,
     setIsConnection,
     watchStatus,
@@ -396,6 +398,16 @@ export default function AnimePreviewPhone({ route }) {
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       </DefaultScreenWidget>
+    );
+  }
+
+  if (errorCode) {
+    return (
+      <ErrorScreen
+        title="Помилка"
+        message={`Не вдалося завантажити дані. Код помилки: ${errorCode}`}
+        onRetry={() => navigation.goBack()}
+      />
     );
   }
 

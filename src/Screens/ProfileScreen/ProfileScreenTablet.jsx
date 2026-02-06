@@ -10,34 +10,35 @@ import {
   Modal,
   TextInput,
   Pressable,
+  useWindowDimensions,
 } from "react-native";
-import SettingsStorage from "../Storage/SettingsStorage";
+import SettingsStorage from "../../Storage/SettingsStorage";
 import { useFocusEffect } from "@react-navigation/native";
-import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { useThemeColors } from "../Global/useTheme";
-import { H4, H6 } from "../Styles/Fonts";
-import { TouchableOpacity } from "../Widgets/Button";
-import Icons from "../Styles/Icons";
-import { useHikkaUser } from "../Hooks/useHikkaUser";
-import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
-import { useSnackbar } from "../Components/Snackbar";
-import LoginScreen from "./LoginScreen";
+import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
+import { useThemeColors } from "../../Global/useTheme";
+import { H4, H6 } from "../../Styles/Fonts";
+import { TouchableOpacity } from "../../Widgets/Button";
+import Icons from "../../Styles/Icons";
+import { useHikkaUser } from "../../Hooks/useHikkaUser";
+import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
+import { useSnackbar } from "../../Components/Snackbar";
+import LoginScreen from "../LoginScreen";
+import AnimeCard from "../../Components/AnimeCard";
 
 import {
   AnimatedTabButton,
   ProfileAvatar,
   ProfileStats,
   FilterChips,
-  AnimeGrid,
-  NotAuthenticatedView,
   TABS,
   FILTERS,
   FAVORITES_FILTERS,
-  SCREEN_WIDTH,
-} from "../Components/Profile";
+} from "../../Components/Profile";
+import { useIsTabletLandscape } from "../../Styles/Responsive";
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreenTablet({ navigation }) {
   const colors = useThemeColors();
+  const { width } = useWindowDimensions();
   const { snackbar, showSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState("list");
   const [activeFilter, setActiveFilter] = useState("watching");
@@ -47,44 +48,30 @@ export default function ProfileScreen({ navigation }) {
   const [favoritesList, setFavoritesList] = useState([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [showAnimeDetails, setShowAnimeDetails] = useState(
-    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+    SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
   );
-
-  // Dynamic height for tabs
-  const [listTabHeight, setListTabHeight] = useState(300);
-  const [favoritesTabHeight, setFavoritesTabHeight] = useState(300);
+  const isTabletLandscape = useIsTabletLandscape();
 
   // Username edit modal
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
 
-  const slideAnim = useRef(new Animated.Value(0)).current;
-
-  const activeTabIndex = TABS.findIndex((tab) => tab.id === activeTab);
   try {
     useFocusEffect(
       useCallback(() => {
         setShowAnimeDetails(
-          SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+          SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
         );
-      }, [])
+      }, []),
     );
   } catch {
     useEffect(() => {
       setShowAnimeDetails(
-        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+        SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
       );
     }, []);
   }
-  useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: -activeTabIndex * SCREEN_WIDTH,
-      useNativeDriver: true,
-      tension: 68,
-      friction: 12,
-    }).start();
-  }, [activeTabIndex]);
 
   const { user, stats, favorites, isLoading, isAuthenticated, refetch } =
     useHikkaUser();
@@ -97,11 +84,10 @@ export default function ProfileScreen({ navigation }) {
       return;
     }
 
-    // Валідація за паттерном API: ^[A-Za-z][A-Za-z0-9_]{4,63}$
     const usernamePattern = /^[A-Za-z][A-Za-z0-9_]{4,63}$/;
     if (!usernamePattern.test(trimmedUsername)) {
       showSnackbar(
-        "Нік має починатися з літери, містити 5-64 символи (літери, цифри, _)"
+        "Нік має починатися з літери, містити 5-64 символи (літери, цифри, _)",
       );
       return;
     }
@@ -171,7 +157,7 @@ export default function ProfileScreen({ navigation }) {
         {
           page: 1,
           size: 50,
-        }
+        },
       );
       setFavoritesList(response?.list || []);
     } catch (error) {
@@ -187,10 +173,9 @@ export default function ProfileScreen({ navigation }) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor("transparent");
       StatusBar.setBarStyle("light-content");
-    }, [])
+    }, []),
   );
 
-  // Перезавантаження даних при поверненні на екран
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchAnimeList();
@@ -200,12 +185,10 @@ export default function ProfileScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, fetchAnimeList, fetchFavoritesList]);
 
-  // Завантаження списку аніме при зміні фільтра
   useEffect(() => {
     fetchAnimeList();
   }, [fetchAnimeList]);
 
-  // Завантаження улюблених аніме при зміні фільтра
   useEffect(() => {
     fetchFavoritesList();
   }, [fetchFavoritesList]);
@@ -213,7 +196,13 @@ export default function ProfileScreen({ navigation }) {
   const displayName = user?.username || "Користувач AniUa";
   const handle = user?.username ? `@${user.username}` : "@aniua_user";
 
-  // Стан завантаження
+  // Current data based on active tab
+  const currentData = activeTab === "list" ? animeList : favoritesList;
+  const currentLoading =
+    activeTab === "list" ? isLoadingAnime : isLoadingFavorites;
+  const getAnimeFromItem =
+    activeTab === "list" ? (item) => item.anime : (item) => item;
+
   if (isLoading) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
@@ -224,11 +213,9 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
-  // Не авторизований
   if (!isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        {/* Header */}
         <View style={[styles.header, { zIndex: 1 }]}>
           <TouchableOpacity
             onPress={() =>
@@ -241,166 +228,154 @@ export default function ProfileScreen({ navigation }) {
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
         </View>
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-          }}
-        >
+        <View style={StyleSheet.absoluteFill}>
           <LoginScreen isCanSkip={false} />
         </View>
       </DefaultScreenWidget>
     );
   }
 
+  // Render anime grid content
+  const renderAnimeGrid = () => {
+    if (currentLoading) {
+      return (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
+    }
+
+    if (currentData.length === 0) {
+      const emptyIcon = activeTab === "list" ? "MonitorPlay" : "Heart";
+      const EmptyIcon = Icons[emptyIcon];
+      return (
+        <View style={styles.emptyState}>
+          <EmptyIcon size={48} color={colors.Text(0.3)} weight="regular" />
+          <Text
+            selectable={true}
+            style={[H6, styles.emptyStateText, { color: colors.Text(0.5) }]}
+          >
+            Список порожній
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.animeGridContainer}>
+        {currentData.map((item, index) => {
+          const anime = getAnimeFromItem(item);
+          return (
+            <View key={anime?.slug || index} style={styles.animeGridItem}>
+              <AnimeCard
+                anime={anime}
+                width={140}
+                showDetails={showAnimeDetails}
+                navigation={navigation}
+              />
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("HiddenStack", {
-                screen: "SettingsScreen",
-              })
-            }
-            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
-          >
-            <Icons.GearSix size={32} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Avatar */}
-        <ProfileAvatar avatarUrl={user?.avatar} colors={colors} />
-
-        {/* Username */}
-        <View style={styles.usernameContainer}>
-          <Text selectable={true} style={[H4]}>
-            {displayName}
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setNewUsername(user?.username || "");
-              setIsEditModalVisible(true);
-            }}
-            style={[
-              styles.editButton,
-              { backgroundColor: colors.subtle, width: 48 },
-            ]}
-          >
-            <Icons.Pencil size={18} color={colors.primary} weight="fill" />
-          </TouchableOpacity>
-        </View>
-
-        <Text
-          selectable={true}
-          style={[styles.handle, { color: colors.Text(0.5) }]}
-        >
-          {handle}
-        </Text>
-
-        {/* Stats */}
-        <ProfileStats stats={stats} favorites={favorites} colors={colors} />
-
-        {/* Tabs */}
-        <View
-          style={[styles.tabsContainer, { borderBottomColor: colors.subtle }]}
-        >
-          {TABS.map((tab) => (
-            <AnimatedTabButton
-              key={tab.id}
-              tab={tab}
-              isActive={activeTab === tab.id}
-              onPress={() => setActiveTab(tab.id)}
-              colors={colors}
-            />
-          ))}
-        </View>
-
-        {/* Tab Content with Slide Animation */}
-        <View
-          style={[
-            styles.tabContentWrapper,
-            {
-              backgroundColor: colors.accent,
-              height: Math.max(
-                activeTab === "list" ? listTabHeight : favoritesTabHeight,
-                300
-              ),
-            },
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.tabContentContainer,
-              {
-                transform: [{ translateX: slideAnim }],
-              },
-            ]}
-          >
-            {/* List Tab */}
-            <View
-              style={{ width: SCREEN_WIDTH }}
-              onLayout={(e) => setListTabHeight(e.nativeEvent.layout.height)}
-            >
-              <View>
-                <FilterChips
-                  filters={FILTERS}
-                  activeFilter={activeFilter}
-                  onFilterSelect={setActiveFilter}
-                  colors={colors}
-                />
-              </View>
-              <AnimeGrid
-                data={animeList}
-                isLoading={isLoadingAnime}
-                emptyIcon="MonitorPlay"
-                emptyText="Список порожній"
-                colors={colors}
-                navigation={navigation}
-                showAnimeDetails={showAnimeDetails}
-                getAnimeFromItem={(item) => item.anime}
-              />
-            </View>
-
-            {/* Favorites Tab */}
-            <View
-              style={{ width: SCREEN_WIDTH }}
-              onLayout={(e) =>
-                setFavoritesTabHeight(e.nativeEvent.layout.height)
+      <View style={styles.container}>
+        {/* Sidebar */}
+        <View style={[styles.sidebar]}>
+          {/* Settings button */}
+          <View style={[styles.sidebarHeader]}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("HiddenStack", {
+                  screen: "SettingsScreen",
+                })
               }
+              style={[styles.iconButton, { backgroundColor: colors.accent }]}
             >
-              <View>
-                <FilterChips
-                  filters={FAVORITES_FILTERS}
-                  activeFilter={activeFavoriteFilter}
-                  onFilterSelect={setActiveFavoriteFilter}
-                  colors={colors}
-                />
-              </View>
+              <Icons.GearSix size={28} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
 
-              <AnimeGrid
-                data={favoritesList}
-                isLoading={isLoadingFavorites}
-                emptyIcon="Heart"
-                emptyText="Список порожній"
-                colors={colors}
-                navigation={navigation}
-                showAnimeDetails={showAnimeDetails}
-                getAnimeFromItem={(item) => item}
-              />
-            </View>
-          </Animated.View>
+          {/* Avatar */}
+          <ProfileAvatar avatarUrl={user?.avatar} colors={colors} />
+
+          {/* Username */}
+          <View style={styles.usernameContainer}>
+            <Text selectable={true} style={[H4]}>
+              {displayName}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setNewUsername(user?.username || "");
+                setIsEditModalVisible(true);
+              }}
+              style={[
+                styles.editButton,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Icons.Pencil size={16} color={colors.primary} weight="fill" />
+            </TouchableOpacity>
+          </View>
+
+          <Text
+            selectable={true}
+            style={[styles.handle, { color: colors.Text(0.5) }]}
+          >
+            {handle}
+          </Text>
+
+          {/* Stats */}
+          <ProfileStats
+            type={"tablet"}
+            stats={stats}
+            favorites={favorites}
+            colors={colors}
+          />
         </View>
-        <View style={{ width: "100%", paddingBottom: 45 }} />
-      </ScrollView>
+
+        {/* Content */}
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Tabs */}
+          <View
+            style={[styles.tabsContainer, { borderBottomColor: colors.subtle }]}
+          >
+            {TABS.map((tab) => (
+              <AnimatedTabButton
+                key={tab.id}
+                tab={tab}
+                isActive={activeTab === tab.id}
+                onPress={() => setActiveTab(tab.id)}
+                colors={colors}
+              />
+            ))}
+          </View>
+
+          {/* Filters */}
+          <FilterChips
+            filters={activeTab === "list" ? FILTERS : FAVORITES_FILTERS}
+            activeFilter={
+              activeTab === "list" ? activeFilter : activeFavoriteFilter
+            }
+            onFilterSelect={
+              activeTab === "list" ? setActiveFilter : setActiveFavoriteFilter
+            }
+            colors={colors}
+          />
+
+          {/* Anime Grid */}
+          {renderAnimeGrid()}
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </View>
 
       {/* Username Edit Modal */}
       <Modal
@@ -485,10 +460,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
+    flexDirection: "row",
   },
   loadingContainer: {
     flex: 1,
@@ -502,6 +474,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 8,
+  },
+  // Sidebar
+  sidebar: {
+    paddingTop: 40,
+    paddingHorizontal: 16,
+    width: "40%",
+    paddingBottom: 100,
+  },
+
+  sidebarHeader: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginBottom: 8,
   },
   iconButton: {
     width: 48,
@@ -517,16 +502,23 @@ const styles = StyleSheet.create({
     marginTop: 14,
     gap: 8,
   },
-  displayName: {},
   editButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 16,
   },
   handle: {
     textAlign: "center",
     marginTop: 2,
+  },
+  // Content
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingTop: 40,
   },
   tabsContainer: {
     flexDirection: "row",
@@ -534,14 +526,30 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginHorizontal: 20,
   },
-  tabContentWrapper: {
-    overflow: "hidden",
+  // Anime Grid
+  emptyState: {
     width: "100%",
+    alignItems: "center",
+    paddingTop: 40,
   },
-  tabContentContainer: {
+  emptyStateText: {
+    textAlign: "center",
+    marginTop: 8,
+  },
+  animeGridContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    paddingTop: 12,
     alignItems: "flex-start",
+    justifyContent: "flex-start",
   },
+  animeGridItem: {
+    width: "33%",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -551,6 +559,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "100%",
+    maxWidth: 400,
     borderRadius: 20,
     padding: 24,
   },

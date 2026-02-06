@@ -15,7 +15,7 @@ import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import LoginScreen from "../LoginScreen";
 import { useThemeColors } from "../../Global/useTheme";
 import { H2 } from "../../Styles/Fonts";
-import { useGridColumns } from "../../Styles/Responsive";
+import { useIsLandscape } from "../../Styles/Responsive";
 import { styles, STATUS_TITLES, getGridItemWidth } from "./styles";
 
 // Tablet version of Bookmark screen (grid layout)
@@ -27,7 +27,9 @@ export default function BookmarkTablet({ ...props }) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const { width, height } = useWindowDimensions();
-  const numColumns = useGridColumns(180);
+  const isLandscape = useIsLandscape();
+  // В горизонтальному режимі - 2 колонки, у вертикальному - 3
+  const numColumns = isLandscape ? 2 : 3;
 
   // Calculate card width based on grid columns
   const cardWidth = useMemo(() => {
@@ -131,16 +133,19 @@ export default function BookmarkTablet({ ...props }) {
       }
 
       return (
-        <AnimePreviewWidget
-          anime={item}
-          info={{}}
-          type={currentStatus}
-          gridMode={true}
-          cardWidth={cardWidth}
-        />
+        <View style={{ width: cardWidth }}>
+          <AnimePreviewWidget
+            anime={item}
+            info={{}}
+            type={currentStatus}
+            gridMode={false}
+            maxWidth={cardWidth}
+            maxHeight={height * 0.25}
+          />
+        </View>
       );
     },
-    [currentStatus, cardWidth]
+    [currentStatus, cardWidth, height]
   );
 
   const keyExtractor = useCallback(
@@ -178,7 +183,7 @@ export default function BookmarkTablet({ ...props }) {
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           numColumns={numColumns}
-          key={`grid-${numColumns}`} // Force re-render when columns change
+          key={`list-${numColumns}`} // Force re-render when columns change
           showsVerticalScrollIndicator={false}
           initialNumToRender={numColumns * 3}
           maxToRenderPerBatch={numColumns * 4}

@@ -323,26 +323,65 @@ export function useAnimePreview({ route, navigation }) {
           ) {
             try {
               let currentInfo = infoRef.current;
+              let data = null;
 
-              const result = await HikkaApiComplete.getEpisodes(anime.slug);
+              // Спочатку пробуємо AniuaApi (api-aniua.yuzka.site)
+              let needFallback = false;
 
-              if (!isMounted) return;
+              try {
+                const aniuaData = await AniuaApi.getAnimeEpisodesGroupedByPlayer(anime.slug);
 
-              if (result.error) {
-                Logger.error("API Error:", result.error);
-                setErrorCode(result.code || 500);
-                setEpisodesList([]);
+                if (!isMounted) return;
+
+                // Якщо AniuaApi повернув 200/201 з даними - використовуємо їх
+                if (aniuaData && Object.keys(aniuaData).length > 0) {
+                  data = aniuaData;
+                } else {
+                  // 200/201 але порожні дані - пробуємо fallback
+                  needFallback = true;
+                }
+              } catch (aniuaError) {
+                // AniuaApi впав - пробуємо fallback
+                Logger.warn("shared.js", "AniuaApi failed", aniuaError);
+                needFallback = true;
+              }
+
+              // Fallback до HikkaApiComplete якщо потрібно
+              let fallbackFailed = false;
+              if (needFallback) {
+                Logger.info("shared.js", "Trying HikkaApiComplete fallback");
+
+                try {
+                  const result = await HikkaApiComplete.getEpisodes(anime.slug);
+
+                  if (!isMounted) return;
+
+                  if (!result.error && result.code < 400 && result.data) {
+                    data = result.data;
+                    Logger.info("shared.js", "Successfully loaded episodes from HikkaApiComplete fallback");
+                  } else {
+                    fallbackFailed = true;
+                  }
+                } catch (hikkaError) {
+                  Logger.error("shared.js", "HikkaApiComplete fallback also failed", hikkaError);
+                  fallbackFailed = true;
+                }
+              }
+
+              // Якщо обидва API не повернули дані
+              if (!data || Object.keys(data).length === 0) {
+                if (isMounted) {
+                  setEpisodesList([]);
+                  // Встановлюємо errorCode тільки якщо fallback теж впав (а не просто порожні дані)
+                  if (fallbackFailed) {
+                    setErrorCode(500);
+                  }
+                }
                 return;
               }
 
-              const { data, code } = result;
+              if (!isMounted || !data) return;
 
-              if (code >= 400) {
-                Logger.error("API Error Code:", code);
-                setErrorCode(code);
-                setEpisodesList([]);
-                return;
-              }
               // Sort dubbings
               const sortedData = {};
               for (const [player, dubbings] of Object.entries(data)) {
