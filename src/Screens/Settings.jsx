@@ -1,4 +1,10 @@
-import { View, ScrollView, Linking, Text, useWindowDimensions } from "react-native";
+import {
+  View,
+  ScrollView,
+  Linking,
+  Text,
+  useWindowDimensions,
+} from "react-native";
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
@@ -21,7 +27,12 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { H4, H6 } from "../Styles/Fonts";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
-import { useIsTablet, maxContentWidth, horizontalPadding } from "../Styles/Responsive";
+import {
+  useIsTablet,
+  maxContentWidth,
+  horizontalPadding,
+  useIsTabletLandscape,
+} from "../Styles/Responsive";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -29,24 +40,19 @@ export default function SettingsScreen() {
   const { snackbar, showSnackbar, showConfirmSnackbar } = useSnackbar();
   const [isRatingVisible, setIsRatingVisible] = useState(false);
   const [defaultPlayer, setDefaultPlayer] = useState(
-    SettingsStorage.getParameter("defaultPlayer")
+    SettingsStorage.getParameter("defaultPlayer"),
   );
-  const isTablet = useIsTablet();
   const { width } = useWindowDimensions();
 
   // Refs для BottomSheet
   const playerSheetRef = useRef(null);
   const partnersSheetRef = useRef(null);
 
-  // Calculate content width for tablet
-  const contentMaxWidth = isTablet ? Math.min(maxContentWidth(), width - 48) : width;
-  const contentPadding = isTablet ? horizontalPadding() : 0;
-
   // Перечитуємо налаштування при фокусі на екран
   useFocusEffect(
     useCallback(() => {
       setDefaultPlayer(SettingsStorage.getParameter("defaultPlayer"));
-    }, [])
+    }, []),
   );
 
   // Список партнерів
@@ -144,12 +150,10 @@ export default function SettingsScreen() {
         style={{ flex: 1, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={
-          isTablet
+          useIsTabletLandscape()
             ? {
-                maxWidth: contentMaxWidth,
                 alignSelf: "center",
-                width: "100%",
-                paddingHorizontal: contentPadding,
+                width: "97%",
               }
             : undefined
         }
@@ -179,7 +183,7 @@ export default function SettingsScreen() {
                       Expo.reloadAppAsync();
                     }, 3000);
                   },
-                }
+                },
               );
             }}
           />
@@ -323,7 +327,7 @@ export default function SettingsScreen() {
             value={defaultPlayer?.slice(0, 10)}
             onChange={(label) => {
               const player = MainConfig.players.find(
-                (p) => p.slice(0, 10) === label
+                (p) => p.slice(0, 10) === label,
               );
               if (player) {
                 handlePlayerSelect(player);

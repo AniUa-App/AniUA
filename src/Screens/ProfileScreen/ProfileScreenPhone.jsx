@@ -320,6 +320,7 @@ export default function ProfileScreen({ navigation }) {
         >
           {TABS.map((tab) => (
             <AnimatedTabButton
+              orientation="horizontal"
               key={tab.id}
               tab={tab}
               isActive={activeTab === tab.id}

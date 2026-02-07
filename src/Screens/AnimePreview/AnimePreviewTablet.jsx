@@ -157,11 +157,11 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
       setActiveTab(key);
       onTabChange?.(key);
     },
-    [onTabChange]
+    [onTabChange],
   );
 
   const activeContent = filteredTabs.find(
-    (tab) => tab.key === activeTab
+    (tab) => tab.key === activeTab,
   )?.content;
 
   if (filteredTabs.length === 0) {
@@ -358,12 +358,12 @@ export default function AnimePreviewTablet({ route }) {
         height={winHeight * 0.26}
       />
     ),
-    [winWidth, winHeight]
+    [winWidth, winHeight],
   );
 
   const keyExtractorCharacter = useCallback(
     (item) => item?.character?.slug || "",
-    []
+    [],
   );
 
   const renderSimilarAnime = useCallback(
@@ -385,7 +385,7 @@ export default function AnimePreviewTablet({ route }) {
         />
       );
     },
-    [initialAnime?.slug, navigation, winWidth, winHeight]
+    [initialAnime?.slug, navigation, winWidth, winHeight],
   );
 
   const landscapePosterHeight = Math.max(300, winHeight * 0.7); // Slightly bigger for tablet
@@ -491,7 +491,11 @@ export default function AnimePreviewTablet({ route }) {
                   top: 16,
                   left: 16,
                   padding: 4,
-                  borderRadius: 8,
+                  width: 44,
+                  height: 44,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 16,
                   backgroundColor: themeColors.subtle,
                 },
               ]}
@@ -877,12 +881,21 @@ export default function AnimePreviewTablet({ route }) {
           </>
         )}
 
-      <NewEpisodesBottomSheetMemo
-        sheetRef={newEpisodesSheetRef}
-        episodesList={episodesList}
-        storage_data={{ ...info, slug: anime?.slug }}
-        handleEpisodeSelect={handleEpisodeSelect}
-      />
+      {anime?.slug && (
+        <NewEpisodesBottomSheetMemo
+          ref={newEpisodesSheetRef}
+          anime={anime}
+          currentEpisode={
+            info?.watched_episodes?.[info?.watched_episodes?.length - 1]
+          }
+          currentTeam={info?.dub_team}
+          useBuiltInPlayer={info?.useBuiltIn ?? false}
+          watchedEpisodes={info?.watched_episodes || []}
+          onSelectEpisode={handleNewEpisodeSelect}
+          onTeamChange={handleNewTeamChange}
+          onBuiltInPlayerToggle={handleBuiltInPlayerToggle}
+        />
+      )}
 
       {/* New Download Bottom Sheet */}
       {anime?.slug && (

@@ -24,6 +24,7 @@ import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import { useSnackbar } from "../../Components/Snackbar";
 import LoginScreen from "../LoginScreen";
 import AnimeCard from "../../Components/AnimeCard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   AnimatedTabButton,
@@ -50,7 +51,12 @@ export default function ProfileScreenTablet({ navigation }) {
   const [showAnimeDetails, setShowAnimeDetails] = useState(
     SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
   );
-  const isTabletLandscape = useIsTabletLandscape();
+  const insets = useSafeAreaInsets();
+
+  // Tab slide animation (vertical)
+  const [listTabHeight, setListTabHeight] = useState(300);
+  const [favoritesTabHeight, setFavoritesTabHeight] = useState(300);
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   // Username edit modal
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -193,15 +199,20 @@ export default function ProfileScreenTablet({ navigation }) {
     fetchFavoritesList();
   }, [fetchFavoritesList]);
 
+  const activeTabIndex = TABS.findIndex((tab) => tab.id === activeTab);
+
+  useEffect(() => {
+    const targetY = activeTabIndex === 0 ? 0 : -listTabHeight;
+    Animated.spring(slideAnim, {
+      toValue: targetY,
+      useNativeDriver: true,
+      tension: 68,
+      friction: 12,
+    }).start();
+  }, [activeTabIndex, listTabHeight]);
+
   const displayName = user?.username || "Користувач AniUa";
   const handle = user?.username ? `@${user.username}` : "@aniua_user";
-
-  // Current data based on active tab
-  const currentData = activeTab === "list" ? animeList : favoritesList;
-  const currentLoading =
-    activeTab === "list" ? isLoadingAnime : isLoadingFavorites;
-  const getAnimeFromItem =
-    activeTab === "list" ? (item) => item.anime : (item) => item;
 
   if (isLoading) {
     return (
@@ -235,9 +246,9 @@ export default function ProfileScreenTablet({ navigation }) {
     );
   }
 
-  // Render anime grid content
-  const renderAnimeGrid = () => {
-    if (currentLoading) {
+  // Render anime grid content for a specific tab
+  const renderAnimeGridContent = (data, loading, tabType) => {
+    if (loading) {
       return (
         <View style={styles.emptyState}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -245,8 +256,8 @@ export default function ProfileScreenTablet({ navigation }) {
       );
     }
 
-    if (currentData.length === 0) {
-      const emptyIcon = activeTab === "list" ? "MonitorPlay" : "Heart";
+    if (data.length === 0) {
+      const emptyIcon = tabType === "list" ? "MonitorPlay" : "Heart";
       const EmptyIcon = Icons[emptyIcon];
       return (
         <View style={styles.emptyState}>
@@ -261,10 +272,11 @@ export default function ProfileScreenTablet({ navigation }) {
       );
     }
 
+    const getAnime = tabType === "list" ? (item) => item.anime : (item) => item;
     return (
       <View style={styles.animeGridContainer}>
-        {currentData.map((item, index) => {
-          const anime = getAnimeFromItem(item);
+        {data.map((item, index) => {
+          const anime = getAnime(item);
           return (
             <View key={anime?.slug || index} style={styles.animeGridItem}>
               <AnimeCard
@@ -284,7 +296,11 @@ export default function ProfileScreenTablet({ navigation }) {
     <DefaultScreenWidget isNavBarPadding={true}>
       <View style={styles.container}>
         {/* Sidebar */}
-        <View style={[styles.sidebar]}>
+        <ScrollView
+          style={[styles.sidebar]}
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Settings button */}
           <View style={[styles.sidebarHeader]}>
             <TouchableOpacity
@@ -298,35 +314,33 @@ export default function ProfileScreenTablet({ navigation }) {
               <Icons.GearSix size={28} color={colors.primary} />
             </TouchableOpacity>
           </View>
+          <View style={{ left: 32, paddingTop: "5%" }}>
+            {/* Avatar */}
+            <ProfileAvatar avatarUrl={user?.avatar} colors={colors} />
 
-          {/* Avatar */}
-          <ProfileAvatar avatarUrl={user?.avatar} colors={colors} />
+            {/* Username */}
+            <View style={styles.usernameContainer}>
+              <Text selectable={true} style={[H4]}>
+                {displayName}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setNewUsername(user?.username || "");
+                  setIsEditModalVisible(true);
+                }}
+                style={[styles.editButton, { backgroundColor: colors.accent }]}
+              >
+                <Icons.Pencil size={16} color={colors.primary} weight="fill" />
+              </TouchableOpacity>
+            </View>
 
-          {/* Username */}
-          <View style={styles.usernameContainer}>
-            <Text selectable={true} style={[H4]}>
-              {displayName}
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setNewUsername(user?.username || "");
-                setIsEditModalVisible(true);
-              }}
-              style={[
-                styles.editButton,
-                { backgroundColor: colors.background },
-              ]}
+            <Text
+              selectable={true}
+              style={[styles.handle, { color: colors.Text(0.5) }]}
             >
-              <Icons.Pencil size={16} color={colors.primary} weight="fill" />
-            </TouchableOpacity>
+              {handle}
+            </Text>
           </View>
-
-          <Text
-            selectable={true}
-            style={[styles.handle, { color: colors.Text(0.5) }]}
-          >
-            {handle}
-          </Text>
 
           {/* Stats */}
           <ProfileStats
@@ -335,43 +349,85 @@ export default function ProfileScreenTablet({ navigation }) {
             favorites={favorites}
             colors={colors}
           />
+          <View style={{ height: insets.bottom + 64 }} />
+        </ScrollView>
+
+        {/* Tabs */}
+        <View
+          style={[
+            styles.tabsContainer,
+            {
+              justifyContent: "center",
+              alignContent: "center",
+              flexDirection: "column",
+              gap: 16,
+              top: "4%",
+            },
+          ]}
+        >
+          {TABS.map((tab) => (
+            <AnimatedTabButton
+              key={tab.id}
+              tab={tab}
+              isActive={activeTab === tab.id}
+              onPress={() => setActiveTab(tab.id)}
+              colors={colors}
+              orientation="vertical"
+            />
+          ))}
         </View>
 
         {/* Content */}
         <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
+          style={[styles.content, { backgroundColor: colors.accent }]}
+          contentContainerStyle={[{ paddingTop: insets.top }]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Tabs */}
           <View
-            style={[styles.tabsContainer, { borderBottomColor: colors.subtle }]}
+            style={[
+              styles.tabContentWrapper,
+              {
+                height: Math.max(
+                  activeTab === "list" ? listTabHeight : favoritesTabHeight,
+                  300,
+                ),
+              },
+            ]}
           >
-            {TABS.map((tab) => (
-              <AnimatedTabButton
-                key={tab.id}
-                tab={tab}
-                isActive={activeTab === tab.id}
-                onPress={() => setActiveTab(tab.id)}
-                colors={colors}
-              />
-            ))}
+            <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
+              {/* List Tab */}
+              <View
+                onLayout={(e) => setListTabHeight(e.nativeEvent.layout.height)}
+              >
+                <FilterChips
+                  filters={FILTERS}
+                  activeFilter={activeFilter}
+                  onFilterSelect={setActiveFilter}
+                  colors={colors}
+                />
+                {renderAnimeGridContent(animeList, isLoadingAnime, "list")}
+              </View>
+
+              {/* Favorites Tab */}
+              <View
+                onLayout={(e) =>
+                  setFavoritesTabHeight(e.nativeEvent.layout.height)
+                }
+              >
+                <FilterChips
+                  filters={FAVORITES_FILTERS}
+                  activeFilter={activeFavoriteFilter}
+                  onFilterSelect={setActiveFavoriteFilter}
+                  colors={colors}
+                />
+                {renderAnimeGridContent(
+                  favoritesList,
+                  isLoadingFavorites,
+                  "favorites",
+                )}
+              </View>
+            </Animated.View>
           </View>
-
-          {/* Filters */}
-          <FilterChips
-            filters={activeTab === "list" ? FILTERS : FAVORITES_FILTERS}
-            activeFilter={
-              activeTab === "list" ? activeFilter : activeFavoriteFilter
-            }
-            onFilterSelect={
-              activeTab === "list" ? setActiveFilter : setActiveFavoriteFilter
-            }
-            colors={colors}
-          />
-
-          {/* Anime Grid */}
-          {renderAnimeGrid()}
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -479,13 +535,13 @@ const styles = StyleSheet.create({
   sidebar: {
     paddingTop: 40,
     paddingHorizontal: 16,
-    width: "40%",
     paddingBottom: 100,
+    maxWidth: "40%",
+    flexDirection: "column",
   },
 
   sidebarHeader: {
     flexDirection: "row",
-    justifyContent: "flex-end",
     marginBottom: 8,
   },
   iconButton: {
@@ -504,7 +560,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     width: 40,
-    height: 40,
+    height: 24,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
@@ -517,14 +573,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  contentContainer: {
-    paddingTop: 40,
-  },
+  contentContainer: {},
   tabsContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginTop: 20,
-    marginHorizontal: 20,
+  },
+  tabContentWrapper: {
+    overflow: "hidden",
+    width: "100%",
   },
   // Anime Grid
   emptyState: {
@@ -544,7 +600,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   animeGridItem: {
-    width: "33%",
+    width: "20%",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,

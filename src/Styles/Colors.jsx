@@ -35,6 +35,7 @@ export const orange_darkThemeColors = {
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
   blueBookmark: "rgb(70, 130, 180)",
+  pinkBookmark: "rgb(199, 91, 138)",
 };
 
 export const greenApple_blackThemeColors = {
@@ -53,6 +54,7 @@ export const greenApple_blackThemeColors = {
   orangeBookmark: "rgb(179, 81, 7)",
   yellowBookmark: "rgb(199, 167, 91)",
   blueBookmark: "rgb(70, 130, 180)",
+  pinkBookmark: "rgb(199, 91, 138)",
 };
 
 export const themes = {
@@ -92,6 +94,7 @@ export let redBookmark = defaultColors.redBookmark;
 export let orangeBookmark = defaultColors.orangeBookmark;
 export let yellowBookmark = defaultColors.yellowBookmark;
 export let blueBookmark = defaultColors.blueBookmark;
+export let pinkBookmark = defaultColors.pinkBookmark;
 
 // Відкладаємо завантаження з storage після ініціалізації модуля
 setTimeout(() => {
@@ -110,6 +113,7 @@ setTimeout(() => {
     orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
     yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
     blueBookmark = current.blueBookmark ?? defaultColors.blueBookmark;
+    pinkBookmark = current.pinkBookmark ?? defaultColors.pinkBookmark;
   }
 }, 0);
 
@@ -129,6 +133,7 @@ function refreshExportedColors() {
   orangeBookmark = current.orangeBookmark ?? defaultColors.orangeBookmark;
   yellowBookmark = current.yellowBookmark ?? defaultColors.yellowBookmark;
   blueBookmark = current.blueBookmark ?? defaultColors.blueBookmark;
+  pinkBookmark = current.pinkBookmark ?? defaultColors.pinkBookmark;
 }
 
 // Підписуємось на зміни конфігурації, щоб оновлювати експортовані значення на льоту

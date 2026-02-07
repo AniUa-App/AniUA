@@ -126,7 +126,7 @@ export default function AnimeStatusFAB({
       key: "favourite",
       label: "Улюблене",
       icon: Icon.Heart,
-      color: themeColors.primary,
+      color: themeColors.pinkBookmark,
     },
   ];
 

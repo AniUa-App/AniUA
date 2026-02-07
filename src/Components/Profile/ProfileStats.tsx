@@ -1,7 +1,9 @@
 import { View, Text, StyleSheet } from "react-native";
 import { H4, H5, H6 } from "../../Styles/Fonts";
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import Icon from "../../Styles/Icons";
+import Svg, { Circle } from "react-native-svg";
+import { stat } from "react-native-fs";
 
 const profileStats = ({
   stats,
@@ -141,57 +143,163 @@ function ProfileStatsTablet({
       color: colors.primary,
     },
   ];
+  const sortedUserStatsList = useMemo(() => {
+    return userStats.sort(
+      (a, b) =>
+        ((String(b.value) as any) + b.label).length +
+        b.value -
+        ((String(a.value) as any) + a.label).length -
+        a.value,
+    );
+  }, [userStats]);
+
+  const total = useMemo(() => {
+    return sortedUserStatsList.reduce((sum, s) => sum + s.value, 0);
+  }, [sortedUserStatsList]);
+
+  const size = 120;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+  const gap = sortedUserStatsList.length > 1 ? 0.02 : 0;
 
   return (
-    <View style={stylesTablets.statsContainer}>
-      {userStats.map((stat, index) => (
-        <View
-          key={index}
-          style={[
-            stylesTablets.statItem,
-            {
-              backgroundColor: colors.accent,
-            },
-          ]}
-        >
-          <View
-            style={[
-              stylesTablets.iconContainer,
-              {
-                backgroundColor: stat.color + "20",
-              },
-            ]}
-          >
-            <stat.icon size={20} color={stat.color} weight="fill" />
-          </View>
-          <View style={stylesTablets.textContainer}>
-            <Text
-              selectable={true}
-              style={[
-                H4,
-                {
-                  color: colors.text,
-                  fontWeight: "700",
-                },
-              ]}
-            >
-              {String(stat.value)}
-            </Text>
-            <Text
-              selectable={true}
-              style={[
-                H6,
-                {
-                  color: colors.text,
-                  opacity: 0.7,
-                },
-              ]}
-            >
-              {stat.label}
-            </Text>
-          </View>
+    <View
+      style={[
+        stylesTablets.statsContainer,
+        {
+          backgroundColor: colors.accent,
+        },
+      ]}
+    >
+      <View style={stylesTablets.statsRow}>
+        <View style={stylesTablets.statsList}>
+          {sortedUserStatsList.map((stat, index) => (
+            <View key={index} style={[stylesTablets.statItem]}>
+              <stat.icon size={24} color={stat.color} weight="fill" />
+              <Text
+                selectable={true}
+                style={[
+                  H6,
+                  {
+                    color: colors.text,
+                    opacity: 0.7,
+                  },
+                ]}
+              >
+                {stat.label}
+              </Text>
+              <Text
+                selectable={true}
+                style={[
+                  H5,
+                  {
+                    color: colors.text,
+                  },
+                ]}
+              >
+                {String(stat.value)}
+              </Text>
+            </View>
+          ))}
         </View>
-      ))}
+        {total > 0 && (
+          <View style={stylesTablets.chartContainer}>
+            <Svg width={size} height={size}>
+              <Circle
+                cx={center}
+                cy={center}
+                r={radius}
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
+              {(() => {
+                let offset = 0;
+                return sortedUserStatsList.map((segment, i) => {
+                  const fraction = segment.value / total;
+                  const segmentLength = (fraction - gap) * circumference;
+                  const dashOffset = circumference * 0.25 - offset;
+                  offset += fraction * circumference;
+                  return (
+                    <Circle
+                      key={i}
+                      cx={center}
+                      cy={center}
+                      r={radius}
+                      stroke={segment.color}
+                      strokeWidth={strokeWidth}
+                      fill="none"
+                      strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+                      strokeDashoffset={dashOffset}
+                      strokeLinecap="round"
+                    />
+                  );
+                });
+              })()}
+            </Svg>
+            <View style={stylesTablets.chartCenter}>
+              <Text
+                style={[
+                  H4,
+                  {
+                    color: colors.text,
+                    fontWeight: "700",
+                  },
+                ]}
+              >
+                {String(favorites?.pagination?.total ?? 0)}
+              </Text>
+              <Text
+                style={[
+                  H6,
+                  {
+                    color: colors.text,
+                    opacity: 0.5,
+                  },
+                ]}
+              >
+                Обрані
+              </Text>
+            </View>
+            <View
+              style={[
+                stylesTablets.statItem,
+                {
+                  marginTop: 8,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: 16,
+                },
+              ]}
+            >
+              <Text
+                selectable={true}
+                style={[
+                  H6,
+                  {
+                    color: colors.text,
+                    opacity: 0.7,
+                  },
+                ]}
+              >
+                Всього
+              </Text>
+              <Text
+                selectable={true}
+                style={[
+                  H5,
+                  {
+                    color: colors.text,
+                  },
+                ]}
+              >
+                {String(total ?? 0)}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -209,6 +317,7 @@ const stylesPhone = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 16,
+
     gap: 4,
   },
 });
@@ -218,15 +327,32 @@ const stylesTablets = StyleSheet.create({
     flexDirection: "column",
     marginHorizontal: 16,
     marginTop: 20,
-    gap: 8,
+    borderRadius: 16,
+    padding: 16,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 84,
+  },
+  statsList: {
+    gap: 16,
+  },
+  chartContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chartCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 38,
   },
   statItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 14,
     gap: 12,
+    alignSelf: "flex-start",
   },
   iconContainer: {
     padding: 8,

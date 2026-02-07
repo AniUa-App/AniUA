@@ -3,7 +3,30 @@ import { Animated, StyleSheet } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import Icons from "../../Styles/Icons";
 
-export default function AnimatedTabButton({ tab, isActive, onPress, colors }) {
+interface Tab {
+  id: string;
+  icon: string;
+}
+
+interface AnimatedTabButtonProps {
+  tab: Tab;
+  isActive: boolean;
+  onPress: () => void;
+  colors: {
+    accent: string;
+    activeIcon: string;
+    icon: string;
+  };
+  orientation?: "horizontal" | "vertical";
+}
+
+export default function AnimatedTabButton({
+  tab,
+  isActive,
+  onPress,
+  colors,
+  orientation = "vertical",
+}: AnimatedTabButtonProps) {
   const scaleAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
 
   useEffect(() => {
@@ -41,9 +64,17 @@ export default function AnimatedTabButton({ tab, isActive, onPress, colors }) {
             backgroundColor: colors.accent,
             width: animatedSize,
             height: animatedSize,
+          },
+          orientation === "horizontal" && {
             borderTopLeftRadius: animatedTopBorderRadius,
             borderTopRightRadius: animatedTopBorderRadius,
             borderBottomLeftRadius: animatedBorderRadius,
+            borderBottomRightRadius: animatedBorderRadius,
+          },
+          orientation === "vertical" && {
+            borderTopLeftRadius: animatedTopBorderRadius,
+            borderTopRightRadius: animatedBorderRadius,
+            borderBottomLeftRadius: animatedTopBorderRadius,
             borderBottomRightRadius: animatedBorderRadius,
           },
         ]}
