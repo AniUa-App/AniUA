@@ -4,4 +4,5 @@ export { default as ProfileStats } from "./ProfileStats";
 export { default as FilterChips } from "./FilterChips";
 export { default as AnimeGrid } from "./AnimeGrid";
 export { default as NotAuthenticatedView } from "./NotAuthenticatedView";
+export { default as UsernameEditModal } from "./UsernameEditModal";
 export * from "./constants";

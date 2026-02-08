@@ -1,6 +1,6 @@
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import Icons from "../../Styles/Icons";
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from "./constants";
+import { SCREEN_WIDTH } from "./constants";
 import AnimeCard from "../AnimeCard";
 import { H6 } from "../../Styles/Fonts";
 
@@ -13,6 +13,8 @@ export default function AnimeGrid({
   navigation,
   getAnimeFromItem,
   showAnimeDetails,
+  numColumns = 3,
+  cardWidth = SCREEN_WIDTH * 0.34,
 }) {
   if (isLoading) {
     return (
@@ -37,16 +39,22 @@ export default function AnimeGrid({
     );
   }
 
+  const itemWidth = `${Math.floor(100 / numColumns)}%`;
+
   return (
     <View style={styles.animeGridContainer}>
       {data.map((item, index) => {
         const anime = getAnimeFromItem ? getAnimeFromItem(item) : item;
         return (
-          <View key={anime?.slug || index} style={styles.animeGridItem}>
+          <View
+            key={anime?.slug || index}
+            style={[styles.animeGridItem, { width: itemWidth }]}
+          >
             <AnimeCard
               anime={anime}
-              width={SCREEN_WIDTH * 0.34}
+              width={cardWidth}
               showDetails={showAnimeDetails}
+              navigation={navigation}
             />
           </View>
         );
@@ -60,6 +68,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     paddingTop: 40,
+    minHeight: "30%",
   },
   emptyStateText: {
     textAlign: "center",
@@ -71,9 +80,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     alignItems: "flex-start",
     justifyContent: "flex-start",
+    minHeight: "30%",
   },
   animeGridItem: {
-    width: "33%",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,

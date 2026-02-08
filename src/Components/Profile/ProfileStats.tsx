@@ -218,6 +218,7 @@ function ProfileStatsTablet({
                 let offset = 0;
                 return sortedUserStatsList.map((segment, i) => {
                   const fraction = segment.value / total;
+                  if (fraction <= 0) return null;
                   const segmentLength = (fraction - gap) * circumference;
                   const dashOffset = circumference * 0.25 - offset;
                   offset += fraction * circumference;

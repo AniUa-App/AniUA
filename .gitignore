@@ -100,7 +100,7 @@ ANALYTICS_API.md
 android/app/google-services.json
 *.aar
 *.jar
-Local env files
+# Local env files
 .env
 .env.*
 .env*.local
