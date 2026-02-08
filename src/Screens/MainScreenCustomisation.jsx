@@ -60,7 +60,7 @@ export default function MainScreenCustomisationScreen() {
     });
     SettingsStorage.setParameter(
       "userConfig.recommendations",
-      newRecommendations
+      newRecommendations,
     );
   }
 
@@ -90,7 +90,7 @@ export default function MainScreenCustomisationScreen() {
 
   useEffect(() => {
     setRecommendations(
-      SettingsStorage.getParameter("userConfig.recommendations")
+      SettingsStorage.getParameter("userConfig.recommendations"),
     );
     setPerRecList(PersonalRecListStorage.getSettingsList());
   }, []);
@@ -187,12 +187,13 @@ export default function MainScreenCustomisationScreen() {
           });
           try {
             const existingItem = !!PerRecList.find(
-              (item) => item.name === payload?.name || item.name === value?.name
+              (item) =>
+                item.name === payload?.name || item.name === value?.name,
             );
             Logger.debug(
               "MainScreenCustomisation",
               "Перевірка існуючого елемента",
-              { existingItem }
+              { existingItem },
             );
             if (existingItem) {
               editList(value?.name, payload);
@@ -203,7 +204,7 @@ export default function MainScreenCustomisationScreen() {
             Logger.error(
               "MainScreenCustomisation",
               "Помилка при обробці onPressOk",
-              error
+              error,
             );
           }
         }}
@@ -252,7 +253,7 @@ function PersonalRecList({
         } catch (e) {
           return { name: anime.name, animeList: [] };
         }
-      })
+      }),
     )
       .then((results) => {
         setLoadedAnimeLists(results);
@@ -412,16 +413,16 @@ export function PersonalRecListFilter({
     if (value) {
       const name = value.name ?? "";
       const st = Object.keys(Statuses).find(
-        (key) => Statuses[key] === value.animeSet?.Statuses
+        (key) => Statuses[key] === value.animeSet?.Statuses,
       );
       const ss = Object.keys(Seasons).find(
-        (key) => Seasons[key] === value.animeSet?.Seasons
+        (key) => Seasons[key] === value.animeSet?.Seasons,
       );
       const yrs = value.animeSet?.Years ?? [2000, new Date().getFullYear()];
       const scr = value.animeSet?.Score?.[0] ?? 5;
       const genreNames = (value.animeSet?.Genres || [])
         .map((genreSlug) =>
-          Object.keys(Genres).find((key) => Genres[key] === genreSlug)
+          Object.keys(Genres).find((key) => Genres[key] === genreSlug),
         )
         .filter(Boolean);
 
@@ -676,14 +677,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    height: 48,
+    height: 44,
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: "rgba(0,0,0,0.2)",
   },
   actionButton: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

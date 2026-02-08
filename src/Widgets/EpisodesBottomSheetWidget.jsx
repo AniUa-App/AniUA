@@ -125,7 +125,7 @@ const EpisodeItem = React.memo(
             }
           },
         }),
-      [onSwipeEpisode]
+      [onSwipeEpisode],
     );
 
     const [downloadPct, setDownloadPct] = useState(null);
@@ -141,7 +141,7 @@ const EpisodeItem = React.memo(
         ) {
           setDownloadStatus(payload.status);
           setDownloadPct(
-            typeof payload.progress === "number" ? payload.progress : null
+            typeof payload.progress === "number" ? payload.progress : null,
           );
         }
       });
@@ -223,7 +223,7 @@ const EpisodeItem = React.memo(
         </Animated.View>
       </>
     );
-  }
+  },
 );
 
 export default function EpisodesBottomSheet({
@@ -514,8 +514,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 24,
   },
   scrollDownButtonInner: {

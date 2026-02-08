@@ -38,14 +38,14 @@ export default function TopNavigationComponent({
 
   // Стан для кількості непрочитаних сповіщень
   const [unreadCount, setUnreadCount] = useState(
-    NotificationsStorage.getUnreadCount()
+    NotificationsStorage.getUnreadCount(),
   );
 
   // Оновлюємо лічильник при фокусі та на події
   useFocusEffect(
     useCallback(() => {
       setUnreadCount(NotificationsStorage.getUnreadCount());
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export default function TopNavigationComponent({
         onTabChange(tabKey);
       }
     },
-    [onTabChange]
+    [onTabChange],
   );
 
   const handleSearchPress = useCallback(() => {
@@ -136,7 +136,7 @@ export default function TopNavigationComponent({
         onChange={(event) =>
           handleTabPress(
             TABS[event.nativeEvent.selectedSegmentIndex].key,
-            event.nativeEvent.selectedSegmentIndex
+            event.nativeEvent.selectedSegmentIndex,
           )
         }
         tintColor={themeColors.primary}
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   iconButton: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",

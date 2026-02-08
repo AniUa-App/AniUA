@@ -130,11 +130,11 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
       setActiveTab(key);
       onTabChange?.(key);
     },
-    [onTabChange]
+    [onTabChange],
   );
 
   const activeContent = filteredTabs.find(
-    (tab) => tab.key === activeTab
+    (tab) => tab.key === activeTab,
   )?.content;
 
   if (filteredTabs.length === 0) {
@@ -330,12 +330,12 @@ export default function AnimePreviewPhone({ route }) {
         height={winHeight * 0.22}
       />
     ),
-    [winWidth, winHeight]
+    [winWidth, winHeight],
   );
 
   const keyExtractorCharacter = useCallback(
     (item) => item?.character?.slug || "",
-    []
+    [],
   );
 
   const renderSimilarAnime = useCallback(
@@ -357,7 +357,7 @@ export default function AnimePreviewPhone({ route }) {
         />
       );
     },
-    [initialAnime?.slug, navigation, winWidth, winHeight]
+    [initialAnime?.slug, navigation, winWidth, winHeight],
   );
 
   // Error states
@@ -981,12 +981,12 @@ export const styles = StyleSheet.create({
     position: "absolute",
     justifyContent: "center",
     alignItems: "center",
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
   },
   iconButton: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

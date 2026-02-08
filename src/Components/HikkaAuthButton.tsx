@@ -57,7 +57,7 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
         Alert.alert(
           "Успішна авторизація",
           `Вітаємо, ${result.user?.username || "користувач"}!`,
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       } else {
         onAuthError?.(result.error || "Помилка авторизації");
@@ -99,7 +99,7 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 48,
+      minheight: 44,
     },
     buttonDisabled: {
       opacity: 0.6,

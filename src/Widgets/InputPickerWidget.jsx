@@ -59,7 +59,7 @@ export default function InputPickerWidget({
 
   const [isOpen, setIsOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState(
-    Array.isArray(selected) ? selected : []
+    Array.isArray(selected) ? selected : [],
   );
   const [query, setQuery] = useState("");
   const [anchor, setAnchor] = useState(null);
@@ -77,7 +77,7 @@ export default function InputPickerWidget({
 
   const isSelected = useCallback(
     (value) => internalSelected.includes(value),
-    [internalSelected]
+    [internalSelected],
   );
 
   const updateSelection = useCallback(
@@ -96,7 +96,7 @@ export default function InputPickerWidget({
       setInternalSelected(newValues);
       onChange(newValues);
     },
-    [internalSelected, multiple, onChange]
+    [internalSelected, multiple, onChange],
   );
 
   const removeChip = useCallback(
@@ -105,7 +105,7 @@ export default function InputPickerWidget({
       setInternalSelected(newValues);
       onChange(newValues);
     },
-    [internalSelected, onChange]
+    [internalSelected, onChange],
   );
 
   const renderOption = useCallback(
@@ -140,14 +140,14 @@ export default function InputPickerWidget({
         </TouchableOpacity>
       );
     },
-    [colors, isSelected, updateSelection, multiple]
+    [colors, isSelected, updateSelection, multiple],
   );
 
   const filteredItems = useMemo(() => {
     if (!query) return normalizedItems;
     const q = query.toLowerCase();
     return normalizedItems.filter((i) =>
-      String(i.label).toLowerCase().includes(q)
+      String(i.label).toLowerCase().includes(q),
     );
   }, [normalizedItems, query]);
 
@@ -174,7 +174,7 @@ export default function InputPickerWidget({
         >
           <View
             style={{
-              height: 48,
+              height: 44,
               borderRadius: 16,
               backgroundColor: colors.accent,
               paddingHorizontal: 14,
@@ -222,7 +222,7 @@ export default function InputPickerWidget({
             >
               <View
                 style={{
-                  height: 48,
+                  height: 44,
                   borderRadius: 16,
                   backgroundColor: colors.subtle,
                   paddingHorizontal: 14,

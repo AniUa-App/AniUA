@@ -53,7 +53,7 @@ function parseWithSpoiler(text: string) {
   while ((match = closingRegex.exec(text)) !== null) {
     // Skip if this is part of an opening
     const isOpening = openings.some(
-      (o) => match.index >= o.index && match.index < o.index + o.length
+      (o) => match.index >= o.index && match.index < o.index + o.length,
     );
     if (!isOpening) {
       closings.push(match.index);
@@ -65,7 +65,7 @@ function parseWithSpoiler(text: string) {
     const opening = openings[i];
     // Find the next closing after this opening
     const closingIndex = closings.find(
-      (c) => c > opening.index + opening.length
+      (c) => c > opening.index + opening.length,
     );
 
     if (closingIndex !== undefined) {
@@ -196,12 +196,12 @@ const CommentItem = memo(function CommentItem({
       if (isVoting) return;
       onVote?.(comment, score);
     },
-    [comment, isVoting, onVote]
+    [comment, isVoting, onVote],
   );
 
   const repliesCount = Math.max(
     comment.replies?.length || 0,
-    comment.total_replies || 0
+    comment.total_replies || 0,
   );
 
   // Format date
@@ -327,7 +327,7 @@ const CommentItem = memo(function CommentItem({
                   },
                   isTabletLandscape && {
                     width: 144,
-                    height: 48,
+                    height: 44,
                     flexDirection: "row",
                     justifyContent: "space-between",
                   },
@@ -350,7 +350,7 @@ const CommentItem = memo(function CommentItem({
                   { backgroundColor: themeColors.background },
                   isTabletLandscape && {
                     width: 135,
-                    height: 48,
+                    height: 44,
                     flexDirection: "row",
                     justifyContent: "space-between",
                   },
@@ -519,7 +519,7 @@ const CommentInput = memo(function CommentInput({
     (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       setSelection(event.nativeEvent.selection);
     },
-    []
+    [],
   );
 
   const handleMenuSelection = useCallback(
@@ -555,7 +555,7 @@ const CommentInput = memo(function CommentInput({
 
       setText(newText);
     },
-    [selection, text]
+    [selection, text],
   );
 
   return (
@@ -715,7 +715,7 @@ function CommentsSection({
     try {
       const response = await HikkaApiComplete.getContentComments(
         contentType,
-        slug
+        slug,
       );
 
       // Transform API response to our format
@@ -734,7 +734,7 @@ function CommentsSection({
     if (!apiComments || !Array.isArray(apiComments)) return [];
 
     const hasNestedReplies = apiComments.some(
-      (comment) => Array.isArray(comment.replies) && comment.replies.length > 0
+      (comment) => Array.isArray(comment.replies) && comment.replies.length > 0,
     );
 
     const getParentRef = (parent: any) => {
@@ -852,7 +852,7 @@ function CommentsSection({
     (
       items: Comment[],
       reference: string,
-      updater: (item: Comment) => Comment
+      updater: (item: Comment) => Comment,
     ): Comment[] => {
       return items.map((item) => {
         if (item.reference === reference) {
@@ -867,7 +867,7 @@ function CommentsSection({
         return item;
       });
     },
-    []
+    [],
   );
 
   const handleVote = useCallback(
@@ -885,7 +885,7 @@ function CommentsSection({
           ...item,
           my_score: score,
           vote_score: (item.vote_score || 0) + delta,
-        }))
+        })),
       );
 
       try {
@@ -897,13 +897,13 @@ function CommentsSection({
             ...item,
             my_score: previousScore,
             vote_score: (item.vote_score || 0) - delta,
-          }))
+          })),
         );
       } finally {
         setVotingMap((prev) => ({ ...prev, [comment.reference]: false }));
       }
     },
-    [updateCommentVote]
+    [updateCommentVote],
   );
 
   // Submit comment (create or edit)
@@ -939,13 +939,13 @@ function CommentsSection({
           "Помилка",
           commentToEdit
             ? "Не вдалося редагувати коментар"
-            : "Не вдалося додати коментар"
+            : "Не вдалося додати коментар",
         );
       } finally {
         setIsSubmitting(false);
       }
     },
-    [contentType, slug, replyTo, loadComments]
+    [contentType, slug, replyTo, loadComments],
   );
 
   // Loading state

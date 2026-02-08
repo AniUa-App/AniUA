@@ -83,7 +83,7 @@ function compareVersions(v1: string, v2: string): number {
  */
 function isNewerByDate(
   remoteDate: string,
-  localDate: string | undefined
+  localDate: string | undefined,
 ): boolean {
   if (!localDate) return true;
 
@@ -146,7 +146,7 @@ class UpdateCheckerService {
   public static async checkOTAUpdate(): Promise<UpdateCheckResult> {
     try {
       // В dev режимі OTA не працює
-      if (__DEV__) {
+      if (MainConfig.debug.isDebug || __DEV__) {
         Logger.debug("UpdateChecker", "OTA перевірка пропущена в dev режимі");
         return { type: "none", available: false };
       }
@@ -202,7 +202,7 @@ class UpdateCheckerService {
       // Порівнюємо версії
       const versionComparison = compareVersions(
         latestVersion.version,
-        localVersion
+        localVersion,
       );
 
       // Оновлення потрібне якщо:
@@ -227,7 +227,7 @@ class UpdateCheckerService {
           if (gitShortHash) {
             const changelogRaw = await AniuaApi.getGithubRaw(
               gitShortHash,
-              "CHANGELOG.MD"
+              "CHANGELOG.MD",
             );
             if (changelogRaw) {
               // Парсимо changelog - беремо перші кілька рядків після заголовку
@@ -244,7 +244,7 @@ class UpdateCheckerService {
           Logger.debug(
             "UpdateChecker",
             "Не вдалося завантажити changelog з GitHub",
-            changelogError
+            changelogError,
           );
         }
 
@@ -294,7 +294,7 @@ class UpdateCheckerService {
    */
   public static async downloadAPK(
     url: string,
-    onProgress?: DownloadProgressCallback
+    onProgress?: DownloadProgressCallback,
   ): Promise<string> {
     if (Platform.OS !== "android") {
       throw new Error("Завантаження APK підтримується тільки на Android");
@@ -317,7 +317,7 @@ class UpdateCheckerService {
         progress: (res) => {
           if (onProgress) {
             const percent = Math.round(
-              (res.bytesWritten / res.contentLength) * 100
+              (res.bytesWritten / res.contentLength) * 100,
             );
             onProgress({
               downloadedBytes: res.bytesWritten,
@@ -354,7 +354,7 @@ class UpdateCheckerService {
    */
   public static async downloadAndInstallAPK(
     url: string,
-    onProgress?: DownloadProgressCallback
+    onProgress?: DownloadProgressCallback,
   ): Promise<void> {
     const filePath = await this.downloadAPK(url, onProgress);
     await this.openAPKForInstall(filePath);
@@ -441,14 +441,14 @@ class UpdateCheckerService {
         if (packageName) {
           await IntentLauncher.startActivityAsync(
             "android.settings.MANAGE_UNKNOWN_APP_SOURCES",
-            { data: `package:${packageName}` }
+            { data: `package:${packageName}` },
           );
         }
       } catch (settingsError) {
         Logger.warn(
           "UpdateChecker",
           "Не вдалося відкрити налаштування невідомих джерел",
-          settingsError
+          settingsError,
         );
       }
 

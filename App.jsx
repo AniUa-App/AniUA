@@ -48,10 +48,10 @@ export default function App() {
     useSnackbar();
   const [currentAppVersion, setCurrentAppVersion] = useState(
     SettingsStorage.getParameter("currentVersion") ||
-      `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`
+      `${MainConfig.devInfo.version}-${MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash}`,
   );
   const [isNotFirstLaunch, setIsNotFirstLaunch] = useState(
-    SettingsStorage.getParameter("isNotFirstLaunch") || false
+    SettingsStorage.getParameter("isNotFirstLaunch") || false,
   );
   const [updateInfo, setUpdateInfo] = useState(null);
 
@@ -67,17 +67,17 @@ export default function App() {
    */
   const { registerForPushNotifications } = usePushNotifications();
 
-  MainConfig.debug.isDebug = __DEV__;
+  MainConfig.debug.isDebug = false;
   Logger.info("App", "isDebug", { isDebug: MainConfig.debug.isDebug });
   if (MainConfig.debug.isDebug) {
     require("./src/cfgs/ReactotronConfig");
   }
 
-  if (SettingsStorage.getParameter("isDebug")) {
-    MainConfig.debug.isDebug = SettingsStorage.getParameter("isDebug");
-  } else if (!SettingsStorage.getParameter("isDebug")) {
-    SettingsStorage.setParameter("isDebug", MainConfig.debug.isDebug);
-  }
+  // if (SettingsStorage.getParameter("isDebug")) {
+  //   MainConfig.debug.isDebug = SettingsStorage.getParameter("isDebug");
+  // } else if (!SettingsStorage.getParameter("isDebug")) {
+  //   SettingsStorage.setParameter("isDebug", MainConfig.debug.isDebug);
+  // }
 
   /**
    * Зворотний виклик для оновлення стану ErrorBoundary з MainConfig
@@ -100,7 +100,7 @@ export default function App() {
           </SnackbarLink>
           .
         </Text>,
-        { duration: 5000, actionLabel: "ОК" }
+        { duration: 5000, actionLabel: "ОК" },
       );
     }
   }, [isLoading, isNotFirstLaunch]);
@@ -122,7 +122,7 @@ export default function App() {
           SystemNavigationBar.fullScreen(true);
           Logger.debug(
             "AppState",
-            "Приховано навігаційну панель для відеоплеєра"
+            "Приховано навігаційну панель для відеоплеєра",
           );
         } else {
           await setupNavigationBar();
@@ -131,7 +131,7 @@ export default function App() {
           nextAppState,
           currentScreen: getCurrentRouteName(),
         });
-      }
+      },
     );
 
     return () => {
@@ -201,7 +201,7 @@ export default function App() {
     setIsErrorBoundary(
       MainConfig.debug.isErrorBoundary ||
         SettingsStorage.getParameter("isErrorBoundary") ||
-        false
+        false,
     );
 
     /**
@@ -229,7 +229,7 @@ export default function App() {
             }
           } else {
             await ScreenOrientation.lockAsync(
-              ScreenOrientation.OrientationLock.PORTRAIT_UP
+              ScreenOrientation.OrientationLock.PORTRAIT_UP,
             );
             const existingMobileConfig =
               SettingsStorage.getParameter("userConfig");
@@ -271,7 +271,7 @@ export default function App() {
             Logger.logAppInit(
               "Деякі налаштування не вдалося застосувати",
               false,
-              error
+              error,
             );
           });
         const fetchMetadata_2 = async () => {
@@ -280,13 +280,13 @@ export default function App() {
             Logger.debug(
               "App",
               "Дані про команди завантажено",
-              MainConfig.partnerStudios
+              MainConfig.partnerStudios,
             );
           } catch (error) {
             Logger.error(
               "App",
               "Помилка завантаження даних про команди",
-              error
+              error,
             );
           }
         };
@@ -300,7 +300,7 @@ export default function App() {
               SettingsStorage.setParameter("isNotFirstLaunch", true);
               SettingsStorage.setParameter(
                 "defaultPlayer",
-                MainConfig.players[1]
+                MainConfig.players[1],
               );
             }
 
@@ -316,7 +316,7 @@ export default function App() {
 
             setIsLoading(false);
           },
-          isNotFirstLaunch ? 1200 : 2500
+          isNotFirstLaunch ? 1200 : 2500,
         );
         Logger.debug("App", "Setting currentAppVersion", currentAppVersion);
 
@@ -330,11 +330,11 @@ export default function App() {
               actionLabel: "Деталі",
               onActionPress: () => {
                 Linking.openURL(
-                  `${MainConfig.urls.github}/AniUA/blob/${MainConfig.devInfo.gitShortHash}/CHANGELOG.MD`
+                  `${MainConfig.urls.github}/AniUA/blob/${MainConfig.devInfo.gitShortHash}/CHANGELOG.MD`,
                 );
               },
               duration: 5000,
-            }
+            },
           );
           SettingsStorage.setParameter("currentVersion", _curAppVer);
           setCurrentAppVersion(_curAppVer);

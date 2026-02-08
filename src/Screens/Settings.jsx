@@ -22,6 +22,7 @@ import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
 import * as Expo from "expo";
 import Logger from "../Logger/Logger";
+import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Widgets/Button";
 import { H4, H6 } from "../Styles/Fonts";
@@ -188,6 +189,23 @@ export default function SettingsScreen() {
             }}
           />
         </SettingsSection>
+
+        {/* Пристрої — тільки для авторизованих */}
+        {HikkaAuthStorage.isAuthenticated() && (
+          <SettingsSection title="Пристрої">
+            <SettingsItemWidget
+              title="Додати пристрій"
+              subtitle="Передати авторизацію через QR-код"
+              icon={<Icons.QrCode />}
+              showChevron
+              onPress={() => {
+                navigation.navigate("HiddenStack", {
+                  screen: "AddDeviceScreen",
+                });
+              }}
+            />
+          </SettingsSection>
+        )}
 
         {/* Зовнішній вигляд */}
         <SettingsSection title="Зовнішній вигляд">

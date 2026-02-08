@@ -79,6 +79,9 @@ export default {
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.CHANGE_WIFI_MULTICAST_STATE",
       ],
       requestLegacyExternalStorage: true,
       intentFilters: [
@@ -107,6 +110,18 @@ export default {
               scheme: "https",
               host: "aniua.yuzka.site",
               pathPrefix: "/characters",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "aniua.yuzka.site",
+              pathPrefix: "/login",
             },
           ],
           category: ["BROWSABLE", "DEFAULT"],
@@ -155,6 +170,13 @@ export default {
         },
       ],
       "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          cameraPermission:
+            "Для сканування QR-коду потрібен доступ до камери",
+        },
+      ],
     ],
   },
 };

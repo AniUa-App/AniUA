@@ -343,6 +343,121 @@ export class HikkaAuthService {
   }
 
   /**
+   * OAuth для передачі на інший пристрій.
+   * Робить повний OAuth + AniUA реєстрацію, але НЕ зберігає токени локально.
+   * Повертає свіжі токени для передачі.
+   */
+  public static async startOAuthForTransfer(): Promise<{
+    success: boolean;
+    error?: string;
+    hikka?: { token: string; expiration: number; user: any };
+    aniua?: {
+      accessToken: string;
+      refreshToken: string;
+      expiration: number;
+      user: any;
+    };
+  }> {
+    try {
+      const clientId = this.getClientId();
+      const scopesParam = this.DEFAULT_SCOPES.join(",");
+      const authUrl = `${this.OAUTH_URL}?reference=${clientId}&scope=${scopesParam}`;
+
+      Logger.debug("HikkaAuthService", "OAuth for transfer started");
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        this.getRedirectUrl()
+      );
+
+      if (result.type === "success" && result.url) {
+        const { queryParams } = Linking.parse(result.url);
+        const requestReference = queryParams?.reference as string;
+
+        if (!requestReference) {
+          throw new Error("Request reference не знайдено в callback URL");
+        }
+
+        // Отримуємо свіжий Hikka токен
+        const tokenData = await this.exchangeToken(requestReference);
+
+        const hikkaResult = {
+          token: tokenData.secret,
+          expiration: Date.now() + tokenData.expiration * 1000,
+          user: tokenData.user,
+        };
+
+        // Реєструємо/входимо в AniUA з новим Hikka токеном (отримуємо окремі AniUA токени)
+        let aniuaResult: {
+          accessToken: string;
+          refreshToken: string;
+          expiration: number;
+          user: any;
+        } | undefined;
+
+        try {
+          if (tokenData.user) {
+            const reference = tokenData.user.reference;
+            const username = tokenData.user.username;
+            const email = tokenData.user.email || `${username}@hikka.io`;
+
+            let authResponse;
+            try {
+              authResponse = await AniuaApi.signin({
+                reference,
+                username,
+                email,
+              });
+            } catch {
+              authResponse = await AniuaApi.signup({
+                reference,
+                username,
+                email,
+                download_version: MainConfig.devInfo.version,
+                download_git_hash: MainConfig.devInfo.gitHash,
+              });
+            }
+
+            aniuaResult = {
+              accessToken: authResponse.data.access_token,
+              refreshToken: authResponse.data.refresh_token,
+              expiration: authResponse.data.expires_at * 1000,
+              user: { reference, username, email },
+            };
+          }
+        } catch (e) {
+          Logger.warn(
+            "HikkaAuthService",
+            "AniUA registration for transfer failed",
+            e
+          );
+        }
+
+        Logger.info(
+          "HikkaAuthService",
+          "OAuth for transfer completed successfully"
+        );
+
+        return {
+          success: true,
+          hikka: hikkaResult,
+          aniua: aniuaResult,
+        };
+      } else if (result.type === "cancel") {
+        return { success: false, error: "Авторизація скасована" };
+      } else {
+        return { success: false, error: "Невідома помилка при авторизації" };
+      }
+    } catch (error: any) {
+      Logger.error("HikkaAuthService", "OAuth for transfer error", error);
+      return {
+        success: false,
+        error: error.message || "Помилка при авторизації",
+      };
+    }
+  }
+
+  /**
    * Вихід з системи
    */
   public static logout() {

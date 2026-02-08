@@ -44,7 +44,7 @@ const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
       distance,
       [0, 0.5, 1],
       [1, 0, 0],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
 
     return {
@@ -52,7 +52,7 @@ const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
       backgroundColor: interpolateColor(
         activeValue,
         [0, 1],
-        [themeColors.text, themeColors.primary]
+        [themeColors.text, themeColors.primary],
       ),
     };
   }, [index, total, themeColors]);
@@ -139,7 +139,7 @@ const Mobile = React.memo(({ animes }) => {
         params: { anime: item },
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const onPressPagination = useCallback((index) => {
@@ -152,17 +152,17 @@ const Mobile = React.memo(({ animes }) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       progress.value = offsetX / BANNER_WIDTH;
     },
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const onMomentumScrollEnd = useCallback(
     (event) => {
       const newIndex = Math.round(
-        event.nativeEvent.contentOffset.x / BANNER_WIDTH
+        event.nativeEvent.contentOffset.x / BANNER_WIDTH,
       );
       currentIndexRef.current = newIndex;
     },
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const getItemLayout = useCallback(
@@ -171,7 +171,7 @@ const Mobile = React.memo(({ animes }) => {
       offset: BANNER_WIDTH * index,
       index,
     }),
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const renderItem = useCallback(
@@ -272,7 +272,7 @@ const Mobile = React.memo(({ animes }) => {
         </Pressable>
       );
     },
-    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT]
+    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],
   );
 
   if (!animes?.length) return null;
@@ -374,7 +374,7 @@ const Tablet = React.memo(({ animes }) => {
         params: { anime: item },
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const onPressPagination = useCallback((index) => {
@@ -387,17 +387,17 @@ const Tablet = React.memo(({ animes }) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       progress.value = offsetX / BANNER_WIDTH;
     },
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const onMomentumScrollEnd = useCallback(
     (event) => {
       const newIndex = Math.round(
-        event.nativeEvent.contentOffset.x / BANNER_WIDTH
+        event.nativeEvent.contentOffset.x / BANNER_WIDTH,
       );
       currentIndexRef.current = newIndex;
     },
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const getItemLayout = useCallback(
@@ -406,7 +406,7 @@ const Tablet = React.memo(({ animes }) => {
       offset: BANNER_WIDTH * index,
       index,
     }),
-    [BANNER_WIDTH]
+    [BANNER_WIDTH],
   );
 
   const renderItem = useCallback(
@@ -496,8 +496,8 @@ const Tablet = React.memo(({ animes }) => {
                 styles.playButton,
                 {
                   backgroundColor: themeColors.background,
-                  width: 48,
-                  height: 48,
+                  width: 44,
+                  height: 44,
                 },
               ]}
             >
@@ -507,7 +507,7 @@ const Tablet = React.memo(({ animes }) => {
         </Pressable>
       );
     },
-    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT]
+    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],
   );
 
   if (!animes?.length) return null;

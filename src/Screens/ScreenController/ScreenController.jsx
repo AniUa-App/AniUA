@@ -50,6 +50,8 @@ import InvalidLinkScreen from "../InvalidLink";
 import Logger from "../../Logger/Logger";
 import SnowflakesWidget from "../../Widgets/SnowflakesWidget";
 import LoginScreen from "../LoginScreen";
+import QRLoginScreen from "../QRLoginScreen";
+import AddDeviceScreen from "../AddDeviceScreen";
 import BookmarkScreen from "../Bookmark";
 import SearchScreen from "../SearchScreen";
 import CharacterScreen from "../CharacterScreen";
@@ -716,6 +718,13 @@ function HiddenStack() {
           headerShown: false,
         }}
       />
+      <HiddenStackNav.Screen
+        name="AddDeviceScreen"
+        component={AddDeviceScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </HiddenStackNav.Navigator>
   );
 }
@@ -797,6 +806,7 @@ export default function ScreenController({ updateInfo }) {
           }}
         >
           <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="QRLogin" component={QRLoginScreen} />
           <RootStack.Screen name="MainTabs" component={MainTabs} />
           <RootStack.Screen name="HiddenStack" component={HiddenStack} />
           <RootStack.Screen

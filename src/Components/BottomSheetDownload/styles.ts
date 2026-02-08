@@ -138,8 +138,8 @@ export const styles = StyleSheet.create({
     position: "absolute",
     bottom: 80,
     right: 16,
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 24,
   },
   scrollButtonInner: {

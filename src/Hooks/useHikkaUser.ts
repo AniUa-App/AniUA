@@ -104,7 +104,12 @@ export function useHikkaUser(): UseHikkaUserResult {
       Logger.error(
         "useHikkaUser",
         "Помилка завантаження даних користувача",
-        err
+        {
+          message: err?.message,
+          status: err?.response?.status,
+          data: err?.response?.data,
+          url: err?.config?.url,
+        }
       );
       setError(err);
       setUser(null);

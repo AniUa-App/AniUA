@@ -6,6 +6,7 @@ import { H2, H5, H6 } from "../Styles/Fonts";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useNavigation } from "@react-navigation/native";
 import Logger from "../Logger/Logger";
+import Icons from "../Styles/Icons";
 import SettingsStorage from "../Storage/SettingsStorage";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { themes } from "../Styles/Colors";
@@ -150,6 +151,29 @@ export default function LoginScreen({ isCanSkip = true }) {
                 {isLoading ? "Завантаження..." : "Увійти"}
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.qrButton,
+                { borderColor: themeColors.primary },
+              ]}
+              onPress={() => navigation.navigate("QRLogin")}
+              disabled={isLoading}
+            >
+              <View style={styles.qrButtonContent}>
+                <Icons.QrCode size={22} color={themeColors.primary} />
+                <Text
+                  selectable={true}
+                  style={[
+                    H5,
+                    styles.qrButtonText,
+                    { color: themeColors.primary },
+                  ]}
+                >
+                  Увійти по QR-коду
+                </Text>
+              </View>
+            </TouchableOpacity>
             {isCanSkip && (
               <>
                 <TouchableOpacity
@@ -241,6 +265,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loginButton: {},
+  qrButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+  },
+  qrButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  qrButtonText: {
+    fontFamily: "Nunito-SemiBold",
+    fontSize: 18,
+  },
   loginButtonText: {
     fontFamily: "Nunito-Bold",
     fontSize: 18,

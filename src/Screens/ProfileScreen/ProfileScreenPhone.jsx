@@ -98,7 +98,7 @@ export default function ProfileScreen({ navigation }) {
             onPress={profile.openEditModal}
             style={[
               styles.editButton,
-              { backgroundColor: colors.subtle, width: 48 },
+              { backgroundColor: colors.subtle, width: 44 },
             ]}
           >
             <Icons.Pencil size={18} color={colors.primary} weight="fill" />
@@ -249,8 +249,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   iconButton: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
