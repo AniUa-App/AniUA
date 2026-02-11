@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Pressable,
   BackHandler,
   AppState,
   Linking,
 } from "react-native";
+import { TouchableOpacity } from "../Widgets/Button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import Animated, { FadeIn } from "react-native-reanimated";
@@ -471,7 +471,7 @@ export default function UpdateCheckerScreen({ route }) {
                     APK завантажено в папку Downloads
                   </Text>
                 </View>
-                <Pressable
+                <TouchableOpacity
                   style={[
                     styles.installButton,
                     { backgroundColor: colors.primary },
@@ -482,20 +482,20 @@ export default function UpdateCheckerScreen({ route }) {
                   <Text selectable={true} style={[H5]}>
                     Встановити оновлення
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </Animated.View>
             )}
 
             {/* Fallback link */}
             {error && updateInfo.type === "apk" && updateInfo.downloadUrl && (
-              <Pressable
+              <TouchableOpacity
                 style={styles.fallbackLink}
                 onPress={handleOpenInBrowser}
               >
                 <Text selectable={true} style={[H5, { color: colors.primary }]}>
                   Завантажити через браузер
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             )}
           </View>
         </ScrollView>

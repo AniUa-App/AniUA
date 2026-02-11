@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { View, Text, Pressable, Share } from "react-native";
+import { View, Text, Share } from "react-native";
 import { H4, H6 } from "../../Styles/Fonts";
 import Icon from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
@@ -173,7 +173,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       style={[
         styles.episodeItem,
         {
@@ -266,7 +266,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           {renderActionButton()}
         </View>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 

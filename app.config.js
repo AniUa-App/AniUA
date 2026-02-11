@@ -140,6 +140,12 @@ export default {
     },
     assetBundlePatterns: ["**/*"],
     plugins: [
+      ["@react-native-tvos/config-tv"],
+      ["./expo-plugin-tv-support.js"],
+      [
+        "./expo-plugin-architectures.js",
+        ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"],
+      ],
       ["./expo-plugin-notification-icon.js"],
       [
         "./ffmpeg-kit-plugin.js",

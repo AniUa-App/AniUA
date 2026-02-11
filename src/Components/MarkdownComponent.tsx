@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useContext } from "react";
-import { Pressable, StyleSheet, Text, View, Linking } from "react-native";
+import { StyleSheet, Text, View, Linking } from "react-native";
+import { TouchableOpacity } from "../Widgets/Button";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import markdownItContainer from "markdown-it-container";
 import { useThemeColors } from "../Global/useTheme";
@@ -86,7 +87,7 @@ function CollapsibleContainer({ type, title, children, styles, accentColor }) {
 
   return (
     <View style={[styles.container, styles[`container_${type}`]]}>
-      <Pressable
+      <TouchableOpacity
         onPress={() => setIsOpen((prev) => !prev)}
         style={[styles.containerHeader]}
       >
@@ -104,7 +105,7 @@ function CollapsibleContainer({ type, title, children, styles, accentColor }) {
             {title}
           </Text>
         )}
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }

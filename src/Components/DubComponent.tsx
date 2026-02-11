@@ -24,6 +24,7 @@ interface DubComponentProps {
   buttonStyle?: StyleProp<ViewStyle>;
   subtitleStyle?: StyleProp<TextStyle>;
   checkColor?: string;
+  onFocus?: () => void;
 }
 
 export default function DubComponent({
@@ -38,6 +39,7 @@ export default function DubComponent({
   buttonStyle,
   subtitleStyle,
   checkColor,
+  onFocus,
 }: DubComponentProps) {
   const themeColors = useThemeColors();
 
@@ -51,6 +53,7 @@ export default function DubComponent({
       onPress={() => {
         onBodyClick(name);
       }}
+      onFocus={onFocus}
     >
       <View
         style={[

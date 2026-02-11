@@ -28,6 +28,7 @@ export default function TextInputComponent({
   style,
 }) {
   const themeColors = useThemeColors();
+  const [isFocused, setIsFocused] = useState(false);
   return (
     <View style={[style]}>
       <TextInput
@@ -36,6 +37,8 @@ export default function TextInputComponent({
           onChangeText(text);
         }}
         onSubmitEditing={onSubmitEditing}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
         placeholderTextColor={themeColors.inActiveText}
         returnKeyType={returnKeyType}
@@ -46,7 +49,9 @@ export default function TextInputComponent({
           paddingHorizontal: 16,
           color: themeColors.text,
           backgroundColor: themeColors.Subtle(1),
-          borderRadius: 8,
+          borderRadius: 16,
+          borderWidth: isFocused ? 1 : 0,
+          borderColor: isFocused ? themeColors.primary : "transparent",
         }}
       />
     </View>

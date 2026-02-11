@@ -4,9 +4,9 @@ import {
   StyleSheet,
   useWindowDimensions,
   Text,
-  Pressable,
   FlatList,
 } from "react-native";
+import { TouchableOpacity } from "./Button";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import BloomImage, { prefetchBloomImage } from "./BloomImage";
@@ -58,9 +58,9 @@ const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
   }, [index, total, themeColors]);
 
   return (
-    <Pressable onPress={() => onPress?.(index)}>
+    <TouchableOpacity onPress={() => onPress?.(index)}>
       <Animated.View style={[styles.paginationDot, animatedStyle]} />
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 
@@ -181,7 +181,7 @@ const Mobile = React.memo(({ animes }) => {
       const score = item.score;
 
       return (
-        <Pressable
+        <TouchableOpacity
           onPress={() => handlePress(item)}
           style={[
             styles.itemContainer,
@@ -269,7 +269,7 @@ const Mobile = React.memo(({ animes }) => {
               <Icons.PlayCircle size={32} color={themeColors.primary} />
             </View>
           </View>
-        </Pressable>
+        </TouchableOpacity>
       );
     },
     [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],
@@ -416,7 +416,7 @@ const Tablet = React.memo(({ animes }) => {
       const score = item.score;
 
       return (
-        <Pressable
+        <TouchableOpacity
           onPress={() => handlePress(item)}
           style={[
             styles.itemContainer,
@@ -504,7 +504,7 @@ const Tablet = React.memo(({ animes }) => {
               <Icons.PlayCircle size={28} color={themeColors.primary} />
             </View>
           </View>
-        </Pressable>
+        </TouchableOpacity>
       );
     },
     [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],

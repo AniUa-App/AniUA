@@ -1,9 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
-import { Text as RNText, View, PixelRatio, useWindowDimensions } from "react-native";
+import {
+  Text as RNText,
+  View,
+  PixelRatio,
+  useWindowDimensions,
+} from "react-native";
 import { text } from "./Colors";
 import { useFonts } from "expo-font";
 import { useThemeColors } from "../Global/useTheme";
-import { isTablet, isTabletLandscape } from "./Responsive";
+import { isTablet, isTabletLandscape, isTV } from "./Responsive";
 import { FontWeight } from "@shopify/react-native-skia";
 
 // Text з selectable={true} за замовчуванням
@@ -58,9 +63,11 @@ export const useScaleFontSize = () => {
   return useMemo(() => {
     const scale = Math.min(width, height) / 390;
     const scale_landscape = Math.min(width, height) / 650;
+    const scale_tv = Math.min(width, height) / 700;
 
     const scaleFontSize = (size) => {
-      const newSize = size * (isTablet() ? scale_landscape : scale);
+      const newSize =
+        size * (isTV() ? scale_tv : isTablet() ? scale_landscape : scale);
       return Math.round(PixelRatio.roundToNearestPixel(newSize));
     };
 
@@ -72,7 +79,9 @@ export const useScaleFontSize = () => {
 const getStaticFontSize = (size, width, height) => {
   const scale = Math.min(width, height) / 390;
   const scale_landscape = Math.min(width, height) / 650;
-  const newSize = size * (isTablet() ? scale_landscape : scale);
+  const scale_tv = Math.min(width, height) / 700;
+  const newSize =
+    size * (isTV() ? scale_tv : isTablet() ? scale_landscape : scale);
   return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
 
@@ -155,7 +164,7 @@ export function useDynamicTextStyles() {
         fontFamily: "Nunito-SemiBold",
       },
     }),
-    [scaleFontSize]
+    [scaleFontSize],
   );
 }
 
@@ -197,6 +206,6 @@ export function useThemedTextStyles() {
         fontFamily: "Nunito-SemiBold",
       },
     }),
-    [themeColors.text, scaleFontSize]
+    [themeColors.text, scaleFontSize],
   );
 }

@@ -6,8 +6,10 @@ import {
   Linking,
   ActivityIndicator,
   FlatList,
-  TVFocusGuideView,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
+
+const TVFocusGuideView = RNTVFocusGuideView || View;
 import { useNavigation } from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
 import Clipboard from "@react-native-clipboard/clipboard";
@@ -23,6 +25,7 @@ import CharacterCard from "../../Components/CharacterCard";
 import { useThemeColors } from "../../Global/useTheme";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import { playersIcons } from "../../Widgets/DubbingBottomSheetWidget";
+import TVButton from "../../Components/TV/TVButton";
 
 import {
   useAnimePreview,
@@ -38,23 +41,6 @@ import { ErrorScreen } from "../ErrorScreen";
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
 const MoreBottomSheetMemo = React.memo(MoreBottomSheet);
-
-// TV-optimized button with focus state
-function TVButton({ style, focusedStyle, children, ...props }) {
-  const [isFocused, setIsFocused] = useState(false);
-
-  return (
-    <TouchableOpacity
-      {...props}
-      style={[style, isFocused && (focusedStyle || styles.focusedButton)]}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
-      hasTVPreferredFocus={false}
-    >
-      {children}
-    </TouchableOpacity>
-  );
-}
 
 // Section tabs component for TV
 const SectionTabs = ({ tabs, defaultTab, themeColors }) => {

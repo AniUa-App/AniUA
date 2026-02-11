@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState } from "react";
-import { View, StyleSheet, Pressable, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
+import { TouchableOpacity } from "../Widgets/Button";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withSpring } from "react-native-reanimated";
@@ -109,7 +110,7 @@ export default function TopNavigationComponent({
       ]}
     >
       {/* Left - Notification Bell */}
-      <Pressable
+      <TouchableOpacity
         style={[styles.iconButton, { backgroundColor: themeColors.Text(0.08) }]}
         onPress={handleNotificationPress}
       >
@@ -127,7 +128,7 @@ export default function TopNavigationComponent({
             </Text>
           </View>
         )}
-      </Pressable>
+      </TouchableOpacity>
 
       {/* Category Tabs */}
       <SegmentedControl
@@ -161,7 +162,7 @@ export default function TopNavigationComponent({
       {/* Spacer to push tabs to the right - only on tablet landscape */}
 
       {/* Right - Search Icon */}
-      <Pressable
+      <TouchableOpacity
         style={[
           styles.iconButton,
           {
@@ -171,7 +172,7 @@ export default function TopNavigationComponent({
         onPress={handleSearchPress}
       >
         <Icons.MagnifyingGlass size={28} color={themeColors.text} />
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }

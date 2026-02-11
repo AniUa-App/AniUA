@@ -11,6 +11,7 @@ export function SearchResultItem({
   activeCategory,
   onTeamPress,
   onCharacterPress,
+  onFocus,
 }) {
   const themeColors = useThemeColors();
 
@@ -32,11 +33,12 @@ export function SearchResultItem({
           info={{}}
           updateInfo={() => {}}
           type="Search"
+          onFocus={onFocus}
         />
       );
 
     case "character":
-      return <CharacterComponent item={item} onPress={onCharacterPress} />;
+      return <CharacterComponent item={item} onPress={onCharacterPress} onFocus={onFocus} />;
 
     case "team":
       return (
@@ -48,6 +50,7 @@ export function SearchResultItem({
           onBodyClick={handleTeamBodyPress}
           onButtonClick={handleTeamTelegramPress}
           icon={<Icons.TelegramLogo size={32} color={themeColors.text} />}
+          onFocus={onFocus}
         />
       );
 

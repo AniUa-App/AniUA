@@ -59,6 +59,8 @@ import ProfileScreen from "../ProfileScreen";
 import NotificationsScreen from "../NotificationsScreen";
 import UpdateCheckerScreen from "../UpdateCheckerScreen";
 import { Background, background } from "../../Styles/Colors";
+import { useIsTV } from "../../Styles/Responsive";
+import TVSidebarNav from "../../Components/TV/TVSidebarNav";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import * as Notifications from "expo-notifications";
 
@@ -70,8 +72,9 @@ const AnimatedTouchableOpacity =
 
 // Головний компонент для вкладок навігації
 function MainTabs() {
+  const isTV = useIsTV();
   const [userConfig, setUserConfig] = React.useState(
-    SettingsStorage.getParameter("userConfig")
+    SettingsStorage.getParameter("userConfig"),
   );
 
   React.useEffect(() => {
@@ -88,7 +91,9 @@ function MainTabs() {
         lazy: true,
       }}
       sceneContainerStyle={{ backgroundColor: background }}
-      tabBar={(props) => <ThemedNavBar {...props} />}
+      tabBar={(props) =>
+        isTV ? <TVSidebarNav {...props} /> : <ThemedNavBar {...props} />
+      }
     >
       <Tab.Screen name="Home" component={HomeScreen} />
 
@@ -97,21 +102,23 @@ function MainTabs() {
           <View style={{ flex: 1 }}>
             <BookmarkScreen {...props} />
 
-            <View
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-              }}
-            >
-              <Header
-                navigation={props.navigation}
-                route={props.route}
-                isArrow={false}
-                title="Орбані"
-              />
-            </View>
+            {!isTV && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                }}
+              >
+                <Header
+                  navigation={props.navigation}
+                  route={props.route}
+                  isArrow={false}
+                  title="Орбані"
+                />
+              </View>
+            )}
           </View>
         )}
       </Tab.Screen>
@@ -210,7 +217,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
   const [userConfig, setUserConfig] = useState(
-    SettingsStorage.getParameter("userConfig")
+    SettingsStorage.getParameter("userConfig"),
   );
   const isCustomisation = userConfig?.navbar?.isCustomisation;
   const placedAt = userConfig?.navbar?.placedAt || "Внизу";
@@ -372,11 +379,15 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
 }
 
 export function ThemedNavBar({ state, navigation, isPreview = false }) {
+  const isTV = useIsTV();
   const userConfig = SettingsStorage.getParameter("userConfig");
   // Use array destructuring and provide a safe default
   const [navbarType, setNavbarType] = useState(
-    userConfig?.navbar?.style ?? "Default"
+    userConfig?.navbar?.style ?? "Default",
   );
+
+  // TV uses sidebar navigation, not bottom navbar
+  if (isTV) return null;
 
   useEffect(() => {
     const unsubscribe = EventBus.on("userConfig", (newConfig) => {
@@ -418,7 +429,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [userConfig, setUserConfig] = useState(
-    SettingsStorage.getParameter("userConfig")
+    SettingsStorage.getParameter("userConfig"),
   );
   const isCustomisation = userConfig?.navbar?.isCustomisation;
   // Використовуємо insets.bottom для правильного відступу від системного навбару
@@ -783,7 +794,7 @@ export default function ScreenController({ updateInfo }) {
 
   // Перевіряємо, чи користувач пройшов онбордінг
   const hasCompletedOnboarding = SettingsStorage.getParameter(
-    "hasCompletedOnboarding"
+    "hasCompletedOnboarding",
   );
   const initialRouteName = hasCompletedOnboarding ? "MainTabs" : "Login";
 

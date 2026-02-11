@@ -15,7 +15,8 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { H3, H4, useScaleFontSize } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { useThemeColors } from "../Global/useTheme";
-import { isTablet, isTabletLandscape } from "../Styles/Responsive";
+import { isTablet, isTabletLandscape, useIsTV } from "../Styles/Responsive";
+import { TV } from "../Styles/TVStyles";
 import Icons from "../Styles/Icons";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
@@ -32,6 +33,7 @@ export default function CharacterScreen() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const scaleFontSize = useScaleFontSize();
+  const isTV = useIsTV();
 
   // Підтримка як об'єкта character, так і slug для deep linking
   const characterFromParams = route.params?.character;
@@ -41,7 +43,7 @@ export default function CharacterScreen() {
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCharacter, setIsLoadingCharacter] = useState(
-    !characterFromParams && !!slugFromParams
+    !characterFromParams && !!slugFromParams,
   );
 
   const name =
@@ -58,6 +60,9 @@ export default function CharacterScreen() {
   ).replaceAll("hikka.io", "aniua.yuzka.site");
 
   const imageSize = useMemo(() => {
+    if (isTV) {
+      return { width: width * 0.2, height: height * 0.7 };
+    }
     if (isTabletLandscape()) {
       return { width: width * 0.25, height: height * 0.45 };
     }
@@ -65,11 +70,11 @@ export default function CharacterScreen() {
       return { width: width * 0.4, height: height * 0.35 };
     }
     return { width: width * 0.6, height: height * 0.4 };
-  }, [width, height]);
+  }, [width, height, isTV]);
 
   const headerPaddingTop = useMemo(
     () => Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
-    [insets.top]
+    [insets.top],
   );
 
   // Завантаження деталей персонажа по slug (для deep linking)
@@ -101,7 +106,7 @@ export default function CharacterScreen() {
         Logger.error(
           "CharacterScreen",
           "Помилка завантаження деталей персонажа",
-          error
+          error,
         );
       } finally {
         setIsLoadingCharacter(false);
@@ -131,18 +136,18 @@ export default function CharacterScreen() {
               const anime = item.anime || item;
               if (!anime?.slug) return null;
               const details = await HikkaApiComplete.getAnimeDetails(
-                anime.slug
+                anime.slug,
               );
               return details || anime;
             } catch (error) {
               Logger.warn(
                 "CharacterScreen",
                 `Не вдалося завантажити аніме`,
-                error
+                error,
               );
               return item.anime || item;
             }
-          })
+          }),
         );
 
         const validAnime = detailedAnime.filter((anime) => anime !== null);
@@ -156,7 +161,7 @@ export default function CharacterScreen() {
         Logger.error(
           "CharacterScreen",
           "Помилка завантаження аніме персонажа",
-          error
+          error,
         );
       } finally {
         setIsLoading(false);
@@ -203,6 +208,165 @@ export default function CharacterScreen() {
     );
   }
 
+  const iconSize = isTV ? 48 : 32;
+  const btnPadding = isTV ? 12 : 6;
+
+  const headerContent = (
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: headerPaddingTop,
+          backgroundColor: themeColors.background,
+        },
+        isTV && { paddingHorizontal: TV.padding.screen },
+      ]}
+    >
+      <TouchableOpacity
+        style={[
+          styles.backButton,
+          { backgroundColor: themeColors.subtle, padding: btnPadding },
+        ]}
+        onPress={handleGoBack}
+      >
+        <Icons.ArrowCircleLeft size={iconSize} color={themeColors.primary} />
+      </TouchableOpacity>
+
+      <View style={styles.headerSpacer} />
+
+      <TouchableOpacity
+        style={[
+          styles.menuButton,
+          { backgroundColor: themeColors.subtle, padding: btnPadding },
+        ]}
+        onPress={() => {
+          Share.share({
+            title: character.name_ua,
+            message: `${character.name_ua}: ${MainConfig.urls.appUrl}/characters/${character.slug}`,
+            url: `${MainConfig.urls.appUrl}/characters/${character.slug}`,
+          });
+        }}
+      >
+        <Icons.ShareNetwork size={iconSize} color={themeColors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const imageContent = image ? (
+    <BloomImage
+      uri={image}
+      width={imageSize.width}
+      height={imageSize.height}
+      borderRadius={16}
+      blurRadius={8}
+      glowScale={1}
+      fadePercent={0.15}
+    />
+  ) : null;
+
+  const namePillContent = (
+    <View
+      style={[
+        styles.namePill,
+        { backgroundColor: themeColors.primary },
+        isTV && { paddingVertical: 14, marginTop: TV.padding.section },
+      ]}
+    >
+      <Text
+        selectable={true}
+        style={[
+          styles.nameText,
+          { fontSize: scaleFontSize(18), color: themeColors.text },
+        ]}
+        numberOfLines={1}
+      >
+        {name}
+      </Text>
+    </View>
+  );
+
+  const descriptionContent = description ? (
+    <Markdown
+      style={{
+        body: {
+          ...H4,
+          ...styles.description,
+          color: themeColors.text,
+          ...(isTV && { lineHeight: 32, marginHorizontal: TV.padding.screen }),
+        },
+        link: {
+          ...H4,
+          color: themeColors.primary,
+          textDecorationLine: "underline",
+        },
+      }}
+    >
+      {description}
+    </Markdown>
+  ) : null;
+
+  const animeContent = isLoading ? (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={themeColors.primary} />
+    </View>
+  ) : animeList.length > 0 ? (
+    <View style={{ width: "100%" }}>
+      <View
+        style={[
+          styles.sectionHeader,
+          isTV && { paddingHorizontal: TV.padding.screen },
+        ]}
+      >
+        <Text selectable={true} style={[H3, { color: themeColors.text }]}>
+          Аніме
+        </Text>
+      </View>
+      <AnimeListHorizontal
+        animeList={animeList}
+        title=""
+        onClickMore={null}
+        navigation={navigation}
+      />
+    </View>
+  ) : (
+    <View style={styles.emptyContainer}>
+      <Text selectable={true} style={[H4, { color: themeColors.inActiveText }]}>
+        Немає пов'язаного аніме
+      </Text>
+    </View>
+  );
+
+  if (isTV) {
+    return (
+      <View
+        style={[styles.container, { backgroundColor: themeColors.background }]}
+      >
+        {headerContent}
+        <View style={styles.tvLayout}>
+          {/* Left panel — image + name */}
+          <ScrollView
+            style={styles.tvLeftPanel}
+            contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {imageContent}
+            {namePillContent}
+          </ScrollView>
+
+          {/* Right panel — description + anime */}
+          <ScrollView
+            style={styles.tvRightPanel}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {descriptionContent}
+            {animeContent}
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View
       style={[styles.container, { backgroundColor: themeColors.background }]}
@@ -212,119 +376,11 @@ export default function CharacterScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View
-          style={[
-            styles.header,
-            {
-              paddingTop: headerPaddingTop,
-              backgroundColor: themeColors.background,
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.backButton, { backgroundColor: themeColors.subtle }]}
-            onPress={handleGoBack}
-          >
-            <Icons.ArrowCircleLeft size={32} color={themeColors.primary} />
-          </TouchableOpacity>
-
-          <View style={styles.headerSpacer} />
-
-          <TouchableOpacity
-            style={[styles.menuButton, { backgroundColor: themeColors.subtle }]}
-            onPress={() => {
-              Share.share({
-                title: character.name_ua,
-                message: `${character.name_ua}: ${MainConfig.urls.appUrl}/characters/${character.slug}`,
-                url: `${MainConfig.urls.appUrl}/characters/${character.slug}`,
-              });
-            }}
-          >
-            <Icons.ShareNetwork size={32} color={themeColors.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Character Image with Gradient */}
-        {image && (
-          <BloomImage
-            uri={image}
-            width={imageSize.width}
-            height={imageSize.height}
-            borderRadius={16}
-            blurRadius={8}
-            glowScale={1}
-            fadePercent={0.15}
-          />
-        )}
-
-        {/* Character Name Pill */}
-        <View
-          style={[styles.namePill, { backgroundColor: themeColors.primary }]}
-        >
-          <Text
-            selectable={true}
-            style={[
-              styles.nameText,
-              { fontSize: scaleFontSize(18), color: themeColors.text },
-            ]}
-            numberOfLines={1}
-          >
-            {name}
-          </Text>
-        </View>
-
-        {/* Description */}
-        {description ? (
-          <Markdown
-            style={{
-              body: {
-                ...H4,
-                ...styles.description,
-                color: themeColors.text,
-              },
-              link: {
-                ...H4,
-                color: themeColors.primary,
-                textDecorationLine: "underline",
-              },
-            }}
-          >
-            {description}
-          </Markdown>
-        ) : null}
-
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={themeColors.primary} />
-          </View>
-        ) : animeList.length > 0 ? (
-          <View style={{ width: "100%" }}>
-            {/* Anime Section */}
-            <View style={styles.sectionHeader}>
-              <Text selectable={true} style={[H3, { color: themeColors.text }]}>
-                Аніме
-              </Text>
-            </View>
-            <AnimeListHorizontal
-              animeList={animeList}
-              title=""
-              onClickMore={null}
-              navigation={navigation}
-            />
-          </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text
-              selectable={true}
-              style={[H4, { color: themeColors.inActiveText }]}
-            >
-              Немає пов'язаного аніме
-            </Text>
-          </View>
-        )}
-
-        {/* Bottom spacing */}
+        {headerContent}
+        {imageContent}
+        {namePillContent}
+        {descriptionContent}
+        {animeContent}
         <View style={{ height: insets.bottom + 20 }} />
       </ScrollView>
     </View>
@@ -403,5 +459,18 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: "center",
     alignItems: "center",
+  },
+  // TV layout
+  tvLayout: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  tvLeftPanel: {
+    width: "35%",
+    paddingHorizontal: TV.padding.screen,
+  },
+  tvRightPanel: {
+    flex: 1,
+    paddingRight: TV.padding.screen,
   },
 });

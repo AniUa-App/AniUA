@@ -2,11 +2,11 @@ import React, { useEffect, useContext } from "react";
 import {
   Text,
   StyleSheet,
-  Pressable,
   View,
   Linking,
   Dimensions,
 } from "react-native";
+import { TouchableOpacity } from "../../Widgets/Button";
 import Animated, {
   FadeInDown,
   FadeOutDown,
@@ -213,7 +213,7 @@ export default function Snackbar({
           <View style={styles.actionsContainer}>
             {isConfirm ? (
               <>
-                <Pressable onPress={handleConfirm}>
+                <TouchableOpacity onPress={handleConfirm}>
                   <Animated.View
                     style={[
                       styles.actionButton,
@@ -233,8 +233,8 @@ export default function Snackbar({
                       {confirmLabel}
                     </Text>
                   </Animated.View>
-                </Pressable>
-                <Pressable onPress={handleDecline}>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDecline}>
                   <View
                     style={[
                       {
@@ -255,10 +255,10 @@ export default function Snackbar({
                       {declineLabel}
                     </Text>
                   </View>
-                </Pressable>
+                </TouchableOpacity>
               </>
             ) : actionLabel ? (
-              <Pressable onPress={handleActionPress}>
+              <TouchableOpacity onPress={handleActionPress}>
                 <Animated.View
                   style={[styles.actionButton, animatedButtonStyle]}
                 >
@@ -275,14 +275,14 @@ export default function Snackbar({
                     {actionLabel}
                   </Text>
                 </Animated.View>
-              </Pressable>
+              </TouchableOpacity>
             ) : (
-              <Pressable onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Icons.X
                   size={24}
                   color={isTop ? themeColors.text : themeColors.primary}
                 />
-              </Pressable>
+              </TouchableOpacity>
             )}
           </View>
         </Animated.View>

@@ -5,10 +5,12 @@ import {
   FlatList,
   ActivityIndicator,
   StatusBar,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColors } from "../../Global/useTheme";
+import { useIsTV } from "../../Styles/Responsive";
 import SearchHeaderComponent from "../../Components/SearchHeaderComponent";
 import SearchCategoryTabsComponent from "../../Components/SearchCategoryTabsComponent";
 import SearchEmptyStateComponent from "../../Components/SearchEmptyStateComponent";
@@ -20,11 +22,15 @@ import { SEARCH_CATEGORIES } from "./constants";
 import { useSearch, useTeamReleases, useCharacterDetails } from "./hooks";
 import { SearchResultItem } from "./components";
 
+const TVFocusGuideView = RNTVFocusGuideView || View;
+
 export default function SearchScreen() {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
+  const isTV = useIsTV();
 
+  const flatListRef = useRef(null);
   const filterSheetRef = useRef(null);
   const teamReleasesSheetRef = useRef(null);
   const characterSheetRef = useRef(null);
@@ -65,16 +71,27 @@ export default function SearchScreen() {
     navigation.goBack();
   }, [navigation]);
 
+  const handleScrollToIndex = useCallback((index) => {
+    if (flatListRef.current && index >= 0) {
+      flatListRef.current.scrollToIndex({
+        index: Math.max(0, index - 1),
+        animated: true,
+        viewPosition: 0,
+      });
+    }
+  }, []);
+
   const renderSearchResult = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <SearchResultItem
         item={item}
         activeCategory={activeCategory}
         onTeamPress={handleTeamPress}
         onCharacterPress={handleCharacterPress}
+        onFocus={isTV ? () => handleScrollToIndex(index) : undefined}
       />
     ),
-    [activeCategory, handleTeamPress, handleCharacterPress]
+    [activeCategory, handleTeamPress, handleCharacterPress, isTV, handleScrollToIndex]
   );
 
   const keyExtractor = useCallback(
@@ -83,7 +100,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <DefaultScreenWidget style={[styles.container, {}]}>
+    <DefaultScreenWidget style={[styles.container, {}]} isNavBarPadding={false}>
       <SearchHeaderComponent
         searchText={searchText}
         onChangeText={setSearchText}
@@ -112,27 +129,30 @@ export default function SearchScreen() {
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : (
-        <FlatList
-          data={results}
-          keyExtractor={keyExtractor}
-          renderItem={renderSearchResult}
-          ListEmptyComponent={
-            <SearchEmptyStateComponent
-              hasSearched={hasSearched}
-              isLoading={isLoading}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.resultsContainer,
-            { backgroundColor: themeColors.accent },
-          ]}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          initialNumToRender={8}
-        />
+        <TVFocusGuideView autoFocus style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={results}
+            keyExtractor={keyExtractor}
+            renderItem={renderSearchResult}
+            ListEmptyComponent={
+              <SearchEmptyStateComponent
+                hasSearched={hasSearched}
+                isLoading={isLoading}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={[
+              styles.resultsContainer,
+              { backgroundColor: themeColors.accent },
+            ]}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={8}
+          />
+        </TVFocusGuideView>
       )}
 
       <SearchFilterBottomSheet

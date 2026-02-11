@@ -4,20 +4,31 @@ import { TouchableOpacity } from "../Widgets/Button";
 import { H3, H4 } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { useWindowDimensions } from "react-native";
-import { isTabletLandscape, isTablet } from "../Styles/Responsive";
+import { isTabletLandscape, isTablet, useIsTV } from "../Styles/Responsive";
+import { TV } from "../Styles/TVStyles";
 import { useThemeColors } from "../Global/useTheme";
 
 const CharacterComponent = React.memo(function CharacterComponent({
   item,
   onPress,
+  onFocus,
 }) {
   if (!item) return null;
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
+  const isTVDevice = useIsTV();
 
   const name = item.name_ua || item.name_en || item.name_ja || item.name;
   const image = item.image;
   const description = item.description_ua || item.description || "";
+
+  const imageDims = isTVDevice
+    ? { width: width * 0.15, height: height * 0.4 }
+    : isTabletLandscape()
+      ? { width: width * 0.1, height: height * 0.25 }
+      : isTablet()
+        ? { width: width * 0.15, height: height * 0.18 }
+        : { width: width * 0.3, height: height * 0.2 };
 
   return (
     <TouchableOpacity
@@ -26,28 +37,37 @@ const CharacterComponent = React.memo(function CharacterComponent({
         {
           backgroundColor: themeColors.background,
         },
+        isTVDevice && {
+          padding: TV.padding.card,
+          marginVertical: 4,
+          marginHorizontal: TV.padding.card,
+        },
       ]}
       onPress={() => onPress?.(item)}
+      onFocus={onFocus}
       disabled={!onPress}
     >
       <Image
         uri={image}
         style={[
           styles.characterImage,
-          isTabletLandscape()
-            ? { width: width * 0.1, height: height * 0.25 }
-            : isTablet()
-              ? { width: width * 0.15, height: height * 0.18 }
-              : { width: width * 0.3, height: height * 0.2 },
+          imageDims,
+          isTVDevice && {
+            marginRight: TV.padding.card,
+          },
         ]}
       />
-      <View style={styles.infoContainer}>
-        <Text numberOfLines={2} ellipsizeMode="tail" style={styles.name}>
+      <View style={[styles.infoContainer, isTVDevice && { paddingTop: 8 }]}>
+        <Text
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={[styles.name, isTVDevice && { marginBottom: 12 }]}
+        >
           {name}
         </Text>
         {description ? (
           <Text
-            numberOfLines={5}
+            numberOfLines={isTVDevice ? 8 : 5}
             ellipsizeMode="tail"
             style={[H4, { color: themeColors.inActiveText }]}
           >

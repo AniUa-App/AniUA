@@ -18,12 +18,13 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { BackHandler } from "react-native";
 import Logger from "../Logger/Logger";
 import { setupNavigationBar } from "../../App";
+import { isTV } from "../Styles/Responsive";
 
 // Функція для визначення чи це планшет
 const isTablet = () => {
   const { width, height } = Dimensions.get("window");
   const minDimension = Math.min(width, height);
-  return minDimension >= 600; // Планшети зазвичай мають мінімальний розмір >= 600
+  return minDimension >= 600;
 };
 
 export default function WebVideoPlayerScreen({ route }) {
@@ -34,13 +35,16 @@ export default function WebVideoPlayerScreen({ route }) {
     const onBackPress = () => {
       navigation.goBack();
       StatusBar.setHidden(false, "slide");
-      // Orientation.lockToPortrait();
-      if (isTablet()) {
-        ScreenOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      if (isTV()) {
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE
+        );
+      } else if (isTablet()) {
+        ScreenOrientation.unlockAsync();
       } else {
         ScreenOrientation.lockAsync(
           ScreenOrientation.OrientationLock.PORTRAIT_UP
-        ); // На телефонах блокуємо портретну
+        );
       }
 
       setupNavigationBar();

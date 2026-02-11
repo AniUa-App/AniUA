@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Pressable,
   RefreshControl,
 } from "react-native";
+import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColors } from "../Global/useTheme";
@@ -185,12 +185,12 @@ export default function NotificationsScreen({ navigation }) {
         />
 
         {filteredNotifications.length > 0 && (
-          <Pressable
+          <TouchableOpacity
             style={[styles.clearButton, { backgroundColor: colors.accent }]}
             onPress={handleClearAll}
           >
             <Icons.Trash size={28} color={colors.icon} />
-          </Pressable>
+          </TouchableOpacity>
         )}
       </View>
 

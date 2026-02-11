@@ -209,11 +209,7 @@ export const tvStyles = StyleSheet.create({
     top: 40,
     padding: 12,
   },
-  focusedButton: {
-    borderWidth: 3,
-    borderColor: "#fff",
-    transform: [{ scale: 1.1 }],
-  },
+  focusedButton: {},
   sidePanel: {
     width: "35%",
   },

@@ -26,7 +26,7 @@ import { ThemeProvider } from "./src/Global/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { EventBus } from "./src/Global/EventBus";
 import * as Application from "expo-application";
-import { isTablet } from "./src/Styles/Responsive";
+import { isTablet, isTV } from "./src/Styles/Responsive";
 import { useSnackbar, SnackbarLink } from "./src/Components/Snackbar";
 import { set } from "date-fns";
 import { se } from "date-fns/locale";
@@ -39,6 +39,12 @@ import { AniuaAuthService } from "./src/Services/AniuaAuthService";
 import AniuaApi from "./src/Api/AniuaApi";
 import UpdateCheckerService from "./src/Services/UpdateCheckerService";
 import usePushNotifications from "./src/Hooks/usePushNotifications";
+
+// On TV, prevent Text elements from being focusable via D-pad
+if (isTV()) {
+  Text.defaultProps = Text.defaultProps || {};
+  Text.defaultProps.focusable = false;
+}
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +73,7 @@ export default function App() {
    */
   const { registerForPushNotifications } = usePushNotifications();
 
-  MainConfig.debug.isDebug = false;
+  MainConfig.debug.isDebug = __DEV__;
   Logger.info("App", "isDebug", { isDebug: MainConfig.debug.isDebug });
   if (MainConfig.debug.isDebug) {
     require("./src/cfgs/ReactotronConfig");
@@ -216,7 +222,27 @@ export default function App() {
         Logger.logAppInit("Початок ініціалізації додатка");
 
         try {
-          if (isTablet()) {
+          if (isTV()) {
+            // TV: lock to landscape, set sidebar navigation style
+            await ScreenOrientation.lockAsync(
+              ScreenOrientation.OrientationLock.LANDSCAPE,
+            );
+            try {
+              SystemNavigationBar.navigationHide();
+            } catch {}
+            const existingTVConfig = SettingsStorage.getParameter("userConfig");
+            if (
+              !existingTVConfig ||
+              Object.keys(existingTVConfig).length === 0
+            ) {
+              SettingsStorage.setParameter("userConfig", {
+                navbar: {
+                  placedAt: "Ліворуч",
+                  style: "MD3",
+                },
+              });
+            }
+          } else if (isTablet()) {
             await ScreenOrientation.unlockAsync();
             const existingConfig = SettingsStorage.getParameter("userConfig");
             if (!existingConfig || Object.keys(existingConfig).length === 0) {

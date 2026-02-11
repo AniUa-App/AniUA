@@ -28,6 +28,7 @@ import { sendRequest } from "../Sources/CustomSet";
 import {
   useIsTabletLandscape,
   useIsTabletPortrait,
+  useIsTV,
 } from "../Styles/Responsive";
 import DoramaScreen from "./DoramaScreen";
 import MangaScreen from "./MangaScreen";
@@ -50,7 +51,7 @@ function ContentTypeTabBar({ state, navigation }) {
       };
       navigation.navigate(routeMap[tabKey]);
     },
-    [navigation]
+    [navigation],
   );
 
   const activeTab =
@@ -73,23 +74,24 @@ export default function HomeScreen() {
   const colors = useThemeColors();
   const hikkaUser = useHikkaUser();
   const isTL = useIsTabletLandscape();
+  const isTV = useIsTV();
   const navigatorRef = useRef(null);
   const [bannerAnimes, setBannerAnimes] = useState([]);
   const [activeTabKey, setActiveTabKey] = useState("anime");
   const [recommendations, setRecommendations] = useState(
-    SettingsStorage.getParameter("userConfig.recommendations")
+    SettingsStorage.getParameter("userConfig.recommendations"),
   );
 
-  // Завантаження даних для банера на рівні HomeScreen (для планшетів)
+  // Завантаження даних для банера на рівні HomeScreen (для планшетів та TV)
   useEffect(() => {
-    if (isTL) {
+    if (isTL || isTV) {
       HikkaSets.getMostPopularAnime(1, 6, 2025)
         .then(setBannerAnimes)
         .catch((err) =>
-          Logger.error("Home", "Помилка завантаження банера", err)
+          Logger.error("Home", "Помилка завантаження банера", err),
         );
     }
-  }, [isTL]);
+  }, [isTL, isTV]);
 
   useEffect(() => {
     const unsubscribe = EventBus.on("recommendations", (newRecommendations) => {
@@ -120,8 +122,44 @@ export default function HomeScreen() {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor("transparent");
       hikkaUser?.refetch?.();
-    }, [hikkaUser?.refetch])
+    }, [hikkaUser?.refetch]),
   );
+
+  // TV - full-width layout with large banner, sidebar handled by navigator
+  if (isTV) {
+    return (
+      <DefaultScreenWidget isNavBarPadding={true}>
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          <ContentTypeTab.Navigator
+            initialRouteName="AnimeTab"
+            tabBar={({ navigation }) => {
+              if (!navigatorRef.current) {
+                navigatorRef.current = navigation;
+              }
+              return null;
+            }}
+            screenOptions={{
+              swipeEnabled: false,
+              animationEnabled: true,
+              lazy: true,
+            }}
+            sceneContainerStyle={{ backgroundColor: "transparent" }}
+            style={{ backgroundColor: "transparent" }}
+          >
+            <ContentTypeTab.Screen name="AnimeTab">
+              {() => (
+                <AnimeTabContent
+                  historyData={hikkaUser?.history}
+                  refetchUserData={hikkaUser?.refetch}
+                  isTabletMode={true}
+                />
+              )}
+            </ContentTypeTab.Screen>
+          </ContentTypeTab.Navigator>
+        </View>
+      </DefaultScreenWidget>
+    );
+  }
 
   // Планшет landscape - банер завжди видно зліва, навігатор над банером
   if (isTL) {
@@ -253,7 +291,7 @@ function AnimeTabContent({
     useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState(
-    SettingsStorage.getParameter("userConfig.recommendations")
+    SettingsStorage.getParameter("userConfig.recommendations"),
   );
   const navigation = useNavigation();
   const historyList = useMemo(() => {
@@ -284,7 +322,7 @@ function AnimeTabContent({
 
     // Перевіряємо чи потрібно скинути до дефолтних (міграція старого формату)
     const listsVersion = SettingsStorage.getParameter(
-      "personalRecListsVersion"
+      "personalRecListsVersion",
     );
     if (listsVersion !== 2) {
       PersonalRecListStorage.resetToDefaultLists();
@@ -308,7 +346,7 @@ function AnimeTabContent({
 
       SettingsStorage.setParameter(
         "userConfig.recommendations",
-        newRecommendations
+        newRecommendations,
       );
       setRecommendations(newRecommendations);
       EventBus.emit("recommendations", newRecommendations);
@@ -347,7 +385,7 @@ function AnimeTabContent({
     useCallback(() => {
       loadPopularAnime();
       refetchUserData?.();
-    }, [loadPopularAnime, refetchUserData])
+    }, [loadPopularAnime, refetchUserData]),
   );
 
   // Планшет landscape - тільки контент, банер рендериться в HomeScreen
@@ -494,7 +532,7 @@ const CustomPersonalRecList = React.memo(() => {
         } catch (e) {
           return { name: anime.name, animeList: [] };
         }
-      })
+      }),
     )
       .then((results) => {
         setLoadedAnimeLists(results);
@@ -512,7 +550,7 @@ const CustomPersonalRecList = React.memo(() => {
 
   // Filter out lists with empty animeList
   const nonEmptyLists = loadedAnimeLists.filter(
-    (list) => list.animeList && list.animeList.length > 0
+    (list) => list.animeList && list.animeList.length > 0,
   );
 
   if (nonEmptyLists.length === 0) return null;
@@ -522,7 +560,7 @@ const CustomPersonalRecList = React.memo(() => {
       {nonEmptyLists.map((animeList, index) => {
         // Find the original index in personalRecList for onClickMore
         const originalIndex = personalRecList.findIndex(
-          (item) => item.name === animeList.name
+          (item) => item.name === animeList.name,
         );
         return (
           <AnimeListHorizontal
@@ -535,7 +573,7 @@ const CustomPersonalRecList = React.memo(() => {
                 : async () => {
                     const data = await sendRequest(
                       personalRecList[originalIndex],
-                      "full"
+                      "full",
                     );
                     navigation.navigate("HiddenStack", {
                       screen: "AnimeList",

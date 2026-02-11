@@ -9,7 +9,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { BlurView } from "expo-blur";
 import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { useIsTabletLandscape } from "../Styles/Responsive";
+import { useIsTabletLandscape, useIsTV, getTVSidebarWidth } from "../Styles/Responsive";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PerlinNoiseBackground from "./PerlinNoiseBackground";
 
@@ -21,6 +21,7 @@ export default function DefaultScreenWidget({
   hasManualHeader = false,
 }) {
   const isTL = useIsTabletLandscape();
+  const isTV = useIsTV();
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
   const [isConnected, setIsConnected_] = useState(true);
@@ -35,6 +36,11 @@ export default function DefaultScreenWidget({
 
   // Визначаємо padding для navbar з урахуванням системного навбару
   const getNavbarPadding = () => {
+    // TV: sidebar navigation on the left, no bottom padding needed
+    if (isTV) {
+      return { paddingLeft: getTVSidebarWidth() };
+    }
+
     const placedAt = userConfig?.navbar?.placedAt || "Внизу";
     const navbarStyle = userConfig?.navbar?.style || "MD3";
     const bottomInset = Math.max(insets.bottom, 8);
@@ -136,7 +142,7 @@ export default function DefaultScreenWidget({
           Styles.defaultScreenWidget,
           {
             backgroundColor: "transparent",
-            flexDirection: isTL ? "row" : "column",
+            flexDirection: (isTV || isTL) ? "row" : "column",
           },
         ]}
       >

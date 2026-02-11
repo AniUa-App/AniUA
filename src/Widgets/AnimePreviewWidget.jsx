@@ -11,7 +11,13 @@ import { useState, useEffect } from "react";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
 import * as FileSystem from "expo-file-system";
 import FileOpener from "../Global/FileOpener";
-import { isTabletLandscape, isTablet, useIsTablet } from "../Styles/Responsive";
+import {
+  isTabletLandscape,
+  isTablet,
+  useIsTablet,
+  useIsTV,
+} from "../Styles/Responsive";
+import { TV } from "../Styles/TVStyles";
 import { useWindowDimensions } from "react-native";
 import Logger from "../Logger/Logger";
 import { prefetchBloomImage } from "./BloomImage";
@@ -25,11 +31,13 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
   maxWidth,
   gridMode = false, // New prop for tablet grid layout
   cardWidth = null, // Explicit card width for grids
+  onFocus,
 }) {
   if (!anime || !anime.slug) return null;
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
   const isTabletDevice = useIsTablet();
+  const isTVDevice = useIsTV();
 
   const [episodesList, setEpisodesList] = useState([]);
 
@@ -50,7 +58,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         Logger.error(
           "AnimePreviewWidget",
           "Помилка завантаження епізодів (exception)",
-          { slug: anime.slug, error: error?.message || error }
+          { slug: anime.slug, error: error?.message || error },
         );
         setEpisodesList({});
       });
@@ -102,6 +110,10 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       const imgHeight = imgWidth * 1.4;
       return { width: imgWidth, height: imgHeight };
     }
+    // TV: larger images for 10-foot viewing
+    if (isTVDevice) {
+      return { width: width * 0.15, height: height * 0.4 };
+    }
     // Default list mode
     if (isTabletLandscape()) {
       return { width: width * 0.12, height: height * 0.3 };
@@ -121,6 +133,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           gridMode ? styles.gridCardContainer : styles.cardContainer,
           { backgroundColor: themeColors.background },
           gridMode && cardWidth ? { width: cardWidth } : null,
+          isTVDevice && !gridMode && styles.tvCardContainer,
         ]}
         onPress={() => {
           // Prefetch зображення перед навігацією
@@ -130,6 +143,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             params: { anime },
           });
         }}
+        onFocus={onFocus}
       >
         <Image
           uri={anime.image}
@@ -138,14 +152,24 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             { width: imageDims.width, height: imageDims.height },
           ]}
         />
-        <View style={[gridMode ? styles.gridInfoContainer : styles.infoContainer]}>
+        <View
+          style={[
+            gridMode ? styles.gridInfoContainer : styles.infoContainer,
+            isTVDevice && !gridMode && styles.tvInfoContainer,
+          ]}
+        >
           <Text
             selectable={true}
             numberOfLines={gridMode ? 2 : 4}
             ellipsizeMode="tail"
-            style={[H3, { marginBottom: gridMode ? 4 : (maxHeight ? 0 : 20) }]}
+            style={[
+              H3,
+              { marginBottom: gridMode ? 4 : maxHeight ? 0 : 20 },
+              isTVDevice && { marginBottom: 12 },
+            ]}
           >
-            {(anime.title_ua || anime.title_en || anime.title_ja).length > 20
+            {(anime.title_ua || anime.title_en || anime.title_ja).length > 20 &&
+            !isTVDevice
               ? (anime.title_ua || anime.title_en || anime.title_ja)
                   .split(" ")
                   .slice(0, 6)
@@ -154,11 +178,23 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           </Text>
           {!gridMode && (
             <>
-              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
+              <Text
+                selectable={true}
+                style={[
+                  H4,
+                  { marginBottom: 8 },
+                  isTVDevice && {
+                    marginBottom: 12,
+                  },
+                ]}
+              >
                 Рейтинг:{" "}
                 <Text
                   selectable={true}
-                  style={[styles.animeHighlight, { color: themeColors.primary }]}
+                  style={[
+                    styles.animeHighlight,
+                    { color: themeColors.primary },
+                  ]}
                 >
                   {anime.rating === "g"
                     ? "0+"
@@ -171,11 +207,23 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                           : "18+"}
                 </Text>
               </Text>
-              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
+              <Text
+                selectable={true}
+                style={[
+                  H4,
+                  { marginBottom: 8 },
+                  isTVDevice && {
+                    marginBottom: 12,
+                  },
+                ]}
+              >
                 Дата виходу:{" "}
                 <Text
                   selectable={true}
-                  style={[styles.animeHighlight, { color: themeColors.primary }]}
+                  style={[
+                    styles.animeHighlight,
+                    { color: themeColors.primary },
+                  ]}
                 >
                   {anime.year}
                 </Text>
@@ -183,7 +231,10 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             </>
           )}
           {gridMode && anime.year && (
-            <Text selectable={true} style={[H4, { color: themeColors.inActiveText }]}>
+            <Text
+              selectable={true}
+              style={[H4, { color: themeColors.inActiveText }]}
+            >
               {anime.year}
             </Text>
           )}
@@ -192,7 +243,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
               selectable={true}
               numberOfLines={maxHeight ? 1 : 2}
               ellipsizeMode="tail"
-              style={H4}
+              style={[H4, isTVDevice]}
             >
               Жанри:{" "}
               <Text
@@ -208,13 +259,15 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           <TouchableOpacity
             style={[
               gridMode ? styles.gridFavoriteButton : styles.favoriteButton,
-              { padding: gridMode ? 8 : (maxHeight ? maxHeight / 100 : 20) },
+              { padding: gridMode ? 8 : maxHeight ? maxHeight / 100 : 20 },
+              isTVDevice && !gridMode && { padding: TV.padding.card },
             ]}
             onPress={handlePress}
+            tvFocusable={false}
           >
             <IconComponent
               fill={isIconFilled ? themeColors.primary : themeColors.text}
-              size={gridMode ? 24 : 34}
+              size={isTVDevice ? 48 : gridMode ? 24 : 34}
             />
           </TouchableOpacity>
         )}
@@ -229,7 +282,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           if (!info.downloaded_episodes?.length) return false;
 
           const episode = info.downloaded_episodes.find(
-            (ep) => ep.episode === item.episode
+            (ep) => ep.episode === item.episode,
           );
 
           return (
@@ -240,12 +293,12 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
         }}
         onSelectEpisode={async (item) => {
           const episode = (info.downloaded_episodes || []).find(
-            (ep) => ep.episode === item.episode
+            (ep) => ep.episode === item.episode,
           );
           if (episode) {
             try {
               const fileInfo = await FileSystem.getInfoAsync(
-                episode.video_path
+                episode.video_path,
               );
               if (fileInfo.exists) {
                 Logger.debug("AnimePreviewWidget", "Відкриття відео файлу", {
@@ -254,14 +307,14 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
 
                 FileOpener.openFile(episode.video_path)
                   .then(() =>
-                    Logger.info("AnimePreviewWidget", "Діалог вибору відкрито")
+                    Logger.info("AnimePreviewWidget", "Діалог вибору відкрито"),
                   )
                   .catch((error) =>
                     Logger.error(
                       "AnimePreviewWidget",
                       "Помилка при відкритті файлу",
-                      error
-                    )
+                      error,
+                    ),
                   );
               } else {
                 prefetchBloomImage(anime.image);
@@ -274,7 +327,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
               Logger.error(
                 "AnimePreviewWidget",
                 "Помилка при відкритті файлу",
-                error
+                error,
               );
             }
           }
@@ -311,6 +364,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     bottom: 0,
+  },
+  // TV mode styles
+  tvCardContainer: {
+    padding: TV.padding.card,
+    marginVertical: 4,
+    marginHorizontal: TV.padding.card,
+  },
+  tvInfoContainer: {
+    paddingTop: 8,
+    paddingLeft: TV.padding.card,
   },
   // Grid mode styles (for tablet)
   gridCardContainer: {

@@ -8,7 +8,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { useState, useEffect } from "react";
 import { EventBus } from "../Global/EventBus";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getNavbarWidth } from "../Styles/Responsive";
+import { getNavbarWidth, useIsTV } from "../Styles/Responsive";
 
 const Stack = createStackNavigator();
 
@@ -20,6 +20,7 @@ export default function Header({
 }) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets?.() || { top: 0 };
+  const isTV = useIsTV();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig")
   );
@@ -52,11 +53,16 @@ export default function Header({
           onPress={() => navigation.goBack()}
           style={{
             backgroundColor: themeColors.accent,
-            padding: 6,
+            padding: isTV ? 10 : 6,
             borderRadius: 16,
+            minWidth: isTV ? 52 : undefined,
+            minHeight: isTV ? 52 : undefined,
+            alignItems: "center",
+            justifyContent: "center",
           }}
+          hasTVPreferredFocus={isTV}
         >
-          <Icons.ArrowLeft fill={themeColors.primary} size={28} />
+          <Icons.ArrowLeft fill={themeColors.primary} size={isTV ? 36 : 28} />
         </TouchableOpacity>
       )}
 

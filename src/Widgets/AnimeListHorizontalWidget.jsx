@@ -2,10 +2,17 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   useWindowDimensions,
+  FlatList as RNFlatList,
 } from "react-native";
-import { ScrollView, FlatList } from "react-native-gesture-handler";
+import { TouchableOpacity } from "./Button";
+import {
+  ScrollView,
+  FlatList as GHFlatList,
+} from "react-native-gesture-handler";
+import { isTV as checkIsTV } from "../Styles/Responsive";
+
+const FlatList = checkIsTV() ? RNFlatList : GHFlatList;
 
 import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
@@ -18,6 +25,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeCard from "../Components/AnimeCard";
 
+const TVCellRenderer = ({ children, style, ...props }) => (
+  <View style={[style, { overflow: "visible" }]} collapsable={false} {...props}>
+    {children}
+  </View>
+);
+
 export function AnimeListHorizontal({
   animeList,
   title = "",
@@ -26,10 +39,9 @@ export function AnimeListHorizontal({
 }) {
   const themeColors = useThemeColors();
   const { width } = useWindowDimensions();
-
   // Налаштування показу деталей
   const [showAnimeDetails, setShowAnimeDetails] = useState(
-    SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+    SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
   );
 
   // Зберігаємо slug'и для яких вже зробили prefetch
@@ -40,14 +52,14 @@ export function AnimeListHorizontal({
     useFocusEffect(
       useCallback(() => {
         setShowAnimeDetails(
-          SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+          SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
         );
-      }, [])
+      }, []),
     );
   } catch {
     useEffect(() => {
       setShowAnimeDetails(
-        SettingsStorage.getParameter("hideAnimeListDetails") !== "true"
+        SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
       );
     }, []);
   }
@@ -58,7 +70,7 @@ export function AnimeListHorizontal({
       ? width * 0.12
       : isTablet()
         ? width * 0.2
-        : width * 0.35;
+        : width * 0.12;
   }, [width]);
 
   // Конфігурація для визначення видимих елементів
@@ -89,15 +101,15 @@ export function AnimeListHorizontal({
         navigation={navigation}
       />
     ),
-    [cardWidth, showAnimeDetails, navigation]
+    [cardWidth, showAnimeDetails, navigation],
   );
 
   const keyExtractor = useCallback((item, index) => {
     return item.slug ? `${item.slug}-${index}` : String(index);
   }, []);
 
-  return (
-    <View>
+  const content = (
+    <>
       <TouchableOpacity
         style={styles.header}
         activeOpacity={1}
@@ -105,7 +117,6 @@ export function AnimeListHorizontal({
       >
         {title?.length > 0 && (
           <Text
-            selectable={true}
             style={[
               styles.title,
               H3,
@@ -125,7 +136,7 @@ export function AnimeListHorizontal({
               },
             ]}
           >
-            <Icon.ArrowRight size={28} color={themeColors.primary} />
+            <Icon.ArrowRight size={24} color={themeColors.primary} />
           </View>
         )}
       </TouchableOpacity>
@@ -141,12 +152,19 @@ export function AnimeListHorizontal({
         initialNumToRender={4}
         maxToRenderPerBatch={3}
         windowSize={5}
-        removeClippedSubviews={true}
+        removeClippedSubviews={false}
         nestedScrollEnabled={true}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          checkIsTV() && { paddingVertical: 8 },
+        ]}
+        style={checkIsTV() ? { overflow: "visible" } : undefined}
+        CellRendererComponent={checkIsTV() ? TVCellRenderer : undefined}
       />
-    </View>
+    </>
   );
+
+  return <View>{content}</View>;
 }
 
 export function PreviewAnimeListHorizontal({
@@ -217,7 +235,6 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
   },
   header: {
     flexDirection: "row",
@@ -225,7 +242,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "transparent",
     width: "100%",
-    margin: 10,
+    marginTop: 10,
   },
   listContent: {},
 });

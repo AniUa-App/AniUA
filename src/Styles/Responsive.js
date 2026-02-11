@@ -128,6 +128,13 @@ export function useIsTabletPortrait() {
 export function useGridColumns(minCardWidth = 180) {
   const { width } = useWindowDimensions();
   const isTabletDevice = useIsTablet();
+  const tvDevice = useIsTV();
+
+  if (tvDevice) {
+    const availableWidth = width - 64; // 32px padding each side
+    const columns = Math.floor(availableWidth / minCardWidth);
+    return Math.max(4, Math.min(columns, 7));
+  }
 
   if (!isTabletDevice) return 1;
 
@@ -143,10 +150,31 @@ export function useGridColumns(minCardWidth = 180) {
 export function getGridColumns(minCardWidth = 180) {
   const { width } = getDims();
 
+  if (isTV()) {
+    const availableWidth = width - 64;
+    const columns = Math.floor(availableWidth / minCardWidth);
+    return Math.max(4, Math.min(columns, 7));
+  }
+
   if (!isTablet()) return 1;
 
   const availableWidth = width - 32;
   const columns = Math.floor(availableWidth / minCardWidth);
 
   return Math.max(2, Math.min(columns, 4));
+}
+
+// TV sidebar width
+export function getTVSidebarWidth() {
+  return 220;
+}
+
+// TV layout hook
+export function useTVLayout() {
+  const { width } = useWindowDimensions();
+  const sidebarWidth = getTVSidebarWidth();
+  const contentWidth = width - sidebarWidth;
+  const columns = Math.max(4, Math.min(Math.floor((contentWidth - 64) / 200), 7));
+
+  return { sidebarWidth, contentWidth, columns };
 }

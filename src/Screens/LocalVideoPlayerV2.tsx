@@ -2,7 +2,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Dimensions,
   ActivityIndicator,
@@ -60,6 +59,7 @@ import { EventBus } from "../Global/EventBus";
 import type { Episode as ApiEpisode } from "../Api/AniuaApi";
 import type { HikkaAnimePreview } from "../Sources/HikkaApiComplete";
 import type { AnimeInfo } from "../Storage/AnimeStorage";
+import { isTV as isDeviceTV } from "../Styles/Responsive";
 
 const { width, height } = Dimensions.get("window");
 
@@ -654,10 +654,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       SystemNavigationBar.navigationShow();
       // SystemNavigationBar.fullScreen(false);
       // Orientation.lockToPortrait();
-      if (isTablet()) {
-        EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      if (isDeviceTV()) {
+        EOrientation.lockAsync(EOrientation.OrientationLock.LANDSCAPE);
+      } else if (isTablet()) {
+        EOrientation.unlockAsync();
       } else {
-        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
       }
       setupNavigationBar();
       SystemNavigationBar.fullScreen(false);
@@ -784,11 +786,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         Logger.warn("LocalVideoPlayer", "SystemNavigationBar show error", e);
       }
       // SystemNavigationBar.fullScreen(false);
-      // Orientation.lockToPortrait();
-      if (isTablet()) {
-        EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+      if (isDeviceTV()) {
+        EOrientation.lockAsync(EOrientation.OrientationLock.LANDSCAPE);
+      } else if (isTablet()) {
+        EOrientation.unlockAsync();
       } else {
-        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+        EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
       }
     };
   }, []);
@@ -800,6 +803,45 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       startHideControlsTimer();
     }
   }, [isLandscape]);
+
+  // D-pad controls for Android TV
+  const togglePlayPauseRef = useRef(togglePlayPause);
+  togglePlayPauseRef.current = togglePlayPause;
+  const seekToRef = useRef(seekTo);
+  seekToRef.current = seekTo;
+
+  useEffect(() => {
+    if (!Platform.isTV) return;
+
+    let TVEventHandler: any;
+    try {
+      TVEventHandler = require("react-native").TVEventHandler;
+    } catch {
+      return;
+    }
+    if (!TVEventHandler) return;
+
+    const tvHandler = new TVEventHandler();
+    tvHandler.enable(null, (_cmp: any, evt: any) => {
+      if (!evt) return;
+      switch (evt.eventType) {
+        case "select":
+        case "playPause":
+          togglePlayPauseRef.current?.();
+          break;
+        case "left":
+          seekToRef.current?.(-10);
+          break;
+        case "right":
+          seekToRef.current?.(10);
+          break;
+      }
+    });
+
+    return () => {
+      tvHandler.disable();
+    };
+  }, []);
 
   // Автовхід у PiP при згортанні застосунку
   useEffect(() => {
@@ -979,10 +1021,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             }
             setIsLandscape(true);
           } else {
-            if (isTablet()) {
-              EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+            if (isDeviceTV()) {
+              // TV stays in landscape always
+            } else if (isTablet()) {
+              EOrientation.unlockAsync();
             } else {
-              EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP); // На телефонах блокуємо портретну
+              EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
             }
             try {
               SystemNavigationBar.fullScreen(false);
@@ -1238,13 +1282,16 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                         SystemNavigationBar.navigationShow();
                         setTimeout(() => {
                           navigation.goBack();
-                          // Orientation.lockToPortrait();
-                          if (isTablet()) {
-                            EOrientation.unlockAsync(); // На планшетах дозволяємо будь-яку орієнтацію
+                          if (isDeviceTV()) {
+                            EOrientation.lockAsync(
+                              EOrientation.OrientationLock.LANDSCAPE
+                            );
+                          } else if (isTablet()) {
+                            EOrientation.unlockAsync();
                           } else {
                             EOrientation.lockAsync(
                               EOrientation.OrientationLock.PORTRAIT_UP
-                            ); // На телефонах блокуємо портретну
+                            );
                           }
                         }, 100);
                       }}
@@ -1555,10 +1602,9 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       </CustomTouchableOpacity>
                     </View>
 
-                    <Pressable
+                    <CustomTouchableOpacity
                       style={styles.playButtonContainer}
                       onPress={togglePlayPause}
-                      android_disableSound
                     >
                       <View
                         style={[
@@ -1572,7 +1618,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                           <Icons.Play size={32} color={themeColors.text} />
                         )}
                       </View>
-                    </Pressable>
+                    </CustomTouchableOpacity>
 
                     <View>
                       <CustomTouchableOpacity
