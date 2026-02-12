@@ -6,7 +6,10 @@ import {
   ScrollView,
   ActivityIndicator,
   Animated,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
+
+const TVFocusGuideView = RNTVFocusGuideView || View;
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../../Global/useTheme";
 import { H4 } from "../../Styles/Fonts";
@@ -57,14 +60,6 @@ export default function ProfileScreenTV({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={[styles.header, { zIndex: 1 }]}>
-          <TVButton
-            onPress={profile.navigateToSettings}
-            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
-          >
-            <Icons.GearSix size={36} color={colors.primary} />
-          </TVButton>
-        </View>
         <View style={StyleSheet.absoluteFill}>
           <LoginScreen isCanSkip={false} />
         </View>
@@ -74,42 +69,31 @@ export default function ProfileScreenTV({ navigation }) {
 
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <View style={styles.container}>
+      <TVFocusGuideView style={styles.container} autoFocus>
         {/* Sidebar - Profile info */}
         <ScrollView
           style={styles.sidebar}
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
+          focusable={false}
         >
-          {/* Settings button */}
-          <View style={styles.sidebarHeader}>
-            <TVButton
-              onPress={profile.navigateToSettings}
-              style={[styles.iconButton, { backgroundColor: colors.accent }]}
-            >
-              <Icons.GearSix size={32} color={colors.primary} />
-            </TVButton>
-          </View>
-          <View style={{ left: 32, paddingTop: "5%" }}>
+          <View style={{ left: 16, paddingTop: "20%" }} focusable={false}>
             {/* Avatar */}
             <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
             {/* Username */}
-            <View style={styles.usernameContainer}>
-              <Text selectable={true} style={[H4, { fontSize: 22 }]}>
-                {profile.displayName}
-              </Text>
+            <View style={styles.usernameContainer} focusable={false}>
+              <Text style={[H4, { fontSize: 16 }]}>{profile.displayName}</Text>
               <TVButton
                 onPress={profile.openEditModal}
                 style={[styles.editButton, { backgroundColor: colors.accent }]}
               >
-                <Icons.Pencil size={18} color={colors.primary} weight="fill" />
+                <Icons.Pencil size={14} color={colors.primary} weight="fill" />
               </TVButton>
             </View>
 
             <Text
-              selectable={true}
-              style={[styles.handle, { color: colors.Text(0.5), fontSize: 16 }]}
+              style={[styles.handle, { color: colors.Text(0.5), fontSize: 12 }]}
             >
               {profile.handle}
             </Text>
@@ -117,7 +101,7 @@ export default function ProfileScreenTV({ navigation }) {
 
           {/* Stats */}
           <ProfileStats
-            type="tablet"
+            type="tv"
             stats={profile.stats}
             favorites={profile.favorites}
             colors={colors}
@@ -126,7 +110,7 @@ export default function ProfileScreenTV({ navigation }) {
         </ScrollView>
 
         {/* Tabs */}
-        <View style={styles.tabsContainer}>
+        <TVFocusGuideView style={styles.tabsContainer} autoFocus>
           {TABS.map((tab) => (
             <TVButton
               key={tab.id}
@@ -148,13 +132,14 @@ export default function ProfileScreenTV({ navigation }) {
               />
             </TVButton>
           ))}
-        </View>
+        </TVFocusGuideView>
 
         {/* Content */}
         <ScrollView
           style={[styles.content, { backgroundColor: colors.accent }]}
           contentContainerStyle={{ paddingTop: insets.top }}
           showsVerticalScrollIndicator={false}
+          focusable={false}
         >
           <View
             style={[
@@ -164,7 +149,7 @@ export default function ProfileScreenTV({ navigation }) {
                   profile.activeTab === "list"
                     ? profile.listTabHeight
                     : profile.favoritesTabHeight,
-                  300
+                  10,
                 ),
               },
             ]}
@@ -193,8 +178,8 @@ export default function ProfileScreenTV({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item.anime}
-                  numColumns={6}
-                  cardWidth={160}
+                  numColumns={3}
+                  cardWidth={120}
                 />
               </View>
 
@@ -219,8 +204,8 @@ export default function ProfileScreenTV({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item}
-                  numColumns={6}
-                  cardWidth={160}
+                  numColumns={3}
+                  cardWidth={120}
                 />
               </View>
             </Animated.View>
@@ -228,7 +213,7 @@ export default function ProfileScreenTV({ navigation }) {
 
           <View style={{ height: 100 }} />
         </ScrollView>
-      </View>
+      </TVFocusGuideView>
 
       <UsernameEditModal
         visible={profile.isEditModalVisible}
@@ -263,20 +248,20 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sidebar: {
-    paddingTop: 40,
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-    maxWidth: "25%",
+    paddingTop: 20,
+    paddingHorizontal: 8,
+    paddingBottom: 40,
+    width: "20%",
     flexDirection: "column",
   },
   sidebarHeader: {
     flexDirection: "row",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   iconButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -284,13 +269,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 14,
-    gap: 8,
+    marginTop: 8,
+    gap: 6,
   },
   editButton: {
-    width: 44,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 24,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -299,22 +284,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   content: {
-    flex: 1,
+    width: "30%",
   },
   tabsContainer: {
     justifyContent: "center",
     alignContent: "center",
     flexDirection: "column",
-    gap: 16,
-    top: "4%",
-    paddingHorizontal: 8,
+    gap: 8,
+    paddingTop: 16,
   },
   tabButton: {
     borderRadius: TV.button.borderRadius,
-    minHeight: TV.button.minHeight,
+    minHeight: 44,
   },
   tabContentWrapper: {
     overflow: "hidden",
-    width: "100%",
   },
 });

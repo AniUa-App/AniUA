@@ -1,6 +1,7 @@
 import {
   View,
   Text,
+  ScrollView,
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
@@ -13,7 +14,7 @@ import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import LoginScreen from "../LoginScreen";
 import { useThemeColors } from "../../Global/useTheme";
 import { H2 } from "../../Styles/Fonts";
-import { useGridColumns } from "../../Styles/Responsive";
+// import { useGridColumns } from "../../Styles/Responsive";
 import { styles, STATUS_TITLES, getGridItemWidth } from "./styles";
 import { TVFocusableGrid, TVStatusSelector } from "../../Components/TV";
 
@@ -25,10 +26,10 @@ export default function BookmarkTV({ ...props }) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const { width, height } = useWindowDimensions();
-  const numColumns = useGridColumns(200);
+  const numColumns = 2;
 
   const cardWidth = useMemo(() => {
-    return getGridItemWidth(width, numColumns, 32);
+    return getGridItemWidth(width, numColumns, 8);
   }, [width, numColumns]);
 
   const fetchAnimeList = useCallback(
@@ -49,7 +50,7 @@ export default function BookmarkTV({ ...props }) {
           response = await HikkaApiComplete.getUserFavorites(
             "anime",
             user.username,
-            { page: pageToFetch, size: 28 }
+            { page: pageToFetch, size: 28 },
           );
         } else {
           response = await HikkaApiComplete.getUserWatchList(user.username, {
@@ -86,7 +87,7 @@ export default function BookmarkTV({ ...props }) {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -116,24 +117,23 @@ export default function BookmarkTV({ ...props }) {
       if (!item?.slug) return null;
 
       return (
-        <View style={{ width: cardWidth }}>
+        <View style={{ maxWidth: 400, width: "100%" }}>
           <AnimePreviewWidget
             anime={item}
             info={{}}
             type={currentStatus}
             gridMode={false}
-            maxWidth={cardWidth}
-            maxHeight={height * 0.25}
+            maxWidth={400}
           />
         </View>
       );
     },
-    [currentStatus, cardWidth, height]
+    [currentStatus, cardWidth, height],
   );
 
   const keyExtractor = useCallback(
     (item, index) => item?.slug || `${index}`,
-    []
+    [],
   );
 
   const ListEmptyComponent = useCallback(
@@ -148,7 +148,7 @@ export default function BookmarkTV({ ...props }) {
           </Text>
         </View>
       ) : null,
-    [isLoading, currentStatus, height]
+    [isLoading, currentStatus, height],
   );
 
   const ListFooterComponent = useCallback(
@@ -158,12 +158,12 @@ export default function BookmarkTV({ ...props }) {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null,
-    [isLoading, colors.primary]
+    [isLoading, colors.primary],
   );
 
   if (HikkaAuthStorage.isAuthenticated()) {
     return (
-      <DefaultScreenWidget isCheckInternet={true} hasManualHeader={true}>
+      <DefaultScreenWidget isCheckInternet={true} hasManualHeader={false}>
         {/* TV Status Selector replaces the floating FAB */}
         <TVStatusSelector
           currentStatus={currentStatus}
@@ -175,23 +175,26 @@ export default function BookmarkTV({ ...props }) {
           isFavoritesTab={true}
         />
 
-        <TVFocusableGrid
-          data={animeList}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          numColumns={numColumns}
-          key={`list-${numColumns}`}
-          ListEmptyComponent={ListEmptyComponent}
-          ListFooterComponent={ListFooterComponent}
-          contentContainerStyle={[
-            styles.listContentContainer,
-            styles.gridContainer,
-            { paddingHorizontal: 32 },
-          ]}
-          columnWrapperStyle={styles.gridColumnWrapper}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <TVFocusableGrid
+            data={animeList}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={numColumns}
+            key={`list-${numColumns}`}
+            ListEmptyComponent={ListEmptyComponent}
+            ListFooterComponent={ListFooterComponent}
+            contentContainerStyle={[
+              styles.listContentContainer,
+              styles.gridContainer,
+              { width: 400 * numColumns + 8, minHeight: height },
+              { backgroundColor: colors.accent },
+            ]}
+            columnWrapperStyle={styles.gridColumnWrapper}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+          />
+        </ScrollView>
       </DefaultScreenWidget>
     );
   } else {

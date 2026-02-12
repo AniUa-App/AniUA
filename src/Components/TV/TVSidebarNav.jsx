@@ -17,6 +17,12 @@ const NAV_ITEMS = [
   },
   { name: "Bookmarks", label: "Обрані", icon: "BookmarkSimple" },
   { name: "Profile", label: "Профіль", icon: "UserCircle" },
+  {
+    name: "SettingsScreen",
+    label: "Налаштування",
+    icon: "GearSix",
+    isHiddenStack: true,
+  },
 ];
 
 export default function TVSidebarNav({ state, navigation }) {

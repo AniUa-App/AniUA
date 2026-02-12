@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
 
 // Get grid item width based on number of columns
 export function getGridItemWidth(screenWidth, numColumns, padding = 16) {
-  const availableWidth = screenWidth - padding * 2;
+  const availableWidth = screenWidth - padding * 5;
   return Math.floor(availableWidth / numColumns);
 }
 

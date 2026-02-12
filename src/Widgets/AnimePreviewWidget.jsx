@@ -112,7 +112,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
     }
     // TV: larger images for 10-foot viewing
     if (isTVDevice) {
-      return { width: width * 0.15, height: height * 0.4 };
+      return { width: width * 0.8, height: height * 0.3 };
     }
     // Default list mode
     if (isTabletLandscape()) {
@@ -133,7 +133,6 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           gridMode ? styles.gridCardContainer : styles.cardContainer,
           { backgroundColor: themeColors.background },
           gridMode && cardWidth ? { width: cardWidth } : null,
-          isTVDevice && !gridMode && styles.tvCardContainer,
         ]}
         onPress={() => {
           // Prefetch зображення перед навігацією
@@ -153,20 +152,13 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           ]}
         />
         <View
-          style={[
-            gridMode ? styles.gridInfoContainer : styles.infoContainer,
-            isTVDevice && !gridMode && styles.tvInfoContainer,
-          ]}
+          style={[gridMode ? styles.gridInfoContainer : styles.infoContainer]}
         >
           <Text
             selectable={true}
             numberOfLines={gridMode ? 2 : 4}
             ellipsizeMode="tail"
-            style={[
-              H3,
-              { marginBottom: gridMode ? 4 : maxHeight ? 0 : 20 },
-              isTVDevice && { marginBottom: 12 },
-            ]}
+            style={[H3, { marginBottom: gridMode ? 4 : maxHeight ? 0 : 20 }]}
           >
             {(anime.title_ua || anime.title_en || anime.title_ja).length > 20 &&
             !isTVDevice
@@ -174,20 +166,16 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                   .split(" ")
                   .slice(0, 6)
                   .join(" ") + "..."
-              : anime.title_ua || anime.title_en || anime.title_ja}
+              : (anime.title_ua || anime.title_en || anime.title_ja).length > 10
+                ? (anime.title_ua || anime.title_en || anime.title_ja)
+                    .split(" ")
+                    .slice(0, 6)
+                    .join(" ") + "..."
+                : anime.title_ua || anime.title_en || anime.title_ja}
           </Text>
           {!gridMode && (
             <>
-              <Text
-                selectable={true}
-                style={[
-                  H4,
-                  { marginBottom: 8 },
-                  isTVDevice && {
-                    marginBottom: 12,
-                  },
-                ]}
-              >
+              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
                 Рейтинг:{" "}
                 <Text
                   selectable={true}
@@ -207,16 +195,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
                           : "18+"}
                 </Text>
               </Text>
-              <Text
-                selectable={true}
-                style={[
-                  H4,
-                  { marginBottom: 8 },
-                  isTVDevice && {
-                    marginBottom: 12,
-                  },
-                ]}
-              >
+              <Text selectable={true} style={[H4, { marginBottom: 8 }]}>
                 Дата виходу:{" "}
                 <Text
                   selectable={true}
@@ -243,7 +222,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
               selectable={true}
               numberOfLines={maxHeight ? 1 : 2}
               ellipsizeMode="tail"
-              style={[H4, isTVDevice]}
+              style={[H4]}
             >
               Жанри:{" "}
               <Text
@@ -260,14 +239,12 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             style={[
               gridMode ? styles.gridFavoriteButton : styles.favoriteButton,
               { padding: gridMode ? 8 : maxHeight ? maxHeight / 100 : 20 },
-              isTVDevice && !gridMode && { padding: TV.padding.card },
             ]}
             onPress={handlePress}
             tvFocusable={false}
           >
             <IconComponent
               fill={isIconFilled ? themeColors.primary : themeColors.text}
-              size={isTVDevice ? 48 : gridMode ? 24 : 34}
             />
           </TouchableOpacity>
         )}

@@ -10,7 +10,7 @@ import {
   ScrollView,
   FlatList as GHFlatList,
 } from "react-native-gesture-handler";
-import { isTV as checkIsTV } from "../Styles/Responsive";
+import { isTV as checkIsTV, isTV } from "../Styles/Responsive";
 
 const FlatList = checkIsTV() ? RNFlatList : GHFlatList;
 
@@ -70,7 +70,9 @@ export function AnimeListHorizontal({
       ? width * 0.12
       : isTablet()
         ? width * 0.2
-        : width * 0.12;
+        : isTV()
+          ? width * 0.12
+          : width * 0.35;
   }, [width]);
 
   // Конфігурація для визначення видимих елементів

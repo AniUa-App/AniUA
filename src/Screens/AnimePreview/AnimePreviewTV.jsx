@@ -140,6 +140,16 @@ export default function AnimePreviewTV({ route }) {
   // Ref for new download bottom sheet
   const newDownloadSheetRef = useRef(null);
 
+  const renderCharacter = useCallback(
+    ({ item }) => <CharacterCard item={item} imageSize={100} />,
+    []
+  );
+
+  const keyExtractorCharacter = useCallback(
+    (item) => item?.character?.slug || "",
+    []
+  );
+
   const tvPosterHeight = Math.max(400, winHeight * 0.85);
 
   // Error states
@@ -236,16 +246,6 @@ export default function AnimePreviewTV({ route }) {
       </TVButton>
     );
   };
-
-  const renderCharacter = useCallback(
-    ({ item }) => <CharacterCard item={item} imageSize={100} />,
-    []
-  );
-
-  const keyExtractorCharacter = useCallback(
-    (item) => item?.character?.slug || "",
-    []
-  );
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection}>

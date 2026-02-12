@@ -53,16 +53,16 @@ export default function Header({
           onPress={() => navigation.goBack()}
           style={{
             backgroundColor: themeColors.accent,
-            padding: isTV ? 10 : 6,
+            padding: isTV ? 8 : 6,
             borderRadius: 16,
-            minWidth: isTV ? 52 : undefined,
-            minHeight: isTV ? 52 : undefined,
+            minWidth: isTV ? 44 : undefined,
+            minHeight: isTV ? 44 : undefined,
             alignItems: "center",
             justifyContent: "center",
           }}
           hasTVPreferredFocus={isTV}
         >
-          <Icons.ArrowLeft fill={themeColors.primary} size={isTV ? 36 : 28} />
+          <Icons.ArrowLeft fill={themeColors.primary} size={28} />
         </TouchableOpacity>
       )}
 

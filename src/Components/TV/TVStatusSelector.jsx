@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useRef, useCallback } from "react";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
@@ -7,11 +7,42 @@ import { TV } from "../../Styles/TVStyles";
 import Icons from "../../Styles/Icons";
 
 const STATUSES = [
-  { key: "favourite", label: "Улюблене", icon: "Heart" },
-  { key: "watching", label: "Дивлюсь", icon: "Play" },
-  { key: "completed", label: "Переглянуто", icon: "Check" },
-  { key: "planned", label: "Заплановано", icon: "Clock" },
-  { key: "dropped", label: "Закинуто", icon: "X" },
+  {
+    key: "favourite",
+    label: "Улюблене",
+    icon: "Heart",
+    colorKey: "pinkBookmark",
+  },
+  {
+    key: "watching",
+    label: "Дивлюсь",
+    icon: "PlayCircle",
+    colorKey: "primary",
+  },
+  {
+    key: "planned",
+    label: "Заплановано",
+    icon: "PlusCircle",
+    colorKey: "yellowBookmark",
+  },
+  {
+    key: "completed",
+    label: "Переглянуто",
+    icon: "CheckCircle",
+    colorKey: "orangeBookmark",
+  },
+  {
+    key: "on_hold",
+    label: "Відкладено",
+    icon: "PauseCircle",
+    colorKey: "blueBookmark",
+  },
+  {
+    key: "dropped",
+    label: "Закинуто",
+    icon: "XCircle",
+    colorKey: "redBookmark",
+  },
 ];
 
 export default function TVStatusSelector({
@@ -20,9 +51,25 @@ export default function TVStatusSelector({
   isFavoritesTab = true,
 }) {
   const themeColors = useThemeColors();
+  const lastPressTime = useRef(0);
+
+  const handlePress = useCallback(
+    (key) => {
+      const now = Date.now();
+      if (now - lastPressTime.current < 300) return;
+      lastPressTime.current = now;
+      onStatusChange(key);
+    },
+    [onStatusChange],
+  );
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scrollView}
+      contentContainerStyle={styles.container}
+    >
       {STATUSES.map((status) => {
         const isActive = currentStatus === status.key;
         const IconComponent = Icons[status.icon];
@@ -31,58 +78,71 @@ export default function TVStatusSelector({
           <TVButton
             key={status.key}
             style={[
-              styles.button,
+              styles.tab,
               {
-                backgroundColor: isActive
-                  ? themeColors.primary
-                  : themeColors.subtle,
+                backgroundColor: themeColors.accent,
+                borderBottomLeftRadius: isActive ? 0 : 18,
+                borderBottomRightRadius: isActive ? 0 : 18,
+                height: isActive ? 40 : 34,
+                paddingBottom: isActive ? 2 : 0,
               },
             ]}
-            onPress={() => onStatusChange(status.key)}
+            onPress={() => handlePress(status.key)}
             hasTVPreferredFocus={isActive}
           >
-            {IconComponent && (
-              <IconComponent
-                size={24}
-                color={isActive ? themeColors.background : themeColors.text}
-                weight={isActive ? "fill" : "regular"}
-              />
-            )}
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: isActive ? themeColors.background : themeColors.text,
-                },
-              ]}
-            >
-              {status.label}
-            </Text>
+            <View style={styles.tabContent}>
+              {IconComponent && (
+                <IconComponent
+                  size={18}
+                  color={themeColors[status.colorKey]}
+                  weight="fill"
+                />
+              )}
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: isActive
+                      ? themeColors.text
+                      : themeColors.inActiveText,
+                  },
+                ]}
+              >
+                {status.label}
+              </Text>
+            </View>
           </TVButton>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   container: {
-    flexDirection: "row",
-    gap: 12,
     paddingHorizontal: TV.padding.screen,
     paddingVertical: 16,
-    flexWrap: "wrap",
+    height: 55,
+    gap: 8,
   },
-  button: {
+  tab: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    height: 36,
+    borderRadius: 18,
+  },
+  tabContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: TV.button.borderRadius,
-    minHeight: TV.button.minHeight,
+    justifyContent: "center",
   },
   label: {
     fontFamily: "Nunito-SemiBold",
+    marginLeft: 6,
   },
 });

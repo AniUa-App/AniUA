@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React from "react";
 import { View, FlatList, TVFocusGuideView as RNTVFocusGuideView } from "react-native";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
@@ -16,42 +16,11 @@ export default function TVFocusableGrid({
   onEndReachedThreshold,
   ...props
 }) {
-  const flatListRef = useRef(null);
-
-  const handleScrollToItem = useCallback(
-    (index) => {
-      if (flatListRef.current && index >= 0) {
-        flatListRef.current.scrollToIndex({
-          index: Math.max(0, index - numColumns),
-          animated: true,
-          viewPosition: 0,
-        });
-      }
-    },
-    [numColumns]
-  );
-
-  const wrappedRenderItem = useCallback(
-    (info) => {
-      const originalElement = renderItem(info);
-      if (!originalElement) return null;
-
-      return React.cloneElement(originalElement, {
-        onFocus: () => {
-          handleScrollToItem(info.index);
-          originalElement.props?.onFocus?.();
-        },
-      });
-    },
-    [renderItem, handleScrollToItem]
-  );
-
   return (
     <TVFocusGuideView autoFocus>
       <FlatList
-        ref={flatListRef}
         data={data}
-        renderItem={wrappedRenderItem}
+        renderItem={renderItem}
         keyExtractor={keyExtractor}
         numColumns={numColumns}
         showsVerticalScrollIndicator={false}
