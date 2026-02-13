@@ -42,12 +42,16 @@ export interface DubbingButtonProps {
   onPress: () => void;
   useBuiltIn: boolean;
   onPlayerTypeToggle: (isBuiltIn: boolean) => void;
+  hasTVPreferredFocus?: boolean;
 }
 
 export interface PlayerTabsProps {
   availablePlayers: string[];
   activePlayer: Player;
   onPlayerSelect: (player: string) => void;
+  hasTVPreferredFocus?: boolean;
+  nextFocusUp?: number;
+  firstTabInnerRef?: React.Ref<any>;
 }
 
 // EpisodeItemProps тепер визначені в EpisodeItem.tsx

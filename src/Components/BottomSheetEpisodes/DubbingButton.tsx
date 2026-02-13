@@ -14,6 +14,7 @@ export const DubbingButton = React.memo(
     onPress,
     useBuiltIn,
     onPlayerTypeToggle,
+    hasTVPreferredFocus,
   }: DubbingButtonProps) => {
     const themeColors = useThemeColors();
 
@@ -25,6 +26,7 @@ export const DubbingButton = React.memo(
         <TouchableOpacity
           style={[styles.dubbingChip, { backgroundColor: themeColors.subtle }]}
           onPress={onPress}
+          hasTVPreferredFocus={hasTVPreferredFocus}
         >
           {currentPlayer.icon}
           <Text

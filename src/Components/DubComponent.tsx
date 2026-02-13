@@ -25,6 +25,9 @@ interface DubComponentProps {
   subtitleStyle?: StyleProp<TextStyle>;
   checkColor?: string;
   onFocus?: () => void;
+  innerRef?: React.Ref<any>;
+  nextFocusDown?: number;
+  nextFocusUp?: number;
 }
 
 export default function DubComponent({
@@ -40,11 +43,17 @@ export default function DubComponent({
   subtitleStyle,
   checkColor,
   onFocus,
+  innerRef,
+  nextFocusDown,
+  nextFocusUp,
 }: DubComponentProps) {
   const themeColors = useThemeColors();
 
   return (
     <TouchableOpacity
+      innerRef={innerRef}
+      nextFocusDown={nextFocusDown}
+      nextFocusUp={nextFocusUp}
       style={[
         styles.resultItem,
         { backgroundColor: themeColors.background },

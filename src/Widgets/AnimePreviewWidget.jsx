@@ -110,9 +110,9 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
       const imgHeight = imgWidth * 1.4;
       return { width: imgWidth, height: imgHeight };
     }
-    // TV: larger images for 10-foot viewing
+    // TV: use maxHeight for compact cards, otherwise larger images
     if (isTVDevice) {
-      return { width: width * 0.8, height: height * 0.3 };
+      return { width: width * 0.12, height: height * 0.3 };
     }
     // Default list mode
     if (isTabletLandscape()) {

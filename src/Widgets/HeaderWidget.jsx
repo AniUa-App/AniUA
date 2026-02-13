@@ -22,7 +22,7 @@ export default function Header({
   const insets = useSafeAreaInsets?.() || { top: 0 };
   const isTV = useIsTV();
   const [userConfig, setUserConfig] = useState(
-    SettingsStorage.getParameter("userConfig")
+    SettingsStorage.getParameter("userConfig"),
   );
 
   useEffect(() => {
@@ -53,10 +53,8 @@ export default function Header({
           onPress={() => navigation.goBack()}
           style={{
             backgroundColor: themeColors.accent,
-            padding: isTV ? 8 : 6,
+            padding: 6,
             borderRadius: 16,
-            minWidth: isTV ? 44 : undefined,
-            minHeight: isTV ? 44 : undefined,
             alignItems: "center",
             justifyContent: "center",
           }}

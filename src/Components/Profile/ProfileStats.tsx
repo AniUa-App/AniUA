@@ -382,6 +382,7 @@ function ProfileStatsTV({
 
   return (
     <View
+      focusable={false}
       style={[
         stylesTablets.statsContainer,
         {
@@ -389,13 +390,12 @@ function ProfileStatsTV({
         },
       ]}
     >
-      <View style={stylesTablets.statsRow}>
-        <View style={stylesTablets.statsList}>
+      <View style={stylesTablets.statsRow} focusable={false}>
+        <View style={stylesTablets.statsList} focusable={false}>
           {sortedUserStatsList.map((stat, index) => (
-            <View key={index} style={[stylesTablets.statItem]}>
+            <View key={index} style={[stylesTablets.statItem]} focusable={false}>
               <stat.icon size={24} color={stat.color} weight="fill" />
               <Text
-                selectable={true}
                 style={[
                   H6,
                   {
@@ -407,7 +407,6 @@ function ProfileStatsTV({
                 {stat.label}
               </Text>
               <Text
-                selectable={true}
                 style={[
                   H5,
                   {

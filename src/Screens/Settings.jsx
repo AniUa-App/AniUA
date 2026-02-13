@@ -33,6 +33,7 @@ import {
   maxContentWidth,
   horizontalPadding,
   useIsTabletLandscape,
+  useIsTV,
 } from "../Styles/Responsive";
 
 export default function SettingsScreen() {
@@ -44,6 +45,7 @@ export default function SettingsScreen() {
     SettingsStorage.getParameter("defaultPlayer"),
   );
   const { width } = useWindowDimensions();
+  const isTv = useIsTV();
 
   // Refs для BottomSheet
   const playerSheetRef = useRef(null);
@@ -151,12 +153,17 @@ export default function SettingsScreen() {
         style={{ flex: 1, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={
-          useIsTabletLandscape()
+          isTv
             ? {
                 alignSelf: "center",
-                width: "97%",
+                width: "90%",
               }
-            : undefined
+            : useIsTabletLandscape()
+              ? {
+                  alignSelf: "center",
+                  width: "97%",
+                }
+              : undefined
         }
       >
         {/* Загальні налаштування */}

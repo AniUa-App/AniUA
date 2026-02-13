@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  Animated,
-  Pressable,
-} from "react-native";
+import { View, StyleSheet, Text, Animated, Pressable } from "react-native";
+import { TouchableOpacity } from "./Button";
 import { useThemeColors } from "../Global/useTheme";
 import { H4, H5 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
@@ -19,6 +13,7 @@ export default function AnimeStatusFAB({
   style,
   bottomOffset = 20,
   isFavoritesTab = false,
+  size = 64,
 }) {
   const themeColors = useThemeColors();
   const [isOpen, setIsOpen] = useState(false);
@@ -200,15 +195,11 @@ export default function AnimeStatusFAB({
                   }}
                 >
                   <IconComponent
-                    size={32}
+                    size={size / 2}
                     color={item.color}
                     weight={isSelected ? "fill" : "regular"}
                   />
-                  <Text
-                    selectable={true}
-                    selectable={true}
-                    style={[H4, { marginLeft: 5 }]}
-                  >
+                  <Text selectable={true} style={[H4, { marginLeft: 5 }]}>
                     {item.label}
                   </Text>
                 </TouchableOpacity>
@@ -220,16 +211,22 @@ export default function AnimeStatusFAB({
         {/* FAB кнопка */}
         <View
           style={[
+            styles.fab,
             {
               backgroundColor: themeColors.subtle,
+              width: size,
+              height: size,
+              borderRadius: size / 4,
             },
-            styles.fab,
           ]}
         >
           <TouchableOpacity
             style={[
               styles.fab,
               {
+                width: size,
+                height: size,
+                borderRadius: size / 4,
                 backgroundColor:
                   selectedItem.label === "Не дивлюсь"
                     ? themeColors.inActiveIcon
@@ -242,10 +239,13 @@ export default function AnimeStatusFAB({
           >
             <Animated.View
               style={[
+                styles.fab,
                 {
                   transform: [{ scale: scaleAnim }],
+                  width: size,
+                  height: size,
+                  borderRadius: size / 4,
                 },
-                styles.fab,
               ]}
             >
               {selectedItem ? (
@@ -253,7 +253,7 @@ export default function AnimeStatusFAB({
                   const SelectedIcon = selectedItem.icon;
                   return (
                     <SelectedIcon
-                      size={32}
+                      size={size / 2}
                       color={selectedItem.color}
                       weight={"fill"}
                     />
@@ -261,7 +261,7 @@ export default function AnimeStatusFAB({
                 })()
               ) : (
                 <Icon.CircleTrash
-                  size={32}
+                  size={size / 2}
                   color={themeColors.inActiveIcon}
                   weight={isOpen ? "fill" : "regular"}
                 />

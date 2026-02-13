@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
   ScrollView,
-  Linking,
   ActivityIndicator,
   FlatList,
+  findNodeHandle,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
 
@@ -15,35 +15,93 @@ import Markdown from "react-native-markdown-display";
 import Clipboard from "@react-native-clipboard/clipboard";
 
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
-import { Image } from "../../Widgets/LoadersWidgets";
-import { TouchableOpacity } from "../../Widgets/Button";
-import { ForwardButton } from "../../Widgets/ForwardButtonWidget";
+import WatchButton, { WatchButtonState } from "../../Components/WatchButton";
 import AnimeStatusFAB from "../../Widgets/AnimeStatusFAB";
+import BloomImage from "../../Widgets/BloomImage";
+import { AnimeListHorizontal } from "../../Widgets/AnimeListHorizontalWidget";
 import Icon from "../../Styles/Icons";
 import { H3, H4, H5 } from "../../Styles/Fonts";
-import CharacterCard from "../../Components/CharacterCard";
 import { useThemeColors } from "../../Global/useTheme";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
-import { playersIcons } from "../../Widgets/DubbingBottomSheetWidget";
 import TVButton from "../../Components/TV/TVButton";
+import CharacterCard from "../../Components/CharacterCard";
+import YouTubeVideos from "../../Components/YouTubeVideos";
+import MusicOST from "../../Components/MusicOST";
+import BottomSheetDownload from "../../Components/BottomSheetDownload";
+import CommentsSection from "../../Components/CommentsSection";
 
 import {
   useAnimePreview,
-  getEpisodeDateOrType,
   DubbingBottomSheet,
   EpisodesBottomSheet,
   MoreBottomSheet,
+  NewEpisodesBottomSheet,
 } from "./shared";
-import { tvStyles as styles } from "./styles";
-import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import { ErrorScreen } from "../ErrorScreen";
+import { center } from "@shopify/react-native-skia";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
 const MoreBottomSheetMemo = React.memo(MoreBottomSheet);
+const NewEpisodesBottomSheetMemo = React.memo(NewEpisodesBottomSheet);
+
+// Info row component
+const InfoRow = ({ icon, label, value, themeColors }) => (
+  <View
+    style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
+    focusable={false}
+  >
+    <View
+      style={{
+        padding: 4,
+        backgroundColor: themeColors.primary,
+        borderRadius: 16,
+        marginRight: 8,
+      }}
+    >
+      {icon}
+    </View>
+    <Text style={[H5, { color: themeColors.text, marginRight: 6 }]}>
+      {label}:
+    </Text>
+    <Text style={[H5, { color: themeColors.primary, flex: 1 }]}>{value}</Text>
+  </View>
+);
+
+// Star rating component for TV
+const StarRating = ({ rating = 0, onRate, themeColors }) => {
+  const stars = [...Array(10).keys()].map((i) => i + 1);
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        backgroundColor: themeColors.subtle,
+        padding: 12,
+        borderRadius: 16,
+        flex: 1,
+        gap: 10,
+        justifyContent: "space-between",
+        width: "100%",
+      }}
+    >
+      {stars.map((star) => (
+        <TVButton key={star} onPress={() => onRate && onRate(star)}>
+          <Icon.Star
+            size={24}
+            color={
+              star <= rating ? themeColors.activeIcon : themeColors.inActiveText
+            }
+            weight={star <= rating ? "fill" : "regular"}
+          />
+        </TVButton>
+      ))}
+    </View>
+  );
+};
 
 // Section tabs component for TV
-const SectionTabs = ({ tabs, defaultTab, themeColors }) => {
+const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
   const filteredTabs = tabs.filter(Boolean);
   const [activeTab, setActiveTab] = useState(null);
 
@@ -54,38 +112,50 @@ const SectionTabs = ({ tabs, defaultTab, themeColors }) => {
     }
   }, [filteredTabs, defaultTab, activeTab]);
 
-  const handleTabChange = useCallback((key) => {
-    setActiveTab(key);
-  }, []);
+  const handleTabChange = useCallback(
+    (key) => {
+      setActiveTab(key);
+      onTabChange?.(key);
+    },
+    [onTabChange],
+  );
 
   const activeContent = filteredTabs.find(
-    (tab) => tab.key === activeTab
+    (tab) => tab.key === activeTab,
   )?.content;
 
   if (filteredTabs.length === 0) return null;
 
   return (
-    <View style={{ marginBottom: 24 }}>
-      <View style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
+    <View style={{ marginTop: 16 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
         {filteredTabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <TVButton
               key={tab.key}
               style={{
-                padding: 16,
-                borderRadius: 12,
-                backgroundColor: themeColors.subtle,
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                borderRadius: 16,
+                backgroundColor: isActive
+                  ? themeColors.activeIcon
+                  : themeColors.subtle,
               }}
               onPress={() => handleTabChange(tab.key)}
             >
               <Text
-                selectable={true}
                 style={[
                   H5,
                   {
-                    color: isActive ? themeColors.activeIcon : themeColors.text,
-                    fontSize: 18,
+                    color: themeColors.text,
                   },
                 ]}
               >
@@ -103,11 +173,12 @@ const SectionTabs = ({ tabs, defaultTab, themeColors }) => {
 export default function AnimePreviewTV({ route }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
+  const [firstTabs, setFirstTabs] = useState([]);
+  const [titleContainerWidth, setTitleContainerWidth] = useState(null);
 
   const {
     anime,
     isLoading,
-    existingFiles,
     animeList,
     charactersList,
     errorCode,
@@ -115,9 +186,9 @@ export default function AnimePreviewTV({ route }) {
     setIsConnection,
     watchStatus,
     isFavoriteHikka,
+    userScore,
     info,
     setInfo,
-    isFocused,
     winWidth,
     winHeight,
     initialAnime,
@@ -126,31 +197,116 @@ export default function AnimePreviewTV({ route }) {
     showSnackbar,
     dubbingSheetRef,
     episodesSheetRef,
-    downloadEpisodeRef,
     moreSheetRef,
+    newEpisodesSheetRef,
     handleStatusChange,
     handleFavoriteToggle,
+    handleRateAnime,
     handleEpisodeSelect,
     handleEpisodeLongSelect,
     handleEpisodeSwipe,
-    handleDownloadEpisode,
-    keyExtractorSimilar,
+    handleNewEpisodeSelect,
+    handleNewTeamChange,
+    handleBuiltInPlayerToggle,
   } = useAnimePreview({ route, navigation });
 
-  // Ref for new download bottom sheet
   const newDownloadSheetRef = useRef(null);
 
+  // Circular focus refs for left panel
+  const backButtonRef = useRef(null);
+  const favoriteButtonRef = useRef(null);
+  const [backBtnHandle, setBackBtnHandle] = useState(undefined);
+  const [favBtnHandle, setFavBtnHandle] = useState(undefined);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const bh = backButtonRef.current ? findNodeHandle(backButtonRef.current) : null;
+      const fh = favoriteButtonRef.current ? findNodeHandle(favoriteButtonRef.current) : null;
+      setBackBtnHandle(bh || undefined);
+      setFavBtnHandle(fh || undefined);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getAgeRating = (rating) => {
+    switch (rating) {
+      case "g":
+        return "0+";
+      case "pg":
+        return "6+";
+      case "pg_13":
+        return "13+";
+      case "r":
+        return "16+";
+      default:
+        return "18+";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "finished":
+        return "Завершено";
+      case "ongoing":
+        return "Онґоінг";
+      case "announced":
+        return "Анонс";
+      default:
+        return status || "Невідомо";
+    }
+  };
+
+  useEffect(() => {
+    const _tabs = [];
+    if (
+      anime?.videos?.length > 0 &&
+      anime?.videos.every((video) => video.url != null)
+    ) {
+      _tabs.push({
+        key: "videos",
+        label: "Відео",
+        content: <YouTubeVideos videos={anime?.videos} />,
+      });
+    }
+    if (anime?.ost?.length > 0 && anime?.ost.every((ost) => ost.url != null)) {
+      _tabs.push({
+        key: "music",
+        label: "Музика",
+        content: <MusicOST ost={anime?.ost} />,
+      });
+    }
+    setFirstTabs(_tabs);
+  }, [anime?.slug, anime?.videos, anime?.ost]);
+
+  useEffect(() => {
+    setTitleContainerWidth(null);
+  }, [anime?.slug]);
+
+  const handleTitleLayout = useCallback((e) => {
+    const lines = e.nativeEvent.lines;
+    if (lines && lines.length > 0) {
+      const maxLineWidth = Math.max(...lines.map((line) => line.width));
+      setTitleContainerWidth(Math.ceil(maxLineWidth) + 4);
+    }
+  }, []);
+
   const renderCharacter = useCallback(
-    ({ item }) => <CharacterCard item={item} imageSize={100} />,
-    []
+    ({ item }) => (
+      <CharacterCard
+        item={item}
+        width={winWidth * 0.1}
+        height={winHeight * 0.26}
+      />
+    ),
+    [winWidth, winHeight],
   );
 
   const keyExtractorCharacter = useCallback(
     (item) => item?.character?.slug || "",
-    []
+    [],
   );
 
-  const tvPosterHeight = Math.max(400, winHeight * 0.85);
+  const landscapePosterHeight = Math.max(300, winHeight * 0.3);
 
   // Error states
   if (!route || !route.params) {
@@ -159,10 +315,7 @@ export default function AnimePreviewTV({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text
-            selectable={true}
-            style={[H3, { color: themeColors.text, fontSize: 24 }]}
-          >
+          <Text style={[H3, { color: themeColors.text }]}>
             Помилка: неправильні параметри навігації
           </Text>
         </View>
@@ -176,10 +329,7 @@ export default function AnimePreviewTV({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text
-            selectable={true}
-            style={[H3, { color: themeColors.text, fontSize: 24 }]}
-          >
+          <Text style={[H3, { color: themeColors.text }]}>
             Помилка: відсутні необхідні параметри
           </Text>
         </View>
@@ -215,10 +365,7 @@ export default function AnimePreviewTV({ route }) {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text
-            selectable={true}
-            style={[H3, { color: themeColors.text, fontSize: 24 }]}
-          >
+          <Text style={[H3, { color: themeColors.text }]}>
             Аніме не знайдено
           </Text>
         </View>
@@ -226,407 +373,322 @@ export default function AnimePreviewTV({ route }) {
     );
   }
 
-  const renderSimilarAnime = ({ item }) => {
-    if (!item?.slug || !initialAnime?.slug || item.slug === initialAnime.slug) {
-      return null;
-    }
-    return (
-      <TVButton
-        key={item.slug}
-        style={styles.similarCard}
-        onPress={() => navigation.replace("AnimePreview", { anime: item })}
-      >
-        <Image
-          style={[
-            styles.similarImage,
-            { width: winWidth * 0.1, height: winHeight * 0.35 },
-          ]}
-          uri={item.image}
-        />
-      </TVButton>
-    );
-  };
-
   return (
-    <DefaultScreenWidget isConnection={setIsConnection}>
-      <View style={{ flex: 1, flexDirection: "row" }}>
-        {/* Left panel - Poster and actions */}
-        <View style={styles.sidePanel}>
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
+    <DefaultScreenWidget isConnection={setIsConnection} isNavBarPadding={false}>
+      <TVFocusGuideView
+        style={{ flex: 1, flexDirection: "row", paddingHorizontal: 8 }}
+        autoFocus
+      >
+        {/* --- LEFT PANEL --- */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          focusable={false}
+        >
+          {/* Poster with bloom effect */}
+          <View
+            style={{
+              position: "relative",
+              width: "100%",
+              alignItems: "center",
+              marginTop: 16,
+            }}
+            focusable={false}
           >
-            {/* Poster */}
-            <View style={[styles.posterContainer, { height: tvPosterHeight }]}>
-              <Image style={styles.posterImage} uri={anime?.image} />
-              {isFocused ? <View style={styles.overlay} /> : null}
+            <BloomImage
+              uri={anime.image}
+              width={winWidth * 0.2}
+              height={landscapePosterHeight}
+              borderRadius={16}
+              blurRadius={10}
+              glowScale={1}
+              fadePercent={0.15}
+            />
 
-              {/* Back button */}
-              <TVButton
-                style={[
-                  styles.backButton,
-                  { backgroundColor: themeColors.primary },
-                ]}
-                onPress={() => {
-                  try {
-                    navigation.goBack();
-                  } catch {
-                    navigation.navigate("MainTabs", {
-                      screen: "Home",
-                      params: { anime },
-                    });
-                  }
-                }}
-                hasTVPreferredFocus={true}
-              >
-                <Icon.ArrowLeft size={48} color={themeColors.text} />
-              </TVButton>
+            {/* Back button */}
+            <TVButton
+              innerRef={backButtonRef}
+              nextFocusUp={favBtnHandle}
+              style={{
+                position: "absolute",
+                top: 16,
+                left: 16,
+                padding: 8,
+                width: 38,
+                height: 38,
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: 16,
+                backgroundColor: themeColors.subtle,
+              }}
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                } else {
+                  navigation.navigate("MainTabs", { screen: "Home" });
+                }
+              }}
+              hasTVPreferredFocus={true}
+            >
+              <Icon.ArrowLeft size={24} color={themeColors.primary} />
+            </TVButton>
+          </View>
 
-              {/* Rating */}
-              <View
-                style={[
-                  styles.ratingContainer,
-                  { backgroundColor: themeColors.subtle },
-                ]}
-              >
-                <Icon.Star size={32} color={themeColors.yellow} />
-                <Text
-                  selectable={true}
-                  style={[
-                    H3,
-                    { color: themeColors.text, paddingRight: 10, fontSize: 24 },
-                  ]}
-                >
-                  {anime?.score || 0}
-                </Text>
-              </View>
-
-              {/* Trailer button */}
-              {anime?.videos?.find((v) => v.video_type === "video_promo")
-                ?.url && (
-                <TVButton
-                  style={[
-                    styles.playTrailerBtn,
-                    { backgroundColor: themeColors.Background(0.5) },
-                  ]}
-                  onPress={() =>
-                    Linking.openURL(
-                      anime.videos.find((v) => v.video_type === "video_promo")
-                        ?.url
-                    )
-                  }
-                >
-                  <Icon.PlayCircle size={48} color={themeColors.primary} />
-                  <Text
-                    selectable={true}
-                    style={[H4, { marginLeft: 16, fontSize: 20 }]}
-                  >
-                    Дивитися трейлер
-                  </Text>
-                </TVButton>
-              )}
-            </View>
-
-            <View style={styles.contentContainer}>
-              <ForwardButton
-                navigation={navigation}
-                anime={anime}
-                errorCode={errorCode}
-                episodesList={episodesList}
-                style={[
-                  styles.continueWatchingBtn,
-                  {
-                    marginBottom: 24,
-                    backgroundColor: themeColors.primary,
-                    padding: 16,
-                  },
-                ]}
-                data={info}
-                onDataChange={(newData) => setInfo(newData)}
-              />
-
-              {/* Dubbing selector */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  marginBottom: 12,
-                  marginLeft: "2%",
-                }}
-              >
-                {info?.watched?.player && (
-                  <>
-                    <Text
-                      selectable={true}
-                      style={[H3, { color: themeColors.text, fontSize: 20 }]}
-                    >
-                      Озвучення:
-                    </Text>
-                    <TVButton
-                      style={{
-                        marginLeft: 16,
-                        flexDirection: "row",
-                        alignItems: "center",
-                      }}
-                      onPress={() => dubbingSheetRef.current?.present()}
-                    >
-                      <Text
-                        selectable={true}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                        style={[
-                          H3,
-                          {
-                            color: themeColors.primary,
-                            paddingRight: 6,
-                            fontSize: 20,
-                          },
-                        ]}
-                      >
-                        {(info?.watched?.dubbing || "Вибрати дубляж").slice(
-                          0,
-                          20
-                        )}
-                      </Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          width: info?.watched?.player ? 40 : 0,
-                          height: info?.watched?.player ? 40 : 0,
-                        }}
-                      >
-                        {playersIcons[info?.watched?.player]}
-                      </View>
-                      <Icon.CaretDown
-                        size={40}
-                        color={themeColors.text}
-                        style={{ marginLeft: 12 }}
-                      />
-                    </TVButton>
-                  </>
-                )}
-              </View>
-
-              {/* Action buttons - larger for TV */}
-              <View style={styles.actionsRow}>
-                {/* Episodes */}
-                <TVButton
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: themeColors.subtle },
-                  ]}
-                  onPress={() =>
-                    Object.keys(episodesList).length > 0 &&
-                    episodesSheetRef.current?.present()
-                  }
-                  activeOpacity={
-                    Object.keys(episodesList).length === 0 ? 0.9 : 0.7
-                  }
-                >
-                  <Icon.Queue size={48} color={themeColors.text} />
-                  {Object.keys(episodesList).length === 0 && (
-                    <View
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: themeColors.Background(0.7),
-                        borderRadius: 8,
-                      }}
-                    />
-                  )}
-                </TVButton>
-
-                {/* Favorite */}
-                <TVButton
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: themeColors.subtle },
-                  ]}
-                  onPress={handleFavoriteToggle}
-                >
-                  {(
-                    HikkaAuthService.isAuthenticated()
-                      ? isFavoriteHikka
-                      : info?.isFavorite
-                  ) ? (
-                    <Icon.Heart
-                      size={48}
-                      color={themeColors.primary}
-                      weight="fill"
-                    />
-                  ) : (
-                    <Icon.Heart size={48} color={themeColors.text} />
-                  )}
-                </TVButton>
-
-                {/* Download */}
-                <TVButton
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: themeColors.subtle },
-                  ]}
-                  onPress={() =>
-                    anime?.slug && newDownloadSheetRef.current?.open()
-                  }
-                  activeOpacity={
-                    Object.keys(episodesList).length === 0 ? 0.9 : 0.7
-                  }
-                >
-                  <Icon.DownloadSimple size={48} color={themeColors.text} />
-                  {Object.keys(episodesList).length === 0 && (
-                    <View
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: themeColors.Background(0.7),
-                        borderRadius: 8,
-                      }}
-                    />
-                  )}
-                </TVButton>
-
-                {/* More */}
-                <TVButton
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: themeColors.subtle },
-                  ]}
-                  onPress={() => moreSheetRef.current?.present()}
-                >
-                  <Icon.DotsThreeVertical size={48} color={themeColors.text} />
-                </TVButton>
-              </View>
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Right panel - Info and description */}
-        <View style={styles.mainPanel}>
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
+          {/* Title section */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              width: "100%",
+              top: -16,
+            }}
+            focusable={false}
           >
-            {/* Title and info */}
-            <View style={styles.headerRow}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "baseline",
-                  gap: "10%",
-                  width: "80%",
-                }}
-              >
-                {anime.episodes_total !== null &&
-                  anime.episodes_released !== null && (
-                    <Text
-                      selectable={true}
-                      style={[H5, styles.yearEpisodes, { fontSize: 20 }]}
-                    >
-                      {anime.year} |{" "}
-                      {anime.episodes_total === anime.episodes_released
-                        ? anime.episodes_released
-                        : `${anime.episodes_released} з ${anime.episodes_total}`}
-                    </Text>
-                  )}
-                <Text
-                  selectable={true}
-                  style={[
-                    H5,
-                    styles.yearEpisodes,
-                    { color: themeColors.primary, fontSize: 20 },
-                  ]}
-                >
-                  {getEpisodeDateOrType(anime)}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.titleContainer}
+            <View
+              style={[
+                {
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  maxWidth: "95%",
+                },
+                titleContainerWidth && { width: titleContainerWidth },
+              ]}
+            >
+              <Text
+                style={[H3, { color: themeColors.text }]}
+                numberOfLines={2}
+                onTextLayout={handleTitleLayout}
                 onLongPress={() =>
                   anime.title_ua && Clipboard.setString(anime.title_ua)
                 }
-                delayLongPress={400}
               >
+                {anime.title_ua || anime.title_en || anime.title_ja}
+                {anime.year ? ` (${anime.year})` : ""}
+              </Text>
+              <View style={{ marginTop: 2 }}>
                 <Text
-                  selectable={true}
                   style={[
-                    H3,
+                    H5,
                     {
-                      fontWeight: "bold",
-                      width: "90%",
-                      flexWrap: "wrap",
-                      fontSize: 28,
+                      color: themeColors.Text?.(0.6) || themeColors.text,
                     },
                   ]}
                 >
-                  {anime.title_ua || anime.title_en || anime.title_ja}
+                  {anime.title_en || anime.title_ja || ""}
                 </Text>
-                <Text
-                  selectable={true}
-                  style={[H3, { color: themeColors.primary, fontSize: 24 }]}
-                >
-                  {anime.rating === "g"
-                    ? "0+"
-                    : anime.rating === "pg"
-                      ? "6+"
-                      : anime.rating === "pg_13"
-                        ? "13+"
-                        : anime.rating === "r"
-                          ? "16+"
-                          : "18+"}
-                </Text>
-              </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Primary action buttons */}
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 16,
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginHorizontal: 16,
+              flex: 1,
+            }}
+            focusable={false}
+          >
+            <WatchButton
+              label={
+                isLoading
+                  ? WatchButtonState.LOADING
+                  : WatchButtonState.CONTINUE_WATCHING
+              }
+              style={{ width: "80%", height: 42 }}
+              onWatchPress={() => newEpisodesSheetRef.current?.open()}
+              isDownloadable={false}
+              isActive={Object.keys(episodesList).length > 0}
+            />
+
+            {/* Favorite button */}
+            <TVButton
+              innerRef={favoriteButtonRef}
+              nextFocusDown={backBtnHandle}
+              style={{
+                width: 42,
+                height: 42,
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: 16,
+                backgroundColor: themeColors.subtle,
+              }}
+              onPress={handleFavoriteToggle}
+            >
+              {(
+                HikkaAuthService.isAuthenticated()
+                  ? isFavoriteHikka
+                  : info?.isFavorite
+              ) ? (
+                <Icon.Heart
+                  size={24}
+                  color={themeColors.primary}
+                  weight="fill"
+                />
+              ) : (
+                <Icon.Heart size={24} color={themeColors.text} />
+              )}
+            </TVButton>
+          </View>
+
+          {/* Info section */}
+          <View
+            style={{
+              backgroundColor: themeColors.subtle,
+              padding: 16,
+              margin: 16,
+              borderRadius: 16,
+            }}
+            focusable={false}
+          >
+            {/* Genre tags */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <View
+                style={{
+                  padding: 4,
+                  backgroundColor: themeColors.primary,
+                  borderRadius: 16,
+                  marginRight: 8,
+                }}
+              >
+                <Icon.Hash size={18} color={themeColors.inActiveIcon} />
+              </View>
+              {anime.genres?.length > 0 && (
+                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                  {anime.genres.slice(0, 3).map((genre, index) => (
+                    <React.Fragment key={genre.name_ua}>
+                      <Text style={[H5, { color: themeColors.primary }]}>
+                        {genre.name_ua}
+                      </Text>
+                      {index < anime.genres.slice(0, 3).length - 1 && (
+                        <Text style={[H5, { color: themeColors.primary }]}>
+                          ,{"\t"}
+                        </Text>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </View>
+              )}
             </View>
 
-            {/* Genres */}
-            <TouchableOpacity style={styles.tagsRow}>
-              <Text
-                selectable={true}
-                style={[
-                  H4,
-                  styles.tagItem,
-                  { color: themeColors.primary, fontSize: 18 },
-                ]}
-              >
-                {anime.genres?.length > 0
-                  ? anime.genres.map((genre) => genre.name_ua).join(", ")
-                  : ""}
-              </Text>
-            </TouchableOpacity>
+            <InfoRow
+              icon={
+                <Icon.CircleDashed size={18} color={themeColors.inActiveIcon} />
+              }
+              label="Статус"
+              value={getStatusText(anime.status)}
+              themeColors={themeColors}
+            />
+
+            {(anime.episodes_released !== null ||
+              anime.episodes_total !== null) && (
+              <InfoRow
+                icon={
+                  <Icon.MonitorPlay
+                    size={18}
+                    color={themeColors.inActiveIcon}
+                  />
+                }
+                label="Вийшло"
+                value={
+                  anime.episodes_total === anime.episodes_released
+                    ? `${anime.episodes_released || 0} серій${anime.duration ? `, трив. ~${anime.duration} хв` : ""}`
+                    : `${anime.episodes_released || 0} з ${anime.episodes_total || "?"}, трив. ~${anime.duration || 24} хв`
+                }
+                themeColors={themeColors}
+              />
+            )}
+
+            <InfoRow
+              icon={
+                <Icon.SealWarning size={18} color={themeColors.inActiveIcon} />
+              }
+              label="Віковий рейтинг"
+              value={getAgeRating(anime.rating)}
+              themeColors={themeColors}
+            />
+
+            {anime.score > 0 && (
+              <InfoRow
+                icon={<Icon.Star size={18} color={themeColors.inActiveIcon} />}
+                label="Рейтинг Hikka"
+                value={anime.score?.toFixed(1) || "N/A"}
+                themeColors={themeColors}
+              />
+            )}
+          </View>
+        </ScrollView>
+
+        {/* --- RIGHT PANEL --- */}
+        <View style={{ width: "60%", padding: 24 }} focusable={false}>
+          <ScrollView
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            focusable={false}
+          >
+            {/* Section Tabs (Videos, Music) */}
+            <SectionTabs
+              tabs={firstTabs}
+              defaultTab={firstTabs[0]?.key}
+              themeColors={themeColors}
+            />
 
             {/* Description */}
-            <Text
-              selectable={true}
-              style={[H4, { marginBottom: 32, fontSize: 18, lineHeight: 28 }]}
-            >
+            <View style={{ marginVertical: 16 }} focusable={false}>
               <Markdown
                 style={{
-                  body: [
-                    H4,
-                    { marginBottom: 32, fontSize: 18, lineHeight: 28 },
-                  ],
+                  body: [H5, { color: themeColors.text, lineHeight: 26 }],
                   link: [
-                    H4,
+                    H5,
                     {
-                      marginBottom: 32,
                       color: themeColors.primary,
                       textDecorationLine: "underline",
-                      fontSize: 18,
                     },
                   ],
                 }}
               >
-                {anime?.synopsis_ua || anime?.synopsis_en}
+                {(
+                  anime?.synopsis_ua ||
+                  anime?.synopsis_en ||
+                  "Опис відсутній"
+                ).replaceAll("hikka.io", "aniua.yuzka.site")}
               </Markdown>
-            </Text>
+            </View>
+
+            {/* Rating section */}
+            <View
+              style={{ width: "100%", alignItems: "center" }}
+              focusable={false}
+            >
+              <Text
+                style={[
+                  H4,
+                  {
+                    color: themeColors.primary,
+                    marginBottom: 14,
+                    width: "100%",
+                    textAlign: "left",
+                  },
+                ]}
+              >
+                Оцінити аніме
+              </Text>
+              <StarRating
+                rating={userScore}
+                onRate={handleRateAnime}
+                themeColors={themeColors}
+              />
+            </View>
 
             {/* Similar anime and Characters tabs */}
             {(animeList.length > 0 || charactersList.length > 0) && (
@@ -634,45 +696,44 @@ export default function AnimePreviewTV({ route }) {
                 tabs={[
                   animeList.length > 0 && {
                     key: "similar",
-                    label: "Схожі",
+                    label: "Пов'язані",
                     content: (
-                      <FlatList
-                        horizontal
-                        data={animeList}
-                        renderItem={renderSimilarAnime}
-                        keyExtractor={keyExtractorSimilar}
-                        showsHorizontalScrollIndicator={false}
-                        style={styles.similarContainer}
-                        contentContainerStyle={{ paddingRight: 24 }}
-                        initialNumToRender={5}
-                        windowSize={7}
-                      />
-                    ),
-                  },
-                  charactersList.length > 0 && {
-                    key: "characters",
-                    label: "Герої",
-                    content: (
-                      <FlatList
-                        horizontal
-                        data={charactersList}
-                        renderItem={renderCharacter}
-                        keyExtractor={keyExtractorCharacter}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingRight: 24 }}
-                        initialNumToRender={5}
-                        windowSize={7}
+                      <AnimeListHorizontal
+                        animeList={animeList}
+                        title=""
+                        onClickMore={null}
+                        navigation={navigation}
                       />
                     ),
                   },
                 ]}
-                defaultTab={animeList.length > 0 ? "similar" : "characters"}
+                defaultTab={animeList.length > 0 ? "similar" : null}
+                themeColors={themeColors}
+              />
+            )}
+
+            {/* Comments Section */}
+            {anime?.slug && (
+              <SectionTabs
+                tabs={[
+                  {
+                    key: "comments",
+                    label: "Коментарі",
+                    content: (
+                      <CommentsSection
+                        slug={anime.slug}
+                        isInputVisible={false}
+                      />
+                    ),
+                  },
+                ]}
+                defaultTab="comments"
                 themeColors={themeColors}
               />
             )}
           </ScrollView>
         </View>
-      </View>
+      </TVFocusGuideView>
 
       {/* Bottom sheets */}
       {info?.watched?.dubbing &&
@@ -701,20 +762,26 @@ export default function AnimePreviewTV({ route }) {
                 (info.watched_episodes || []).includes(item.episode)
               }
             />
-
-            <EpisodesBottomSheetMemo
-              sheetRef={downloadEpisodeRef}
-              episodesList={episodesList}
-              storage_data={{ ...info, slug: anime?.slug }}
-              type="download"
-              isChanges={null}
-              checkForStyle={(item) => existingFiles.has(item.episode)}
-              onSelectEpisode={handleDownloadEpisode}
-            />
           </>
         )}
 
-      {/* New Download Bottom Sheet */}
+      {anime?.slug && (
+        <NewEpisodesBottomSheetMemo
+          ref={newEpisodesSheetRef}
+          anime={anime}
+          currentEpisode={
+            info?.watched_episodes?.[info?.watched_episodes?.length - 1]
+          }
+          currentTeam={info?.dub_team}
+          useBuiltInPlayer={info?.useBuiltIn ?? false}
+          watchedEpisodes={info?.watched_episodes || []}
+          onSelectEpisode={handleNewEpisodeSelect}
+          onTeamChange={handleNewTeamChange}
+          onBuiltInPlayerToggle={handleBuiltInPlayerToggle}
+        />
+      )}
+
+      {/* Download Bottom Sheet */}
       {anime?.slug && (
         <BottomSheetDownload
           ref={newDownloadSheetRef}
@@ -727,7 +794,7 @@ export default function AnimePreviewTV({ route }) {
               duration: 3000,
             });
           }}
-          onDownloadError={(error, episode) => {
+          onDownloadError={(_error, episode) => {
             showSnackbar(`Помилка завантаження епізоду ${episode.episode}`, {
               duration: 5000,
             });
@@ -741,6 +808,7 @@ export default function AnimePreviewTV({ route }) {
       <AnimeStatusFAB
         currentStatus={watchStatus}
         onStatusChange={handleStatusChange}
+        size={44}
       />
     </DefaultScreenWidget>
   );

@@ -11,12 +11,16 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   ActivityIndicator,
   useWindowDimensions,
   Animated,
   Linking,
-  Easing,
+  findNodeHandle,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
+
+const TVFocusGuideView = RNTVFocusGuideView || View;
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -42,7 +46,7 @@ import {
   BottomSheetEpisodesProps,
   Player,
 } from "./types";
-import { PLAYER_ORDER, ITEM_HEIGHT } from "./constants";
+import { ITEM_HEIGHT } from "./constants";
 import { getPlayerInfo, convertHikkaEpisodes } from "./helpers";
 import { DubbingButton } from "./DubbingButton";
 import { PlayerTabs } from "./PlayerTabs";
@@ -67,7 +71,7 @@ const BottomSheetEpisodesComponent = forwardRef<
       onPlayerChange,
       onBuiltInPlayerToggle,
     },
-    ref
+    ref,
   ) => {
     const sheetRef = useRef<BottomSheetModal>(null);
     const flatListRef = useRef<FlatList>(null);
@@ -82,20 +86,28 @@ const BottomSheetEpisodesComponent = forwardRef<
     const [episodesByPlayer, setEpisodesByPlayer] =
       useState<EpisodesByPlayerAndTeam>({});
     const [teamInfoMap, setTeamInfoMap] = useState<Record<string, Team | null>>(
-      {}
+      {},
     );
 
     const [selectedPlayer, setSelectedPlayer] = useState<Player>(() =>
-      getPlayerInfo(currentPlayer || "moon", themeColors)
+      getPlayerInfo(currentPlayer || "moon", themeColors),
     );
     const [selectedDubbing, setSelectedDubbing] = useState<string | null>(
-      currentTeam || null
+      currentTeam || null,
     );
     const [useBuiltIn, setUseBuiltIn] = useState(initialUseBuiltIn);
 
-    // Animation
-    const slideAnim = useRef(new Animated.Value(0)).current;
-    const playerSlideAnim = useRef(new Animated.Value(0)).current;
+    // Focus management for TV
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+    // Active screen: "episodes" or "dubbing"
+    const [activeScreen, setActiveScreen] = useState<"episodes" | "dubbing">("episodes");
+
+    // Circular focus navigation for dubbing screen
+    const firstPlayerTabRef = useRef<any>(null);
+    const lastDubbingRef = useRef<any>(null);
+    const [firstPlayerTabHandle, setFirstPlayerTabHandle] = useState<number | undefined>(undefined);
+    const [lastDubbingHandle, setLastDubbingHandle] = useState<number | undefined>(undefined);
 
     // Scroll button state
     const [showScrollButton, setShowScrollButton] = useState(false);
@@ -114,25 +126,10 @@ const BottomSheetEpisodesComponent = forwardRef<
 
     const animateToScreen = useCallback(
       (screen: "episodes" | "dubbing") => {
-        Animated.timing(slideAnim, {
-          toValue: screen === "episodes" ? 0 : 1,
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }).start();
+        setActiveScreen(screen);
       },
-      [slideAnim]
+      [],
     );
-
-    const episodesTranslateX = slideAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, -width],
-    });
-
-    const dubbingTranslateX = slideAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [width, 0],
-    });
 
     // ==================== LOAD DATA ====================
 
@@ -163,13 +160,13 @@ const BottomSheetEpisodesComponent = forwardRef<
           try {
             validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
               episodes,
-              anime.slug
+              anime.slug,
             );
           } catch (validationError) {
             Logger.warn(
               "BottomSheetEpisodes",
               "Validation failed, using original episodes",
-              validationError as Error
+              validationError as Error,
             );
           }
 
@@ -198,7 +195,7 @@ const BottomSheetEpisodesComponent = forwardRef<
           Logger.warn(
             "BottomSheetEpisodes",
             "AniuaApi failed, trying fallback to HikkaApi",
-            aniuaError as Error
+            aniuaError as Error,
           );
 
           try {
@@ -208,7 +205,7 @@ const BottomSheetEpisodesComponent = forwardRef<
               usedFallback = true;
               Logger.info(
                 "BottomSheetEpisodes",
-                "Successfully loaded episodes from HikkaApi fallback"
+                "Successfully loaded episodes from HikkaApi fallback",
               );
             } else {
               throw new Error("Invalid HikkaApi response");
@@ -217,7 +214,7 @@ const BottomSheetEpisodesComponent = forwardRef<
             Logger.error(
               "BottomSheetEpisodes",
               "Both AniuaApi and HikkaApi failed",
-              hikkaError as Error
+              hikkaError as Error,
             );
             setError("Не вдалося завантажити епізоди");
             setIsLoading(false);
@@ -273,7 +270,7 @@ const BottomSheetEpisodesComponent = forwardRef<
           Logger.error(
             "BottomSheetEpisodes",
             "Failed to process data",
-            err as Error
+            err as Error,
           );
           setError("Не вдалося завантажити епізоди");
         } finally {
@@ -311,10 +308,6 @@ const BottomSheetEpisodesComponent = forwardRef<
       (player: string) => {
         if (player === selectedPlayer.name) return;
 
-        const currentIndex = PLAYER_ORDER.indexOf(selectedPlayer.name);
-        const newIndex = PLAYER_ORDER.indexOf(player);
-        const direction = newIndex > currentIndex ? "left" : "right";
-
         setSelectedPlayer(getPlayerInfo(player, themeColors));
         onPlayerChange?.(player);
 
@@ -325,14 +318,6 @@ const BottomSheetEpisodesComponent = forwardRef<
           setSelectedDubbing(firstDubbing);
           onTeamChange?.(firstDubbing);
         }
-
-        playerSlideAnim.setValue(direction === "left" ? 1 : -1);
-        Animated.spring(playerSlideAnim, {
-          toValue: 0,
-          tension: 100,
-          friction: 12,
-          useNativeDriver: true,
-        }).start();
       },
       [
         episodesByPlayer,
@@ -340,8 +325,7 @@ const BottomSheetEpisodesComponent = forwardRef<
         onTeamChange,
         themeColors,
         selectedPlayer.name,
-        playerSlideAnim,
-      ]
+      ],
     );
 
     const handleDubbingSelect = useCallback(
@@ -350,7 +334,7 @@ const BottomSheetEpisodesComponent = forwardRef<
         onTeamChange?.(dubbing);
         animateToScreen("episodes");
       },
-      [onTeamChange, animateToScreen]
+      [onTeamChange, animateToScreen],
     );
 
     const handleEpisodePress = useCallback(
@@ -358,7 +342,7 @@ const BottomSheetEpisodesComponent = forwardRef<
         onSelectEpisode?.(episode, useBuiltIn, currentEpisodes);
         sheetRef.current?.close();
       },
-      [onSelectEpisode, useBuiltIn, currentEpisodes]
+      [onSelectEpisode, useBuiltIn, currentEpisodes],
     );
 
     const handlePlayerTypeToggle = useCallback(
@@ -366,10 +350,23 @@ const BottomSheetEpisodesComponent = forwardRef<
         setUseBuiltIn(isBuiltIn);
         onBuiltInPlayerToggle?.(isBuiltIn);
       },
-      [onBuiltInPlayerToggle]
+      [onBuiltInPlayerToggle],
     );
 
     // ==================== SCROLL HANDLING ====================
+
+    // Update circular focus handles when dubbing screen is active
+    useEffect(() => {
+      if (activeScreen === "dubbing") {
+        const timer = setTimeout(() => {
+          const tabHandle = firstPlayerTabRef.current ? findNodeHandle(firstPlayerTabRef.current) : null;
+          const dubbingHandle = lastDubbingRef.current ? findNodeHandle(lastDubbingRef.current) : null;
+          setFirstPlayerTabHandle(tabHandle || undefined);
+          setLastDubbingHandle(dubbingHandle || undefined);
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }, [activeScreen, sortedDubbings, availablePlayers]);
 
     useEffect(() => {
       setShowScrollButton(currentEpisodes.length > 10);
@@ -406,7 +403,7 @@ const BottomSheetEpisodesComponent = forwardRef<
           }).start();
         }
       },
-      [scrollButtonRotation]
+      [scrollButtonRotation],
     );
 
     const handleScrollButton = useCallback(() => {
@@ -471,13 +468,13 @@ const BottomSheetEpisodesComponent = forwardRef<
         anime,
         selectedPlayer.name,
         useBuiltIn,
-      ]
+      ],
     );
 
     const keyExtractor = useCallback(
       (item: Episode, index: number) =>
         `${item.team}-${item.episode}-${item.id}-${index}`,
-      []
+      [],
     );
 
     const getItemLayout = useCallback(
@@ -486,65 +483,7 @@ const BottomSheetEpisodesComponent = forwardRef<
         offset: ITEM_HEIGHT * index,
         index,
       }),
-      []
-    );
-
-    const renderDubbingItem = useCallback(
-      ({ item }: { item: { name: string; team: Team | null } }) => {
-        const { name, team } = item;
-        const episodesCount = currentDubbings[name]?.length || 0;
-        const isSelected = selectedDubbing === name;
-        const teamInfo = team || teamInfoMap[name];
-
-        return (
-          <DubComponent
-            logo={teamInfo?.logo}
-            name={name}
-            subtitle={`${episodesCount} серій`}
-            isPartner={teamInfo?.is_verified}
-            onBodyClick={() => handleDubbingSelect(name)}
-            onButtonClick={() => {
-              if (teamInfo?.telegram) {
-                Linking.openURL(teamInfo.telegram);
-              }
-            }}
-            checkColor={isSelected ? themeColors.text : themeColors.primary}
-            style={
-              isSelected
-                ? {
-                    backgroundColor: themeColors.primary,
-                    color: themeColors.text,
-                  }
-                : undefined
-            }
-            subtitleStyle={{
-              color: isSelected ? themeColors.subtle : themeColors.primary,
-            }}
-            buttonStyle={{
-              backgroundColor: isSelected
-                ? themeColors.primary
-                : themeColors.background,
-              padding: 6,
-              borderRadius: 8,
-            }}
-            icon={
-              teamInfo?.is_verified && (
-                <Icon.TelegramLogo
-                  size={32}
-                  color={isSelected ? themeColors.text : themeColors.primary}
-                />
-              )
-            }
-          />
-        );
-      },
-      [
-        currentDubbings,
-        selectedDubbing,
-        teamInfoMap,
-        handleDubbingSelect,
-        themeColors,
-      ]
+      [],
     );
 
     // ==================== RENDER ====================
@@ -567,231 +506,267 @@ const BottomSheetEpisodesComponent = forwardRef<
           />
         )}
         enableContentPanningGesture={false}
+        onChange={(index) => setIsSheetOpen(index >= 0)}
       >
         <BottomSheetView style={styles.container}>
-          {isLoading ? (
-            <ActivityIndicator
-              size="large"
-              color={themeColors.primary}
-              style={styles.loader}
-            />
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Icon.WarningCircle size={48} color={themeColors.inActiveText} />
-              <Text
-                selectable={true}
-                style={[H4, { color: themeColors.inActiveText, marginTop: 12 }]}
-              >
-                {error}
-              </Text>
-
-              <TouchableOpacity
-                style={[
-                  styles.retryButton,
-                  { backgroundColor: themeColors.primary },
-                ]}
-                onPress={async () => {
-                  setIsLoading(true);
-                  setError(null);
-                  try {
-                    const episodes = await AniuaApi.getAnimeEpisodes(
-                      anime.slug
-                    );
-                    let validatedEpisodes = episodes;
-                    try {
-                      validatedEpisodes = await AniuaApi.validateAndFixEpisodes(
-                        episodes,
-                        anime.slug
-                      );
-                    } catch {
-                      // Use original if validation fails
-                    }
-
-                    const grouped: EpisodesByPlayerAndTeam = {};
-                    validatedEpisodes.forEach((episode) => {
-                      const player = episode.player || "unknown";
-                      const team = episode.team || "Невідомо";
-                      if (!grouped[player]) grouped[player] = {};
-                      if (!grouped[player][team]) grouped[player][team] = [];
-                      grouped[player][team].push(episode);
-                    });
-
-                    Object.values(grouped).forEach((teams) => {
-                      Object.values(teams).forEach((eps) => {
-                        eps.sort((a, b) => a.episode - b.episode);
-                      });
-                    });
-
-                    setEpisodesByPlayer(grouped);
-                  } catch {
-                    setError("Не вдалося завантажити епізоди");
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
+          <TVFocusGuideView style={{ flex: 1 }} autoFocus>
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color={themeColors.primary}
+                style={styles.loader}
+              />
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                <Icon.WarningCircle
+                  size={48}
+                  color={themeColors.inActiveText}
+                />
                 <Text
                   selectable={true}
-                  style={[H5, { color: themeColors.background }]}
+                  style={[
+                    H4,
+                    { color: themeColors.inActiveText, marginTop: 12 },
+                  ]}
                 >
-                  Спробувати знову
+                  {error}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View
-              style={[
-                styles.screensContainer,
-                { height: height * 0.6, width: "100%" },
-              ]}
-            >
-              {/* Episodes Screen */}
-              <Animated.View
+
+                <TouchableOpacity
+                  style={[
+                    styles.retryButton,
+                    { backgroundColor: themeColors.primary },
+                  ]}
+                  onPress={async () => {
+                    setIsLoading(true);
+                    setError(null);
+                    try {
+                      const episodes = await AniuaApi.getAnimeEpisodes(
+                        anime.slug,
+                      );
+                      let validatedEpisodes = episodes;
+                      try {
+                        validatedEpisodes =
+                          await AniuaApi.validateAndFixEpisodes(
+                            episodes,
+                            anime.slug,
+                          );
+                      } catch {
+                        // Use original if validation fails
+                      }
+
+                      const grouped: EpisodesByPlayerAndTeam = {};
+                      validatedEpisodes.forEach((episode) => {
+                        const player = episode.player || "unknown";
+                        const team = episode.team || "Невідомо";
+                        if (!grouped[player]) grouped[player] = {};
+                        if (!grouped[player][team]) grouped[player][team] = [];
+                        grouped[player][team].push(episode);
+                      });
+
+                      Object.values(grouped).forEach((teams) => {
+                        Object.values(teams).forEach((eps) => {
+                          eps.sort((a, b) => a.episode - b.episode);
+                        });
+                      });
+
+                      setEpisodesByPlayer(grouped);
+                    } catch {
+                      setError("Не вдалося завантажити епізоди");
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                >
+                  <Text
+                    selectable={true}
+                    style={[H5, { color: themeColors.background }]}
+                  >
+                    Спробувати знову
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View
                 style={[
-                  styles.screen,
-                  { transform: [{ translateX: episodesTranslateX }], width },
+                  styles.screensContainer,
+                  { height: height * 0.6, width: "100%" },
                 ]}
               >
-                {selectedDubbing && (
-                  <DubbingButton
-                    dubbingName={selectedDubbing}
-                    team={teamInfoMap[selectedDubbing]}
-                    currentPlayer={selectedPlayer}
-                    onPress={() => animateToScreen("dubbing")}
-                    useBuiltIn={useBuiltIn}
-                    onPlayerTypeToggle={handlePlayerTypeToggle}
-                  />
-                )}
+                {/* Episodes Screen */}
+                {activeScreen === "episodes" && (
+                  <View style={[styles.screen, { width }]}>
+                    {selectedDubbing && (
+                      <DubbingButton
+                        dubbingName={selectedDubbing}
+                        team={teamInfoMap[selectedDubbing]}
+                        currentPlayer={selectedPlayer}
+                        onPress={() => animateToScreen("dubbing")}
+                        useBuiltIn={useBuiltIn}
+                        onPlayerTypeToggle={handlePlayerTypeToggle}
+                        hasTVPreferredFocus={isSheetOpen}
+                      />
+                    )}
 
-                {currentEpisodes.length === 0 ? (
-                  <View
-                    style={[
-                      styles.emptyContainer,
-                      { backgroundColor: themeColors.subtle },
-                    ]}
-                  >
-                    <Icon.FilmStrip
-                      size={48}
-                      color={themeColors.inActiveText}
-                    />
-                    <Text
-                      selectable={true}
-                      style={[
-                        H4,
-                        {
-                          color: themeColors.inActiveText,
-                          marginTop: 12,
-                          textAlign: "center",
-                        },
-                      ]}
-                    >
-                      Немає доступних епізодів
-                    </Text>
-                  </View>
-                ) : (
-                  <View
-                    style={{
-                      backgroundColor: themeColors.subtle,
-                      flex: 1,
-                    }}
-                  >
-                    <FlatList
-                      ref={flatListRef}
-                      data={currentEpisodes}
-                      renderItem={renderEpisodeItem}
-                      keyExtractor={keyExtractor}
-                      getItemLayout={getItemLayout}
-                      showsVerticalScrollIndicator={false}
-                      onScroll={handleScroll}
-                      scrollEventThrottle={16}
-                      style={{ paddingTop: 4 }}
-                      contentContainerStyle={styles.listContent}
-                    />
-                    {showScrollButton && (
-                      <Animated.View
+                    {currentEpisodes.length === 0 ? (
+                      <View
                         style={[
-                          styles.scrollButton,
-                          {
-                            transform: [{ rotate: rotateInterpolation }],
-                          },
+                          styles.emptyContainer,
+                          { backgroundColor: themeColors.subtle },
                         ]}
                       >
-                        <TouchableOpacity
-                          onPress={handleScrollButton}
+                        <Icon.FilmStrip
+                          size={48}
+                          color={themeColors.inActiveText}
+                        />
+                        <Text
+                          selectable={true}
                           style={[
-                            styles.scrollButtonInner,
-                            { backgroundColor: themeColors.background },
+                            H4,
+                            {
+                              color: themeColors.inActiveText,
+                              marginTop: 12,
+                              textAlign: "center",
+                            },
                           ]}
                         >
-                          <Icon.CaretDown
-                            size={28}
-                            color={themeColors.text}
-                            weight="bold"
-                          />
-                        </TouchableOpacity>
-                      </Animated.View>
+                          Немає доступних епізодів
+                        </Text>
+                      </View>
+                    ) : (
+                      <View
+                        style={{
+                          backgroundColor: themeColors.subtle,
+                          flex: 1,
+                        }}
+                      >
+                        <FlatList
+                          ref={flatListRef}
+                          data={currentEpisodes}
+                          renderItem={renderEpisodeItem}
+                          keyExtractor={keyExtractor}
+                          getItemLayout={getItemLayout}
+                          showsVerticalScrollIndicator={false}
+                          onScroll={handleScroll}
+                          scrollEventThrottle={16}
+                          style={{ paddingTop: 4 }}
+                          contentContainerStyle={styles.listContent}
+                        />
+                        {showScrollButton && (
+                          <Animated.View
+                            style={[
+                              styles.scrollButton,
+                              {
+                                transform: [{ rotate: rotateInterpolation }],
+                              },
+                            ]}
+                          >
+                            <TouchableOpacity
+                              onPress={handleScrollButton}
+                              style={[
+                                styles.scrollButtonInner,
+                                { backgroundColor: themeColors.background },
+                              ]}
+                            >
+                              <Icon.CaretDown
+                                size={28}
+                                color={themeColors.text}
+                                weight="bold"
+                              />
+                            </TouchableOpacity>
+                          </Animated.View>
+                        )}
+                      </View>
                     )}
                   </View>
                 )}
-              </Animated.View>
 
-              {/* Dubbing Selection Screen */}
-              <Animated.View
-                style={[
-                  styles.screen,
-                  styles.dubbingScreen,
-                  {
-                    transform: [{ translateX: dubbingTranslateX }],
-                    width,
-                  },
-                ]}
-              >
-                <PlayerTabs
-                  availablePlayers={availablePlayers}
-                  activePlayer={selectedPlayer}
-                  onPlayerSelect={handlePlayerSelect}
-                />
-
-                <View
-                  style={{
-                    backgroundColor: themeColors.subtle,
-                    flex: 1,
-                  }}
-                >
-                  <Animated.View
-                    style={{
-                      flex: 1,
-                      transform: [
-                        {
-                          translateX: playerSlideAnim.interpolate({
-                            inputRange: [-1, 0, 1],
-                            outputRange: [-width * 0.3, 0, width * 0.3],
-                          }),
-                        },
-                      ],
-                      opacity: playerSlideAnim.interpolate({
-                        inputRange: [-1, 0, 1],
-                        outputRange: [0, 1, 0],
-                      }),
-                    }}
-                  >
-                    <FlatList
-                      data={sortedDubbings}
-                      renderItem={renderDubbingItem}
-                      keyExtractor={(item) => item.name}
-                      showsVerticalScrollIndicator={false}
-                      style={{ paddingTop: 8 }}
-                      contentContainerStyle={styles.dubbingListContent}
+                {/* Dubbing Selection Screen */}
+                {activeScreen === "dubbing" && (
+                  <View style={[styles.screen, { width }]}>
+                    <PlayerTabs
+                      availablePlayers={availablePlayers}
+                      activePlayer={selectedPlayer}
+                      onPlayerSelect={handlePlayerSelect}
+                      hasTVPreferredFocus={activeScreen === "dubbing"}
+                      nextFocusUp={lastDubbingHandle}
+                      firstTabInnerRef={firstPlayerTabRef}
                     />
-                  </Animated.View>
-                </View>
-              </Animated.View>
-            </View>
-          )}
+
+                    <View
+                      style={{
+                        backgroundColor: themeColors.subtle,
+                        flex: 1,
+                      }}
+                    >
+                      <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        style={{ paddingTop: 8 }}
+                        contentContainerStyle={styles.dubbingListContent}
+                      >
+                        {sortedDubbings.map((item, index) => {
+                          const { name, team } = item;
+                          const episodesCount = currentDubbings[name]?.length || 0;
+                          const isSelected = selectedDubbing === name;
+                          const teamInfo = team || teamInfoMap[name];
+                          const isLast = index === sortedDubbings.length - 1;
+
+                          return (
+                            <DubComponent
+                              key={name}
+                              innerRef={isLast ? lastDubbingRef : undefined}
+                              nextFocusDown={isLast ? firstPlayerTabHandle : undefined}
+                              logo={teamInfo?.logo}
+                              name={name}
+                              subtitle={`${episodesCount} серій`}
+                              isPartner={teamInfo?.is_verified}
+                              onBodyClick={() => handleDubbingSelect(name)}
+                              onButtonClick={() => {
+                                if (teamInfo?.telegram) {
+                                  Linking.openURL(teamInfo.telegram);
+                                }
+                              }}
+                              checkColor={isSelected ? themeColors.text : themeColors.primary}
+                              style={
+                                isSelected
+                                  ? {
+                                      backgroundColor: themeColors.primary,
+                                      color: themeColors.text,
+                                    }
+                                  : undefined
+                              }
+                              subtitleStyle={{
+                                color: isSelected ? themeColors.subtle : themeColors.primary,
+                              }}
+                              buttonStyle={{
+                                backgroundColor: isSelected
+                                  ? themeColors.primary
+                                  : themeColors.background,
+                                padding: 6,
+                                borderRadius: 8,
+                              }}
+                              icon={
+                                teamInfo?.is_verified && (
+                                  <Icon.TelegramLogo
+                                    size={32}
+                                    color={isSelected ? themeColors.text : themeColors.primary}
+                                  />
+                                )
+                              }
+                            />
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+          </TVFocusGuideView>
         </BottomSheetView>
       </BottomSheetModal>
     );
-  }
+  },
 );
 
 BottomSheetEpisodesComponent.displayName = "BottomSheetEpisodesComponent";

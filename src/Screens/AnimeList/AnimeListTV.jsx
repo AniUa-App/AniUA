@@ -1,10 +1,12 @@
 import {
   View,
   Text,
+  FlatList,
   ActivityIndicator,
   useWindowDimensions,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../../Global/useTheme";
 import AnimePreviewWidget from "../../Widgets/AnimePreviewWidget";
@@ -14,10 +16,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import { H2 } from "../../Styles/Fonts";
 import Logger from "../../Logger/Logger";
-import { useGridColumns } from "../../Styles/Responsive";
-import { styles, getGridItemWidth } from "./styles";
-import { TVFocusableGrid, TVCard } from "../../Components/TV";
+import { styles } from "./styles";
 
+const TVFocusGuideView = RNTVFocusGuideView || View;
 const MAX_CONCURRENT_REQUESTS = 10;
 
 export default function AnimeListTV({
@@ -26,18 +27,14 @@ export default function AnimeListTV({
   hasManualHeader,
 }) {
   const { type, initialData, title } = route.params;
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const themeColors = useThemeColors();
-  const numColumns = useGridColumns(200);
+  const flatListRef = useRef(null);
 
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [info, setInfo] = useState({});
   const [isCheckingInternet, setIsCheckingInternet] = useState(null);
-
-  const cardWidth = useMemo(() => {
-    return getGridItemWidth(width, numColumns, 32);
-  }, [width, numColumns]);
 
   const getInfos = useCallback(() => {
     try {
@@ -109,10 +106,10 @@ export default function AnimeListTV({
             const favoritesResponse = await HikkaApiComplete.getUserFavorites(
               "anime",
               user.username,
-              { page: 1, size: 100 }
+              { page: 1, size: 100 },
             );
             dataToFetch = (favoritesResponse?.list || []).map(
-              (item) => item.anime || item
+              (item) => item.anime || item,
             );
           } else {
             dataToFetch = [];
@@ -125,7 +122,7 @@ export default function AnimeListTV({
         break;
       case "Downloaded":
         dataToFetch = Object.keys(currentInfo).filter(
-          (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0
+          (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0,
         );
         setIsCheckingInternet(false);
         break;
@@ -159,8 +156,18 @@ export default function AnimeListTV({
         await fetchMoreAnime();
       };
       loadDataSequentially();
-    }, [getInfos, fetchMoreAnime])
+    }, [getInfos, fetchMoreAnime]),
   );
+
+  const handleScrollToIndex = useCallback((index) => {
+    if (flatListRef.current && index >= 0) {
+      flatListRef.current.scrollToIndex({
+        index: Math.max(0, index - 1),
+        animated: true,
+        viewPosition: 0,
+      });
+    }
+  }, []);
 
   const renderItem = useCallback(
     ({ item, index }) => {
@@ -171,31 +178,26 @@ export default function AnimeListTV({
       return (
         <AnimePreviewWidget
           anime={item}
-          key={`${item.slug}-${index}`}
           info={currentItemInfo}
           updateInfo={updateInfos}
           type={type}
-          gridMode={true}
-          cardWidth={cardWidth}
+          onFocus={() => handleScrollToIndex(index)}
         />
       );
     },
-    [info, updateInfos, type, cardWidth]
+    [info, updateInfos, type, handleScrollToIndex],
   );
 
   const keyExtractor = useCallback(
     (item, index) => `${item.slug}-${index}`,
-    []
+    [],
   );
 
   const ListEmptyComponent = useCallback(
     () =>
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
-          <Text
-            selectable={true}
-            style={[styles.emptyMessage, H2, { fontSize: 24 }]}
-          >
+          <Text style={[styles.emptyMessage, H2, { fontSize: 24 }]}>
             {type === "Liked"
               ? HikkaAuthService.isAuthenticated()
                 ? "Список улюбленого порожній"
@@ -206,7 +208,7 @@ export default function AnimeListTV({
           </Text>
         </View>
       ) : null,
-    [isLoading, type, height]
+    [isLoading, type, height],
   );
 
   const ListFooterComponent = useCallback(
@@ -216,30 +218,42 @@ export default function AnimeListTV({
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : null,
-    [isLoading, themeColors.primary]
+    [isLoading, themeColors.primary],
   );
 
   return (
     <DefaultScreenWidget
       isCheckInternet={isCheckingInternet}
-      isNavBarPadding={isNavBarPadding}
+      isNavBarPadding={false}
       hasManualHeader={hasManualHeader}
     >
-      <TVFocusableGrid
-        data={animeList}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        numColumns={numColumns}
-        key={`grid-${numColumns}`}
-        ListEmptyComponent={ListEmptyComponent}
-        ListFooterComponent={ListFooterComponent}
-        contentContainerStyle={[
-          styles.listContentContainer,
-          styles.gridContainer,
-          { paddingHorizontal: 32 },
-        ]}
-        columnWrapperStyle={styles.gridColumnWrapper}
-      />
+      {isLoading && animeList.length === 0 ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color={themeColors.primary} />
+        </View>
+      ) : (
+        <TVFocusGuideView autoFocus style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={animeList}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            ListEmptyComponent={ListEmptyComponent}
+            ListFooterComponent={ListFooterComponent}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.listContentContainer,
+              { paddingHorizontal: 32 },
+            ]}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={8}
+          />
+        </TVFocusGuideView>
+      )}
     </DefaultScreenWidget>
   );
 }

@@ -15,7 +15,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import { H2 } from "../../Styles/Fonts";
 import Logger from "../../Logger/Logger";
-import { useGridColumns } from "../../Styles/Responsive";
 import { styles, getGridItemWidth } from "./styles";
 
 const MAX_CONCURRENT_REQUESTS = 10;
@@ -29,7 +28,7 @@ export default function AnimeListTablet({
   const { type, initialData, title } = route.params;
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
-  const numColumns = useGridColumns(180);
+  const numColumns = 2;
 
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +37,7 @@ export default function AnimeListTablet({
 
   // Calculate card width based on grid columns
   const cardWidth = useMemo(() => {
-    return getGridItemWidth(width, numColumns, 16);
+    return getGridItemWidth(width, 2, 16);
   }, [width, numColumns]);
 
   const getInfos = useCallback(() => {
@@ -47,7 +46,11 @@ export default function AnimeListTablet({
       setInfo(storedInfos || {});
       Logger.debug("AnimeListTablet", "Інформація завантажена");
     } catch (error) {
-      Logger.error("AnimeListTablet", "Помилка при завантаженні інформації", error);
+      Logger.error(
+        "AnimeListTablet",
+        "Помилка при завантаженні інформації",
+        error,
+      );
       setInfo({});
     }
   }, []);
@@ -110,7 +113,7 @@ export default function AnimeListTablet({
         if (!HikkaAuthService.isAuthenticated()) {
           Logger.debug(
             "AnimeListTablet",
-            "Користувач не авторизований для улюбленого"
+            "Користувач не авторизований для улюбленого",
           );
           setIsLoading(false);
           return;
@@ -121,10 +124,10 @@ export default function AnimeListTablet({
             const favoritesResponse = await HikkaApiComplete.getUserFavorites(
               "anime",
               user.username,
-              { page: 1, size: 100 }
+              { page: 1, size: 100 },
             );
             dataToFetch = (favoritesResponse?.list || []).map(
-              (item) => item.anime || item
+              (item) => item.anime || item,
             );
             Logger.debug("AnimeListTablet", "Завантаження улюбленого з Hikka", {
               count: dataToFetch.length,
@@ -136,7 +139,7 @@ export default function AnimeListTablet({
           Logger.error(
             "AnimeListTablet",
             "Помилка завантаження улюбленого з Hikka",
-            error
+            error,
           );
           dataToFetch = [];
         }
@@ -144,7 +147,7 @@ export default function AnimeListTablet({
         break;
       case "Downloaded":
         dataToFetch = Object.keys(currentInfo).filter(
-          (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0
+          (slug) => (currentInfo[slug]?.downloaded_episodes?.length || 0) > 0,
         );
         Logger.debug("AnimeListTablet", "Завантаження завантаженого", {
           slugs: dataToFetch,
@@ -169,7 +172,9 @@ export default function AnimeListTablet({
       } else if (typeof item === "string") {
         return async () => await fetchAnimeDetails(item);
       }
-      Logger.warn("AnimeListTablet", "Невалідний елемент в dataToFetch", { item });
+      Logger.warn("AnimeListTablet", "Невалідний елемент в dataToFetch", {
+        item,
+      });
       return async () => null;
     });
 
@@ -187,36 +192,45 @@ export default function AnimeListTablet({
       };
 
       loadDataSequentially();
-    }, [getInfos, fetchMoreAnime])
+    }, [getInfos, fetchMoreAnime]),
   );
 
   const renderItem = useCallback(
     ({ item, index }) => {
       if (!item?.slug) {
-        Logger.warn("AnimeListTablet", "RenderItem отримав невалідний елемент", {
-          item,
-        });
+        Logger.warn(
+          "AnimeListTablet",
+          "RenderItem отримав невалідний елемент",
+          {
+            item,
+          },
+        );
         return null;
       }
 
       const currentItemInfo = info?.[item.slug] || {};
 
       return (
-        <AnimePreviewWidget
-          anime={item}
-          key={`${item.slug}-${index}`}
-          info={currentItemInfo}
-          updateInfo={updateInfos}
-          type={type}
-          gridMode={true}
-          cardWidth={cardWidth}
-        />
+        <View style={{ maxWidth: cardWidth, width: "100%" }}>
+          <AnimePreviewWidget
+            anime={item}
+            key={`${item.slug}-${index}`}
+            info={currentItemInfo}
+            updateInfo={updateInfos}
+            type={type}
+            gridMode={false}
+            maxWidth={cardWidth}
+          />
+        </View>
       );
     },
-    [info, updateInfos, type, cardWidth]
+    [info, updateInfos, type, cardWidth],
   );
 
-  const keyExtractor = useCallback((item, index) => `${item.slug}-${index}`, []);
+  const keyExtractor = useCallback(
+    (item, index) => `${item.slug}-${index}`,
+    [],
+  );
 
   const ListEmptyComponent = useCallback(
     () =>
@@ -233,7 +247,7 @@ export default function AnimeListTablet({
           </Text>
         </View>
       ) : null,
-    [isLoading, type, height]
+    [isLoading, type, height],
   );
 
   const ListFooterComponent = useCallback(
@@ -243,7 +257,7 @@ export default function AnimeListTablet({
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : null,
-    [isLoading, themeColors.primary]
+    [isLoading, themeColors.primary],
   );
 
   return (
@@ -265,7 +279,10 @@ export default function AnimeListTablet({
         removeClippedSubviews={true}
         ListEmptyComponent={ListEmptyComponent}
         ListFooterComponent={ListFooterComponent}
-        contentContainerStyle={[styles.listContentContainer, styles.gridContainer]}
+        contentContainerStyle={[
+          styles.listContentContainer,
+          styles.gridContainer,
+        ]}
         columnWrapperStyle={styles.gridColumnWrapper}
       />
     </DefaultScreenWidget>

@@ -16,6 +16,7 @@ export function TouchableOpacity(props) {
     children,
     activeOpacity,
     tvFocusable = true,
+    innerRef,
     ...restProps
   } = props;
   const themeColors = useThemeColors();
@@ -24,6 +25,7 @@ export function TouchableOpacity(props) {
   if (tvMode) {
     return (
       <Pressable
+        ref={innerRef}
         focusable={tvFocusable}
         style={({ focused, pressed }) => [
           styles.button,
@@ -48,6 +50,7 @@ export function TouchableOpacity(props) {
 
   return (
     <RNTouchableOpacity
+      ref={innerRef}
       style={[styles.button, style]}
       onPress={onPress}
       onLongPress={onLongPress}

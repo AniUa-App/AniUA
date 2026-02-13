@@ -375,6 +375,7 @@ const CommentItem = memo(function CommentItem({
               styles.replyButton,
               { backgroundColor: themeColors.background },
             ]}
+            isActive={false}
             onPress={handleReply}
           >
             <Text selectable={true} style={[H6, { color: themeColors.text }]}>
@@ -661,6 +662,7 @@ const CommentInput = memo(function CommentInput({
 interface CommentsSectionProps {
   slug: string;
   contentType?: string;
+  isInputVisible?: boolean;
 }
 
 /**
@@ -671,6 +673,7 @@ interface CommentsSectionProps {
 function CommentsSection({
   slug,
   contentType = "anime",
+  isInputVisible = true,
 }: CommentsSectionProps) {
   const themeColors = useThemeColors();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -993,7 +996,7 @@ function CommentsSection({
         contentContainerStyle={styles.container}
       >
         {/* Comment input (only for authenticated users) */}
-        {HikkaAuthService.isAuthenticated() && (
+        {HikkaAuthService.isAuthenticated() && isInputVisible && (
           <CommentInput
             themeColors={themeColors}
             onSubmit={handleSubmitComment}

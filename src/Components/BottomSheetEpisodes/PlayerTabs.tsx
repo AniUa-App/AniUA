@@ -10,7 +10,7 @@ import { PLAYER_ORDER } from "./constants";
 import { styles } from "./styles";
 
 export const PlayerTabs = React.memo(
-  ({ availablePlayers, activePlayer, onPlayerSelect }: PlayerTabsProps) => {
+  ({ availablePlayers, activePlayer, onPlayerSelect, hasTVPreferredFocus, nextFocusUp, firstTabInnerRef }: PlayerTabsProps) => {
     const themeColors = useThemeColors();
 
     const getPlayerIcon = (player: string, isActive: boolean) => {
@@ -54,11 +54,14 @@ export const PlayerTabs = React.memo(
         style={{ maxHeight: 44 }}
         contentContainerStyle={styles.playerTabsContainer}
       >
-        {sortedPlayers.map((player) => {
+        {sortedPlayers.map((player, index) => {
           const isActive = activePlayer.name === player;
+          const isFirst = index === 0;
           return (
             <TouchableOpacity
               key={player}
+              innerRef={isFirst ? firstTabInnerRef : undefined}
+              nextFocusUp={nextFocusUp}
               style={[
                 styles.playerTab,
                 {
@@ -69,6 +72,7 @@ export const PlayerTabs = React.memo(
                 },
               ]}
               onPress={() => onPlayerSelect(player)}
+              hasTVPreferredFocus={isActive && hasTVPreferredFocus}
             >
               {getPlayerIcon(player, isActive)}
               <Text
