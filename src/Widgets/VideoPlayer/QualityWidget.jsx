@@ -6,6 +6,7 @@ import { H3, H4 } from "../../Styles/Fonts";
 import Icons from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { background } from "../../Styles/Colors";
+import { isTV } from "../../Styles/Responsive";
 
 export default function QualityWidget({
   sheetRef,
@@ -16,8 +17,8 @@ export default function QualityWidget({
   const [orientation, setOrientation] = React.useState(
     getOrientation(
       Dimensions.get("window").width,
-      Dimensions.get("window").height
-    )
+      Dimensions.get("window").height,
+    ),
   );
   const colors = useThemeColors();
   const handleQualityChange = (quality) => {
@@ -46,7 +47,9 @@ export default function QualityWidget({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={orientation === "horizontal" ? ["45%"] : ["20%"]}
+      snapPoints={
+        isTV() ? ["30%"] : orientation === "horizontal" ? ["45%"] : ["20%"]
+      }
       enableDynamicSizing={false}
       enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: colors.background }}
@@ -76,7 +79,8 @@ export default function QualityWidget({
             {
               backgroundColor: colors.accent,
               width: "100%",
-              height: "100%",
+              padding: 16,
+              flex: 1,
               justifyContent: "center",
               alignItems: "center",
             },
@@ -86,7 +90,10 @@ export default function QualityWidget({
             data={qualities}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.speedOptionsContainer, { flex: 1 }]}
+            contentContainerStyle={[
+              styles.speedOptionsContainer,
+              !isTV() && { flex: 1 },
+            ]}
             keyExtractor={(item) => item.toString()}
             decelerationRate="fast"
             snapToAlignment="center"

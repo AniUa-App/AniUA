@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
+import { isTV } from "../Styles/Responsive";
 
 /**
  * Hook that wraps React Native's TV event handling.
@@ -20,7 +21,7 @@ export default function useTVEventHandler(handlers = {}) {
   handlersRef.current = handlers;
 
   useEffect(() => {
-    if (!Platform.isTV) return;
+    if (!Platform.isTV && !isTV()) return;
 
     let TVEventHandler;
     try {
@@ -32,7 +33,12 @@ export default function useTVEventHandler(handlers = {}) {
 
     if (!TVEventHandler) return;
 
-    const tvEventHandler = new TVEventHandler();
+    let tvEventHandler;
+    try {
+      tvEventHandler = new TVEventHandler();
+    } catch {
+      return;
+    }
 
     tvEventHandler.enable(null, (cmp, evt) => {
       if (!evt || evt.eventType === "blur" || evt.eventType === "focus") return;

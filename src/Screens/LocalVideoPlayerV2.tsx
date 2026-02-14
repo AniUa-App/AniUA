@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Pressable,
   GestureResponderEvent,
+  TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 // import SystemNavigationBar from "react-native-system-navigation-bar";
@@ -60,6 +61,9 @@ import type { Episode as ApiEpisode } from "../Api/AniuaApi";
 import type { HikkaAnimePreview } from "../Sources/HikkaApiComplete";
 import type { AnimeInfo } from "../Storage/AnimeStorage";
 import { isTV as isDeviceTV } from "../Styles/Responsive";
+import useTVEventHandler from "../Hooks/useTVEventHandler";
+
+const TVFocusGuideView = RNTVFocusGuideView || View;
 
 const { width, height } = Dimensions.get("window");
 
@@ -132,14 +136,14 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentEpisode, setCurrentEpisode] = useState<Episode | undefined>(
-    _currentEpisode
+    _currentEpisode,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(1.0);
   const [rate, setRate] = useState<number>(1.0);
   const [currentUrl, setCurrentUrl] = useState<VideoSource | null>(null);
   const [subtitles, setSubtitles] = useState<any[]>([]);
-  const [isLandscape, setIsLandscape] = useState<boolean>(false);
+  const [isLandscape, setIsLandscape] = useState<boolean>(isDeviceTV());
   const [isZoomed, setIsZoomed] = useState<boolean>(false);
   const [quality, setQuality] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -148,7 +152,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const qualitiesList = React.useMemo(() => {
     if (!episodeInfo?.qualitys) return [];
     return Object.keys(episodeInfo.qualitys).sort(
-      (a, b) => parseInt(a) - parseInt(b)
+      (a, b) => parseInt(a) - parseInt(b),
     );
   }, [episodeInfo]);
   const [isLocked, setIsLocked] = useState(false);
@@ -162,15 +166,15 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const videoViewRef = useRef<any>(null);
   const qualitySheetRef = useRef<any>(null);
   const latestPlayerRef = useRef<ReturnType<typeof useVideoPlayer> | null>(
-    null
+    null,
   );
   const volumeApplyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
   const pendingVolumeRef = useRef<number | null>(null);
   const lastTapRef = useRef<number | null>(null);
   const singleTapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
   const accumulatedSeekRef = useRef<number>(0);
   const seekDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -179,6 +183,10 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const lastSeekTimeRef = useRef<number>(0);
   const lastTimeUpdateRef = useRef<number>(0);
   const timeUpdateCountRef = useRef<number>(0);
+  const isSlidingRef = useRef<boolean>(false);
+  const sliderSeekDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] =
     useState<boolean>(false);
@@ -230,7 +238,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
   // Таймер для приховування елементів керування
   const hideControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
 
   // Допоміжні функції
@@ -251,7 +259,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           easing: Easing.linear,
         }),
         -1,
-        false
+        false,
       );
       // Pulsing анімація
       loadingScale.value = withRepeat(
@@ -260,7 +268,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           easing: Easing.inOut(Easing.ease),
         }),
         -1,
-        true
+        true,
       );
     } else {
       loadingRotation.value = 0;
@@ -377,7 +385,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           if (error?.message?.includes("onTracksSelected")) {
             Logger.warn(
               "LocalVideoPlayer",
-              "Track selection error, retrying play..."
+              "Track selection error, retrying play...",
             );
             setTimeout(() => {
               try {
@@ -423,12 +431,15 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
       player.addListener("timeUpdate", (_event) => {
         const currentPlayerTime = player.currentTime;
-        setCurrentTime(currentPlayerTime);
+        const timeSinceSeek = Date.now() - lastSeekTimeRef.current;
+        if (!isSlidingRef.current && timeSinceSeek > 800) {
+          setCurrentTime(currentPlayerTime);
+        }
 
         // Перевіряємо чи відео "зависло" (буферизується)
         if (player.playing) {
           const timeDiff = Math.abs(
-            currentPlayerTime - lastTimeUpdateRef.current
+            currentPlayerTime - lastTimeUpdateRef.current,
           );
 
           if (timeDiff < 0.1) {
@@ -478,7 +489,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         });
         // Автоматичне відтворення наступного епізоду
         const currentIndex = episodes.findIndex(
-          (ep) => ep.episode === currentEpisode.episode
+          (ep) => ep.episode === currentEpisode.episode,
         );
         if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
           Logger.info("LocalVideoPlayer", "Auto-playing next episode", {
@@ -500,7 +511,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         if (error?.message?.includes("onTracksSelected")) {
           Logger.warn(
             "LocalVideoPlayer",
-            "Attempting to recover from track selection error"
+            "Attempting to recover from track selection error",
           );
           setTimeout(() => {
             try {
@@ -686,7 +697,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
     const backHandlerSubscription = BackHandler.addEventListener(
       "hardwareBackPress",
-      onBackPress
+      onBackPress,
     );
 
     // Спершу розблокуємо орієнтацію, щоб події надходили
@@ -710,7 +721,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 Logger.warn(
                   "LocalVideoPlayer",
                   "SystemNavigationBar landscape error",
-                  e
+                  e,
                 );
               }
               setIsLandscape(true);
@@ -722,7 +733,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 Logger.warn(
                   "LocalVideoPlayer",
                   "SystemNavigationBar portrait error",
-                  e
+                  e,
                 );
               }
               setIsLandscape(false);
@@ -731,7 +742,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             Logger.warn(
               "LocalVideoPlayer",
               "Orientation applyChanges error",
-              e
+              e,
             );
           }
         };
@@ -741,7 +752,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         } else {
           setTimeout(applyChanges, 0);
         }
-      }
+      },
     );
 
     // StatusBar.setHidden(true);
@@ -772,6 +783,9 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       }
       if (seekDebounceRef.current) {
         clearTimeout(seekDebounceRef.current);
+      }
+      if (sliderSeekDebounceRef.current) {
+        clearTimeout(sliderSeekDebounceRef.current);
       }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
@@ -810,41 +824,16 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const seekToRef = useRef(seekTo);
   seekToRef.current = seekTo;
 
+  useTVEventHandler({
+    onSelect: () => togglePlayPauseRef.current?.(),
+    onPlayPause: () => togglePlayPauseRef.current?.(),
+    onLeft: () => seekToRef.current?.(-10),
+    onRight: () => seekToRef.current?.(10),
+  });
+
+  // Автовхід у PiP при згортанні застосунку (не для TV)
   useEffect(() => {
-    if (!Platform.isTV) return;
-
-    let TVEventHandler: any;
-    try {
-      TVEventHandler = require("react-native").TVEventHandler;
-    } catch {
-      return;
-    }
-    if (!TVEventHandler) return;
-
-    const tvHandler = new TVEventHandler();
-    tvHandler.enable(null, (_cmp: any, evt: any) => {
-      if (!evt) return;
-      switch (evt.eventType) {
-        case "select":
-        case "playPause":
-          togglePlayPauseRef.current?.();
-          break;
-        case "left":
-          seekToRef.current?.(-10);
-          break;
-        case "right":
-          seekToRef.current?.(10);
-          break;
-      }
-    });
-
-    return () => {
-      tvHandler.disable();
-    };
-  }, []);
-
-  // Автовхід у PiP при згортанні застосунку
-  useEffect(() => {
+    if (isDeviceTV()) return;
     const subscription = AppState.addEventListener(
       "change",
       async (nextState) => {
@@ -863,11 +852,11 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             Logger.warn(
               "LocalVideoPlayer",
               "Не вдалося запустити PiP автоматично",
-              error
+              error,
             );
           }
         }
-      }
+      },
     );
 
     return () => {
@@ -985,6 +974,8 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   };
 
   const startHideControlsTimer = () => {
+    // На TV контролі завжди видимі
+    if (isDeviceTV()) return;
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
     }
@@ -1016,7 +1007,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
               Logger.warn(
                 "LocalVideoPlayer",
                 "SystemNavigationBar toggle->landscape error",
-                e
+                e,
               );
             }
             setIsLandscape(true);
@@ -1035,7 +1026,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
               Logger.warn(
                 "LocalVideoPlayer",
                 "SystemNavigationBar toggle->portrait error",
-                e
+                e,
               );
             }
             setIsLandscape(false);
@@ -1081,7 +1072,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const goToPreviousEpisode = () => {
     Logger.debug("LocalVideoPlayer", "goToPreviousEpisode called");
     const currentIndex = episodes.findIndex(
-      (ep) => ep.episode === currentEpisode?.episode
+      (ep) => ep.episode === currentEpisode?.episode,
     );
     if (currentIndex > 0) {
       Logger.info("LocalVideoPlayer", "Switching to previous episode", {
@@ -1106,7 +1097,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const goToNextEpisode = () => {
     Logger.debug("LocalVideoPlayer", "goToNextEpisode called");
     const currentIndex = episodes.findIndex(
-      (ep) => ep.episode === currentEpisode?.episode
+      (ep) => ep.episode === currentEpisode?.episode,
     );
     if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
       Logger.info("LocalVideoPlayer", "Switching to next episode", {
@@ -1141,30 +1132,33 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       {/* Фон відео */}
       <View style={{ flex: 1, width: "100%" }}>
         {/* Клік-кетчери для тапів - розміщені першими, щоб бути під контролями */}
-        <View style={[StyleSheet.absoluteFill, { flexDirection: "row" }]}>
-          {/* Ліва сторона - перемотування назад */}
-          <Pressable
-            onPress={handleLeftSidePress}
-            style={{ flex: 1, zIndex: 5 }}
-            android_disableSound
-          />
-          {/* Права сторона - перемотування вперед */}
-          <Pressable
-            onPress={handleRightSidePress}
-            style={{ flex: 1, zIndex: 5 }}
-            android_disableSound
-          />
-        </View>
+        {!isDeviceTV() && (
+          <View style={[StyleSheet.absoluteFill, { flexDirection: "row" }]}>
+            {/* Ліва сторона - перемотування назад */}
+            <Pressable
+              onPress={handleLeftSidePress}
+              style={{ flex: 1, zIndex: 5 }}
+              android_disableSound
+            />
+            {/* Права сторона - перемотування вперед */}
+            <Pressable
+              onPress={handleRightSidePress}
+              style={{ flex: 1, zIndex: 5 }}
+              android_disableSound
+            />
+          </View>
+        )}
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           pointerEvents="none"
+          focusable={false}
         >
           <VideoView
             style={{ flex: 1, width: "100%" }}
             ref={videoViewRef}
             player={player}
             fullscreenOptions={{ enable: true }}
-            allowsPictureInPicture
+            allowsPictureInPicture={!isDeviceTV()}
             nativeControls={false}
             pointerEvents="none"
             contentFit={isLandscape && isZoomed ? "cover" : "contain"}
@@ -1269,7 +1263,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 ]}
                 style={styles.headerGradient}
               >
-                <View style={styles.headerContent}>
+                <TVFocusGuideView style={styles.headerContent} autoFocus>
                   <View>
                     <CustomTouchableOpacity
                       style={styles.headerButton}
@@ -1284,13 +1278,13 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                           navigation.goBack();
                           if (isDeviceTV()) {
                             EOrientation.lockAsync(
-                              EOrientation.OrientationLock.LANDSCAPE
+                              EOrientation.OrientationLock.LANDSCAPE,
                             );
                           } else if (isTablet()) {
                             EOrientation.unlockAsync();
                           } else {
                             EOrientation.lockAsync(
-                              EOrientation.OrientationLock.PORTRAIT_UP
+                              EOrientation.OrientationLock.PORTRAIT_UP,
                             );
                           }
                         }, 100);
@@ -1300,7 +1294,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     </CustomTouchableOpacity>
                   </View>
 
-                  <View style={styles.titleContainer}>
+                  <View style={styles.titleContainer} focusable={false}>
                     <Text
                       selectable={true}
                       style={[H4, { color: themeColors.text }]}
@@ -1329,36 +1323,38 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       </CustomTouchableOpacity>
                     </View>
 
-                    <View>
-                      <CustomTouchableOpacity
-                        style={styles.headerButton}
-                        activeOpacity={1}
-                        delayPressIn={0}
-                        delayPressOut={0}
-                        onPress={() => {
-                          if (showControls) {
-                            startHideControlsTimer();
-                          }
-                          if (isPictureInPictureSupported()) {
-                            Toast.show(
-                              "Якщо PiP не з'явився, дозвольте використання PiP у налаштуваннях",
-                              {
-                                duration: Toast.durations.SHORT,
-                                backgroundColor: themeColors.subtle,
-                                shadow: false,
-                                position: Toast.positions.BOTTOM,
-                              }
-                            );
-                            videoViewRef.current.startPictureInPicture();
-                          }
-                        }}
-                      >
-                        <Icons.PictureInPicture
-                          size={24}
-                          color={themeColors.text}
-                        />
-                      </CustomTouchableOpacity>
-                    </View>
+                    {!isDeviceTV() && (
+                      <View>
+                        <CustomTouchableOpacity
+                          style={styles.headerButton}
+                          activeOpacity={1}
+                          delayPressIn={0}
+                          delayPressOut={0}
+                          onPress={() => {
+                            if (showControls) {
+                              startHideControlsTimer();
+                            }
+                            if (isPictureInPictureSupported()) {
+                              Toast.show(
+                                "Якщо PiP не з'явився, дозвольте використання PiP у налаштуваннях",
+                                {
+                                  duration: Toast.durations.SHORT,
+                                  backgroundColor: themeColors.subtle,
+                                  shadow: false,
+                                  position: Toast.positions.BOTTOM,
+                                },
+                              );
+                              videoViewRef.current.startPictureInPicture();
+                            }
+                          }}
+                        >
+                          <Icons.PictureInPicture
+                            size={24}
+                            color={themeColors.text}
+                          />
+                        </CustomTouchableOpacity>
+                      </View>
+                    )}
 
                     <View>
                       <CustomTouchableOpacity
@@ -1379,7 +1375,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       </CustomTouchableOpacity>
                     </View>
                   </View>
-                </View>
+                </TVFocusGuideView>
               </LinearGradient>
             </Animated.View>
           ) : (
@@ -1420,26 +1416,28 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                   >
                     <View style={{ flex: 1 }} />
 
-                    <View>
-                      <CustomTouchableOpacity
-                        style={[styles.controlButton]}
-                        activeOpacity={1}
-                        delayPressIn={0}
-                        delayPressOut={0}
-                        onPress={() => {
-                          setIsLocked((prev) => !prev);
-                          if (showControls) {
-                            startHideControlsTimer();
-                          }
-                        }}
-                      >
-                        <Icons.Lock
-                          type={"enabled"}
-                          size={24}
-                          color={themeColors.text}
-                        />
-                      </CustomTouchableOpacity>
-                    </View>
+                    {!isDeviceTV() && (
+                      <View>
+                        <CustomTouchableOpacity
+                          style={[styles.controlButton]}
+                          activeOpacity={1}
+                          delayPressIn={0}
+                          delayPressOut={0}
+                          onPress={() => {
+                            setIsLocked((prev) => !prev);
+                            if (showControls) {
+                              startHideControlsTimer();
+                            }
+                          }}
+                        >
+                          <Icons.Lock
+                            type={"enabled"}
+                            size={24}
+                            color={themeColors.text}
+                          />
+                        </CustomTouchableOpacity>
+                      </View>
+                    )}
                   </View>
                   <View style={styles.progressContainer}>
                     <Text
@@ -1458,32 +1456,57 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                     <View style={styles.progressBarContainer}>
                       <Slider
-                        style={{ width: "100%", height: 15 }}
+                        style={{
+                          width: "100%",
+                          height: isDeviceTV() ? 40 : 15,
+                        }}
+                        focusable={isDeviceTV()}
                         value={Math.min(
                           Math.max(currentTime, 0),
-                          duration || 0
+                          duration || 0,
                         )}
                         minimumValue={0}
                         maximumValue={duration || 0}
-                        step={0.1}
+                        step={isDeviceTV() ? 60 : 0.1}
                         minimumTrackTintColor={themeColors.primary}
                         maximumTrackTintColor={themeColors.text}
                         thumbTintColor={themeColors.primary}
                         disabled={!duration || duration <= 0}
                         onSlidingStart={() => {
+                          isSlidingRef.current = true;
                           if (hideControlsTimerRef.current) {
                             clearTimeout(hideControlsTimerRef.current);
                             hideControlsTimerRef.current = null;
                           }
                         }}
                         onValueChange={(val) => {
+                          isSlidingRef.current = true;
                           setCurrentTime(val);
+                          if (isDeviceTV() && player && duration > 0) {
+                            if (sliderSeekDebounceRef.current) {
+                              clearTimeout(sliderSeekDebounceRef.current);
+                            }
+                            sliderSeekDebounceRef.current = setTimeout(() => {
+                              const clamped = Math.max(
+                                0,
+                                Math.min(duration, val),
+                              );
+                              lastSeekTimeRef.current = Date.now();
+                              timeUpdateCountRef.current = 0;
+                              isLoadingRef.current = true;
+                              setIsLoading(true);
+                              player.currentTime = clamped;
+                              isSlidingRef.current = false;
+                              sliderSeekDebounceRef.current = null;
+                            }, 300);
+                          }
                         }}
                         onSlidingComplete={(val) => {
+                          isSlidingRef.current = false;
                           if (player && duration > 0) {
                             const clamped = Math.max(
                               0,
-                              Math.min(duration, val)
+                              Math.min(duration, val),
                             );
                             lastSeekTimeRef.current = Date.now();
                             timeUpdateCountRef.current = 0;
@@ -1516,33 +1539,35 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 </View>
 
                 {/* Основні елементи керування */}
-                <View style={styles.mainControls}>
+                <TVFocusGuideView style={styles.mainControls} autoFocus>
                   {/* Ліві елементи керування */}
                   <View style={styles.leftControlGroup}>
-                    <CustomTouchableOpacity
-                      style={styles.controlButton}
-                      activeOpacity={1}
-                      delayPressIn={0}
-                      delayPressOut={0}
-                      onPress={() => {
-                        setVolumeTooltipVisible((v) => !v);
-                        if (showControls) {
-                          startHideControlsTimer();
-                        }
-                      }}
-                    >
-                      <Icons.Volume
-                        volume={volume * 100}
-                        size={24}
-                        color={themeColors.text}
-                      />
-                      <VolumeWidget
-                        visible={volumeTooltipVisible}
-                        value={volume}
-                        onChange={handleVolumeChange}
-                        onClose={() => setVolumeTooltipVisible(false)}
-                      />
-                    </CustomTouchableOpacity>
+                    {!isDeviceTV() && (
+                      <CustomTouchableOpacity
+                        style={styles.controlButton}
+                        activeOpacity={1}
+                        delayPressIn={0}
+                        delayPressOut={0}
+                        onPress={() => {
+                          setVolumeTooltipVisible((v) => !v);
+                          if (showControls) {
+                            startHideControlsTimer();
+                          }
+                        }}
+                      >
+                        <Icons.Volume
+                          volume={volume * 100}
+                          size={24}
+                          color={themeColors.text}
+                        />
+                        <VolumeWidget
+                          visible={volumeTooltipVisible}
+                          value={volume}
+                          onChange={handleVolumeChange}
+                          onClose={() => setVolumeTooltipVisible(false)}
+                        />
+                      </CustomTouchableOpacity>
+                    )}
                     {isLandscape && (
                       <CustomTouchableOpacity
                         style={[styles.controlButton]}
@@ -1605,6 +1630,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     <CustomTouchableOpacity
                       style={styles.playButtonContainer}
                       onPress={togglePlayPause}
+                      hasTVPreferredFocus={isDeviceTV()}
                     >
                       <View
                         style={[
@@ -1656,209 +1682,219 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                   {/* Праві елементи керування */}
                   <View style={styles.rightControlGroup}>
-                    {isLandscape && (
+                    {!isDeviceTV() && (
                       <>
-                        <View>
-                          <CustomTouchableOpacity
-                            style={styles.controlButton}
-                            activeOpacity={1}
-                            delayPressIn={0}
-                            delayPressOut={0}
-                            onPress={() => {
-                              setIsZoomed((prev) => !prev);
-                              if (showControls) {
-                                startHideControlsTimer();
-                              }
-                            }}
-                          >
-                            <Icons.FrameCorners
-                              size={24}
-                              color={
-                                isZoomed
-                                  ? themeColors.primary
-                                  : themeColors.text
-                              }
-                            />
-                          </CustomTouchableOpacity>
-                        </View>
+                        {isLandscape && (
+                          <>
+                            <View>
+                              <CustomTouchableOpacity
+                                style={styles.controlButton}
+                                activeOpacity={1}
+                                delayPressIn={0}
+                                delayPressOut={0}
+                                onPress={() => {
+                                  setIsZoomed((prev) => !prev);
+                                  if (showControls) {
+                                    startHideControlsTimer();
+                                  }
+                                }}
+                              >
+                                <Icons.FrameCorners
+                                  size={24}
+                                  color={
+                                    isZoomed
+                                      ? themeColors.primary
+                                      : themeColors.text
+                                  }
+                                />
+                              </CustomTouchableOpacity>
+                            </View>
 
-                        <View>
-                          <CustomTouchableOpacity
-                            style={styles.controlButton}
-                            activeOpacity={1}
-                            delayPressIn={0}
-                            delayPressOut={0}
-                            onPress={async function () {
-                              if (isDownloading) return;
-                              if (showControls) {
-                                startHideControlsTimer();
-                              }
-                              // Асинхронна функція для обробки вибору епізоду
-                              try {
-                                // Знаходимо епізод у списку завантажених
-                                setInfo(info);
-                                const downloadedEpisodes = Array.isArray(
-                                  info?.downloaded_episodes
-                                )
-                                  ? info.downloaded_episodes
-                                  : [];
-                                const episode = downloadedEpisodes.find(
-                                  (ep) => ep.episode === currentEpisode?.episode
-                                );
-
-                                // Перевіряємо чи існує episode і чи є валідний video_path
-
-                                if (
-                                  episode &&
-                                  episode.video_path &&
-                                  (await RNFS.exists(episode.video_path))
-                                ) {
-                                  Logger.debug(
-                                    "LocalVideoPlayer",
-                                    "episode.video_path",
-                                    { path: episode.video_path }
-                                  );
+                            <View>
+                              <CustomTouchableOpacity
+                                style={styles.controlButton}
+                                activeOpacity={1}
+                                delayPressIn={0}
+                                delayPressOut={0}
+                                onPress={async function () {
+                                  if (isDownloading) return;
+                                  if (showControls) {
+                                    startHideControlsTimer();
+                                  }
+                                  // Асинхронна функція для обробки вибору епізоду
                                   try {
-                                    await FileOpener.openFile(
-                                      episode.video_path,
-                                      "video/*"
+                                    // Знаходимо епізод у списку завантажених
+                                    setInfo(info);
+                                    const downloadedEpisodes = Array.isArray(
+                                      info?.downloaded_episodes,
+                                    )
+                                      ? info.downloaded_episodes
+                                      : [];
+                                    const episode = downloadedEpisodes.find(
+                                      (ep) =>
+                                        ep.episode === currentEpisode?.episode,
                                     );
-                                    Logger.info(
-                                      "LocalVideoPlayer",
-                                      "Діалог вибору відкрито"
-                                    );
-                                  } catch (error) {
+
+                                    // Перевіряємо чи існує episode і чи є валідний video_path
+
+                                    if (
+                                      episode &&
+                                      episode.video_path &&
+                                      (await RNFS.exists(episode.video_path))
+                                    ) {
+                                      Logger.debug(
+                                        "LocalVideoPlayer",
+                                        "episode.video_path",
+                                        { path: episode.video_path },
+                                      );
+                                      try {
+                                        await FileOpener.openFile(
+                                          episode.video_path,
+                                          "video/*",
+                                        );
+                                        Logger.info(
+                                          "LocalVideoPlayer",
+                                          "Діалог вибору відкрито",
+                                        );
+                                      } catch (error) {
+                                        Logger.error(
+                                          "LocalVideoPlayer",
+                                          "Помилка при відкритті файлу",
+                                          error,
+                                        );
+                                      }
+                                    } else {
+                                      // Видаляємо запис, якщо файл не існує
+                                      if (episode) {
+                                        const downloadedEpisodesSafe =
+                                          Array.isArray(
+                                            info?.downloaded_episodes,
+                                          )
+                                            ? info.downloaded_episodes
+                                            : [];
+                                        setInfo({
+                                          ...info,
+                                          downloaded_episodes:
+                                            downloadedEpisodesSafe.filter(
+                                              (ep) =>
+                                                ep.episode !==
+                                                currentEpisode?.episode,
+                                            ),
+                                        });
+                                      }
+
+                                      // Завантажуємо відео
+                                      await DownloadVideo({
+                                        item: currentEpisode,
+                                        anime: _anime,
+                                        info: info,
+                                        onStartDownloadCallback: () => {
+                                          Logger.debug(
+                                            "LocalVideoPlayer",
+                                            "onStartDownloadCallback",
+                                          );
+                                          setIsDownloading(true);
+                                          setDownloadProgress(0);
+                                        },
+                                        progressCallback: (progress) => {
+                                          setDownloadProgress(progress);
+                                        },
+                                        completionCallback: (
+                                          completionCallback,
+                                        ) => {
+                                          setIsDownloading(false);
+                                          Logger.debug(
+                                            "LocalVideoPlayer",
+                                            "completionCallback",
+                                            completionCallback,
+                                          );
+                                        },
+                                      });
+                                    }
+                                  } catch (err) {
                                     Logger.error(
                                       "LocalVideoPlayer",
-                                      "Помилка при відкритті файлу",
-                                      error
+                                      "Помилка при обробці епізоду",
+                                      err,
+                                    );
+                                    // Додаткова інформація для дебагу
+                                    Logger.debug(
+                                      "LocalVideoPlayer",
+                                      "Item object",
+                                      { currentEpisode },
+                                    );
+                                    Logger.debug(
+                                      "LocalVideoPlayer",
+                                      "Episode info",
+                                      { episodes: info.downloaded_episodes },
                                     );
                                   }
-                                } else {
-                                  // Видаляємо запис, якщо файл не існує
-                                  if (episode) {
-                                    const downloadedEpisodesSafe =
-                                      Array.isArray(info?.downloaded_episodes)
-                                        ? info.downloaded_episodes
-                                        : [];
-                                    setInfo({
-                                      ...info,
-                                      downloaded_episodes:
-                                        downloadedEpisodesSafe.filter(
-                                          (ep) =>
-                                            ep.episode !==
-                                            currentEpisode?.episode
-                                        ),
-                                    });
-                                  }
-
-                                  // Завантажуємо відео
-                                  await DownloadVideo({
-                                    item: currentEpisode,
-                                    anime: _anime,
-                                    info: info,
-                                    onStartDownloadCallback: () => {
-                                      Logger.debug(
-                                        "LocalVideoPlayer",
-                                        "onStartDownloadCallback"
-                                      );
-                                      setIsDownloading(true);
-                                      setDownloadProgress(0);
-                                    },
-                                    progressCallback: (progress) => {
-                                      setDownloadProgress(progress);
-                                    },
-                                    completionCallback: (
-                                      completionCallback
-                                    ) => {
-                                      setIsDownloading(false);
-                                      Logger.debug(
-                                        "LocalVideoPlayer",
-                                        "completionCallback",
-                                        completionCallback
-                                      );
-                                    },
-                                  });
-                                }
-                              } catch (err) {
-                                Logger.error(
-                                  "LocalVideoPlayer",
-                                  "Помилка при обробці епізоду",
-                                  err
-                                );
-                                // Додаткова інформація для дебагу
-                                Logger.debug(
-                                  "LocalVideoPlayer",
-                                  "Item object",
-                                  { currentEpisode }
-                                );
-                                Logger.debug(
-                                  "LocalVideoPlayer",
-                                  "Episode info",
-                                  { episodes: info.downloaded_episodes }
-                                );
-                              }
-                            }}
-                          >
-                            {isDownloading ? (
-                              <View
-                                style={[
-                                  styles.downloadButtonContainer,
-                                  { top: 8 },
-                                ]}
+                                }}
                               >
-                                <Icons.DownloadAnimated
-                                  size={24}
-                                  color={themeColors.primary}
-                                />
-                                <Text
-                                  selectable={true}
-                                  style={[
-                                    H6,
-                                    {
-                                      color: themeColors.primary,
-                                      marginTop: 2,
-                                    },
-                                  ]}
-                                >
-                                  {Math.round(downloadProgress)}%
-                                </Text>
-                              </View>
-                            ) : (
-                              <Icons.DownloadSimple
-                                size={24}
-                                color={
-                                  Array.isArray(info?.downloaded_episodes) &&
-                                  info.downloaded_episodes.some(
-                                    (ep) =>
-                                      ep.episode === currentEpisode?.episode
-                                  )
-                                    ? themeColors.primary
-                                    : themeColors.text
-                                }
-                              />
-                            )}
+                                {isDownloading ? (
+                                  <View
+                                    style={[
+                                      styles.downloadButtonContainer,
+                                      { top: 8 },
+                                    ]}
+                                  >
+                                    <Icons.DownloadAnimated
+                                      size={24}
+                                      color={themeColors.primary}
+                                    />
+                                    <Text
+                                      selectable={true}
+                                      style={[
+                                        H6,
+                                        {
+                                          color: themeColors.primary,
+                                          marginTop: 2,
+                                        },
+                                      ]}
+                                    >
+                                      {Math.round(downloadProgress)}%
+                                    </Text>
+                                  </View>
+                                ) : (
+                                  <Icons.DownloadSimple
+                                    size={24}
+                                    color={
+                                      Array.isArray(
+                                        info?.downloaded_episodes,
+                                      ) &&
+                                      info.downloaded_episodes.some(
+                                        (ep) =>
+                                          ep.episode ===
+                                          currentEpisode?.episode,
+                                      )
+                                        ? themeColors.primary
+                                        : themeColors.text
+                                    }
+                                  />
+                                )}
+                              </CustomTouchableOpacity>
+                            </View>
+                          </>
+                        )}
+
+                        <View>
+                          <CustomTouchableOpacity
+                            style={styles.controlButton}
+                            activeOpacity={1}
+                            delayPressIn={0}
+                            delayPressOut={0}
+                            onPress={toggleOrientation}
+                          >
+                            <Icons.DeviceRotate
+                              size={24}
+                              color={themeColors.text}
+                            />
                           </CustomTouchableOpacity>
                         </View>
                       </>
                     )}
-
-                    <View>
-                      <CustomTouchableOpacity
-                        style={styles.controlButton}
-                        activeOpacity={1}
-                        delayPressIn={0}
-                        delayPressOut={0}
-                        onPress={toggleOrientation}
-                      >
-                        <Icons.DeviceRotate
-                          size={24}
-                          color={themeColors.text}
-                        />
-                      </CustomTouchableOpacity>
-                    </View>
                   </View>
-                </View>
+                </TVFocusGuideView>
               </LinearGradient>
             </Animated.View>
           ) : (
@@ -1937,7 +1973,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       episode={episode}
                       anime={_anime}
                       isWatched={info?.watched_episodes?.includes(
-                        episode.episode
+                        episode.episode,
                       )}
                       player="local"
                       useBuiltIn={true}
@@ -2292,7 +2328,7 @@ async function ___getPlayerDataFrom_ASHDI_Player(url) {
     Logger.error(
       "___getPlayerDataFrom_ASHDI_Player",
       "Помилка завантаження",
-      error
+      error,
     );
     return { success: false, error: "no_player_data_found" };
   }
@@ -2339,7 +2375,7 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     const posterMatch = htmlContent.match(/poster:\s*"([^"]+)"/);
     const subtitleMatch = htmlContent.match(/subtitle:\s*"([^"]+)"/);
     const defaultQualityMatch = htmlContent.match(
-      /default_quality:\s*"([^"]+)"/
+      /default_quality:\s*"([^"]+)"/,
     );
 
     // Заповнюємо об'єкт даними, якщо вони знайдені
@@ -2361,7 +2397,7 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     Logger.error(
       "___getPlayerDataFrom_MOON_Player",
       "Помилка при отриманні даних плеєра",
-      error
+      error,
     );
   }
 }
