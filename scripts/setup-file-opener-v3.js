@@ -12,7 +12,7 @@ function addToFile(filePath, searchText, addText, description) {
 
   let content = fs.readFileSync(filePath, "utf8");
 
-  if (content.includes(addText)) {
+  if (content.includes(addText.trim())) {
     console.log(`✅ ${description} вже додано`);
     return true;
   }
@@ -95,6 +95,48 @@ function addFileProvider(filePath) {
   }
 }
 
+// Знаходимо MainApplication.kt динамічно
+function findMainApplication() {
+  const baseDir = "android/app/src/main/java/aniua/yuzka/site";
+  const candidates = [
+    path.join(baseDir, "beta", "MainApplication.kt"),
+    path.join(baseDir, "release", "MainApplication.kt"),
+    path.join(baseDir, "MainApplication.kt"),
+  ];
+
+  function findRecursive(dir) {
+    if (!fs.existsSync(dir)) return null;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isFile() && entry.name === "MainApplication.kt") {
+        return fullPath;
+      }
+      if (entry.isDirectory()) {
+        const found = findRecursive(fullPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      console.log(`📍 MainApplication.kt знайдено: ${candidate}`);
+      return candidate;
+    }
+  }
+
+  const found = findRecursive(baseDir);
+  if (found) {
+    console.log(`📍 MainApplication.kt знайдено (рекурсивно): ${found}`);
+    return found;
+  }
+
+  console.log(`❌ MainApplication.kt не знайдено в ${baseDir}`);
+  return null;
+}
+
 // Налаштування Android
 console.log("\n📱 Налаштування Android...");
 
@@ -135,26 +177,25 @@ createFile(
 // 4. Додати FileProvider в AndroidManifest.xml (покращена версія)
 addFileProvider("android/app/src/main/AndroidManifest.xml");
 
-// 5. Додати імпорт в MainApplication.kt
-addToFile(
-  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
-  "import expo.modules.ReactNativeHostWrapper",
-  "import com.fileopener.FileOpenerPackage",
-  "Імпорт FileOpenerPackage"
-);
+// 5-6. Додати імпорт та пакет в MainApplication.kt
+const mainAppPath = findMainApplication();
+if (mainAppPath) {
+  addToFile(
+    mainAppPath,
+    "import expo.modules.ReactNativeHostWrapper",
+    "import com.fileopener.FileOpenerPackage",
+    "Імпорт FileOpenerPackage"
+  );
 
-// 6. Додати пакет в getPackages()
-addToFile(
-  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
-  "// packages.add(MyReactNativePackage())",
-  "            packages.add(FileOpenerPackage())",
-  "Додавання FileOpenerPackage в getPackages()"
-);
+  addToFile(
+    mainAppPath,
+    "// packages.add(MyReactNativePackage())",
+    "            packages.add(FileOpenerPackage())",
+    "Додавання FileOpenerPackage в getPackages()"
+  );
+}
 
 console.log("\n✅ Налаштування react-native-file-opener завершено!");
-console.log("\n📝 Наступні кроки:");
-console.log("1. Запустіть: npx expo run:android");
-console.log("2. Або: npx expo run:ios");
 console.log("\n💡 Використання в коді:");
 console.log("import FileOpener from 'react-native-file-opener';");
 console.log("await FileOpener.openFileAuto(filePath);");

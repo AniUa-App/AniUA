@@ -1,0 +1,26 @@
+{
+  "name": "react-native-tv-channels",
+  "version": "1.0.0",
+  "description": "React Native module for Android TV home screen channels and programs",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "android-tv",
+    "tv-channels",
+    "leanback",
+    "android"
+  ],
+  "author": "AniUA",
+  "license": "MIT",
+  "peerDependencies": {
+    "react-native": ">=0.60.0"
+  },
+  "expo": {
+    "name": "react-native-tv-channels",
+    "platforms": ["android"]
+  }
+}

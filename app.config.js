@@ -142,6 +142,7 @@ export default {
     plugins: [
       ["@react-native-tvos/config-tv"],
       ["./expo-plugin-tv-support.js"],
+      ["./react-native-tv-channels/expo-plugin.js"],
       [
         "./expo-plugin-architectures.js",
         ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"],

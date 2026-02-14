@@ -173,6 +173,7 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    implementation project(':react-native-tv-channels')
     implementation project(':react-native-file-opener')
     }
 }

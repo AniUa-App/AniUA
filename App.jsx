@@ -38,6 +38,7 @@ import { HikkaAuthService } from "./src/Services/HikkaAuthService";
 import { AniuaAuthService } from "./src/Services/AniuaAuthService";
 import AniuaApi from "./src/Api/AniuaApi";
 import UpdateCheckerService from "./src/Services/UpdateCheckerService";
+import TvChannelsService from "./src/Services/TvChannelsService";
 import usePushNotifications from "./src/Hooks/usePushNotifications";
 
 // On TV, prevent Text elements from being focusable via D-pad
@@ -317,6 +318,16 @@ export default function App() {
           }
         };
         fetchMetadata_2();
+
+        // Синхронізація TV каналів (на телефонах не виконується)
+        TvChannelsService.syncWatchHistory()
+          .then(() => console.log('[TV] syncWatchHistory done'))
+          .catch((e) => console.error('[TV] syncWatchHistory error:', e));
+
+        // Додатковий дебаг TV
+        TvChannelsService.debugInfo()
+          .then((info) => console.log('[TV] debugInfo:', JSON.stringify(info)))
+          .catch((e) => console.error('[TV] debugInfo error:', e));
       } catch (error) {
         Logger.logAppInit("Критична помилка ініціалізації", false, error);
       } finally {
