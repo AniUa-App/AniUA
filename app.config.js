@@ -140,7 +140,7 @@ export default {
     },
     assetBundlePatterns: ["**/*"],
     plugins: [
-      ["@react-native-tvos/config-tv"],
+      // ["@react-native-tvos/config-tv"],
       ["./expo-plugin-tv-support.js"],
       [
         "./expo-plugin-architectures.js",
@@ -179,8 +179,7 @@ export default {
       [
         "expo-camera",
         {
-          cameraPermission:
-            "Для сканування QR-коду потрібен доступ до камери",
+          cameraPermission: "Для сканування QR-коду потрібен доступ до камери",
         },
       ],
     ],

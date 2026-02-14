@@ -85,6 +85,5 @@ const styles = StyleSheet.create({
   animeGridItem: {
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
   },
 });

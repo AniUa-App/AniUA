@@ -393,7 +393,11 @@ function ProfileStatsTV({
       <View style={stylesTablets.statsRow} focusable={false}>
         <View style={stylesTablets.statsList} focusable={false}>
           {sortedUserStatsList.map((stat, index) => (
-            <View key={index} style={[stylesTablets.statItem]} focusable={false}>
+            <View
+              key={index}
+              style={[stylesTablets.statItem]}
+              focusable={false}
+            >
               <stat.icon size={24} color={stat.color} weight="fill" />
               <Text
                 style={[
@@ -426,6 +430,7 @@ function ProfileStatsTV({
 const stylesPhone = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
+    width: "100%",
     flexWrap: "wrap",
     justifyContent: "center",
     marginHorizontal: 20,

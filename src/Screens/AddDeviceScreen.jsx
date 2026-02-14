@@ -425,7 +425,6 @@ export default function AddDeviceScreen() {
     <View style={styles.fullScreen}>
       <CameraView
         style={StyleSheet.absoluteFill}
-        facing="back"
         barcodeScannerSettings={{
           barcodeTypes: ["qr"],
         }}

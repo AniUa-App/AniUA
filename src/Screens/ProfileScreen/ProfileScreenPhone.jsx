@@ -112,13 +112,22 @@ export default function ProfileScreen({ navigation }) {
           {profile.handle}
         </Text>
 
-        {/* Stats */}
-        <ProfileStats
-          stats={profile.stats}
-          favorites={profile.favorites}
-          colors={colors}
-          type="phone"
-        />
+        <View
+          style={{
+            width: "100%",
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {/* Stats */}
+          <ProfileStats
+            stats={profile.stats}
+            favorites={profile.favorites}
+            colors={colors}
+            type="phone"
+          />
+        </View>
 
         {/* Tabs */}
         <View

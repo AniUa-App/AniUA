@@ -305,7 +305,9 @@ const CommentItem = memo(function CommentItem({
       </View>
 
       {/* Comment text */}
-      <MarkdownComponent>{comment.text}</MarkdownComponent>
+      <MarkdownComponent>
+        {comment.text ?? "~~Коментар видалено~~"}
+      </MarkdownComponent>
 
       {/* Reply button */}
       {HikkaAuthService.isAuthenticated() && depth < 2 && (
@@ -369,7 +371,6 @@ const CommentItem = memo(function CommentItem({
               </TouchableOpacity>
             </View>
           )}
-
           <TouchableOpacity
             style={[
               styles.replyButton,
