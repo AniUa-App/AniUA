@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "npm run set-env && expo run:android",
+    "android": "npm run set-env && ORG_GRADLE_PROJECT_reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64 expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "setup-file-opener": "node scripts/setup-file-opener-v3.js",
@@ -44,7 +44,6 @@
     "expo-auth-session": "^7.0.10",
     "expo-blur": "~14.1.5",
     "expo-build-properties": "~0.14.8",
-    "expo-camera": "~16.1.11",
     "expo-constants": "~17.1.7",
     "expo-crypto": "~14.1.5",
     "expo-dev-client": "~5.2.4",
@@ -75,7 +74,7 @@
     "patch-package": "^8.0.0",
     "phosphor-react-native": "^3.0.0",
     "react": "19.0.0",
-    "react-native": "0.79.5",
+    "react-native": "npm:react-native-tvos@0.79.5-0",
     "react-native-awesome-slider": "^2.9.0",
     "react-native-bootsplash": "^6.3.7",
     "react-native-chart-kit": "^6.12.0",
@@ -112,6 +111,7 @@
     "react-native-video": "^6.16.1",
     "react-native-video-controls": "^2.8.1",
     "react-native-view-shot": "^4.0.3",
+    "react-native-vision-camera": "^4.7.3",
     "react-native-webview": "13.13.5",
     "react-native-worklets": "^0.7.2",
     "react-native-zeroconf": "^0.14.0",
@@ -125,6 +125,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@expo/config-plugins": "^10.1.2",
+    "@react-native-tvos/config-tv": "^0.1.5",
     "@storybook/addon-ondevice-actions": "^9.1.4",
     "@storybook/addon-ondevice-controls": "^9.1.4",
     "@storybook/react-native": "^9.1.4",
@@ -134,6 +135,13 @@
   },
   "overrides": {
     "html-entities": "2.5.3"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native"
+      ]
+    }
   },
   "private": true
 }

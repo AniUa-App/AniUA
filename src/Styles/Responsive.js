@@ -174,7 +174,10 @@ export function useTVLayout() {
   const { width } = useWindowDimensions();
   const sidebarWidth = getTVSidebarWidth();
   const contentWidth = width - sidebarWidth;
-  const columns = Math.max(4, Math.min(Math.floor((contentWidth - 64) / 200), 7));
+  const columns = Math.max(
+    4,
+    Math.min(Math.floor((contentWidth - 64) / 200), 7),
+  );
 
   return { sidebarWidth, contentWidth, columns };
 }

@@ -9,7 +9,12 @@ import {
 } from "react-native";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { TouchableOpacity } from "../Widgets/Button";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCodeScanner,
+} from "react-native-vision-camera";
 import { useThemeColors } from "../Global/useTheme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { H2, H5, H6 } from "../Styles/Fonts";
@@ -28,7 +33,8 @@ export default function AddDeviceScreen() {
   const themeColors = useThemeColors();
   const navigation = useNavigation();
   const route = useRoute();
-  const [permission, requestPermission] = useCameraPermissions();
+  const device = useCameraDevice("back");
+  const { hasPermission, requestPermission } = useCameraPermission();
   const [state, setState] = useState("scanning"); // scanning | debug_edit | authenticating | connecting | success | error
   const [errorMessage, setErrorMessage] = useState("");
   const [debugPayload, setDebugPayload] = useState(null);
@@ -36,6 +42,15 @@ export default function AddDeviceScreen() {
   const scannedRef = useRef(false);
   const insets = useSafeAreaInsets();
   const deepLinkProcessed = useRef(false);
+
+  const codeScanner = useCodeScanner({
+    codeTypes: ["qr"],
+    onCodeScanned: (codes) => {
+      if (codes.length > 0 && codes[0].value) {
+        handleBarCodeScanned({ data: codes[0].value });
+      }
+    },
+  });
 
   // Обробка deep link: aniua://login/BASE64_DATA
   useEffect(() => {
@@ -157,19 +172,8 @@ export default function AddDeviceScreen() {
     setErrorMessage("");
   };
 
-  // Permission not determined yet
-  if (!permission) {
-    return (
-      <DefaultScreenWidget isCheckInternet={false}>
-        <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
-        </View>
-      </DefaultScreenWidget>
-    );
-  }
-
   // Permission denied
-  if (!permission.granted) {
+  if (!hasPermission) {
     return (
       <DefaultScreenWidget isCheckInternet={false}>
         <View style={styles.centeredContainer}>
@@ -423,13 +427,14 @@ export default function AddDeviceScreen() {
   // Scanning state — camera
   return (
     <View style={styles.fullScreen}>
-      <CameraView
-        style={StyleSheet.absoluteFill}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr"],
-        }}
-        onBarcodeScanned={handleBarCodeScanned}
-      />
+      {device && (
+        <Camera
+          style={StyleSheet.absoluteFill}
+          device={device}
+          isActive={state === "scanning"}
+          codeScanner={codeScanner}
+        />
+      )}
 
       {/* Dark overlay with transparent scanning window */}
       <View style={styles.overlayContainer}>

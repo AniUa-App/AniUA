@@ -14,6 +14,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import Icon from "../Styles/Icons";
 import Logger from "../Logger/Logger";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
+import { isTV } from "../Styles/Responsive";
 
 export default function AppInfoScreen() {
   const { user } = useHikkaUser();
@@ -29,7 +30,7 @@ export default function AppInfoScreen() {
     {
       title: "Git (short)",
       value: String(
-        Config.devInfo.gitShortHash || Config.devInfo.gitHash || "unknown"
+        Config.devInfo.gitShortHash || Config.devInfo.gitHash || "unknown",
       ),
     },
     { title: "Git (full)", value: String(Config.devInfo.gitHash || "unknown") },
@@ -38,7 +39,7 @@ export default function AppInfoScreen() {
       value:
         `${Config.urls.github}/AniUA/${Config.devInfo.gitHash}/CHANGELOG.MD`.replace(
           "github.com",
-          "raw.githubusercontent.com"
+          "raw.githubusercontent.com",
         ),
     },
     {
@@ -66,7 +67,7 @@ export default function AppInfoScreen() {
   ];
 
   return (
-    <DefaultScreenWidget isNavBarPadding>
+    <DefaultScreenWidget isNavBarPadding={!isTV()}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingVertical: 12 }}
@@ -163,12 +164,12 @@ function Header() {
             const changelogUrl =
               `${Config.urls.github}/AniUA/${Config.devInfo.gitShortHash}/CHANGELOG.MD`.replace(
                 "github.com",
-                "raw.githubusercontent.com"
+                "raw.githubusercontent.com",
               );
             Logger.info(
               "AppInfoScreen",
               "Opening changelog URL:",
-              changelogUrl
+              changelogUrl,
             );
             Linking.openURL(changelogUrl);
           }}

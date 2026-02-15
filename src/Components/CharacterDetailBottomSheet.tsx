@@ -14,7 +14,7 @@ import { H3, H4, useScaleFontSize } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 import LinearGradient from "react-native-linear-gradient";
-import { isTablet, isTabletLandscape } from "../Styles/Responsive";
+import { isTablet, isTabletLandscape, isTV } from "../Styles/Responsive";
 import { Shadow } from "react-native-shadow-2";
 import MarkdownComponent from "./MarkdownComponent";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -70,6 +70,9 @@ export default function CharacterDetailBottomSheet({
   const description = character?.description_ua || character?.description || "";
 
   const imageSize = (() => {
+    if (isTV()) {
+      return { width: width * 0.2, height: height * 0.5 };
+    }
     if (isTabletLandscape()) {
       return { width: width * 0.2, height: height * 0.4 };
     }

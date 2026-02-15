@@ -16,6 +16,7 @@ import * as Network from "expo-network";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MainConfig from "../cfgs/MainConfig";
+import { isTV } from "../Styles/Responsive";
 
 export default function QRLoginScreen() {
   const themeColors = useThemeColors();
@@ -99,7 +100,7 @@ export default function QRLoginScreen() {
   };
 
   return (
-    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={!isTV()}>
       <View style={[styles.container, { marginTop: insets.top }]}>
         {/* Back button */}
         <TouchableOpacity

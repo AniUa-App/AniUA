@@ -1,6 +1,6 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Text } from "../../Styles/Fonts";
+import { View, StyleSheet, Image } from "react-native";
+import { H3, H4, H5, Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import { TV } from "../../Styles/TVStyles";
@@ -44,9 +44,15 @@ export default function TVSidebarNav({ state, navigation }) {
     >
       {/* App logo/title area */}
       <View style={styles.logoArea}>
-        <Text style={[styles.appTitle, { color: themeColors.primary }]}>
-          AniUA
-        </Text>
+        <Image
+          source={require("../../../assets/AniUA-Logo.png")}
+          style={[styles.logo]}
+          resizeMode="contain"
+        />
+        <View style={{ flexDirection: "column" }}>
+          <Text style={[H4, { color: themeColors.primary }]}>AniUA</Text>
+          <Text style={[H4, { color: themeColors.text }]}>Аніме Cоловїною</Text>
+        </View>
       </View>
 
       {/* Nav items */}
@@ -112,14 +118,18 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "rgba(255, 255, 255, 0.1)",
   },
+  logo: {
+    width: 64,
+    height: 64,
+  },
   logoArea: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  appTitle: {
-    fontFamily: "Nunito-Bold",
-  },
+  appTitle: {},
   navItems: {
     flex: 1,
     paddingHorizontal: 12,

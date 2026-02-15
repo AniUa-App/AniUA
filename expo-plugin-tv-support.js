@@ -1,6 +1,66 @@
-const { withAndroidManifest } = require("@expo/config-plugins");
+const {
+  withAndroidManifest,
+  withDangerousMod,
+} = require("@expo/config-plugins");
+const fs = require("fs");
+const path = require("path");
 
-const withTVSupport = (config) => {
+const drawableDirectoryNames = [
+  "drawable",
+  "drawable-hdpi",
+  "drawable-mdpi",
+  "drawable-xhdpi",
+  "drawable-xxhdpi",
+  "drawable-xxxhdpi",
+];
+
+const withTVBannerImage = (config) => {
+  const bannerPath = config.android?.tvBanner;
+  if (!bannerPath) {
+    return config;
+  }
+
+  return withDangerousMod(config, [
+    "android",
+    async (cfg) => {
+      const resolvedBannerPath = path.resolve(cfg.modRequest.projectRoot, bannerPath);
+      if (!fs.existsSync(resolvedBannerPath)) {
+        console.warn(
+          `[expo-plugin-tv-support] TV banner image not found: ${resolvedBannerPath}`
+        );
+        return cfg;
+      }
+
+      const ext = path.extname(resolvedBannerPath);
+      const destFileName = `tv_banner${ext}`;
+
+      for (const dirName of drawableDirectoryNames) {
+        const dirPath = path.join(
+          cfg.modRequest.platformProjectRoot,
+          "app",
+          "src",
+          "main",
+          "res",
+          dirName
+        );
+        if (!fs.existsSync(dirPath)) {
+          await fs.promises.mkdir(dirPath, { recursive: true });
+        }
+        await fs.promises.copyFile(
+          resolvedBannerPath,
+          path.join(dirPath, destFileName)
+        );
+      }
+
+      console.log(
+        `[expo-plugin-tv-support] TV banner image copied to drawable folders`
+      );
+      return cfg;
+    },
+  ]);
+};
+
+const withTVManifest = (config) => {
   return withAndroidManifest(config, async (cfg) => {
     const manifest = cfg.modResults.manifest;
 
@@ -34,39 +94,52 @@ const withTVSupport = (config) => {
       });
     }
 
-    // Add LEANBACK_LAUNCHER category to main activity intent-filter
+    // Add LEANBACK_LAUNCHER category and TV banner to main activity
     const application = manifest.application?.[0];
-    if (application?.activity) {
-      const mainActivity = application.activity.find(
-        (activity) =>
-          activity.$?.["android:name"] === ".MainActivity" ||
-          activity.$?.["android:name"]?.endsWith(".MainActivity")
-      );
+    if (application) {
+      // Add android:banner to <application> if tvBanner is configured
+      if (cfg.android?.tvBanner && application.$) {
+        application.$["android:banner"] = "@drawable/tv_banner";
+        console.log(
+          "[expo-plugin-tv-support] Added android:banner to application"
+        );
+      }
 
-      if (mainActivity?.["intent-filter"]) {
-        const mainIntentFilter = mainActivity["intent-filter"].find((filter) =>
-          filter.action?.some(
-            (a) => a.$?.["android:name"] === "android.intent.action.MAIN"
-          )
+      if (application.activity) {
+        const mainActivity = application.activity.find(
+          (activity) =>
+            activity.$?.["android:name"] === ".MainActivity" ||
+            activity.$?.["android:name"]?.endsWith(".MainActivity")
         );
 
-        if (mainIntentFilter) {
-          if (!mainIntentFilter.category) {
-            mainIntentFilter.category = [];
-          }
-
-          const hasLeanbackLauncher = mainIntentFilter.category.some(
-            (c) =>
-              c.$?.["android:name"] ===
-              "android.intent.category.LEANBACK_LAUNCHER"
+        if (mainActivity?.["intent-filter"]) {
+          const mainIntentFilter = mainActivity["intent-filter"].find(
+            (filter) =>
+              filter.action?.some(
+                (a) =>
+                  a.$?.["android:name"] === "android.intent.action.MAIN"
+              )
           );
 
-          if (!hasLeanbackLauncher) {
-            mainIntentFilter.category.push({
-              $: {
-                "android:name": "android.intent.category.LEANBACK_LAUNCHER",
-              },
-            });
+          if (mainIntentFilter) {
+            if (!mainIntentFilter.category) {
+              mainIntentFilter.category = [];
+            }
+
+            const hasLeanbackLauncher = mainIntentFilter.category.some(
+              (c) =>
+                c.$?.["android:name"] ===
+                "android.intent.category.LEANBACK_LAUNCHER"
+            );
+
+            if (!hasLeanbackLauncher) {
+              mainIntentFilter.category.push({
+                $: {
+                  "android:name":
+                    "android.intent.category.LEANBACK_LAUNCHER",
+                },
+              });
+            }
           }
         }
       }
@@ -75,6 +148,12 @@ const withTVSupport = (config) => {
     console.log("[expo-plugin-tv-support] Android TV manifest entries added");
     return cfg;
   });
+};
+
+const withTVSupport = (config) => {
+  config = withTVBannerImage(config);
+  config = withTVManifest(config);
+  return config;
 };
 
 module.exports = withTVSupport;

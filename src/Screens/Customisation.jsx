@@ -8,7 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { EventBus } from "../Global/EventBus";
-import { isTablet } from "../Styles/Responsive";
+import { isTablet, isTV } from "../Styles/Responsive";
 import Logger from "../Logger/Logger";
 import {
   ColorPickerWidget,
@@ -73,21 +73,21 @@ export default function CustomisationScreen() {
       Logger.info(
         "Customisation",
         "Зображення скопійовано у внутрішню памʼять",
-        { destPath }
+        { destPath },
       );
       return destPath;
     } catch (error) {
       Logger.error(
         "Customisation",
         "Помилка копіювання зображення у внутрішню памʼять",
-        error
+        error,
       );
       return null;
     }
   };
 
   return (
-    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={!isTV()}>
       <ScrollView
         style={{ flex: 1, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
@@ -331,7 +331,7 @@ export default function CustomisationScreen() {
                 SettingsStorage.getParameter("hideAnimeListDetails") !== "true";
               SettingsStorage.setParameter(
                 "hideAnimeListDetails",
-                currentValue ? "true" : ""
+                currentValue ? "true" : "",
               );
               // Force re-render
               SET_USER_CONFIG({ ...USER_CONFIG });
@@ -488,7 +488,7 @@ export default function CustomisationScreen() {
                       Logger.debug(
                         "Customisation",
                         "Отримано шлях до фонового зображення",
-                        { uriPath }
+                        { uriPath },
                       );
                       SET_USER_CONFIG({
                         ...USER_CONFIG,

@@ -109,19 +109,21 @@ export default function DubComponent({
           {subtitle}
         </Text>
       </View>
-      <TouchableOpacity
-        style={[
-          {
-            backgroundColor: themeColors.primary,
-            padding: 6,
-            borderRadius: 8,
-          },
-          buttonStyle,
-        ]}
-        onPress={() => onButtonClick(name)}
-      >
-        {icon}
-      </TouchableOpacity>
+      {isPartner && (
+        <TouchableOpacity
+          style={[
+            {
+              backgroundColor: themeColors.primary,
+              padding: 6,
+              borderRadius: 8,
+            },
+            buttonStyle,
+          ]}
+          onPress={() => onButtonClick(name)}
+        >
+          {icon}
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }

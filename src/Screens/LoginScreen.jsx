@@ -12,8 +12,10 @@ import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { themes } from "../Styles/Colors";
 import { EventBus } from "../Global/EventBus";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
+import { isTV, isTablet } from "../Styles/Responsive";
 
 export default function LoginScreen({ isCanSkip = true }) {
+  const isWideLayout = isTV() || isTablet();
   const themeColors = useThemeColors();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -72,7 +74,7 @@ export default function LoginScreen({ isCanSkip = true }) {
       } else {
         Logger.warn("LoginScreen", "Авторизація не вдалася", result.error);
         setErrorMessage(
-          result.error || "Помилка авторизації. Спробуйте ще раз."
+          result.error || "Помилка авторизації. Спробуйте ще раз.",
         );
       }
     } catch (error) {
@@ -106,76 +108,95 @@ export default function LoginScreen({ isCanSkip = true }) {
   };
 
   return (
-    <DefaultScreenWidget>
-      <View style={[styles.container, {}]}>
-        {/* Логотип */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../../assets/AniUA-Logo-Icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
+    <DefaultScreenWidget isNavBarPadding={!isTV()}>
+      <View style={[styles.container, isWideLayout && styles.containerWide]}>
+        {/* Верхня частина: логотип зліва + контент справа (wide) або стовпчик (phone) */}
         <View
-          style={{
-            position: "absolute",
-            bottom: isCanSkip ? "5%" : "28%",
-            gap: 8,
-          }}
+          style={[styles.mainContent, isWideLayout && styles.mainContentWide]}
         >
-          {/* Заголовок */}
-          <Text
-            selectable={true}
-            style={[H2, styles.title, { color: themeColors.text }]}
-          >
-            Вітаємо в AniUA
-          </Text>
-
-          {/* Підзаголовок */}
-          <Text
-            selectable={true}
-            style={[H6, styles.subtitle, { color: themeColors.inActiveText }]}
-          >
-            Увійдіть в аккаунт, щоб зберігати та синхронізувати ваш прогрес.
-          </Text>
-
-          {/* Кнопки */}
-          <View style={styles.buttonsContainer}>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: themeColors.primary }]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Text selectable={true} style={[H5, styles.loginButtonText]}>
-                {isLoading ? "Завантаження..." : "Увійти"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+          {/* Логотип */}
+          {(isCanSkip && (isTV() || isTablet())) || !isTV() ? (
+            <View
               style={[
-                styles.button,
-                styles.qrButton,
-                { borderColor: themeColors.primary },
+                styles.logoContainer,
+                { top: isCanSkip && (!isTV() || !isTablet()) ? "25%" : "15%" },
+                isWideLayout && styles.logoContainerWide,
               ]}
-              onPress={() => navigation.navigate("QRLogin")}
-              disabled={isLoading}
             >
-              <View style={styles.qrButtonContent}>
-                <Icons.QrCode size={22} color={themeColors.primary} />
-                <Text
-                  selectable={true}
-                  style={[
-                    H5,
-                    styles.qrButtonText,
-                    { color: themeColors.primary },
-                  ]}
-                >
-                  Увійти по QR-коду
+              <Image
+                source={require("../../assets/AniUA-Logo-Icon.png")}
+                style={[styles.logo, isWideLayout && styles.logoWide]}
+                resizeMode="contain"
+              />
+            </View>
+          ) : (
+            <View style={{ width: "30%" }} />
+          )}
+          {/* Контент: заголовок + кнопки */}
+          <View
+            style={[
+              { gap: 8 },
+              !isWideLayout && {
+                position: "absolute",
+                bottom: isCanSkip ? "5%" : "28%",
+              },
+              isWideLayout && styles.contentWide,
+            ]}
+          >
+            {/* Заголовок */}
+            <Text
+              selectable={true}
+              style={[H2, styles.title, { color: themeColors.text }]}
+            >
+              Вітаємо в AniUA
+            </Text>
+
+            {/* Підзаголовок */}
+            <Text
+              selectable={true}
+              style={[H6, styles.subtitle, { color: themeColors.inActiveText }]}
+            >
+              Увійдіть в аккаунт, щоб зберігати та синхронізувати ваш прогрес.
+            </Text>
+
+            {/* Кнопки */}
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { backgroundColor: themeColors.primary },
+                ]}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                <Text selectable={true} style={[H5, styles.loginButtonText]}>
+                  {isLoading ? "Завантаження..." : "Увійти"}
                 </Text>
-              </View>
-            </TouchableOpacity>
-            {isCanSkip && (
-              <>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.qrButton,
+                  { borderColor: themeColors.primary },
+                ]}
+                onPress={() => navigation.navigate("QRLogin")}
+                disabled={isLoading}
+              >
+                <View style={styles.qrButtonContent}>
+                  <Icons.QrCode size={22} color={themeColors.primary} />
+                  <Text
+                    selectable={true}
+                    style={[
+                      H5,
+                      styles.qrButtonText,
+                      { color: themeColors.primary },
+                    ]}
+                  >
+                    Увійти по QR-коду
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {isCanSkip && (
                 <TouchableOpacity
                   style={[styles.button, styles.skipButton]}
                   onPress={handleSkip}
@@ -192,37 +213,45 @@ export default function LoginScreen({ isCanSkip = true }) {
                     Пропустити
                   </Text>
                 </TouchableOpacity>
-                {/* Вибір теми */}
-                <View style={styles.themeOptionsContainer}>
-                  {themeOptions.map((theme) => (
-                    <TouchableOpacity
-                      key={theme.key}
-                      style={[
-                        styles.themeOption,
-                        {
-                          backgroundColor: theme.colors.background,
-                          borderColor:
-                            selectedTheme === theme.key
-                              ? theme.colors.primary
-                              : theme.colors.subtle,
-                          borderWidth: selectedTheme === theme.key ? 3 : 1,
-                        },
-                      ]}
-                      onPress={() => handleThemeSelect(theme.key)}
-                    >
-                      <View
-                        style={[
-                          styles.themePrimaryDot,
-                          { backgroundColor: theme.colors.primary },
-                        ]}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
+              )}
+            </View>
           </View>
         </View>
+
+        {/* Вибір теми — завжди внизу */}
+        {isCanSkip && (
+          <View
+            style={[
+              styles.themeOptionsContainer,
+              isWideLayout && styles.themeOptionsContainerWide,
+            ]}
+          >
+            {themeOptions.map((theme) => (
+              <TouchableOpacity
+                key={theme.key}
+                style={[
+                  styles.themeOption,
+                  {
+                    backgroundColor: theme.colors.background,
+                    borderColor:
+                      selectedTheme === theme.key
+                        ? theme.colors.primary
+                        : theme.colors.subtle,
+                    borderWidth: selectedTheme === theme.key ? 3 : 1,
+                  },
+                ]}
+                onPress={() => handleThemeSelect(theme.key)}
+              >
+                <View
+                  style={[
+                    styles.themePrimaryDot,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     </DefaultScreenWidget>
   );
@@ -235,13 +264,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 32,
   },
+  containerWide: {
+    justifyContent: "center",
+    paddingVertical: 32,
+  },
+  mainContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  mainContentWide: {
+    flex: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 48,
+  },
   logoContainer: {
     position: "absolute",
     top: "20%",
   },
+  logoContainerWide: {
+    position: "relative",
+    top: undefined,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   logo: {
     width: 280,
     height: 280,
+  },
+  logoWide: {
+    width: 320,
+    height: 320,
+  },
+  contentWide: {
+    flex: 1,
+    justifyContent: "center",
   },
   title: {
     fontFamily: "Nunito-Bold",
@@ -264,7 +325,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  loginButton: {},
   qrButton: {
     backgroundColor: "transparent",
     borderWidth: 1.5,
@@ -290,18 +350,15 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-SemiBold",
     fontSize: 18,
   },
-  themeSection: {
-    marginTop: 16,
-    alignItems: "center",
-  },
-  themeLabel: {
-    marginBottom: 12,
-    textAlign: "center",
-  },
   themeOptionsContainer: {
     flexDirection: "row",
     gap: 16,
     justifyContent: "center",
+  },
+  themeOptionsContainerWide: {
+    position: "absolute",
+    bottom: 32,
+    alignSelf: "center",
   },
   themeOption: {
     width: 44,

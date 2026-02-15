@@ -64,6 +64,7 @@ export default {
       googleServicesFile: "./google-services.json",
       versionCode: 1,
       buildType: "apk",
+      tvBanner: "./assets/AniUA-Logo(TV).jpg",
       adaptiveIcon: {
         foregroundImage: "./assets/AniUA-Logo-Icon.png",
         backgroundColor: "#181c14",
@@ -140,7 +141,7 @@ export default {
     },
     assetBundlePatterns: ["**/*"],
     plugins: [
-      // ["@react-native-tvos/config-tv"],
+      ["@react-native-tvos/config-tv"],
       ["./expo-plugin-tv-support.js"],
       [
         "./expo-plugin-architectures.js",
@@ -177,9 +178,11 @@ export default {
       ],
       "expo-web-browser",
       [
-        "expo-camera",
+        "react-native-vision-camera",
         {
-          cameraPermission: "Для сканування QR-коду потрібен доступ до камери",
+          cameraPermissionText:
+            "Для сканування QR-коду потрібен доступ до камери",
+          enableCodeScanner: true,
         },
       ],
     ],
