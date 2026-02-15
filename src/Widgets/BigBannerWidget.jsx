@@ -190,6 +190,7 @@ const Mobile = React.memo(({ animes }) => {
               height: BANNER_HEIGHT,
               alignItems: "center",
               justifyContent: "center",
+              flex: 1,
             },
           ]}
         >
@@ -211,8 +212,8 @@ const Mobile = React.memo(({ animes }) => {
             style={[
               styles.gradientOverlay,
               {
-                width: BANNER_WIDTH * 0.83,
-                height: BANNER_HEIGHT * 0.85,
+                width: BANNER_WIDTH * 0.9,
+                height: BANNER_HEIGHT * 0.9,
               },
             ]}
             start={{ x: 0, y: 0 }}

@@ -10,8 +10,10 @@ export default function ProfileScreen(props) {
   switch (deviceType) {
     case "tv":
       return <ProfileScreenTV {...props} />;
-    case "tablet":
+    case "tabletLandscape":
       return <ProfileScreenTablet {...props} />;
+    case "tablet":
+      return <ProfileScreenPhone {...props} />;
     default:
       return <ProfileScreenPhone {...props} />;
   }

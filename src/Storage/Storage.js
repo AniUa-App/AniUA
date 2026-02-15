@@ -1,8 +1,8 @@
-import {MMKV} from 'react-native-mmkv';
+import {createMMKV} from 'react-native-mmkv';
 
 export class Storage {
   constructor() {
-    this.storage = new MMKV();
+    this.storage = createMMKV();
   }
 
   setItem(key, value) {
@@ -15,7 +15,7 @@ export class Storage {
   }
 
   removeItem(key) {
-    this.storage.delete(key);
+    this.storage.remove(key);
   }
 
   clearStorage() {

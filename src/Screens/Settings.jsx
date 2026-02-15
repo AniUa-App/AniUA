@@ -14,7 +14,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
 import { useSnackbar } from "../Components/Snackbar";
 import MainConfig from "../cfgs/MainConfig";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeHashStorage from "../Storage/AnimeHashStorage";
 import AnimeStorage from "../Storage/AnimeStorage";

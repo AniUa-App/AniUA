@@ -1,7 +1,7 @@
 const {
   withGradleProperties,
   withAppBuildGradle,
-} = require("@expo/config-plugins");
+} = require("expo/config-plugins");
 
 const withArchitectures = (config, architectures) => {
   const archs = architectures || [

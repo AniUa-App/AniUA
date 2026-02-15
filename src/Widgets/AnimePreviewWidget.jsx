@@ -9,7 +9,7 @@ import { Image } from "./LoadersWidgets";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useState, useEffect } from "react";
 import EpisodesBottomSheet from "./EpisodesBottomSheetWidget";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import FileOpener from "../Global/FileOpener";
 import {
   isTabletLandscape,

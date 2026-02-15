@@ -56,7 +56,7 @@ export default function BookmarkTablet({ ...props }) {
           response = await HikkaApiComplete.getUserFavorites(
             "anime",
             user.username,
-            { page: pageToFetch, size: 24 } // Larger page size for grid
+            { page: pageToFetch, size: 24 }, // Larger page size for grid
           );
           Logger.debug("BookmarkTablet", "Отримано улюблені", response);
         } else {
@@ -99,7 +99,7 @@ export default function BookmarkTablet({ ...props }) {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -145,12 +145,12 @@ export default function BookmarkTablet({ ...props }) {
         </View>
       );
     },
-    [currentStatus, cardWidth, height]
+    [currentStatus, cardWidth, height],
   );
 
   const keyExtractor = useCallback(
     (item, index) => item?.slug || `${index}`,
-    []
+    [],
   );
 
   const ListEmptyComponent = useCallback(
@@ -162,7 +162,7 @@ export default function BookmarkTablet({ ...props }) {
           </Text>
         </View>
       ) : null,
-    [isLoading, currentStatus, height]
+    [isLoading, currentStatus, height],
   );
 
   const ListFooterComponent = useCallback(
@@ -172,7 +172,7 @@ export default function BookmarkTablet({ ...props }) {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null,
-    [isLoading, colors.primary]
+    [isLoading, colors.primary],
   );
 
   if (HikkaAuthStorage.isAuthenticated()) {
@@ -191,7 +191,10 @@ export default function BookmarkTablet({ ...props }) {
           removeClippedSubviews={true}
           ListEmptyComponent={ListEmptyComponent}
           ListFooterComponent={ListFooterComponent}
-          contentContainerStyle={[styles.listContentContainer, styles.gridContainer]}
+          contentContainerStyle={[
+            styles.listContentContainer,
+            styles.gridContainer,
+          ]}
           columnWrapperStyle={styles.gridColumnWrapper}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}

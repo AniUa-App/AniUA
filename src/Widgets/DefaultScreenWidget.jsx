@@ -9,7 +9,7 @@ import SettingsStorage from "../Storage/SettingsStorage";
 import { BlurView } from "expo-blur";
 import { EventBus } from "../Global/EventBus";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { useIsTabletLandscape, useIsTV, getTVSidebarWidth } from "../Styles/Responsive";
+import { useIsTablet, useIsTV, getTVSidebarWidth } from "../Styles/Responsive";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PerlinNoiseBackground from "./PerlinNoiseBackground";
 
@@ -20,7 +20,7 @@ export default function DefaultScreenWidget({
   isNavBarPadding = true,
   hasManualHeader = false,
 }) {
-  const isTL = useIsTabletLandscape();
+  const isTabletDevice = useIsTablet();
   const isTV = useIsTV();
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
@@ -29,7 +29,9 @@ export default function DefaultScreenWidget({
 
   const navigatorHeaderHeight = useHeaderHeight?.() || 0;
   // Якщо header рендериться вручну (не через navigator), додаємо відступ
-  const manualHeaderHeight = hasManualHeader ? Math.max(insets.top, StatusBar.currentHeight || 0) + 50 : 0;
+  const manualHeaderHeight = hasManualHeader
+    ? Math.max(insets.top, StatusBar.currentHeight || 0) + 50
+    : 0;
   const headerHeight = navigatorHeaderHeight || manualHeaderHeight;
 
   const isCustomisation = userConfig?.background?.isCustomisation ?? false;
@@ -111,8 +113,7 @@ export default function DefaultScreenWidget({
 
   const isBlurEnabled =
     isCustomisation && userConfig?.background?.isBlurBackground;
-  const blurReductionFactor =
-    userConfig?.background?.blurReductionFactor ?? 20;
+  const blurReductionFactor = userConfig?.background?.blurReductionFactor ?? 20;
   const blurIntensity = userConfig?.background?.blurIntensity ?? 80;
 
   return (
@@ -142,7 +143,7 @@ export default function DefaultScreenWidget({
           Styles.defaultScreenWidget,
           {
             backgroundColor: "transparent",
-            flexDirection: (isTV || isTL) ? "row" : "column",
+            flexDirection: isTV || isTabletDevice ? "row" : "column",
           },
         ]}
       >

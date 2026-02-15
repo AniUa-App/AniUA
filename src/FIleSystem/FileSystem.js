@@ -1,4 +1,3 @@
-import * as FileSystem from "expo-file-system";
 import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
 import { PermissionsAndroid, Platform } from "react-native";

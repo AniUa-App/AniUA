@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../../Global/useTheme";
@@ -27,6 +28,7 @@ import {
   FAVORITES_FILTERS,
   SCREEN_WIDTH,
 } from "../../Components/Profile";
+import { isTablet } from "../../Styles/Responsive";
 
 export default function ProfileScreen({ navigation }) {
   const colors = useThemeColors();
@@ -188,6 +190,10 @@ export default function ProfileScreen({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item.anime}
+                  cardWidth={
+                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.28
+                  }
+                  numColumns={isTablet() ? 5 : 3}
                 />
               </View>
             </View>
@@ -214,6 +220,10 @@ export default function ProfileScreen({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item}
+                  cardWidth={
+                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.28
+                  }
+                  numColumns={isTablet() ? 5 : 3}
                 />
               </View>
             </View>

@@ -177,6 +177,7 @@ export default {
         },
       ],
       "expo-web-browser",
+      "expo-font",
       [
         "react-native-vision-camera",
         {

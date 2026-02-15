@@ -104,16 +104,17 @@ export function useIsTV() {
 // Get device type for component selection
 export function getDeviceType() {
   if (isTV()) return "tv";
-  if (isTabletLandscape()) return "tablet";
+  if (isTablet()) return "tablet";
   return "phone";
 }
 
 export function useDeviceType() {
   const tv = useIsTV();
-  const tabletLandscape = useIsTabletLandscape();
+  const tablet = useIsTablet();
 
   if (tv) return "tv";
-  if (tabletLandscape) return "tablet";
+  if (useIsTabletLandscape()) return "tabletLandscape";
+  if (tablet) return "tablet";
   return "phone";
 }
 

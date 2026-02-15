@@ -12,6 +12,8 @@ export default function AnimePreviewScreen(props) {
     case "tv":
       return <AnimePreviewTV {...props} />;
     case "tablet":
+      return <AnimePreviewPhone {...props} />;
+    case "tabletLandscape":
       return <AnimePreviewTablet {...props} />;
     default:
       return <AnimePreviewPhone {...props} />;

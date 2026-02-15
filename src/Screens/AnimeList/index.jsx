@@ -11,6 +11,8 @@ export default function AnimeListScreen(props) {
     case "tv":
       return <AnimeListTV {...props} />;
     case "tablet":
+      return <AnimeListPhone {...props} />;
+    case "tabletLandscape":
       return <AnimeListTablet {...props} />;
     default:
       return <AnimeListPhone {...props} />;

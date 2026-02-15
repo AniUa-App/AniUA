@@ -1,6 +1,5 @@
 import notifee, { EventType, AndroidImportance } from "@notifee/react-native";
 import SettingsStorage from "../Storage/SettingsStorage";
-import * as FileSystem from "expo-file-system";
 import { FFmpegKit } from "ffmpeg-kit-react-native";
 import FileOpener from "./FileOpener";
 import RNFS from "react-native-fs";

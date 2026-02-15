@@ -137,7 +137,7 @@ addFileProvider("android/app/src/main/AndroidManifest.xml");
 
 // 5. Додати імпорт в MainApplication.kt
 addToFile(
-  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
+  "android/app/src/main/java/aniua/yuzka/site/beta/MainApplication.kt",
   "import expo.modules.ReactNativeHostWrapper",
   "import com.fileopener.FileOpenerPackage",
   "Імпорт FileOpenerPackage"
@@ -145,9 +145,9 @@ addToFile(
 
 // 6. Додати пакет в getPackages()
 addToFile(
-  "android/app/src/main/java/aniua/yuzka/site/MainApplication.kt",
-  "// packages.add(MyReactNativePackage())",
-  "            packages.add(FileOpenerPackage())",
+  "android/app/src/main/java/aniua/yuzka/site/beta/MainApplication.kt",
+  "// add(MyReactNativePackage())",
+  "              add(FileOpenerPackage())",
   "Додавання FileOpenerPackage в getPackages()"
 );
 

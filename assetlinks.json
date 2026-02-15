@@ -1,10 +1,12 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "aniua.yuzka.site",
-    "sha256_cert_fingerprints": [
-      "C3:2D:EA:D0:14:91:1F:49:E1:28:9A:E6:0B:5B:4E:8B:75:55:84:5E:1E:35:B9:AA:D4:D0:62:A0:27:95:FE:FB"
-    ]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "aniua.yuzka.site",
+      "sha256_cert_fingerprints": [
+        "C3:2D:EA:D0:14:91:1F:49:E1:28:9A:E6:0B:5B:4E:8B:75:55:84:5E:1E:35:B9:AA:D4:D0:62:A0:27:95:FE:FB"
+      ]
+    }
   }
-}]
+]

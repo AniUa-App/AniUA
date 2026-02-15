@@ -5,12 +5,7 @@ const {
   withDangerousMod,
   withAppBuildGradle,
   withProjectBuildGradle,
-  withPodfileProperties,
-  withCocoaPodsImport,
-} = require('@expo/config-plugins');
-const {
-  mergeContents,
-} = require('@expo/config-plugins/build/utils/generateCode');
+} = require('expo/config-plugins');
 
 const withFfmpegKitIos = (config, { iosUrl }) => {
   return withDangerousMod(config, [

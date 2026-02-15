@@ -12,10 +12,10 @@ import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { themes } from "../Styles/Colors";
 import { EventBus } from "../Global/EventBus";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { isTV, isTablet } from "../Styles/Responsive";
+import { isTV, isTablet, isTabletLandscape } from "../Styles/Responsive";
 
 export default function LoginScreen({ isCanSkip = true }) {
-  const isWideLayout = isTV() || isTablet();
+  const isWideLayout = isTV() || isTabletLandscape();
   const themeColors = useThemeColors();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = React.useState(false);

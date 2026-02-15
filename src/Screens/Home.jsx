@@ -26,7 +26,8 @@ import { EventBus } from "../Global/EventBus";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import { sendRequest } from "../Sources/CustomSet";
 import {
-  useIsTabletLandscape,
+  useIsTablet,
+  useIsLandscape,
   useIsTabletPortrait,
   useIsTV,
 } from "../Styles/Responsive";
@@ -73,8 +74,10 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const hikkaUser = useHikkaUser();
-  const isTL = useIsTabletLandscape();
+  const isTabletDevice = useIsTablet();
+  const isLandscape = useIsLandscape();
   const isTV = useIsTV();
+  const showSidebar = isTabletDevice && isLandscape;
   const navigatorRef = useRef(null);
   const [bannerAnimes, setBannerAnimes] = useState([]);
   const [activeTabKey, setActiveTabKey] = useState("anime");
@@ -84,14 +87,14 @@ export default function HomeScreen() {
 
   // Завантаження даних для банера на рівні HomeScreen (для планшетів та TV)
   useEffect(() => {
-    if (isTL || isTV) {
+    if (isTabletDevice || isTV) {
       HikkaSets.getMostPopularAnime(1, 6, 2025)
         .then(setBannerAnimes)
         .catch((err) =>
           Logger.error("Home", "Помилка завантаження банера", err),
         );
     }
-  }, [isTL, isTV]);
+  }, [isTabletDevice, isTV]);
 
   useEffect(() => {
     const unsubscribe = EventBus.on("recommendations", (newRecommendations) => {
@@ -105,9 +108,11 @@ export default function HomeScreen() {
     setActiveTabKey(tabKey);
   }, []);
 
-  // Навігація при зміні активної вкладки на планшеті
+  // Навігація при зміні активної вкладки через sidebar TopNavigationComponent.
+  // showSidebar НЕ в залежностях — інакше при повороті (коли Home змонтований
+  // але не активний) navigate() пробивається до Tab.Navigator і перекидає на Home.
   useEffect(() => {
-    if (isTL && navigatorRef.current) {
+    if (showSidebar && navigatorRef.current) {
       const routeMap = {
         dorama: "DoramaTab",
         anime: "AnimeTab",
@@ -115,7 +120,7 @@ export default function HomeScreen() {
       };
       navigatorRef.current.navigate(routeMap[activeTabKey]);
     }
-  }, [activeTabKey, isTL]);
+  }, [activeTabKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -161,116 +166,85 @@ export default function HomeScreen() {
     );
   }
 
-  // Планшет landscape - банер завжди видно зліва, навігатор над банером
-  if (isTL) {
-    return (
-      <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={{ flex: 1, flexDirection: "row", marginTop: insets.top }}>
-          {/* Ліва частина - навігатор зверху, банер знизу */}
-          <View
-            style={{
-              width: "40%",
-              height: "100%",
-            }}
-          >
-            {/* Навігатор (вкладки) */}
-            <View
-              style={{
-                backgroundColor: "transparent",
-                zIndex: 2,
-              }}
-            >
-              <TopNavigationComponent
-                activeTab={activeTabKey}
-                onTabChange={handleTabChange}
-              />
-            </View>
-            {/* Банер */}
-            {recommendations?.isDefaultBigBanner !== false && (
-              <View style={{ flex: 1 }}>
-                <BigBannerWidget.Tablet animes={bannerAnimes} />
-              </View>
-            )}
-          </View>
-          {/* Права частина - контент */}
-          <View style={{ flex: 1, height: "100%" }}>
-            <ContentTypeTab.Navigator
-              initialRouteName="AnimeTab"
-              tabBar={({ navigation }) => {
-                // Зберігаємо navigation ref для використання зовні
-                if (!navigatorRef.current) {
-                  navigatorRef.current = navigation;
-                }
-                return null;
-              }}
-              screenOptions={{
-                swipeEnabled: false,
-                animationEnabled: true,
-                lazy: true,
-              }}
-              sceneContainerStyle={{ backgroundColor: "transparent" }}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <ContentTypeTab.Screen
-                name="DoramaTab"
-                component={DoramaScreen}
-              />
-              <ContentTypeTab.Screen name="AnimeTab">
-                {() => (
-                  <AnimeTabContent
-                    historyData={hikkaUser?.history}
-                    refetchUserData={hikkaUser?.refetch}
-                    isTabletMode={true}
-                  />
-                )}
-              </ContentTypeTab.Screen>
-              <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
-            </ContentTypeTab.Navigator>
-          </View>
-        </View>
-      </DefaultScreenWidget>
-    );
-  }
-
-  // Телефон - звичайний layout
+  // Планшет та телефон — єдиний навігатор, щоб не перемонтовувався при повороті
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <View style={{ flex: 1 }}>
-        <ContentTypeTab.Navigator
-          initialRouteName="AnimeTab"
-          tabBar={(props) => (
-            <View
-              style={{
-                marginTop: 8,
-                backgroundColor: "transparent",
-                zIndex: 2,
-                position: "absolute",
-                width: "100%",
-              }}
-            >
-              <ContentTypeTabBar {...props} />
-            </View>
-          )}
-          screenOptions={{
-            swipeEnabled: false,
-            animationEnabled: true,
-            lazy: true,
+      <View
+        style={{
+          flex: 1,
+          flexDirection: showSidebar ? "row" : "column",
+          marginTop: showSidebar ? insets.top : 0,
+        }}
+      >
+        {/* Sidebar — завжди в дереві (width 0 у portrait) щоб навігатор
+            залишався на тій самій позиції і не перемонтовувався */}
+        <View
+          style={{
+            width: showSidebar ? "40%" : 0,
+            height: showSidebar ? "100%" : 0,
+            overflow: "hidden",
           }}
-          sceneContainerStyle={{ backgroundColor: "transparent" }}
-          style={{ backgroundColor: "transparent" }}
         >
-          <ContentTypeTab.Screen name="DoramaTab" component={DoramaScreen} />
-          <ContentTypeTab.Screen name="AnimeTab">
-            {() => (
-              <AnimeTabContent
-                historyData={hikkaUser?.history}
-                refetchUserData={hikkaUser?.refetch}
-                isTabletMode={false}
-              />
-            )}
-          </ContentTypeTab.Screen>
-          <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
-        </ContentTypeTab.Navigator>
+          {showSidebar && (
+            <>
+              <View style={{ backgroundColor: "transparent", zIndex: 2 }}>
+                <TopNavigationComponent
+                  activeTab={activeTabKey}
+                  onTabChange={handleTabChange}
+                />
+              </View>
+              {recommendations?.isDefaultBigBanner !== false && (
+                <View style={{ flex: 1 }}>
+                  <BigBannerWidget.Tablet animes={bannerAnimes} />
+                </View>
+              )}
+            </>
+          )}
+        </View>
+        {/* Навігатор контенту — єдиний екземпляр, ніколи не перемонтовується */}
+        <View style={{ flex: 1, height: showSidebar ? "100%" : undefined }}>
+          <ContentTypeTab.Navigator
+            initialRouteName="AnimeTab"
+            tabBar={(props) => {
+              if (!navigatorRef.current) {
+                navigatorRef.current = props.navigation;
+              }
+              if (showSidebar) return null;
+              return (
+                <View
+                  style={{
+                    marginTop: 8,
+                    backgroundColor: "transparent",
+                    zIndex: 2,
+                    position: "absolute",
+                    width: "100%",
+                  }}
+                >
+                  <ContentTypeTabBar {...props} />
+                </View>
+              );
+            }}
+            screenOptions={{
+              swipeEnabled: false,
+              animationEnabled: true,
+              lazy: true,
+            }}
+            sceneContainerStyle={{ backgroundColor: "transparent" }}
+            style={{ backgroundColor: "transparent" }}
+          >
+            <ContentTypeTab.Screen name="DoramaTab" component={DoramaScreen} />
+            <ContentTypeTab.Screen name="AnimeTab">
+              {() => (
+                <AnimeTabContent
+                  historyData={hikkaUser?.history}
+                  refetchUserData={hikkaUser?.refetch}
+                  isTabletMode={showSidebar}
+                />
+              )}
+            </ContentTypeTab.Screen>
+            <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
+          </ContentTypeTab.Navigator>
+        </View>
       </View>
     </DefaultScreenWidget>
   );
@@ -447,7 +421,7 @@ function AnimeTabContent({
           <View
             style={{
               flex: 1,
-              width: isTabletPort ? "90%" : "95%",
+              width: isTabletPort ? "98%" : "95%",
               alignSelf: "center",
               paddingHorizontal: isTabletPort ? 8 : 0,
             }}
