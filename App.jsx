@@ -4,7 +4,7 @@ import ScreenController from "./src/Screens/ScreenController/ScreenController";
 import { background, text, primary } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import Loader from "./src/Widgets/LoaderWidget";
+import Loader from "./src/Widgets/Splash";
 import * as ScreenOrientation from "expo-screen-orientation";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import Color from "color";
