@@ -64,6 +64,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    borderBottomRightRadius: 0,
+    borderBottomLeftRadius: 0,
   },
   // Player Tabs
   playerTabsContainer: {

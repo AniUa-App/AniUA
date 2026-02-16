@@ -46,15 +46,10 @@ class FileOpenerModule(reactContext: ReactApplicationContext) : ReactContextBase
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
-            // Check if there's an app to handle this intent
-            if (intent.resolveActivity(reactApplicationContext.packageManager) != null) {
-                val chooser = Intent.createChooser(intent, "Open file")
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                reactApplicationContext.startActivity(chooser)
-                promise.resolve("File opened successfully")
-            } else {
-                promise.reject("NO_APP_FOUND", "No application found to open this file type: $mimeType")
-            }
+            val chooser = Intent.createChooser(intent, "Open file")
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            reactApplicationContext.startActivity(chooser)
+            promise.resolve("File opened successfully")
         } catch (e: Exception) {
             promise.reject("ERROR", "Unable to open file: ${e.message}", e)
         }

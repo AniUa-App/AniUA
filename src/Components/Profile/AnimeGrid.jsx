@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     paddingTop: 40,
-    minHeight: "30%",
+    minHeight: "50%",
   },
   emptyStateText: {
     textAlign: "center",
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     alignItems: "flex-start",
     justifyContent: "flex-start",
-    minHeight: "30%",
+    minHeight: "50%",
   },
   animeGridItem: {
     justifyContent: "center",

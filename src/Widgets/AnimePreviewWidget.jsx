@@ -95,6 +95,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
 
   const IconComponent = Component.icon[type];
   const handlePress = Component.onPress[type];
+  var title;
 
   // Calculate image dimensions based on mode
   const getImageDimensions = () => {
@@ -112,16 +113,38 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
     }
     // TV: use maxHeight for compact cards, otherwise larger images
     if (isTVDevice) {
+      title =
+        (anime.title_ua || anime.title_en || anime.title_ja).length > 30
+          ? (anime.title_ua || anime.title_en || anime.title_ja).substring(
+              0,
+              30,
+            ) + "..."
+          : anime.title_ua || anime.title_en || anime.title_ja;
       return { width: width * 0.12, height: height * 0.3 };
     }
     // Default list mode
-    if (isTabletLandscape()) {
+    else if (isTabletLandscape()) {
+      title = anime.title_ua || anime.title_en || anime.title_ja;
       return { width: width * 0.12, height: height * 0.3 };
-    }
-    if (isTablet()) {
+    } else if (isTablet()) {
+      title =
+        (anime.title_ua || anime.title_en || anime.title_ja).length > 25
+          ? (anime.title_ua || anime.title_en || anime.title_ja).substring(
+              0,
+              25,
+            ) + "..."
+          : anime.title_ua || anime.title_en || anime.title_ja;
       return { width: width * 0.2, height: height * 0.2 };
+    } else {
+      title =
+        (anime.title_ua || anime.title_en || anime.title_ja).length > 20
+          ? (anime.title_ua || anime.title_en || anime.title_ja).substring(
+              0,
+              20,
+            ) + "..."
+          : anime.title_ua || anime.title_en || anime.title_ja;
+      return { width: width * 0.35, height: height * 0.25 };
     }
-    return { width: width * 0.35, height: height * 0.25 };
   };
 
   const imageDims = getImageDimensions();
@@ -160,18 +183,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
             ellipsizeMode="tail"
             style={[H3, { marginBottom: gridMode ? 4 : maxHeight ? 0 : 20 }]}
           >
-            {(anime.title_ua || anime.title_en || anime.title_ja).length > 20 &&
-            !isTVDevice
-              ? (anime.title_ua || anime.title_en || anime.title_ja)
-                  .split(" ")
-                  .slice(0, 6)
-                  .join(" ") + "..."
-              : (anime.title_ua || anime.title_en || anime.title_ja).length > 10
-                ? (anime.title_ua || anime.title_en || anime.title_ja)
-                    .split(" ")
-                    .slice(0, 6)
-                    .join(" ") + "..."
-                : anime.title_ua || anime.title_en || anime.title_ja}
+            {title}
           </Text>
           {!gridMode && (
             <>

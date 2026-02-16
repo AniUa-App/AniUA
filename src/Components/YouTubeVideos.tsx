@@ -49,7 +49,7 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
   const colors = useThemeColors();
   const isLandscape = useIsLandscape();
 
-  const videoWidth = isLandscape ? windowWidth * 0.2 : windowWidth * 0.65;
+  const videoWidth = 280;
   const videoHeight = videoWidth * (9 / 16);
 
   const handlePress = useCallback((url: string) => {
@@ -88,13 +88,13 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
         </TouchableOpacity>
       );
     },
-    [videoWidth, videoHeight, handlePress, colors.background]
+    [videoWidth, videoHeight, handlePress, colors.background],
   );
 
   const keyExtractor = useCallback(
     (item: VideoItem, index: number) =>
       `youtube-${extractVideoId(item.url) || index}`,
-    []
+    [],
   );
 
   if (!videos || videos.length === 0) {

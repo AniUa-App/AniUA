@@ -121,7 +121,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
   const renderActionButton = () => {
     if (isWatchMode) {
       return (
-        <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+        <TouchableOpacity focusable={false} onPress={handleShare} style={styles.shareButton}>
           <Icon.ShareNetwork
             size={24}
             color={isWatched ? themeColors.subtle : themeColors.primary}
@@ -140,6 +140,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
     if (isDownloaded) {
       return (
         <TouchableOpacity
+          focusable={false}
           onPress={downloadProps.onSharePress}
           style={styles.downloadButton}
         >
@@ -151,6 +152,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
     if (hasError) {
       return (
         <TouchableOpacity
+          focusable={false}
           onPress={downloadProps.onDownloadPress}
           style={[
             styles.downloadButton,
@@ -164,6 +166,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
 
     return (
       <TouchableOpacity
+        focusable={false}
         onPress={downloadProps.onDownloadPress}
         style={styles.downloadButton}
       >
@@ -183,7 +186,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
       onPress={handlePress}
       onLongPress={isWatchMode ? handleLongPress : undefined}
     >
-      <View style={styles.episodeContent}>
+      <View style={styles.episodeContent} importantForAccessibility="no-hide-descendants">
         {episode.poster && (
           <Image
             uri={episode.poster}
@@ -198,7 +201,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
         )}
         <View style={styles.episodeInfo}>
           <Text
-            selectable={true}
+            selectable={false}
             numberOfLines={2}
             style={[
               H4,
@@ -213,7 +216,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           </Text>
           {episodeName && (
             <Text
-              selectable={true}
+              selectable={false}
               style={[
                 H6,
                 {
@@ -247,7 +250,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           )}
           {isDownloadMode && hasError && (
             <Text
-              selectable={true}
+              selectable={false}
               style={[H6, { color: themeColors.primary, marginTop: 2 }]}
               numberOfLines={1}
             >

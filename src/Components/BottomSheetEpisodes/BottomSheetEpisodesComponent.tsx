@@ -16,6 +16,7 @@ import {
   useWindowDimensions,
   Animated,
   Linking,
+  BackHandler,
   findNodeHandle,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
@@ -130,6 +131,24 @@ const BottomSheetEpisodesComponent = forwardRef<
       },
       [],
     );
+
+    // ==================== BACK HANDLER ====================
+
+    useEffect(() => {
+      if (!isSheetOpen) return;
+
+      const backAction = () => {
+        if (activeScreen === "dubbing") {
+          animateToScreen("episodes");
+        } else {
+          sheetRef.current?.close();
+        }
+        return true;
+      };
+
+      const sub = BackHandler.addEventListener("hardwareBackPress", backAction);
+      return () => sub.remove();
+    }, [isSheetOpen, activeScreen, animateToScreen]);
 
     // ==================== LOAD DATA ====================
 

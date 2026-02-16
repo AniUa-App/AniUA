@@ -113,7 +113,7 @@ const StarRating = ({ rating = 0, onRate, themeColors }) => {
           flexDirection: "row",
           backgroundColor: themeColors.subtle,
           padding: 16,
-          borderRadius: 12,
+          borderRadius: 16,
           flex: 1,
           gap: 10,
           justifyContent: "space-between",
@@ -188,7 +188,7 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
                 {
                   paddingVertical: 10,
                   paddingHorizontal: 16,
-                  borderRadius: 12,
+                  borderRadius: 16,
                   backgroundColor: isActive
                     ? themeColors.activeIcon
                     : themeColors.subtle,
@@ -518,7 +518,7 @@ export default function AnimePreviewTablet({ route }) {
                   top: 16,
                   right: 16,
                   padding: 4,
-                  borderRadius: 8,
+                  borderRadius: 16,
                   backgroundColor: themeColors.subtle,
                 },
               ]}
@@ -605,7 +605,7 @@ export default function AnimePreviewTablet({ route }) {
                   height: 44,
                   justifyContent: "center",
                   alignItems: "center",
-                  borderRadius: 12,
+                  borderRadius: 16,
                   backgroundColor: themeColors.subtle,
                 },
               ]}

@@ -6,6 +6,7 @@ import Icon from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { DubbingButtonProps } from "./types";
 import { styles } from "./styles";
+import { accent } from "../../Styles/Colors";
 
 export const DubbingButton = React.memo(
   ({
@@ -24,7 +25,12 @@ export const DubbingButton = React.memo(
           Озвучка:
         </Text>
         <TouchableOpacity
-          style={[styles.dubbingChip, { backgroundColor: themeColors.subtle }]}
+          style={[
+            styles.dubbingChip,
+            {
+              backgroundColor: themeColors.accent,
+            },
+          ]}
           onPress={onPress}
           hasTVPreferredFocus={hasTVPreferredFocus}
         >
@@ -70,7 +76,7 @@ export const DubbingButton = React.memo(
         </View>
       </View>
     );
-  }
+  },
 );
 
 DubbingButton.displayName = "DubbingButton";

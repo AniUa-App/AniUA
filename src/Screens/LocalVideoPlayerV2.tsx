@@ -9,7 +9,7 @@ import {
   GestureResponderEvent,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, use } from "react";
 // import SystemNavigationBar from "react-native-system-navigation-bar";
 import { BackHandler } from "react-native";
 // import { StatusBar } from "react-native";
@@ -62,6 +62,7 @@ import type { HikkaAnimePreview } from "../Sources/HikkaApiComplete";
 import type { AnimeInfo } from "../Storage/AnimeStorage";
 import { isTV as isDeviceTV } from "../Styles/Responsive";
 import useTVEventHandler from "../Hooks/useTVEventHandler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
 
@@ -128,6 +129,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     animeSlug: _anime?.slug,
   });
   // const episodes = _episodes || [];
+  const insets = useSafeAreaInsets();
 
   const [episodeInfo, setEpisodeInfo] = useState<EpisodeInfo | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>(_episodes || []);
@@ -143,7 +145,11 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const [rate, setRate] = useState<number>(1.0);
   const [currentUrl, setCurrentUrl] = useState<VideoSource | null>(null);
   const [subtitles, setSubtitles] = useState<any[]>([]);
-  const [isLandscape, setIsLandscape] = useState<boolean>(isDeviceTV());
+  const [isLandscape, setIsLandscape] = useState<boolean>(() => {
+    if (isDeviceTV()) return true;
+    const dim = Dimensions.get("window");
+    return dim.width > dim.height;
+  });
   const [isZoomed, setIsZoomed] = useState<boolean>(false);
   const [quality, setQuality] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -688,8 +694,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         SystemNavigationBar.navigationHide();
         setIsLandscape(true);
       } else {
-        // SystemNavigationBar.fullScreen(false);
-        SystemNavigationBar.navigationShow();
+        SystemNavigationBar.navigationHide();
         setIsLandscape(false);
       }
       Logger.debug("LocalVideoPlayer", "isLandscape", { isLandscape });
@@ -727,8 +732,8 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
               setIsLandscape(true);
             } else {
               try {
-                SystemNavigationBar.fullScreen(false);
-                SystemNavigationBar.navigationShow();
+                SystemNavigationBar.fullScreen(true);
+                SystemNavigationBar.navigationHide();
               } catch (e) {
                 Logger.warn(
                   "LocalVideoPlayer",
@@ -823,12 +828,38 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   togglePlayPauseRef.current = togglePlayPause;
   const seekToRef = useRef(seekTo);
   seekToRef.current = seekTo;
+  const goToNextEpisodeRef = useRef(goToNextEpisode);
+  goToNextEpisodeRef.current = goToNextEpisode;
+  const goToPreviousEpisodeRef = useRef(goToPreviousEpisode);
+  goToPreviousEpisodeRef.current = goToPreviousEpisode;
+  const showControlsWithAnimationRef = useRef(showControlsWithAnimation);
+  showControlsWithAnimationRef.current = showControlsWithAnimation;
 
   useTVEventHandler({
-    onSelect: () => togglePlayPauseRef.current?.(),
-    onPlayPause: () => togglePlayPauseRef.current?.(),
-    onLeft: () => seekToRef.current?.(-10),
-    onRight: () => seekToRef.current?.(10),
+    onSelect: () => {
+      showControlsWithAnimationRef.current?.();
+      togglePlayPauseRef.current?.();
+    },
+    onPlayPause: () => {
+      showControlsWithAnimationRef.current?.();
+      togglePlayPauseRef.current?.();
+    },
+    onLeft: () => {
+      showControlsWithAnimationRef.current?.();
+      seekToRef.current?.(-10);
+    },
+    onRight: () => {
+      showControlsWithAnimationRef.current?.();
+      seekToRef.current?.(10);
+    },
+    onUp: () => {
+      showControlsWithAnimationRef.current?.();
+      goToPreviousEpisodeRef.current?.();
+    },
+    onDown: () => {
+      showControlsWithAnimationRef.current?.();
+      goToNextEpisodeRef.current?.();
+    },
   });
 
   // Автовхід у PiP при згортанні застосунку (не для TV)
@@ -974,8 +1005,6 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   };
 
   const startHideControlsTimer = () => {
-    // На TV контролі завжди видимі
-    if (isDeviceTV()) return;
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
     }
@@ -1020,8 +1049,8 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
               EOrientation.lockAsync(EOrientation.OrientationLock.PORTRAIT_UP);
             }
             try {
-              SystemNavigationBar.fullScreen(false);
-              SystemNavigationBar.navigationShow();
+              SystemNavigationBar.fullScreen(true);
+              SystemNavigationBar.navigationHide();
             } catch (e) {
               Logger.warn(
                 "LocalVideoPlayer",
@@ -1126,7 +1155,14 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <StatusBar style="dark" />
 
       {/* Фон відео */}
@@ -1147,6 +1183,15 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
               android_disableSound
             />
           </View>
+        )}
+        {/* Невидимий фокусабельний елемент для TV — завжди перехоплює d-pad */}
+        {isDeviceTV() && (
+          <Pressable
+            style={[StyleSheet.absoluteFill, { zIndex: showControls ? -1 : 5 }]}
+            focusable={!showControls}
+            hasTVPreferredFocus={!showControls}
+            onPress={showControlsWithAnimation}
+          />
         )}
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}

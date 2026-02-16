@@ -29,6 +29,7 @@ import {
   SCREEN_WIDTH,
 } from "../../Components/Profile";
 import { isTablet } from "../../Styles/Responsive";
+import { SCREEN_HEIGHT } from "@gorhom/bottom-sheet";
 
 export default function ProfileScreen({ navigation }) {
   const colors = useThemeColors();
@@ -153,12 +154,6 @@ export default function ProfileScreen({ navigation }) {
             styles.tabContentWrapper,
             {
               backgroundColor: colors.accent,
-              height: Math.max(
-                profile.activeTab === "list"
-                  ? profile.listTabHeight
-                  : profile.favoritesTabHeight,
-                300,
-              ),
             },
           ]}
         >
@@ -169,7 +164,7 @@ export default function ProfileScreen({ navigation }) {
             ]}
           >
             {/* List Tab */}
-            <View style={{ width: SCREEN_WIDTH }}>
+            <View style={{ minWidth: SCREEN_WIDTH, minHeight: SCREEN_HEIGHT }}>
               <View
                 onLayout={(e) =>
                   profile.setListTabHeight(e.nativeEvent.layout.height)
@@ -199,7 +194,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
 
             {/* Favorites Tab */}
-            <View style={{ width: SCREEN_WIDTH }}>
+            <View style={{ minWidth: SCREEN_WIDTH, minHeight: SCREEN_HEIGHT }}>
               <View
                 onLayout={(e) =>
                   profile.setFavoritesTabHeight(e.nativeEvent.layout.height)

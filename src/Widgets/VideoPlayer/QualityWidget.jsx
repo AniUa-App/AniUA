@@ -7,13 +7,14 @@ import Icons from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { background } from "../../Styles/Colors";
 import { isTV } from "../../Styles/Responsive";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function QualityWidget({
   sheetRef,
   currentQuality,
   onQualityChange,
   qualities = [],
 }) {
+  const insets = useSafeAreaInsets();
   const [orientation, setOrientation] = React.useState(
     getOrientation(
       Dimensions.get("window").width,
@@ -48,7 +49,7 @@ export default function QualityWidget({
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={
-        isTV() ? ["30%"] : orientation === "horizontal" ? ["45%"] : ["20%"]
+        isTV() ? ["30%"] : orientation === "horizontal" ? ["30%"] : ["20%"]
       }
       enableDynamicSizing={false}
       enablePanDownToClose={true}
@@ -64,7 +65,7 @@ export default function QualityWidget({
       animationDuration={300}
       enableContentPanningGesture={false}
     >
-      <BottomSheetView style={styles.container}>
+      <BottomSheetView style={[styles.container]}>
         <View style={styles.header}>
           <Text
             selectable={true}

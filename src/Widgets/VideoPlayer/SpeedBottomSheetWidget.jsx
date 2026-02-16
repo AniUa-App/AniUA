@@ -17,8 +17,8 @@ export default function SpeedBottomSheet({
   const [orientation, setOrientation] = useState(
     getOrientation(
       Dimensions.get("window").width,
-      Dimensions.get("window").height
-    )
+      Dimensions.get("window").height,
+    ),
   );
 
   useEffect(() => {

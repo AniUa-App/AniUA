@@ -15,6 +15,7 @@ import {
   useWindowDimensions,
   Animated,
   Easing,
+  BackHandler,
 } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import RNFS from "react-native-fs";
@@ -131,6 +132,10 @@ const BottomSheetDownloadComponent = forwardRef<
   const slideAnim = useRef(new Animated.Value(0)).current;
   const playerSlideAnim = useRef(new Animated.Value(0)).current;
 
+  // Sheet state
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [activeScreen, setActiveScreen] = useState<"episodes" | "dubbing">("episodes");
+
   // Scroll button state
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isAtEnd, setIsAtEnd] = useState(false);
@@ -148,6 +153,7 @@ const BottomSheetDownloadComponent = forwardRef<
 
   const animateToScreen = useCallback(
     (screen: "episodes" | "dubbing") => {
+      setActiveScreen(screen);
       Animated.timing(slideAnim, {
         toValue: screen === "episodes" ? 0 : 1,
         duration: 300,
@@ -157,6 +163,24 @@ const BottomSheetDownloadComponent = forwardRef<
     },
     [slideAnim]
   );
+
+  // ==================== BACK HANDLER ====================
+
+  useEffect(() => {
+    if (!isSheetOpen) return;
+
+    const backAction = () => {
+      if (activeScreen === "dubbing") {
+        animateToScreen("episodes");
+      } else {
+        sheetRef.current?.close();
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => sub.remove();
+  }, [isSheetOpen, activeScreen, animateToScreen]);
 
   const episodesTranslateX = slideAnim.interpolate({
     inputRange: [0, 1],
@@ -777,6 +801,7 @@ const BottomSheetDownloadComponent = forwardRef<
         />
       )}
       enableContentPanningGesture={false}
+      onChange={(index) => setIsSheetOpen(index >= 0)}
     >
       <BottomSheetView style={styles.container}>
         {isLoading ? (

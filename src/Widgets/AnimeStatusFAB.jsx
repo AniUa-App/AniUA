@@ -6,6 +6,7 @@ import { H4, H5 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Color from "color";
+import { isTablet } from "../Styles/Responsive";
 
 export default function AnimeStatusFAB({
   currentStatus = null,
@@ -195,7 +196,7 @@ export default function AnimeStatusFAB({
                   }}
                 >
                   <IconComponent
-                    size={size / 2}
+                    size={isTablet() ? size / 2 : size / 1.6}
                     color={item.color}
                     weight={isSelected ? "fill" : "regular"}
                   />

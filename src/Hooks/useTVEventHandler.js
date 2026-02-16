@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Platform } from "react-native";
 import { isTV } from "../Styles/Responsive";
 
@@ -20,61 +20,65 @@ export default function useTVEventHandler(handlers = {}) {
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
 
+  const handleEvent = useCallback((evt) => {
+    if (!evt || evt.eventType === "blur" || evt.eventType === "focus") return;
+
+    const h = handlersRef.current;
+
+    switch (evt.eventType) {
+      case "select":
+        h.onSelect?.();
+        break;
+      case "playPause":
+        h.onPlayPause?.();
+        break;
+      case "menu":
+        h.onMenu?.();
+        break;
+      case "left":
+        h.onLeft?.();
+        break;
+      case "right":
+        h.onRight?.();
+        break;
+      case "up":
+        h.onUp?.();
+        break;
+      case "down":
+        h.onDown?.();
+        break;
+      case "longSelect":
+        h.onLongSelect?.();
+        break;
+    }
+  }, []);
+
   useEffect(() => {
     if (!Platform.isTV && !isTV()) return;
 
+    // New API: TVEventHandler.addListener (static method)
     let TVEventHandler;
     try {
-      // TVEventHandler is available in react-native for TV platforms
-      TVEventHandler = require("react-native").TVEventHandler;
+      TVEventHandler =
+        require("react-native/Libraries/Components/TV/TVEventHandler").default;
     } catch {
-      return;
-    }
-
-    if (!TVEventHandler) return;
-
-    let tvEventHandler;
-    try {
-      tvEventHandler = new TVEventHandler();
-    } catch {
-      return;
-    }
-
-    tvEventHandler.enable(null, (cmp, evt) => {
-      if (!evt || evt.eventType === "blur" || evt.eventType === "focus") return;
-
-      const h = handlersRef.current;
-
-      switch (evt.eventType) {
-        case "select":
-          h.onSelect?.();
-          break;
-        case "playPause":
-          h.onPlayPause?.();
-          break;
-        case "menu":
-          h.onMenu?.();
-          break;
-        case "left":
-          h.onLeft?.();
-          break;
-        case "right":
-          h.onRight?.();
-          break;
-        case "up":
-          h.onUp?.();
-          break;
-        case "down":
-          h.onDown?.();
-          break;
-        case "longSelect":
-          h.onLongSelect?.();
-          break;
+      // Fallback: try legacy class-based API
+      try {
+        const { TVEventHandler: LegacyHandler } = require("react-native");
+        if (LegacyHandler) {
+          const handler = new LegacyHandler();
+          handler.enable(null, (cmp, evt) => handleEvent(evt));
+          return () => handler.disable();
+        }
+      } catch {
+        // No TV event handling available
       }
-    });
+      return;
+    }
 
-    return () => {
-      tvEventHandler.disable();
-    };
-  }, []);
+    if (!TVEventHandler?.addListener) return;
+
+    const subscription = TVEventHandler.addListener(handleEvent);
+    return () => subscription.remove();
+  }, [handleEvent]);
 }

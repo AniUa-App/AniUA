@@ -73,7 +73,7 @@ export const DownloadDubbingButton = React.memo(
         )}
       </View>
     );
-  }
+  },
 );
 
 DownloadDubbingButton.displayName = "DownloadDubbingButton";

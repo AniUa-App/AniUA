@@ -6,13 +6,13 @@ import {
   ActivityIndicator,
   FlatList,
   findNodeHandle,
+  BackHandler,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
 import { useNavigation } from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
-import Clipboard from "@react-native-clipboard/clipboard";
 
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import WatchButton, { WatchButtonState } from "../../Components/WatchButton";
@@ -212,6 +212,25 @@ export default function AnimePreviewTV({ route }) {
 
   const newDownloadSheetRef = useRef(null);
 
+  // Back button handler for TV remote
+  useEffect(() => {
+    const backAction = () => {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate("MainTabs", { screen: "Home" });
+      }
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
+
   // Circular focus refs for left panel
   const backButtonRef = useRef(null);
   const favoriteButtonRef = useRef(null);
@@ -220,8 +239,12 @@ export default function AnimePreviewTV({ route }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const bh = backButtonRef.current ? findNodeHandle(backButtonRef.current) : null;
-      const fh = favoriteButtonRef.current ? findNodeHandle(favoriteButtonRef.current) : null;
+      const bh = backButtonRef.current
+        ? findNodeHandle(backButtonRef.current)
+        : null;
+      const fh = favoriteButtonRef.current
+        ? findNodeHandle(favoriteButtonRef.current)
+        : null;
       setBackBtnHandle(bh || undefined);
       setFavBtnHandle(fh || undefined);
     }, 100);
@@ -452,21 +475,22 @@ export default function AnimePreviewTV({ route }) {
                   alignItems: "flex-start",
                   maxWidth: "95%",
                 },
+
                 titleContainerWidth && { width: titleContainerWidth },
               ]}
+              focusable={false}
             >
               <Text
                 style={[H3, { color: themeColors.text }]}
                 numberOfLines={2}
                 onTextLayout={handleTitleLayout}
-                onLongPress={() =>
-                  anime.title_ua && Clipboard.setString(anime.title_ua)
-                }
+                focusable={false}
+                selectable={false}
               >
                 {anime.title_ua || anime.title_en || anime.title_ja}
                 {anime.year ? ` (${anime.year})` : ""}
               </Text>
-              <View style={{ marginTop: 2 }}>
+              <View style={{ marginTop: 2 }} focusable={false}>
                 <Text
                   style={[
                     H5,
@@ -474,6 +498,8 @@ export default function AnimePreviewTV({ route }) {
                       color: themeColors.Text?.(0.6) || themeColors.text,
                     },
                   ]}
+                  focusable={false}
+                  selectable={false}
                 >
                   {anime.title_en || anime.title_ja || ""}
                 </Text>
