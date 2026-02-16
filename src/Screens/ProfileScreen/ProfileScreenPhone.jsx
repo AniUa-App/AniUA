@@ -186,7 +186,7 @@ export default function ProfileScreen({ navigation }) {
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item.anime}
                   cardWidth={
-                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.28
+                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35
                   }
                   numColumns={isTablet() ? 5 : 3}
                 />
