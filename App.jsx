@@ -342,7 +342,7 @@ export default function App() {
 
             setIsLoading(false);
           },
-          isNotFirstLaunch ? 1200 : 2500,
+          isNotFirstLaunch ? 2500 : 2500,
         );
         Logger.debug("App", "Setting currentAppVersion", currentAppVersion);
 
@@ -398,9 +398,11 @@ export default function App() {
   if (!fontsLoaded || isLoading) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider style={{ flex: 1 }}>
-          <Loader isNotFirstLaunch={isNotFirstLaunch} />
-        </BottomSheetModalProvider>
+        <SafeAreaProvider>
+          <BottomSheetModalProvider style={{ flex: 1 }}>
+            <Loader isNotFirstLaunch={isNotFirstLaunch} />
+          </BottomSheetModalProvider>
+        </SafeAreaProvider>
       </GestureHandlerRootView>
     );
   }

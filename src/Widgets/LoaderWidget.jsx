@@ -8,8 +8,10 @@ import MainConfig from "../cfgs/MainConfig";
 import * as Updates from "expo-updates";
 import Constants from "expo-constants";
 import Icon from "../Styles/Icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Loader({ isNotFirstLaunch = false }) {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const [fadeAnim] = useState(new Animated.Value(0));
   const translateYAnim = useRef(new Animated.Value(50)).current;
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -58,7 +60,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
           }),
         ]).start();
       },
-      !isNotFirstLaunch ? 0 : 1000
+      !isNotFirstLaunch ? 0 : 1000,
     );
     setTimeout(() => {
       Animated.parallel([
@@ -92,17 +94,17 @@ export default function Loader({ isNotFirstLaunch = false }) {
         },
         versionContainer: {
           position: "absolute",
-          bottom: 20,
+          bottom: Math.max(insets.bottom, 20) + 10,
           alignItems: "center",
           flexDirection: "row",
           gap: 5,
         },
       }),
-    [colors]
+    [colors],
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {}]}>
       <StatusBar
         barStyle="light-content"
         translucent
@@ -162,7 +164,15 @@ export default function Loader({ isNotFirstLaunch = false }) {
           },
         ]}
       >
-        <Text selectable={true} style={[H4, { color: colors.text }]}>
+        <Text
+          selectable={true}
+          style={[
+            H4,
+            {
+              color: colors.text,
+            },
+          ]}
+        >
           {`${appVersion || "1.0.0"}-${gitHash || "unknown"}-${expoChannel !== "release" ? `${expoChannel}` : ""}`}
         </Text>
         {expoChannel !== "release" && (
