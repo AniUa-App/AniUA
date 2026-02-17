@@ -89,6 +89,7 @@ app-bundle/.env
 app-bundle/*.jar
 app-bundle/*.apk
 app-bundle/*.jks
+app-bundle/*.aab
 
 
 build
