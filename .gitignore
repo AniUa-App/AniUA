@@ -85,6 +85,12 @@ react-native-file-opener/node_modules/
 react-native-selectable-text-input/node_modules/
 
 
+app-bundle/.env
+app-bundle/*.jar
+app-bundle/*.apk
+app-bundle/*.jks
+
+
 build
 test*
 /google-services.json
