@@ -238,6 +238,7 @@ function AnimeTabContent({
   isTabletMode = false,
 }) {
   const colors = useThemeColors();
+  const isTV = useIsTV();
   const isTabletPort = useIsTabletPortrait();
   const insets = useSafeAreaInsets();
   const [animeList_popularity_this_year, setAnimeList_popularity_this_year] =
@@ -343,7 +344,7 @@ function AnimeTabContent({
 
   // Планшет landscape / TV - тільки контент, банер рендериться в HomeScreen
   if (isTabletMode) {
-    return (
+    const content = (
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} focusable={false}>
         <View
           style={{
@@ -379,6 +380,16 @@ function AnimeTabContent({
           )}
         </View>
       </ScrollView>
+    );
+
+    // TV: без обгортки (DefaultScreenWidget вже є в HomeScreen)
+    if (isTV) return content;
+
+    // Планшет: потрібна обгортка для фону
+    return (
+      <DefaultScreenWidget isNavBarPadding={false}>
+        {content}
+      </DefaultScreenWidget>
     );
   }
 
