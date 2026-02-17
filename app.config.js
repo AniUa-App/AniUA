@@ -64,6 +64,9 @@ export default {
       googleServicesFile: "./google-services.json",
       versionCode: 1,
       buildType: "apk",
+      bundle: {
+        languageSplit: false,
+      },
       tvBanner: "./assets/AniUA-Logo(TV).jpg",
       adaptiveIcon: {
         foregroundImage: "./assets/AniUA-Logo-Icon.png",

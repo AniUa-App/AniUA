@@ -9,7 +9,7 @@
         "CHANNEL": "beta"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "aab-beta": {
@@ -19,6 +19,15 @@
       },
       "android": {
         "buildType": "app-bundle"
+      }
+    },
+    "beta-apk": {
+      "channel": "beta",
+      "env": {
+        "CHANNEL": "beta"
+      },
+      "android": {
+        "buildType": "apk"
       }
     }
   },

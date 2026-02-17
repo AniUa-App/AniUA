@@ -108,3 +108,6 @@ android/app/google-services.json
 .env.*
 .env*.local
 !.env.example
+
+
+build-*.tar.gz

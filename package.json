@@ -15,7 +15,8 @@
     "prebuild": "npx expo prebuild --clean --platform android && npm run setup-file-opener && npx patch-package && npm run setup-ffmpeg",
     "set-env": "node ./scripts/set-environment.js",
     "update-beta": "npm run set-env && node scripts/update-beta.js",
-    "build-beta": "npm run prebuild && npm run set-env && npx eas build --platform android --profile beta --local"
+    "build-beta": "npm run prebuild && npm run set-env && npx eas build --platform android --profile beta --local",
+    "build-beta-apk": "npm run prebuild && npm run set-env && (npx eas build --platform android --profile beta-apk --local || ls build-*.tar.gz > /dev/null 2>&1)"
   },
   "dependencies": {
     "@expensify/react-native-live-markdown": "^0.1.322",
