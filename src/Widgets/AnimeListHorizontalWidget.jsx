@@ -116,6 +116,7 @@ export function AnimeListHorizontal({
         style={styles.header}
         activeOpacity={1}
         onPress={onClickMore}
+        tvFocusable={!!onClickMore}
       >
         {title?.length > 0 && (
           <Text
@@ -156,6 +157,7 @@ export function AnimeListHorizontal({
         windowSize={5}
         removeClippedSubviews={false}
         nestedScrollEnabled={true}
+        focusable={false}
         contentContainerStyle={[
           styles.listContent,
           checkIsTV() && { paddingVertical: 8 },
@@ -166,7 +168,7 @@ export function AnimeListHorizontal({
     </>
   );
 
-  return <View>{content}</View>;
+  return <View focusable={false}>{content}</View>;
 }
 
 export function PreviewAnimeListHorizontal({

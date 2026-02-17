@@ -130,37 +130,16 @@ export default function HomeScreen() {
     }, [hikkaUser?.refetch]),
   );
 
-  // TV - full-width layout with large banner, sidebar handled by navigator
+  // TV - full-width layout, no tab navigator needed (single tab)
   if (isTV) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          <ContentTypeTab.Navigator
-            initialRouteName="AnimeTab"
-            tabBar={({ navigation }) => {
-              if (!navigatorRef.current) {
-                navigatorRef.current = navigation;
-              }
-              return null;
-            }}
-            screenOptions={{
-              swipeEnabled: false,
-              animationEnabled: true,
-              lazy: true,
-            }}
-            sceneContainerStyle={{ backgroundColor: "transparent" }}
-            style={{ backgroundColor: "transparent" }}
-          >
-            <ContentTypeTab.Screen name="AnimeTab">
-              {() => (
-                <AnimeTabContent
-                  historyData={hikkaUser?.history}
-                  refetchUserData={hikkaUser?.refetch}
-                  isTabletMode={true}
-                />
-              )}
-            </ContentTypeTab.Screen>
-          </ContentTypeTab.Navigator>
+        <View style={{ flex: 1 }} focusable={false}>
+          <AnimeTabContent
+            historyData={hikkaUser?.history}
+            refetchUserData={hikkaUser?.refetch}
+            isTabletMode={true}
+          />
         </View>
       </DefaultScreenWidget>
     );
@@ -362,45 +341,44 @@ function AnimeTabContent({
     }, [loadPopularAnime, refetchUserData]),
   );
 
-  // Планшет landscape - тільки контент, банер рендериться в HomeScreen
+  // Планшет landscape / TV - тільки контент, банер рендериться в HomeScreen
   if (isTabletMode) {
     return (
-      <DefaultScreenWidget isNavBarPadding={false}>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <View
-            style={{
-              flex: 1,
-              paddingBottom: 50,
-              width: "95%",
-              alignSelf: "center",
-            }}
-          >
-            {animeHistory?.length > 0 && (
-              <AnimeListHorizontal
-                title="Історія перегляду"
-                animeList={animeHistory.slice(0, 15)}
-                onClickMore={
-                  animeHistory.length < 15
-                    ? null
-                    : async () => {
-                        navigation.navigate("HiddenStack", {
-                          screen: "AnimeList",
-                          params: {
-                            title: "Історія перегляду",
-                            initialData: animeHistory,
-                          },
-                        });
-                      }
-                }
-              />
-            )}
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} focusable={false}>
+        <View
+          style={{
+            flex: 1,
+            paddingBottom: 50,
+            width: "95%",
+            alignSelf: "center",
+          }}
+          focusable={false}
+        >
+          {animeHistory?.length > 0 && (
+            <AnimeListHorizontal
+              title="Історія перегляду"
+              animeList={animeHistory.slice(0, 15)}
+              onClickMore={
+                animeHistory.length < 15
+                  ? null
+                  : async () => {
+                      navigation.navigate("HiddenStack", {
+                        screen: "AnimeList",
+                        params: {
+                          title: "Історія перегляду",
+                          initialData: animeHistory,
+                        },
+                      });
+                    }
+              }
+            />
+          )}
 
-            {recommendations?.isCustomedPersonalRecommendations !== false && (
-              <CustomPersonalRecList />
-            )}
-          </View>
-        </ScrollView>
-      </DefaultScreenWidget>
+          {recommendations?.isCustomedPersonalRecommendations !== false && (
+            <CustomPersonalRecList />
+          )}
+        </View>
+      </ScrollView>
     );
   }
 

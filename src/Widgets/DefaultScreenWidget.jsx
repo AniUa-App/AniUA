@@ -117,7 +117,10 @@ export default function DefaultScreenWidget({
   const blurIntensity = userConfig?.background?.blurIntensity ?? 80;
 
   return (
-    <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <View
+      style={{ flex: 1, backgroundColor: themeColors.background }}
+      focusable={false}
+    >
       {/* Фонове зображення на найвищому рівні */}
       {hasCustomBackground && imageUri && (
         <ImageBackground
@@ -146,6 +149,7 @@ export default function DefaultScreenWidget({
             flexDirection: isTV || isTabletDevice ? "row" : "column",
           },
         ]}
+        focusable={false}
       >
         <StatusBar
           barStyle="light-content"
@@ -157,6 +161,7 @@ export default function DefaultScreenWidget({
             { flex: 1, paddingTop: headerHeight },
             isNavBarPadding ? getNavbarPadding() : {},
           ]}
+          focusable={false}
         >
           {isCheckInternet && !isConnected && (
             <InternetError onPress={checkConnection} />
