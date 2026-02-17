@@ -563,11 +563,8 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       } else {
         player.play();
       }
-      if (showControls) {
-        startHideControlsTimer();
-      }
     }
-  }, [player, showControls]);
+  }, [player]);
 
   const seekTo = (seconds) => {
     if (player && duration > 0) {
@@ -834,29 +831,37 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   goToPreviousEpisodeRef.current = goToPreviousEpisode;
   const showControlsWithAnimationRef = useRef(showControlsWithAnimation);
   showControlsWithAnimationRef.current = showControlsWithAnimation;
+  const showControlsRef = useRef(showControls);
+  showControlsRef.current = showControls;
 
   useTVEventHandler({
     onSelect: () => {
-      showControlsWithAnimationRef.current?.();
-      togglePlayPauseRef.current?.();
+      if (!showControlsRef.current) {
+        showControlsWithAnimationRef.current?.();
+        return;
+      }
     },
     onPlayPause: () => {
       showControlsWithAnimationRef.current?.();
       togglePlayPauseRef.current?.();
     },
     onLeft: () => {
+      if (showControlsRef.current) return;
       showControlsWithAnimationRef.current?.();
       seekToRef.current?.(-10);
     },
     onRight: () => {
+      if (showControlsRef.current) return;
       showControlsWithAnimationRef.current?.();
       seekToRef.current?.(10);
     },
     onUp: () => {
+      if (showControlsRef.current) return;
       showControlsWithAnimationRef.current?.();
       goToPreviousEpisodeRef.current?.();
     },
     onDown: () => {
+      if (showControlsRef.current) return;
       showControlsWithAnimationRef.current?.();
       goToNextEpisodeRef.current?.();
     },
@@ -1007,12 +1012,28 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const startHideControlsTimer = () => {
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
+      hideControlsTimerRef.current = null;
     }
 
     hideControlsTimerRef.current = setTimeout(() => {
       hideControls();
     }, 2000);
   };
+
+  // Коли відео на паузі — інтерфейс не ховається автоматично.
+  // Коли відео відновлюється — запускаємо таймер приховування.
+  useEffect(() => {
+    if (!isPlaying && showControls) {
+      // Відео зупинено — скасовуємо таймер
+      if (hideControlsTimerRef.current) {
+        clearTimeout(hideControlsTimerRef.current);
+        hideControlsTimerRef.current = null;
+      }
+    } else if (isPlaying && showControls) {
+      // Відео відновлено — запускаємо таймер
+      startHideControlsTimer();
+    }
+  }, [isPlaying]);
 
   const handlePlayPress = () => {
     togglePlayPause();
@@ -2429,7 +2450,9 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     if (posterMatch) playerData.poster = posterMatch[1];
     if (subtitleMatch) playerData.subtitle = subtitleMatch[1];
     if (defaultQualityMatch) playerData.defaultQuality = defaultQualityMatch[1];
-    playerData.qualitys = await ___getQualities(fileMatch[1]);
+    playerData.qualitys = typeof fileMatch[1] === "string"
+      ? await ___getQualities(fileMatch[1])
+      : fileMatch[1];
     Logger.debug("LocalVideoPlayer", "MOON: player data prepared", {
       hasFile: !!playerData.file,
       qualitiesCount: Object.keys(playerData.qualitys || {}).length,
