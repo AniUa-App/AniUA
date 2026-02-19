@@ -162,7 +162,7 @@ const AnimePreviewWidget = React.memo(function AnimePreviewWidget({
           prefetchBloomImage(anime.image);
           navigation.navigate("HiddenStack", {
             screen: "AnimePreview",
-            params: { anime },
+            params: { anime, _fromTap: true },
           });
         }}
         onFocus={onFocus}

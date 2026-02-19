@@ -231,9 +231,6 @@ export function PreviewAnimeListHorizontal({
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    borderRadius: 8,
-  },
   arrowRightIcon: {
     width: 38,
     height: 38,

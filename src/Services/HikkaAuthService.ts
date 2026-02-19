@@ -9,6 +9,7 @@ import AniuaAuthStorage from "../Storage/AniuaAuthStorage";
 import MainConfig from "../cfgs/MainConfig";
 import Logger from "../Logger/Logger";
 import { EventBus } from "../Global/EventBus";
+import AnalyticsService from "./AnalyticsService";
 
 /**
  * Сервіс для OAuth авторизації через Hikka
@@ -161,6 +162,8 @@ export class HikkaAuthService {
         HikkaApiComplete.setAuthToken(tokenData.secret);
 
         Logger.info("HikkaAuthService", "Hikka авторизація успішна");
+
+        AnalyticsService.logLogin("hikka");
 
         // Автоматична реєстрація/вхід в AniUA API
         await this.registerInAniUA(tokenData.secret, tokenData.user);

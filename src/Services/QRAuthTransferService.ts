@@ -4,6 +4,29 @@ import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import AniuaAuthStorage from "../Storage/AniuaAuthStorage";
 import Logger from "../Logger/Logger";
 import MainConfig from "../cfgs/MainConfig";
+import pako from "pako";
+
+// ─── Gzip helpers ──────────────────────────────────────────────────────
+
+export function compressToBase64(json: string): string {
+  const compressed = pako.gzip(json);
+  let binary = "";
+  for (let i = 0; i < compressed.length; i++) {
+    binary += String.fromCharCode(compressed[i]);
+  }
+  return btoa(binary);
+}
+
+export function decompressFromBase64(base64: string): string {
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  // Check gzip magic bytes (0x1f 0x8b) for backwards compatibility
+  if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+    return pako.inflate(bytes, { to: "string" });
+  }
+  // Plain JSON fallback (old QR codes)
+  return binary;
+}
 
 const TAG = "QRAuthTransfer";
 const SERVICE_TYPE = "_aniua-auth._tcp.";

@@ -6,7 +6,10 @@ import QRCodeStyled from "react-native-qrcode-styled";
 import { useThemeColors } from "../Global/useTheme";
 import { useNavigation } from "@react-navigation/native";
 import { H2, H5, H6 } from "../Styles/Fonts";
-import { startReceiver } from "../Services/QRAuthTransferService";
+import {
+  startReceiver,
+  compressToBase64,
+} from "../Services/QRAuthTransferService";
 import SettingsStorage from "../Storage/SettingsStorage";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import Logger from "../Logger/Logger";
@@ -14,6 +17,7 @@ import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import Icons from "../Styles/Icons";
 import * as Network from "expo-network";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
+import AnalyticsService from "../Services/AnalyticsService";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MainConfig from "../cfgs/MainConfig";
 import { isTV } from "../Styles/Responsive";
@@ -40,6 +44,7 @@ export default function QRLoginScreen() {
         onConnecting: () => setState("connecting"),
         onSuccess: () => {
           setState("success");
+          AnalyticsService.logLogin("qr");
           // Встановлюємо токен в API клієнт (інакше API не знає про новий токен до рестарту)
           HikkaAuthService.initialize();
           // Complete onboarding and navigate
@@ -76,8 +81,7 @@ export default function QRLoginScreen() {
         host: localIp,
       };
 
-      const jsonStr = JSON.stringify(payload);
-      const base64 = btoa(jsonStr);
+      const base64 = compressToBase64(JSON.stringify(payload));
       setQrValue(`https://aniua.yuzka.site/login/${base64}`);
       setState("ready");
     } catch (e) {
@@ -143,21 +147,15 @@ export default function QRLoginScreen() {
                   data={qrValue}
                   style={{ backgroundColor: themeColors.accent }}
                   padding={0}
-                  pieceSize={6}
                   size={240}
                   color={themeColors.primary}
                   isPiecesGlued
-                  pieceBorderRadius={3}
-                  pieceCornerType="rounded"
                   outerEyesOptions={{
-                    borderRadius: [12, 12, 12, 12],
                     color: themeColors.primary,
                   }}
                   innerEyesOptions={{
-                    borderRadius: 6,
                     color: themeColors.primary,
                   }}
-                  pieceLiquidRadius={12}
                 />
               </View>
               {MainConfig.debug.isDebug && (

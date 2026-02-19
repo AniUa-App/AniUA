@@ -97,7 +97,7 @@ ANALYTICS_API.md
 
 # ai
 .promts
-
+build-*.tar.gz
 .anime/
 
 android/app/google-services.json
@@ -109,5 +109,3 @@ android/app/google-services.json
 .env*.local
 !.env.example
 
-
-build-*.tar.gz

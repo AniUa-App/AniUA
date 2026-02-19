@@ -62,6 +62,7 @@ import { Background, background } from "../../Styles/Colors";
 import { useIsTV } from "../../Styles/Responsive";
 import TVSidebarNav from "../../Components/TV/TVSidebarNav";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
+import AnalyticsService from "../../Services/AnalyticsService";
 import * as Notifications from "expo-notifications";
 
 // Ініціалізуємо auth токен при запуску застосунку
@@ -743,6 +744,7 @@ function HiddenStack() {
 export default function ScreenController({ updateInfo }) {
   const [isNavigationReady, setIsNavigationReady] = useState(false);
   const [hasForcedUpdate, setHasForcedUpdate] = useState(false);
+  const lastLoggedScreen = React.useRef(null);
 
   useEffect(() => {
     if (!isNavigationReady || hasForcedUpdate || !updateInfo?.available) {
@@ -805,6 +807,13 @@ export default function ScreenController({ updateInfo }) {
         linking={LinkingConfig}
         onUnhandledAction={handleNavigationError}
         onReady={() => setIsNavigationReady(true)}
+        onStateChange={() => {
+          const route = navigationRef.current?.getCurrentRoute();
+          if (route?.name && route.name !== lastLoggedScreen.current) {
+            lastLoggedScreen.current = route.name;
+            AnalyticsService.logScreen(route.name);
+          }
+        }}
         fallback={null}
       >
         <RootStack.Navigator

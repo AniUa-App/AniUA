@@ -144,6 +144,7 @@ export default {
     },
     assetBundlePatterns: ["**/*"],
     plugins: [
+      "@react-native-firebase/app",
       ["@react-native-tvos/config-tv"],
       ["./expo-plugin-tv-support.js"],
       [

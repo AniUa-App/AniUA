@@ -33,6 +33,7 @@ import Clipboard from "@react-native-clipboard/clipboard";
 import * as NavigationBar from "expo-navigation-bar";
 import FileOpener from "../../Global/FileOpener";
 import { EventBus } from "../../Global/EventBus";
+import AnalyticsService from "../../Services/AnalyticsService";
 
 // Utility function to get episode date or status
 export function getEpisodeDateOrType(anime) {
@@ -60,7 +61,7 @@ export function useAnimePreview({ route, navigation }) {
   const { width: winWidth, height: winHeight } = useWindowDimensions();
 
   // Get route params
-  const { anime: initialAnime, downloadEpisode, slug } = route?.params || {};
+  const { anime: initialAnime, downloadEpisode, slug, _fromTap } = route?.params || {};
 
   // State
   const [anime, setAnime] = useState(initialAnime || null);
@@ -81,6 +82,7 @@ export function useAnimePreview({ route, navigation }) {
   const downloadEpisodeRef = useRef(null);
   const moreSheetRef = useRef(null);
   const newEpisodesSheetRef = useRef(null);
+  const analyticsLoggedForSlug = useRef(null);
 
   // Get info from storage (переглянуті епізоди, плеєр та озвучка зберігаються локально)
   const [info, setInfo_] = useState(() => {
@@ -255,6 +257,7 @@ export function useAnimePreview({ route, navigation }) {
         };
 
         const fetchWatchStatus = async () => {
+          let resolvedIsFavoriteHikka = false;
           if (HikkaAuthService.isAuthenticated()) {
             try {
               const watchEntry = await HikkaApiComplete.getWatchEntry(
@@ -305,6 +308,7 @@ export function useAnimePreview({ route, navigation }) {
               );
               if (isMounted && favoriteStatus == 200) {
                 setIsFavoriteHikka(true);
+                resolvedIsFavoriteHikka = true;
               }
             } catch (error) {
               Logger.debug(
@@ -313,6 +317,21 @@ export function useAnimePreview({ route, navigation }) {
                 error
               );
             }
+          }
+
+          if (isMounted && _fromTap && analyticsLoggedForSlug.current !== anime.slug) {
+            analyticsLoggedForSlug.current = anime.slug;
+            const title =
+              anime.title_ua || anime.title_en || anime.title_ja || "";
+            const genreNames = (anime.genres || [])
+              .map((g) => g.name_ua || g.name_en)
+              .filter(Boolean);
+            AnalyticsService.logAnimeOpen(
+              anime.slug,
+              title,
+              genreNames,
+              resolvedIsFavoriteHikka
+            );
           }
         };
 
@@ -674,6 +693,14 @@ export function useAnimePreview({ route, navigation }) {
       // Синхронізуємо з Hikka (відправляємо лише max номер серії)
       syncWatchedEpisodesToHikka(watched_episodes);
 
+      AnalyticsService.logEpisodeStart(
+        anime.slug,
+        item.episode,
+        info.dub_team,
+        info.player === "Вбудований плеєр" ? "builtin" : "web",
+        info.player === "Вбудований плеєр" ? "builtin" : info.player
+      );
+
       NavigationBar.setVisibilityAsync("hidden");
       episodesSheetRef.current?.close();
 
@@ -748,6 +775,14 @@ export function useAnimePreview({ route, navigation }) {
 
       // Синхронізуємо з Hikka (відправляємо лише max номер серії)
       syncWatchedEpisodesToHikka(watched_episodes);
+
+      AnalyticsService.logEpisodeStart(
+        anime.slug,
+        episode.episode,
+        episode.team,
+        useBuiltIn ? "builtin" : "web",
+        episode.player
+      );
 
       NavigationBar.setVisibilityAsync("hidden");
       newEpisodesSheetRef.current?.close();

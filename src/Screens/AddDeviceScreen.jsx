@@ -18,7 +18,7 @@ import {
 import { useThemeColors } from "../Global/useTheme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { H2, H5, H6 } from "../Styles/Fonts";
-import { sendAuth } from "../Services/QRAuthTransferService";
+import { sendAuth, decompressFromBase64 } from "../Services/QRAuthTransferService";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import Logger from "../Logger/Logger";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -58,7 +58,7 @@ export default function AddDeviceScreen() {
     if (qrData && !deepLinkProcessed.current) {
       deepLinkProcessed.current = true;
       try {
-        const json = atob(qrData);
+        const json = decompressFromBase64(qrData);
         processQRData(json);
       } catch (e) {
         Logger.error("AddDeviceScreen", "Invalid base64 from deep link", e);
@@ -124,7 +124,7 @@ export default function AddDeviceScreen() {
     const prefix = prefixes.find((p) => data.startsWith(p));
     if (prefix) {
       try {
-        const json = atob(data.slice(prefix.length));
+        const json = decompressFromBase64(data.slice(prefix.length));
         await processQRData(json);
         return;
       } catch (e) {
@@ -143,7 +143,7 @@ export default function AddDeviceScreen() {
       const prefixes = ["https://aniua.yuzka.site/login/", "aniua://login/"];
       const prefix = prefixes.find((p) => text.startsWith(p));
       if (prefix) {
-        text = atob(text.slice(prefix.length));
+        text = decompressFromBase64(text.slice(prefix.length));
       }
       const payload = JSON.parse(text);
       if (payload.v !== 1 || !payload.secret || !payload.port) {

@@ -71,7 +71,7 @@ const AnimeCard = memo(function AnimeCard({
       prefetchBloomImage(anime.image);
       navigation.navigate("HiddenStack", {
         screen: "AnimePreview",
-        params: { slug: anime.slug },
+        params: { slug: anime.slug, _fromTap: true },
       });
     }
   };
@@ -86,11 +86,10 @@ const AnimeCard = memo(function AnimeCard({
             ...styles.tvFocused,
             borderColor: themeColors.primary,
             backgroundColor: themeColors.accent,
-            padding: 8,
             width: width + 4,
           },
         !isTV && {
-          padding: 12,
+          padding: 8,
         },
       ]}
       onPress={handlePress}

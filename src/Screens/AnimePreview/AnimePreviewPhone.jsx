@@ -556,9 +556,7 @@ export default function AnimePreviewPhone({ route }) {
               onPress={handleFavoriteToggle}
             >
               {(
-                HikkaAuthService.isAuthenticated()
-                  ? isFavoriteHikka
-                  : info?.isFavorite
+                HikkaAuthService.isAuthenticated() ? isFavoriteHikka : false
               ) ? (
                 <Icon.Heart
                   size={24}

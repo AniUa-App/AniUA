@@ -7,6 +7,7 @@ import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import MainConfig from "../cfgs/MainConfig";
 import Logger from "../Logger/Logger";
 import { EventBus } from "../Global/EventBus";
+import AnalyticsService from "./AnalyticsService";
 
 /**
  * Результат ініціалізації авторизації
@@ -131,6 +132,8 @@ export class AniuaAuthService {
           reference: payload.reference,
         });
 
+        AnalyticsService.logLogin("hikka");
+
         return {
           success: true,
           isNewUser: false,
@@ -177,6 +180,8 @@ export class AniuaAuthService {
         Logger.info("AniuaAuthService", "Успішна реєстрація в AniUA", {
           reference: payload.reference,
         });
+
+        AnalyticsService.logSignUp();
 
         return {
           success: true,
