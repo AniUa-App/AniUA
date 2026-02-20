@@ -144,7 +144,7 @@ export default function BookmarkTV({ ...props }) {
             selectable={true}
             style={[styles.emptyMessage, H2, { fontSize: 24 }]}
           >
-            {`Список "${STATUS_TITLES[currentStatus] || "аніме"}" порожній`}
+            {`Список порожній`}
           </Text>
         </View>
       ) : null,

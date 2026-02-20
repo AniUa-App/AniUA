@@ -1,23 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, ActivityIndicator, Text, Animated } from "react-native";
 import { TouchableOpacity } from "./Button";
 import FastImage from "react-native-fast-image";
-import { Skeleton } from "@rneui/themed";
 import { background, primary } from "../Styles/Colors";
 import LinearGradient from "react-native-linear-gradient";
 import { Text as RNText } from "react-native";
 import { text } from "../Styles/Colors";
 import { H3 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
-const CustomLinearGradient = (props) => {
+
+const Skeleton = ({ width, height, style, animation }) => {
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (animation === "wave") {
+      Animated.loop(
+        Animated.timing(shimmer, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        })
+      ).start();
+    }
+  }, []);
+
+  const translateX = shimmer.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-300, 300],
+  });
+
   return (
-    <LinearGradient
-      {...props}
-      colors={[background, primary, background]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 8, y: 1 }}
-      style={{ flex: 1 }}
-    />
+    <View
+      style={[
+        { width, height, overflow: "hidden", backgroundColor: background },
+        style,
+      ]}
+    >
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX }],
+        }}
+      >
+        <LinearGradient
+          colors={["transparent", primary + "40", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ flex: 1 }}
+        />
+      </Animated.View>
+    </View>
   );
 };
 
@@ -29,7 +61,6 @@ export function Image({ uri, style, onLoad, resizeMode }) {
       {/* Показуємо Skeleton, поки завантажується зображення */}
       {loading && (
         <Skeleton
-          LinearGradientComponent={CustomLinearGradient}
           animation="wave"
           width="100%"
           height="100%"
@@ -63,21 +94,18 @@ const TextSkeleton = (props) => {
   return (
     <View style={props.style}>
       <Skeleton
-        LinearGradientComponent={CustomLinearGradient}
         animation="wave"
         width="100%"
         height={20}
         style={{ backgroundColor: background }}
       />
       <Skeleton
-        LinearGradientComponent={CustomLinearGradient}
         animation="wave"
         width="90%"
         height={20}
         style={{ backgroundColor: background }}
       />
       <Skeleton
-        LinearGradientComponent={CustomLinearGradient}
         animation="wave"
         width="80%"
         height={20}
@@ -128,7 +156,6 @@ export function TextS({
 const ButtonSkeleton = (props) => {
   return (
     <Skeleton
-      LinearGradientComponent={CustomLinearGradient}
       animation="wave"
       width="100%"
       height="100%"

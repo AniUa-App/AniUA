@@ -31,7 +31,6 @@ import { useSnackbar, SnackbarLink } from "./src/Components/Snackbar";
 import { set } from "date-fns";
 import { se } from "date-fns/locale";
 import Markdown from "react-native-markdown-display";
-import { fonts } from "@rneui/base";
 import { getCurrentRouteName } from "./src/Global/NavigationService";
 import { Log } from "ffmpeg-kit-react-native";
 import { HikkaAuthService } from "./src/Services/HikkaAuthService";

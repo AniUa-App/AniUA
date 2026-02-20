@@ -158,7 +158,7 @@ export default function BookmarkTablet({ ...props }) {
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
           <Text selectable={true} style={[styles.emptyMessage, H2]}>
-            {`Список "${STATUS_TITLES[currentStatus] || "аніме"}" порожній`}
+            {`Список порожній`}
           </Text>
         </View>
       ) : null,

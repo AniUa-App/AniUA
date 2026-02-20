@@ -662,15 +662,17 @@ export async function DownloadVideo({
           });
           return { success: false, error: "Помилка при завантаженні серії" };
         } else if (!returnCode.isValueSuccess()) {
+          const logs = await session.getAllLogs();
+          const logText = logs.map((l) => l.getMessage()).join("\n");
           Logger.error("DownloadVideo", "FFmpeg завершився з помилкою", {
             returnCode: returnCode.getValue(),
+            output: logText,
           });
-          const logs = await session.getAllLogs();
           updateStatus("error", {
             progress: -1,
-            data: [logs],
+            data: [logText],
           });
-          return { success: false, error: logs };
+          return { success: false, error: logText };
         } else if (!isSavedEpisode) {
           updateStatus("error", {
             progress: -1,

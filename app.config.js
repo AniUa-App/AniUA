@@ -170,6 +170,18 @@ export default {
             ],
             compileSdkVersion: 35,
             targetSdkVersion: 31,
+            packagingOptions: {
+              excludes: [
+                "**/libhermes-executor-debug.so",
+                "**/libhermes-inspector.so",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/*.kotlin_module",
+              ],
+            },
           },
         },
       ],

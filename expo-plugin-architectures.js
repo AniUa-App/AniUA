@@ -31,12 +31,20 @@ const withArchitectures = (config, architectures) => {
     setOrReplace("reactNativeArchitectures", archs.join(","));
     setOrReplace("android.enableMinifyInReleaseBuilds", "true");
     setOrReplace("android.enableShrinkResourcesInReleaseBuilds", "true");
+    setOrReplace("VisionCamera_enableFrameProcessors", "false");
+    setOrReplace("expo.useLegacyPackaging", "true");
 
     console.log(
       `[expo-plugin-architectures] Set reactNativeArchitectures=${archs.join(",")}`
     );
     console.log(
       "[expo-plugin-architectures] Enabled R8 minification + resource shrinking"
+    );
+    console.log(
+      "[expo-plugin-architectures] Disabled VisionCamera frame processors"
+    );
+    console.log(
+      "[expo-plugin-architectures] Enabled legacy packaging (smaller APK for sideloading)"
     );
     return cfg;
   });

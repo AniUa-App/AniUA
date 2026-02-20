@@ -6,6 +6,11 @@ const config = getDefaultConfig(__dirname);
 config.transformer = {
   ...config.transformer,
   babelTransformerPath: require.resolve('react-native-svg-transformer'),
+  minifierConfig: {
+    compress: {
+      drop_console: true,
+    },
+  },
 };
 
 config.resolver = {

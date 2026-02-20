@@ -57,7 +57,7 @@ export function setupBackgroundHandler() {
           return Promise.resolve();
         }
 
-        await FileOpener.openFile(savedEpisodeData.video_path);
+        await FileOpener.openFileAuto(savedEpisodeData.video_path);
         Logger.info('Actions', 'Діалог вибору відкрито');
       } catch (error) {
         Logger.error('Actions', 'Помилка при відкритті файлу', error);
@@ -119,7 +119,7 @@ export function setupForegroundHandler() {
           return Promise.resolve();
         }
 
-        await FileOpener.openFile(savedEpisodeData.video_path);
+        await FileOpener.openFileAuto(savedEpisodeData.video_path);
         Logger.info('Actions', 'Діалог вибору відкрито');
       } catch (error) {
         Logger.error('Actions', 'Помилка при відкритті файлу', error);

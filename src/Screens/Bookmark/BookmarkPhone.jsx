@@ -47,7 +47,7 @@ export default function BookmarkPhone({ ...props }) {
           response = await HikkaApiComplete.getUserFavorites(
             "anime",
             user.username,
-            { page: pageToFetch, size: 15 }
+            { page: pageToFetch, size: 15 },
           );
           Logger.debug("BookmarkPhone", "Отримано улюблені", response);
         } else {
@@ -90,7 +90,7 @@ export default function BookmarkPhone({ ...props }) {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -125,12 +125,12 @@ export default function BookmarkPhone({ ...props }) {
 
       return <AnimePreviewWidget anime={item} info={{}} type={currentStatus} />;
     },
-    [currentStatus]
+    [currentStatus],
   );
 
   const keyExtractor = useCallback(
     (item, index) => item?.slug || `${index}`,
-    []
+    [],
   );
 
   const ListEmptyComponent = useCallback(
@@ -138,11 +138,11 @@ export default function BookmarkPhone({ ...props }) {
       !isLoading ? (
         <View style={[styles.emptyContainer, { marginTop: -height * 0.1 }]}>
           <Text selectable={true} style={[styles.emptyMessage, H2]}>
-            {`Список "${STATUS_TITLES[currentStatus] || "аніме"}" порожній`}
+            {`Список порожній`}
           </Text>
         </View>
       ) : null,
-    [isLoading, currentStatus, height]
+    [isLoading, currentStatus, height],
   );
 
   const ListFooterComponent = useCallback(
@@ -152,7 +152,7 @@ export default function BookmarkPhone({ ...props }) {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null,
-    [isLoading, colors.primary]
+    [isLoading, colors.primary],
   );
 
   if (HikkaAuthStorage.isAuthenticated()) {
