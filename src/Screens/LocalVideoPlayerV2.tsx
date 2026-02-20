@@ -197,13 +197,11 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const sliderSeekDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const sleepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startSleepTimerRef = useRef<(() => void) | null>(null);
   const hasPlayedRef = useRef<boolean>(false);
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] =
     useState<boolean>(false);
-  const [sleepCountdown, setSleepCountdown] = useState<number | null>(null);
 
   // Анімаційні значення
   const loadingRotation = useSharedValue(0);
@@ -512,7 +510,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           setCurrentEpisode(episodes[currentIndex + 1]);
         } else {
           // Останній епізод — запускаємо таймер вимкнення екрана
-          startSleepTimerRef.current?.();
+          startSleepTimerRef.current?.(true);
         }
       });
 
@@ -646,39 +644,24 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     }
   };
 
-  const startSleepTimer = useCallback(() => {
-    if (sleepIntervalRef.current) {
-      clearInterval(sleepIntervalRef.current);
-    }
-    let countdown = 15;
-    setSleepCountdown(countdown);
-    sleepIntervalRef.current = setInterval(() => {
-      countdown -= 1;
-      setSleepCountdown(countdown);
-      if (countdown <= 0) {
-        clearInterval(sleepIntervalRef.current!);
-        sleepIntervalRef.current = null;
-        setSleepCountdown(null);
-        // expo-video bug: STATE_ENDED re-requests keep-awake, блокуючи нас.
-        // Переводимо плеєр в STATE_READY (paused) щоб expo-video відпустило свій wakelock.
-        const p = latestPlayerRef.current;
-        if (p) {
-          try {
-            p.currentTime = Math.max(0, (p.duration || 1) - 0.5);
-            p.pause();
-          } catch (_) {}
-        }
-        deactivateKeepAwake("video-player");
+  const startSleepTimer = useCallback((fromEnd = false) => {
+    Logger.debug("SleepTimer", "Вимикаємо keep-awake");
+    if (fromEnd) {
+      // expo-video bug: STATE_ENDED re-requests keep-awake, блокуючи нас.
+      // Переводимо плеєр в STATE_READY (paused) щоб expo-video відпустило свій wakelock.
+      const p = latestPlayerRef.current;
+      if (p) {
+        try {
+          p.currentTime = Math.max(0, (p.duration || 1) - 0.5);
+          p.pause();
+        } catch (_) {}
       }
-    }, 1000);
+    }
+    deactivateKeepAwake("video-player");
   }, []);
 
   const cancelSleepTimer = useCallback(() => {
-    if (sleepIntervalRef.current) {
-      clearInterval(sleepIntervalRef.current);
-      sleepIntervalRef.current = null;
-    }
-    setSleepCountdown(null);
+    Logger.debug("SleepTimer", "Keep-awake відновлено");
     activateKeepAwakeAsync("video-player");
   }, []);
 
@@ -847,9 +830,6 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       }
       if (sliderSeekDebounceRef.current) {
         clearTimeout(sliderSeekDebounceRef.current);
-      }
-      if (sleepIntervalRef.current) {
-        clearInterval(sleepIntervalRef.current);
       }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
@@ -2116,23 +2096,6 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       )}
 
       {/* Таймер вимкнення екрана */}
-      {sleepCountdown !== null && (
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          exiting={FadeOut.duration(300)}
-          style={styles.sleepCountdownOverlay}
-          pointerEvents="box-none"
-        >
-          <CustomTouchableOpacity
-            onPress={cancelSleepTimer}
-            style={[
-              styles.sleepCountdownContent,
-              { backgroundColor: themeColors.Background(0.9) },
-            ]}
-          ></CustomTouchableOpacity>
-        </Animated.View>
-      )}
-
       {/* Bottom Sheet */}
       <SpeedBottomSheet
         sheetRef={speedSheetRef}
@@ -2406,20 +2369,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 10,
-  },
-  sleepCountdownOverlay: {
-    position: "absolute",
-    bottom: 120,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 20,
-  },
-  sleepCountdownContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
   },
 });
 
