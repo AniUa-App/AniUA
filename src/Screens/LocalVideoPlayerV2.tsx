@@ -62,6 +62,7 @@ import { setupNavigationBar } from "../../App";
 import { EpisodeItem } from "../Components/BottomSheetEpisodes/EpisodeItem";
 import { EventBus } from "../Global/EventBus";
 import type { Episode as ApiEpisode } from "../Api/AniuaApi";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import type { HikkaAnimePreview } from "../Sources/HikkaApiComplete";
 import type { AnimeInfo } from "../Storage/AnimeStorage";
 import { isTV as isDeviceTV } from "../Styles/Responsive";
@@ -698,6 +699,18 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       episode.episode,
     ];
     AnimeStorage.set(slug, info);
+
+    // Синхронізуємо прогрес з Hikka
+    const watchedCount = info.watched_episodes.length;
+    const totalEpisodes = _anime?.episodes_total;
+    const status =
+      totalEpisodes && watchedCount >= totalEpisodes ? "completed" : "watching";
+    HikkaApiComplete.addToWatchList(slug, {
+      status,
+      episodes: episode.episode,
+    }).catch((err) => {
+      Logger.warn("LocalVideoPlayer", "Не вдалося оновити прогрес на Hikka", err);
+    });
   };
 
   useEffect(() => {
