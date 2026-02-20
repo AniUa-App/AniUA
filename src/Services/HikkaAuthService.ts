@@ -77,7 +77,7 @@ export class HikkaAuthService {
     const clientId = Constants.expoConfig?.extra?.hikkaClientId;
     if (!clientId) {
       throw new Error(
-        "HIKKA_CLIENT_ID не знайдено. Додайте EXPO_PUBLIC_HIKKA_CLIENT_ID до .env.local"
+        "HIKKA_CLIENT_ID не знайдено. Додайте EXPO_PUBLIC_HIKKA_CLIENT_ID до .env.local",
       );
     }
     return clientId;
@@ -90,7 +90,7 @@ export class HikkaAuthService {
     const clientSecret = Constants.expoConfig?.extra?.hikkaClientSecret;
     if (!clientSecret) {
       throw new Error(
-        "HIKKA_CLIENT_SECRET не знайдено. Додайте HIKKA_CLIENT_SECRET до .env.local"
+        "HIKKA_CLIENT_SECRET не знайдено. Додайте HIKKA_CLIENT_SECRET до .env.local",
       );
     }
     return clientSecret;
@@ -103,7 +103,7 @@ export class HikkaAuthService {
     const redirectUrl = Constants.expoConfig?.extra?.hikkaRedirectUrl;
     if (!redirectUrl) {
       throw new Error(
-        "HIKKA_REDIRECT_URL не знайдено. Додайте EXPO_PUBLIC_HIKKA_REDIRECT_URL до .env.local"
+        "HIKKA_REDIRECT_URL не знайдено. Додайте EXPO_PUBLIC_HIKKA_REDIRECT_URL до .env.local",
       );
     }
     return redirectUrl;
@@ -115,7 +115,7 @@ export class HikkaAuthService {
    * @returns Promise з результатом авторизації
    */
   public static async startOAuth(
-    scopes: string[] = HikkaAuthService.DEFAULT_SCOPES
+    scopes: string[] = HikkaAuthService.DEFAULT_SCOPES,
   ): Promise<{
     success: boolean;
     token?: string;
@@ -134,7 +134,7 @@ export class HikkaAuthService {
       // Відкриваємо браузер для авторизації
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-        this.getRedirectUrl()
+        this.getRedirectUrl(),
       );
 
       if (result.type === "success" && result.url) {
@@ -155,7 +155,7 @@ export class HikkaAuthService {
         HikkaAuthStorage.setAuthData(
           tokenData.secret,
           tokenData.expiration,
-          tokenData.user
+          tokenData.user,
         );
 
         // Встановлюємо токен в API клієнт
@@ -210,7 +210,7 @@ export class HikkaAuthService {
       Logger.debug(
         "HikkaAuthService",
         "Обмін reference на токен",
-        requestReference
+        requestReference,
       );
 
       const response = await axios.post(this.TOKEN_URL, {
@@ -229,14 +229,14 @@ export class HikkaAuthService {
             },
           });
           const userResponse = await tempClient.get(
-            "https://api.hikka.io/user/me"
+            "https://api.hikka.io/user/me",
           );
           userData = userResponse.data;
         } catch (error) {
           Logger.error(
             "HikkaAuthService",
             "Помилка отримання даних користувача",
-            error
+            error,
           );
         }
       }
@@ -250,7 +250,7 @@ export class HikkaAuthService {
     } catch (error: any) {
       Logger.error("HikkaAuthService", "Помилка обміну токену", error);
       throw new Error(
-        error.response?.data?.message || "Помилка отримання токену"
+        error.response?.data?.message || "Помилка отримання токену",
       );
     }
   }
@@ -262,13 +262,13 @@ export class HikkaAuthService {
    */
   private static async registerInAniUA(
     hikkaToken: string,
-    hikkaUser: any
+    hikkaUser: any,
   ): Promise<void> {
     try {
       if (!hikkaUser) {
         Logger.warn(
           "HikkaAuthService",
-          "Дані Hikka користувача відсутні, пропускаємо реєстрацію в AniUA"
+          "Дані Hikka користувача відсутні, пропускаємо реєстрацію в AniUA",
         );
         return;
       }
@@ -290,6 +290,10 @@ export class HikkaAuthService {
           username,
           email,
         });
+
+        if (!authResponse.success) {
+          throw new Error(authResponse.error?.message || "Signin failed");
+        }
 
         AniuaAuthStorage.setAuthFromResponse(authResponse.data, {
           reference,
@@ -313,7 +317,7 @@ export class HikkaAuthService {
             download_git_hash: MainConfig.devInfo.gitHash,
             signinError: signinError?.message,
             jwtToken: AniuaApi.getJwtToken(),
-          }
+          },
         );
 
         const authResponse = await AniuaApi.signup({
@@ -370,7 +374,7 @@ export class HikkaAuthService {
 
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-        this.getRedirectUrl()
+        this.getRedirectUrl(),
       );
 
       if (result.type === "success" && result.url) {
@@ -391,12 +395,14 @@ export class HikkaAuthService {
         };
 
         // Реєструємо/входимо в AniUA з новим Hikka токеном (отримуємо окремі AniUA токени)
-        let aniuaResult: {
-          accessToken: string;
-          refreshToken: string;
-          expiration: number;
-          user: any;
-        } | undefined;
+        let aniuaResult:
+          | {
+              accessToken: string;
+              refreshToken: string;
+              expiration: number;
+              user: any;
+            }
+          | undefined;
 
         try {
           if (tokenData.user) {
@@ -411,6 +417,9 @@ export class HikkaAuthService {
                 username,
                 email,
               });
+              if (!authResponse.success) {
+                throw new Error(authResponse.error?.message || "Signin failed");
+              }
             } catch {
               authResponse = await AniuaApi.signup({
                 reference,
@@ -432,13 +441,13 @@ export class HikkaAuthService {
           Logger.warn(
             "HikkaAuthService",
             "AniUA registration for transfer failed",
-            e
+            e,
           );
         }
 
         Logger.info(
           "HikkaAuthService",
-          "OAuth for transfer completed successfully"
+          "OAuth for transfer completed successfully",
         );
 
         return {
@@ -523,7 +532,7 @@ export class HikkaAuthService {
       Logger.error(
         "HikkaAuthService",
         "Помилка оновлення даних користувача",
-        error
+        error,
       );
       return null;
     }

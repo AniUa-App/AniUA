@@ -30,7 +30,8 @@ class AnalyticsService {
       app_version: MainConfig.devInfo.version,
       git_hash: MainConfig.devInfo.gitShortHash || MainConfig.devInfo.gitHash,
       device_model: MainConfig.devInfo.model,
-      os_version: `${MainConfig.devInfo.systemName} ${MainConfig.devInfo.systemVersion}`.trim(),
+      os_version:
+        `${MainConfig.devInfo.systemName} ${MainConfig.devInfo.systemVersion}`.trim(),
     };
   }
 
@@ -43,7 +44,10 @@ class AnalyticsService {
   static logScreen(screenName: string, screenClass?: string): void {
     Logger.debug(TAG, "screen_view", { screenName, screenClass });
     if (this.isDebug()) return;
-    logEvent(getAnalytics(), "screen_view", { firebase_screen: screenName, firebase_screen_class: screenClass ?? screenName }).catch(() => {});
+    logEvent(getAnalytics(), "screen_view", {
+      firebase_screen: screenName,
+      firebase_screen_class: screenClass ?? screenName,
+    }).catch(() => {});
   }
 
   static setUserId(id: string | null): void {
@@ -60,7 +64,7 @@ class AnalyticsService {
     slug: string,
     title: string,
     genres?: string[],
-    isBookmarked?: boolean
+    isBookmarked?: boolean,
   ): void {
     const params: Record<string, any> = { slug, title };
     if (genres && genres.length > 0) {
@@ -77,7 +81,7 @@ class AnalyticsService {
     episode: number,
     team: string,
     player: "builtin" | "web",
-    source: string
+    source: string,
   ): void {
     this.logEvent("episode_start", { slug, episode, team, player, source });
   }
@@ -93,7 +97,7 @@ class AnalyticsService {
   static logDownload(
     slug: string,
     episode: number,
-    event: "start" | "complete"
+    event: "start" | "complete",
   ): void {
     const name = event === "start" ? "download_start" : "download_complete";
     this.logEvent(name, { slug, episode });

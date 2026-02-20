@@ -15,6 +15,7 @@ import Icon from "../Styles/Icons";
 import Logger from "../Logger/Logger";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
 import { isTV } from "../Styles/Responsive";
+import AniuaAuthStorage from "../Storage/AniuaAuthStorage";
 
 export default function AppInfoScreen() {
   const { user } = useHikkaUser();
@@ -63,6 +64,12 @@ export default function AppInfoScreen() {
     {
       title: "Account ID",
       value: String(user?.reference || "unknown"),
+    },
+    {
+      title: "AniUA акаунт",
+      value: AniuaAuthStorage.isAuthenticated()
+        ? "Підключено"
+        : "Не підключено",
     },
   ];
 

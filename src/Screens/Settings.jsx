@@ -22,6 +22,7 @@ import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
 import RatingWidget from "../Widgets/RatingWidget";
 import * as Expo from "expo";
 import Logger from "../Logger/Logger";
+import AniuaApi from "../Api/AniuaApi";
 import HikkaAuthStorage from "../Storage/HikkaAuthStorage";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Widgets/Button";
@@ -131,22 +132,27 @@ export default function SettingsScreen() {
   };
 
   return (
-    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={false}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
       <RatingWidget
         visible={isRatingVisible}
         onClose={() => setIsRatingVisible(false)}
-        onRatingSubmit={(rating, feedback) => {
+        onRatingSubmit={async (rating, feedback) => {
           Logger.info("Settings", "Користувач поставив оцінку", { rating });
           Logger.info("Settings", "Користувач залишив відгук", { feedback });
-          // Api.sendFeedback(rating, feedback).then((saved) => {
-          //   Logger.info("Settings", "Відгук відправлено", { saved });
-          //   if (saved) {
-          //     showSnackbar("Відгук успішно відправлено.");
-          //   } else {
-          //     showSnackbar("Помилка при відправці відгуку.");
-          //   }
-          // });
           setIsRatingVisible(false);
+          if (!AniuaApi.getAuthHeader()) {
+            showSnackbar("Для відправки відгуку потрібно увійти в акаунт");
+            return;
+          }
+          const text = feedback
+            ? `Оцінка: ${rating}/5\n${feedback}`
+            : `Оцінка: ${rating}/5`;
+          const result = await AniuaApi.sendFeedback(text);
+          if (result.success) {
+            showSnackbar("Дякуємо за відгук!");
+          } else {
+            showSnackbar(result.error?.message || "Помилка при відправці відгуку");
+          }
         }}
       />
       <ScrollView

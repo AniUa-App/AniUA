@@ -297,6 +297,13 @@ export interface SuccessResponse {
 }
 
 /**
+ * Тіло запиту на відправку фідбеку
+ */
+export interface FeedbackRequest {
+  feedback: string;
+}
+
+/**
  * Інформація про помилку API
  */
 export interface ApiError {
@@ -816,6 +823,41 @@ export class AniuaApi {
       return AniuaApi.handleError(
         error as AxiosError,
         "Не вдалося видалити користувача",
+      );
+    }
+  }
+
+  // ==================== FEEDBACK ====================
+
+  /**
+   * Відправляє фідбек від користувача
+   * Потребує авторизації (Bearer token). Має cooldown між відправками.
+   *
+   * @param feedback - Текст фідбеку
+   * @returns ApiResponse з повідомленням або помилкою cooldown
+   *
+   * @example
+   * ```typescript
+   * const result = await AniuaApi.sendFeedback("топчик!");
+   * if (!result.success) {
+   *   console.log(result.error?.message); // "Cooldown: зачекайте ще 23г 30хв"
+   * }
+   * ```
+   */
+  public static async sendFeedback(
+    feedback: string,
+  ): Promise<ApiResponse<SuccessResponse>> {
+    try {
+      AniuaApi.ensureNotBlocked();
+      const response = await AniuaApi.axiosInstance.post<SuccessResponse>(
+        `${AniuaApi.baseUrl}/v1/feedback`,
+        { feedback },
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return AniuaApi.handleErrorWithResponse<SuccessResponse>(
+        error as AxiosError,
+        "Помилка відправки фідбеку",
       );
     }
   }

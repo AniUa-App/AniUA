@@ -18,7 +18,11 @@ import { AppState } from "react-native";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 // import Orientation from "react-native-orientation-locker";
 import * as EOrientation from "expo-screen-orientation";
-import { useKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
+import {
+  useKeepAwake,
+  activateKeepAwakeAsync,
+  deactivateKeepAwake,
+} from "expo-keep-awake";
 import LinearGradient from "react-native-linear-gradient";
 import Animated, {
   FadeIn,
@@ -118,7 +122,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 }) => {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
-  useKeepAwake();
+  useKeepAwake("video-player");
 
   const { _episodes, _currentEpisode, _anime } = route.params;
   const title = _anime?.title_ua || _anime?.title_en || "Назва аніме";
@@ -193,9 +197,13 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   const sliderSeekDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const sleepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startSleepTimerRef = useRef<(() => void) | null>(null);
+  const hasPlayedRef = useRef<boolean>(false);
 
   const [volumeTooltipVisible, setVolumeTooltipVisible] =
     useState<boolean>(false);
+  const [sleepCountdown, setSleepCountdown] = useState<number | null>(null);
 
   // Анімаційні значення
   const loadingRotation = useSharedValue(0);
@@ -502,6 +510,9 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             nextEpisode: episodes[currentIndex + 1]?.episode,
           });
           setCurrentEpisode(episodes[currentIndex + 1]);
+        } else {
+          // Останній епізод — запускаємо таймер вимкнення екрана
+          startSleepTimerRef.current?.();
         }
       });
 
@@ -635,6 +646,54 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     }
   };
 
+  const startSleepTimer = useCallback(() => {
+    if (sleepIntervalRef.current) {
+      clearInterval(sleepIntervalRef.current);
+    }
+    let countdown = 15;
+    setSleepCountdown(countdown);
+    sleepIntervalRef.current = setInterval(() => {
+      countdown -= 1;
+      setSleepCountdown(countdown);
+      if (countdown <= 0) {
+        clearInterval(sleepIntervalRef.current!);
+        sleepIntervalRef.current = null;
+        setSleepCountdown(null);
+        // expo-video bug: STATE_ENDED re-requests keep-awake, блокуючи нас.
+        // Переводимо плеєр в STATE_READY (paused) щоб expo-video відпустило свій wakelock.
+        const p = latestPlayerRef.current;
+        if (p) {
+          try {
+            p.currentTime = Math.max(0, (p.duration || 1) - 0.5);
+            p.pause();
+          } catch (_) {}
+        }
+        deactivateKeepAwake("video-player");
+      }
+    }, 1000);
+  }, []);
+
+  const cancelSleepTimer = useCallback(() => {
+    if (sleepIntervalRef.current) {
+      clearInterval(sleepIntervalRef.current);
+      sleepIntervalRef.current = null;
+    }
+    setSleepCountdown(null);
+    activateKeepAwakeAsync("video-player");
+  }, []);
+
+  startSleepTimerRef.current = startSleepTimer;
+
+  // Таймер сну при паузі: якщо відео було запущено і зупинено на 30 сек — гасимо екран
+  useEffect(() => {
+    if (isPlaying) {
+      hasPlayedRef.current = true;
+      cancelSleepTimer();
+    } else if (hasPlayedRef.current) {
+      startSleepTimer();
+    }
+  }, [isPlaying]);
+
   const changePlaybackRate = (newRate) => {
     Logger.debug("LocalVideoPlayer", "Playback rate changed", {
       from: rate,
@@ -661,7 +720,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   useEffect(() => {
     const onBackPress = () => {
       Logger.debug("LocalVideoPlayer", "onBackPress");
-      deactivateKeepAwake();
+      deactivateKeepAwake("video-player");
       navigation.goBack();
       // StatusBar.setHidden(false);
       StatusBar.setHidden(false, "slide");
@@ -788,6 +847,9 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       }
       if (sliderSeekDebounceRef.current) {
         clearTimeout(sliderSeekDebounceRef.current);
+      }
+      if (sleepIntervalRef.current) {
+        clearInterval(sleepIntervalRef.current);
       }
       // Orientation.removeOrientationListener(onOrientationChange);
       EOrientation.removeOrientationChangeListener(orientationSubscription);
@@ -1337,7 +1399,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       delayPressIn={0}
                       delayPressOut={0}
                       onPress={() => {
-                        deactivateKeepAwake();
+                        deactivateKeepAwake("video-player");
                         StatusBar.setHidden(false, "slide");
                         SystemNavigationBar.navigationShow();
                         setTimeout(() => {
@@ -2053,6 +2115,24 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         </>
       )}
 
+      {/* Таймер вимкнення екрана */}
+      {sleepCountdown !== null && (
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          exiting={FadeOut.duration(300)}
+          style={styles.sleepCountdownOverlay}
+          pointerEvents="box-none"
+        >
+          <CustomTouchableOpacity
+            onPress={cancelSleepTimer}
+            style={[
+              styles.sleepCountdownContent,
+              { backgroundColor: themeColors.Background(0.9) },
+            ]}
+          ></CustomTouchableOpacity>
+        </Animated.View>
+      )}
+
       {/* Bottom Sheet */}
       <SpeedBottomSheet
         sheetRef={speedSheetRef}
@@ -2327,6 +2407,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 10,
   },
+  sleepCountdownOverlay: {
+    position: "absolute",
+    bottom: 120,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 20,
+  },
+  sleepCountdownContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+  },
 });
 
 async function ___getQualities(file) {
@@ -2450,9 +2544,10 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     if (posterMatch) playerData.poster = posterMatch[1];
     if (subtitleMatch) playerData.subtitle = subtitleMatch[1];
     if (defaultQualityMatch) playerData.defaultQuality = defaultQualityMatch[1];
-    playerData.qualitys = typeof fileMatch[1] === "string"
-      ? await ___getQualities(fileMatch[1])
-      : fileMatch[1];
+    playerData.qualitys =
+      typeof fileMatch[1] === "string"
+        ? await ___getQualities(fileMatch[1])
+        : fileMatch[1];
     Logger.debug("LocalVideoPlayer", "MOON: player data prepared", {
       hasFile: !!playerData.file,
       qualitiesCount: Object.keys(playerData.qualitys || {}).length,
