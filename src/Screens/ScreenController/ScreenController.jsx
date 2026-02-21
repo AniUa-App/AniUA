@@ -1,4 +1,4 @@
-import { View, StyleSheet, Linking, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Linking, useWindowDimensions, Modal, Image } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
@@ -52,6 +52,75 @@ import DonateScreen from "../Donate";
 import InvalidLinkScreen from "../InvalidLink";
 import Logger from "../../Logger/Logger";
 import SnowflakesWidget from "../../Widgets/SnowflakesWidget";
+
+// Встановіть false коли нове оновлення вже не потрібно показувати
+const UPDATE_REQUIRED = true;
+
+function UpdateRequiredOverlay() {
+  if (!UPDATE_REQUIRED) return null;
+  return (
+    <Modal visible transparent animationType="fade" statusBarTranslucent>
+      <View style={updateStyles.overlay}>
+        <Image
+          source={require("../../../assets/AniUA-Logo.png")}
+          style={updateStyles.logo}
+          resizeMode="contain"
+        />
+        <Text style={updateStyles.title}>Потрібне оновлення</Text>
+        <Text style={updateStyles.description}>
+          Ця версія застосунку застаріла.{"\n"}Будь ласка, завантажте нову версію AniUA.
+        </Text>
+        <TouchableOpacity
+          style={updateStyles.button}
+          onPress={() => Linking.openURL("https://aniua.yuzka.site/download")}
+        >
+          <Text style={updateStyles.buttonText}>Завантажити</Text>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+}
+
+const updateStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgb(24, 28, 20)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  logo: {
+    width: 160,
+    height: 160,
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 22,
+    fontFamily: "Nunito-Bold",
+    color: "rgb(217, 217, 217)",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 15,
+    fontFamily: "Nunito-Regular",
+    color: "rgb(150, 150, 150)",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 36,
+  },
+  button: {
+    backgroundColor: "rgb(44, 124, 116)",
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontFamily: "Nunito-Bold",
+    color: "rgb(217, 217, 217)",
+  },
+});
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -684,6 +753,7 @@ export default function ScreenController() {
         </RootStack.Navigator>
       </NavigationContainer>
       <SnowflakesWidget />
+      <UpdateRequiredOverlay />
     </View>
   );
 }
