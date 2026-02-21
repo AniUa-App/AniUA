@@ -9,7 +9,7 @@ import axios from "axios";
 import { getVideoDir } from "../FIleSystem/FileSystem";
 import { sanitizeFileName } from "../Global/Functions";
 import { DEBUGCONFIG } from "../cfgs/DebugConfig";
-import notifee from "@notifee/react-native";
+import notifee, { AndroidForegroundServiceType } from "@notifee/react-native";
 import { primary } from "../Styles/Colors";
 import Color from "color";
 import SettingsStorage from "../Storage/SettingsStorage";
@@ -97,6 +97,9 @@ export default async function DownloadVideoNotification({
         swipeAction: {
           action: "dismiss",
         },
+        foregroundServiceTypes: [
+          AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE,
+        ],
       },
     });
     Logger.info(
@@ -163,7 +166,9 @@ export async function updateDownloadProgress({
         smallIcon: "ic_stat_aniua",
         color: appColorHex,
         ongoing: true,
-
+        foregroundServiceTypes: [
+          AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE,
+        ],
         pressAction: {
           id: "cancel_download",
         },

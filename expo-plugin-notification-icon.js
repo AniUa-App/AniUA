@@ -75,30 +75,61 @@ const withNotificationIcon = (config) => {
     "android",
     async (cfg) => {
       const projectRoot = cfg.modRequest.projectRoot;
-      const dst = path.join(
+      const resBase = path.join(
         projectRoot,
         "android",
         "app",
         "src",
         "main",
-        "res",
-        "drawable",
+        "res"
+      );
+      // Primary location: drawable (for older API compatibility)
+      const dst = path.join(resBase, "drawable", "ic_stat_aniua.xml");
+      // Mipmap location: notifee checks mipmap BEFORE drawable at runtime.
+      // Adding the icon here ensures it is always found in release builds.
+      const dstMipmap = path.join(
+        resBase,
+        "mipmap-anydpi-v26",
         "ic_stat_aniua.xml"
       );
+
       try {
-        let ok = tryCopyPrebuiltVector(projectRoot, dst);
-        if (!ok) {
-          ok = generateVectorFromSvg(projectRoot, dst);
-          if (ok) {
-            console.log(
-              "[expo-plugin-notification-icon] Generated ic_stat_aniua.xml from assets/AniUA-Logo.svg"
-            );
+        let xmlContent = null;
+
+        // Try pre-built vector first
+        const srcXml = path.join(projectRoot, "assets", "ic_stat_aniua.xml");
+        if (fs.existsSync(srcXml)) {
+          xmlContent = fs.readFileSync(srcXml, "utf8");
+        } else {
+          // Generate from SVG
+          const svgPath = path.join(projectRoot, "assets", "AniUA-Logo.svg");
+          if (fs.existsSync(svgPath)) {
+            const svg = fs.readFileSync(svgPath, "utf8");
+            const { width, height } = parseSvgViewBox(svg);
+            const pathDataList = extractPathData(svg);
+            if (pathDataList.length > 0) {
+              const header = `<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="${width}" android:viewportHeight="${height}">`;
+              const groupStart = `<group android:translateY="${height}" android:scaleY="-1">`;
+              const paths = pathDataList
+                .map(
+                  (d) =>
+                    `<path android:fillColor="#FFFFFFFF" android:pathData="${d}"/>`
+                )
+                .join("\n");
+              xmlContent = `${header}\n${groupStart}\n${paths}\n</group>\n</vector>\n`;
+            }
           }
         }
-        if (ok) {
+
+        if (xmlContent) {
+          // Write to drawable/
+          ensureDir(dst);
+          fs.writeFileSync(dst, xmlContent, "utf8");
+          // Write to mipmap-anydpi-v26/ so notifee finds it via mipmap lookup first
+          ensureDir(dstMipmap);
+          fs.writeFileSync(dstMipmap, xmlContent, "utf8");
           console.log(
-            "[expo-plugin-notification-icon] Notification icon ready at:",
-            dst
+            "[expo-plugin-notification-icon] Notification icon written to drawable/ and mipmap-anydpi-v26/"
           );
         } else {
           console.warn(
@@ -111,6 +142,16 @@ const withNotificationIcon = (config) => {
           e?.message || e
         );
       }
+
+      // Keep ic_stat_aniua from being stripped by resource shrinker
+      const keepXmlPath = path.join(resBase, "raw", "keep.xml");
+      const keepXmlContent = `<?xml version="1.0" encoding="utf-8"?>\n<resources xmlns:tools="http://schemas.android.com/tools"\n    tools:keep="@drawable/ic_stat_aniua,@mipmap/ic_stat_aniua" />\n`;
+      ensureDir(keepXmlPath);
+      fs.writeFileSync(keepXmlPath, keepXmlContent, "utf8");
+      console.log(
+        "[expo-plugin-notification-icon] Written keep.xml for drawable and mipmap ic_stat_aniua"
+      );
+
       return cfg;
     },
   ]);

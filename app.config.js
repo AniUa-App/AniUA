@@ -169,7 +169,7 @@ export default {
               "../../node_modules/@notifee/react-native/android/libs",
             ],
             compileSdkVersion: 35,
-            targetSdkVersion: 31,
+            targetSdkVersion: 35,
             packagingOptions: {
               excludes: [
                 "**/libhermes-executor-debug.so",
