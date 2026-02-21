@@ -19,10 +19,10 @@ npm run setup-ffmpeg         # Download FFmpeg AAR for Android
 
 ### EAS Build & Updates
 ```bash
-npm run update-beta          # Push OTA update to beta channel
-npm run build-beta           # Local APK build for beta channel
-npx eas build --profile beta               # Remote EAS build APK for beta channel
-npx eas build --profile aab-beta           # Remote EAS build app bundle for beta channel
+npm run update-release          # Push OTA update to release channel
+npm run build-release           # Local APK build for release channel
+npx eas build --profile release               # Remote EAS build APK for release channel
+npx eas build --profile aab-release           # Remote EAS build app bundle for release channel
 ```
 
 ### Environment

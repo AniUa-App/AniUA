@@ -1,4 +1,4 @@
-package aniua.yuzka.site.beta
+package aniua.yuzka.site
 
 import android.app.Application
 import android.content.res.Configuration

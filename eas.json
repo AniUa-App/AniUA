@@ -3,28 +3,28 @@
     "version": ">= 5.9.1"
   },
   "build": {
-    "beta": {
-      "channel": "beta",
+    "release": {
+      "channel": "release",
       "env": {
-        "CHANNEL": "beta"
+        "CHANNEL": "release"
       },
       "android": {
         "buildType": "app-bundle"
       }
     },
-    "aab-beta": {
-      "channel": "beta",
+    "aab-release": {
+      "channel": "release",
       "env": {
-        "CHANNEL": "beta"
+        "CHANNEL": "release"
       },
       "android": {
         "buildType": "app-bundle"
       }
     },
-    "beta-apk": {
-      "channel": "beta",
+    "release-apk": {
+      "channel": "release",
       "env": {
-        "CHANNEL": "beta"
+        "CHANNEL": "release"
       },
       "android": {
         "buildType": "apk"

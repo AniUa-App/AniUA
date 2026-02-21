@@ -38,7 +38,7 @@ async function main() {
 
   try {
     console.log("Running eas update...");
-    execSync('npx eas update --branch beta -m "Update!"', {
+    execSync('npx eas update --branch release -m "Update!"', {
       stdio: "inherit",
       cwd: path.join(__dirname, ".."),
     });

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 dotenv.config({ path: ".env.local", override: true });
-const CHANNEL = process.env.CHANNEL || "beta";
+const CHANNEL = process.env.CHANNEL || "release";
 export default {
   expo: {
     name: CHANNEL !== "release" ? `AniUA ${CHANNEL}` : "AniUA",
@@ -18,7 +18,7 @@ export default {
       url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       enabled: true,
       checkAutomatically: "ON_LOAD",
-      channel: "beta",
+      channel: "release",
     },
     ios: {
       infoPlist: {
