@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { withDangerousMod } = require("expo/config-plugins");
+const { withDangerousMod, withAndroidManifest } = require("expo/config-plugins");
 
 function ensureDir(filePath) {
   const dir = path.dirname(filePath);
@@ -71,6 +71,33 @@ function generateVectorFromSvg(projectRoot, dst) {
 }
 
 const withNotificationIcon = (config) => {
+  // Pin ic_stat_aniua via AndroidManifest <meta-data android:resource="@mipmap/ic_stat_aniua">.
+  // The resource shrinker ALWAYS keeps resources referenced in the manifest, so this is
+  // more reliable than keep.xml alone (which can be ignored when shrinkResources is enabled
+  // and R8 can't statically trace getIdentifier() calls at compile time).
+  config = withAndroidManifest(config, (cfg) => {
+    const app = cfg.modResults.manifest.application?.[0];
+    if (app) {
+      if (!app["meta-data"]) app["meta-data"] = [];
+      const META_NAME = "app.notifee.default_notification_icon";
+      const already = app["meta-data"].find(
+        (m) => m.$?.["android:name"] === META_NAME
+      );
+      if (!already) {
+        app["meta-data"].push({
+          $: {
+            "android:name": META_NAME,
+            "android:resource": "@mipmap/ic_stat_aniua",
+          },
+        });
+        console.log(
+          "[expo-plugin-notification-icon] Added manifest meta-data pin for ic_stat_aniua"
+        );
+      }
+    }
+    return cfg;
+  });
+
   return withDangerousMod(config, [
     "android",
     async (cfg) => {

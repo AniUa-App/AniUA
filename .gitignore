@@ -16,13 +16,6 @@ expo-env.d.ts
 .metro-cache/
 .cache/
 
-# Android
-android/.gradle/
-android/.idea/
-android/local.properties
-android/**/build/
-android/**/.cxx/
-android/**/captures/
 *.apk
 *.aab
 
@@ -108,4 +101,5 @@ android/app/google-services.json
 .env.*
 .env*.local
 !.env.example
+/android/
 

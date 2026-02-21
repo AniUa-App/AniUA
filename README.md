@@ -1,47 +1,75 @@
-# AniUA - Anime with Ukrainian Dubbing 🇺🇦
+# AniUA — Anime with Ukrainian Dubbing 🇺🇦
 
 [Українська версія](README.uk.md) | English
 
-**AniUA** is an Android mobile application built with React Native (Expo) that allows you to watch and download anime with Ukrainian dubbing.
+**AniUA** is an Android application built with React Native (Expo) for streaming and downloading anime with Ukrainian dubbing.
 
-## Screenshots
+<p align="center">
+  <img src="images/home.jpg" width="18%" />
+  <img src="images/preview-anime.jpg" width="18%" />
+  <img src="images/preview-anime-2.jpg" width="18%" />
+  <img src="images/bookmarks.jpg" width="18%" />
+  <img src="images/profile.jpg" width="18%" />
+</p>
 
-| Home Screen | Anime Preview |
-|-------------|---------------|
-| ![Home](assets/Home.jpg) | ![Preview](assets/Preview.jpg) |
+<p align="center">
+  <img src="images/search-anime.jpg" width="18%" />
+  <img src="images/search-character.jpg" width="18%" />
+  <img src="images/search-dub-team.jpg" width="18%" />
+  <img src="images/settings.jpg" width="18%" />
+</p>
 
-| Liked Anime | Settings |
-|-------------|----------|
-| ![Liked](assets/Liked.jpg) | ![Settings](assets/Settings.jpg) |
+---
+
+## What's new
+
+- Improved user interface
+- Notifications for new episode releases
+- Account system
+- Bookmarks
+- Improved search — by title, character, dubbing team
+- Improved anime info screen
+- Cross-device sync
+- Full Android TV and tablet support
+- Reduced APK size
+
+---
 
 ## Features
 
-- 📺 Watch anime with Ukrainian dubbing
-- 💾 Download episodes for offline viewing
-- ❤️ Favorites list
-- 🔍 Search anime by title
-- 🎨 Interface customization
-- 📱 PiP (Picture-in-Picture) support
-- 🌙 Dark theme
+- Watch anime with Ukrainian dubbing
+- Download episodes for offline viewing
+- Bookmarks and favorites
+- Account with cross-device sync
+- Search by title, character, and dubbing team
+- Anime info screen with full details
+- Notifications about new episodes
+- Interface customization
+- PiP (Picture-in-Picture) support
+- Full Android TV and tablet support
 
 ## Data Sources
 
-- **Hikka API** — anime metadata, genres, episode information
-- **Moon** — video provider
-- **Ashdi** — alternative video provider
+- **AniUA API** — primary episode provider, dubbing teams, user auth, push notifications
+- **Hikka API** — anime metadata, genres, episode info
+- **Moon** — video provider (fallback)
+- **Ashdi** — video provider (fallback)
 
 ## Tech Stack
 
 - React Native (Expo)
 - React Navigation
-- MMKV for data storage
+- MMKV for local storage
 - expo-video for video playback
 - FFmpeg for video processing
 - Supabase for backend
+- Notifee for notifications
+
+---
 
 ## Development
 
-### Install Dependencies
+### Install dependencies
 
 ```bash
 npm install
@@ -57,68 +85,55 @@ npm run android
 ### Build
 
 ```bash
-# APK for alpha channel
-npx eas build --profile alpha
-
-# App Bundle for alpha channel
-npx eas build --profile aab-alpha
+# Local APK build (release)
+npm run build-release
 
 # OTA update
-npm run update-alpha
+npm run update-release
 ```
 
-### Environment Setup
+### Environment setup
 
-Create a `.env.local` file with the following variables:
+Create a `.env.local` file:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_KEY=your_supabase_key
 EXPO_PUBLIC_MOON_KEY=your_moon_key
 APP_URI=aniua://
+EXPO_PUBLIC_HIKKA_CLIENT_ID=your_hikka_client_id
+HIKKA_CLIENT_SECRET=your_hikka_secret
 ```
 
 ## Project Structure
 
-```plaintext
-src/
-├── Screens/          # Application screens
-├── Widgets/          # Reusable UI components
-├── Sources/          # API integrations (Hikka, Moon, Ashdi)
-├── Storage/          # MMKV storage classes
-├── Global/           # Global contexts and hooks
-├── cfgs/             # Configuration (MainConfig)
-└── Notifications/    # Download system and notifications
 ```
-
-## Contributing
-
-We welcome your contributions! You can:
-
-- 🐛 Report bugs via [Issues](../../issues)
-- 💡 Suggest new features
-- 🔧 Create Pull Requests with code improvements
-
-**Important:** According to the project license, forks are not allowed. Please create Pull Requests directly to the main repository.
-
-## License
-
-This project has a restricted license. See [LICENSE](LICENSE) for details.
-
-**Summary:**
-
-- ✅ Allowed: improvements, bug reports, sharing links
-- ❌ Not allowed: creating forks, commercial use without permission
-
-## Links
-
-- 🌐 Official website: <https://aniua.yuzka.site>
-- 📱 Deep link: `aniua://`
-
-## Acknowledgments
-
-Thanks to everyone who supports Ukrainian anime dubbing! 🇺🇦
+src/
+├── Screens/        # Application screens
+├── Widgets/        # Reusable UI components
+├── Sources/        # API integrations (Hikka, Moon, Ashdi)
+├── Storage/        # MMKV storage classes
+├── Global/         # Global contexts and hooks
+├── cfgs/           # Configuration (MainConfig)
+├── Api/            # AniUA backend API
+├── Notifications/  # Download system and notifications
+└── Services/       # Update checker and other services
+```
 
 ---
 
-Made with ❤️ for the Ukrainian anime community
+## Links
+
+- Website: <https://aniua.yuzka.site>
+- Deep link: `aniua://`
+
+## License
+
+Restricted license. See [LICENSE](LICENSE) for details.
+
+- Allowed: improvements, bug reports, sharing links
+- Not allowed: forks, commercial use without permission
+
+---
+
+Made with love for the Ukrainian anime community 🇺🇦
