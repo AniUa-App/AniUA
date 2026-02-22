@@ -372,7 +372,7 @@ export default function AnimePreviewTV({ route }) {
     );
   }
 
-  if (errorCode) {
+  if (errorCode && errorCode !== 404) {
     return (
       <ErrorScreen
         title="Помилка"
@@ -395,6 +395,18 @@ export default function AnimePreviewTV({ route }) {
       </DefaultScreenWidget>
     );
   }
+  // Get watch button text
+  const getWatchButtonText = () => {
+    if ((errorCode && errorCode !== 404) || isLoading || !episodesList) {
+      return WatchButtonState.LOADING;
+    } else if (info?.watched_episodes > 0) {
+      return WatchButtonState.CONTINUE_WATCHING;
+    } else if (errorCode === 404) {
+      return WatchButtonState.NO_TRANSLATION;
+    } else {
+      return WatchButtonState.START_WATCHING;
+    }
+  };
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection} isNavBarPadding={false}>
@@ -520,15 +532,11 @@ export default function AnimePreviewTV({ route }) {
             focusable={false}
           >
             <WatchButton
-              label={
-                isLoading
-                  ? WatchButtonState.LOADING
-                  : WatchButtonState.CONTINUE_WATCHING
-              }
+              label={getWatchButtonText()}
               style={{ width: "80%", height: 42 }}
               onWatchPress={() => newEpisodesSheetRef.current?.open()}
               isDownloadable={false}
-              isActive={Object.keys(episodesList).length > 0}
+              isActive={Object.keys(episodesList || {}).length > 0}
             />
 
             {/* Favorite button */}

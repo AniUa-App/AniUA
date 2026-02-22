@@ -21,6 +21,7 @@ import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { SEARCH_CATEGORIES } from "./constants";
 import { useSearch, useTeamReleases, useCharacterDetails } from "./hooks";
 import { SearchResultItem } from "./components";
+import Logger from "../../Logger/Logger";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
 
@@ -64,7 +65,7 @@ export default function SearchScreen() {
 
   const headerPaddingTop = useMemo(
     () => Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
-    [insets.top]
+    [insets.top],
   );
 
   const handleGoBack = useCallback(() => {
@@ -91,12 +92,18 @@ export default function SearchScreen() {
         onFocus={isTV ? () => handleScrollToIndex(index) : undefined}
       />
     ),
-    [activeCategory, handleTeamPress, handleCharacterPress, isTV, handleScrollToIndex]
+    [
+      activeCategory,
+      handleTeamPress,
+      handleCharacterPress,
+      isTV,
+      handleScrollToIndex,
+    ],
   );
 
   const keyExtractor = useCallback(
     (item, index) => item.slug || item.reference || `${index}`,
-    []
+    [],
   );
 
   return (
@@ -164,7 +171,7 @@ export default function SearchScreen() {
             setIsVerified(args);
           } else {
             setFilters(args);
-            handleSearch();
+            handleSearch(args);
           }
           filterSheetRef.current?.close();
         }}

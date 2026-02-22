@@ -61,7 +61,12 @@ export function useAnimePreview({ route, navigation }) {
   const { width: winWidth, height: winHeight } = useWindowDimensions();
 
   // Get route params
-  const { anime: initialAnime, downloadEpisode, slug, _fromTap } = route?.params || {};
+  const {
+    anime: initialAnime,
+    downloadEpisode,
+    slug,
+    _fromTap,
+  } = route?.params || {};
 
   // State
   const [anime, setAnime] = useState(initialAnime || null);
@@ -69,7 +74,7 @@ export function useAnimePreview({ route, navigation }) {
   const [existingFiles, setExistingFiles] = useState(new Set());
   const [animeList, setAnimeList] = useState([]);
   const [errorCode, setErrorCode] = useState(null);
-  const [episodesList, setEpisodesList] = useState([]);
+  const [episodesList, setEpisodesList] = useState(null);
   const [isConnection, setIsConnection] = useState(true);
   const [watchStatus, setWatchStatus] = useState(null);
   const [isFavoriteHikka, setIsFavoriteHikka] = useState(false);
@@ -101,7 +106,7 @@ export function useAnimePreview({ route, navigation }) {
       setInfo_(newInfo);
       AnimeStorage.set(anime.slug, newInfo);
     },
-    [anime?.slug]
+    [anime?.slug],
   );
 
   // Ref for current info
@@ -190,7 +195,7 @@ export function useAnimePreview({ route, navigation }) {
         }
         return prevInfo;
       });
-    }, [anime?.slug])
+    }, [anime?.slug]),
   );
 
   // Fetch all data
@@ -208,7 +213,7 @@ export function useAnimePreview({ route, navigation }) {
           if (!anime.synopsis_ua) {
             try {
               const details = await HikkaApiComplete.getAnimeDetails(
-                anime.slug
+                anime.slug,
               );
               if (isMounted) {
                 setAnime((prevAnime) => ({ ...prevAnime, ...details }));
@@ -227,7 +232,7 @@ export function useAnimePreview({ route, navigation }) {
         const fetchFranchise = async () => {
           try {
             const data = await HikkaApiComplete.getAnimeFranchiseByFilter(
-              anime.slug
+              anime.slug,
             );
             if (isMounted) {
               setAnimeList(Array.isArray(data) ? data : []);
@@ -235,7 +240,7 @@ export function useAnimePreview({ route, navigation }) {
           } catch (error) {
             Logger.error(
               `Помилка при завантаженні франшизи для ${anime.slug}:`,
-              error?.message || String(error)
+              error?.message || String(error),
             );
             if (isMounted) setAnimeList([]);
           }
@@ -250,7 +255,7 @@ export function useAnimePreview({ route, navigation }) {
           } catch (error) {
             Logger.error(
               `Помилка при завантаженні персонажів для ${anime.slug}:`,
-              error?.message || String(error)
+              error?.message || String(error),
             );
             if (isMounted) setCharactersList([]);
           }
@@ -261,7 +266,7 @@ export function useAnimePreview({ route, navigation }) {
           if (HikkaAuthService.isAuthenticated()) {
             try {
               const watchEntry = await HikkaApiComplete.getWatchEntry(
-                anime.slug
+                anime.slug,
               );
               if (watchEntry && isMounted) {
                 if (watchEntry.status) {
@@ -282,7 +287,7 @@ export function useAnimePreview({ route, navigation }) {
                   // Конвертуємо кількість в масив [1, 2, 3, ...]
                   const watchedFromHikka = Array.from(
                     { length: watchEntry.episodes },
-                    (_, i) => i + 1
+                    (_, i) => i + 1,
                   );
                   // Оновлюємо локальне сховище
                   const updatedInfo = {
@@ -293,7 +298,7 @@ export function useAnimePreview({ route, navigation }) {
                   Logger.debug(
                     "AnimePreview",
                     "Синхронізовано переглянуті епізоди з Hikka",
-                    { count: watchEntry.episodes }
+                    { count: watchEntry.episodes },
                   );
                 }
               }
@@ -304,7 +309,7 @@ export function useAnimePreview({ route, navigation }) {
             try {
               const favoriteStatus = await HikkaApiComplete.getFavoriteStatus(
                 "anime",
-                anime.slug
+                anime.slug,
               );
               if (isMounted && favoriteStatus == 200) {
                 setIsFavoriteHikka(true);
@@ -314,12 +319,16 @@ export function useAnimePreview({ route, navigation }) {
               Logger.debug(
                 "AnimePreview",
                 "Улюблене не знайдено в Hikka",
-                error
+                error,
               );
             }
           }
 
-          if (isMounted && _fromTap && analyticsLoggedForSlug.current !== anime.slug) {
+          if (
+            isMounted &&
+            _fromTap &&
+            analyticsLoggedForSlug.current !== anime.slug
+          ) {
             analyticsLoggedForSlug.current = anime.slug;
             const title =
               anime.title_ua || anime.title_en || anime.title_ja || "";
@@ -330,7 +339,7 @@ export function useAnimePreview({ route, navigation }) {
               anime.slug,
               title,
               genreNames,
-              resolvedIsFavoriteHikka
+              resolvedIsFavoriteHikka,
             );
           }
         };
@@ -348,7 +357,8 @@ export function useAnimePreview({ route, navigation }) {
               let needFallback = false;
 
               try {
-                const aniuaData = await AniuaApi.getAnimeEpisodesGroupedByPlayer(anime.slug);
+                const aniuaData =
+                  await AniuaApi.getAnimeEpisodesGroupedByPlayer(anime.slug);
 
                 if (!isMounted) return;
 
@@ -369,20 +379,27 @@ export function useAnimePreview({ route, navigation }) {
               let fallbackFailed = false;
               if (needFallback) {
                 Logger.info("shared.js", "Trying HikkaApiComplete fallback");
-
+                var result = null;
                 try {
-                  const result = await HikkaApiComplete.getEpisodes(anime.slug);
+                  result = await HikkaApiComplete.getAnimeEpisodes(anime.slug);
 
                   if (!isMounted) return;
 
                   if (!result.error && result.code < 400 && result.data) {
                     data = result.data;
-                    Logger.info("shared.js", "Successfully loaded episodes from HikkaApiComplete fallback");
+                    Logger.info(
+                      "shared.js",
+                      "Successfully loaded episodes from HikkaApiComplete fallback",
+                    );
                   } else {
                     fallbackFailed = true;
                   }
                 } catch (hikkaError) {
-                  Logger.error("shared.js", "HikkaApiComplete fallback also failed", hikkaError);
+                  Logger.error(
+                    "shared.js",
+                    "HikkaApiComplete fallback also failed",
+                    hikkaError,
+                  );
                   fallbackFailed = true;
                 }
               }
@@ -393,7 +410,7 @@ export function useAnimePreview({ route, navigation }) {
                   setEpisodesList([]);
                   // Встановлюємо errorCode тільки якщо fallback теж впав (а не просто порожні дані)
                   if (fallbackFailed) {
-                    setErrorCode(500);
+                    setErrorCode(result?.code || 404);
                   }
                 }
                 return;
@@ -410,7 +427,7 @@ export function useAnimePreview({ route, navigation }) {
                   !Array.isArray(dubbings)
                 ) {
                   const sortedDubbingItems = sortDubbingsByPartnerStudios(
-                    Object.keys(dubbings)
+                    Object.keys(dubbings),
                   );
                   const sortedDubbings = {};
                   sortedDubbingItems.forEach((item) => {
@@ -472,7 +489,7 @@ export function useAnimePreview({ route, navigation }) {
               Logger.error("Помилка завантаження епізодів:", error);
               if (isMounted) {
                 setEpisodesList([]);
-                setErrorCode(500);
+                setErrorCode(result?.code || 404);
               }
             }
           } else {
@@ -523,7 +540,7 @@ export function useAnimePreview({ route, navigation }) {
             NotificationsStorage.addSubscribedSlug(anime.slug);
             await AniuaApi.updateNotificationSubscription(
               { token: pushToken, add_slugs: [anime.slug] },
-              { bearerToken: aniuaToken }
+              { bearerToken: aniuaToken },
             );
             Logger.debug("AnimePreview", "Підписано на сповіщення", anime.slug);
           } else if (
@@ -533,7 +550,7 @@ export function useAnimePreview({ route, navigation }) {
             NotificationsStorage.removeSubscribedSlug(anime.slug);
             await AniuaApi.updateNotificationSubscription(
               { token: pushToken, remove_slugs: [anime.slug] },
-              { bearerToken: aniuaToken }
+              { bearerToken: aniuaToken },
             );
             Logger.debug("AnimePreview", "Відписано від сповіщень", anime.slug);
           }
@@ -541,12 +558,12 @@ export function useAnimePreview({ route, navigation }) {
           Logger.warn(
             "AnimePreview",
             "Помилка оновлення підписки на сповіщення",
-            notifError
+            notifError,
           );
         }
       }
     },
-    [anime?.slug, watchStatus]
+    [anime?.slug, watchStatus],
   );
 
   const handleStatusChange = useCallback(
@@ -573,7 +590,7 @@ export function useAnimePreview({ route, navigation }) {
         showSnackbar("Помилка синхронізації з Hikka");
       }
     },
-    [anime?.slug, updateWatchStatus, showSnackbar]
+    [anime?.slug, updateWatchStatus, showSnackbar],
   );
 
   const handleFavoriteToggle = useCallback(async () => {
@@ -630,7 +647,7 @@ export function useAnimePreview({ route, navigation }) {
         showSnackbar("Помилка збереження оцінки");
       }
     },
-    [anime?.slug, watchStatus, showSnackbar]
+    [anime?.slug, watchStatus, showSnackbar],
   );
 
   // Синхронізація переглянутих епізодів з Hikka
@@ -663,20 +680,20 @@ export function useAnimePreview({ route, navigation }) {
 
         Logger.debug(
           "AnimePreview",
-          `Синхронізовано з Hikka: ${maxEpisode} серій`
+          `Синхронізовано з Hikka: ${maxEpisode} серій`,
         );
       } catch (error) {
         Logger.error("AnimePreview", "Помилка синхронізації з Hikka", error);
       }
     },
-    [anime?.slug, watchStatus, updateWatchStatus]
+    [anime?.slug, watchStatus, updateWatchStatus],
   );
 
   const handleEpisodeSelect = useCallback(
     (item) => {
       // Зберігаємо прогрес перегляду (глобально, не залежить від плеєра/озвучки)
       const watched_episodes = !(info.watched_episodes || []).includes(
-        item.episode
+        item.episode,
       )
         ? [...(info.watched_episodes || []), item.episode]
         : info.watched_episodes;
@@ -693,7 +710,7 @@ export function useAnimePreview({ route, navigation }) {
         item.episode,
         info.dub_team,
         info.player === "Вбудований плеєр" ? "builtin" : "web",
-        info.player === "Вбудований плеєр" ? "builtin" : info.player
+        info.player === "Вбудований плеєр" ? "builtin" : info.player,
       );
 
       NavigationBar.setVisibilityAsync("hidden");
@@ -718,7 +735,14 @@ export function useAnimePreview({ route, navigation }) {
         });
       }
     },
-    [info, setInfo, episodesList, anime, navigation, syncWatchedEpisodesToHikka]
+    [
+      info,
+      setInfo,
+      episodesList,
+      anime,
+      navigation,
+      syncWatchedEpisodesToHikka,
+    ],
   );
 
   const handleEpisodeLongSelect = useCallback(
@@ -737,7 +761,7 @@ export function useAnimePreview({ route, navigation }) {
       // Синхронізуємо з Hikka (відправляємо лише max номер серії)
       syncWatchedEpisodesToHikka(watched_episodes);
     },
-    [info, setInfo, syncWatchedEpisodesToHikka]
+    [info, setInfo, syncWatchedEpisodesToHikka],
   );
 
   const handleEpisodeSwipe = useCallback(
@@ -746,7 +770,7 @@ export function useAnimePreview({ route, navigation }) {
       Clipboard.setString(item?.video_url);
       showSnackbar("Посилання на епізод скопійоване в буфер обміну");
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   // Handler for new BottomSheetEpisodesComponent (AniuaApi format)
@@ -754,7 +778,7 @@ export function useAnimePreview({ route, navigation }) {
     (episode, useBuiltIn, allEpisodes = []) => {
       // episode is from AniuaApi: { id, team, episode, video_url, player, ... }
       const watched_episodes = !(info.watched_episodes || []).includes(
-        episode.episode
+        episode.episode,
       )
         ? [...(info.watched_episodes || []), episode.episode]
         : info.watched_episodes;
@@ -776,7 +800,7 @@ export function useAnimePreview({ route, navigation }) {
         episode.episode,
         episode.team,
         useBuiltIn ? "builtin" : "web",
-        episode.player
+        episode.player,
       );
 
       NavigationBar.setVisibilityAsync("hidden");
@@ -803,7 +827,7 @@ export function useAnimePreview({ route, navigation }) {
         });
       }
     },
-    [info, setInfo, anime, navigation, syncWatchedEpisodesToHikka]
+    [info, setInfo, anime, navigation, syncWatchedEpisodesToHikka],
   );
 
   const handleNewTeamChange = useCallback(
@@ -813,7 +837,7 @@ export function useAnimePreview({ route, navigation }) {
         dub_team: teamName,
       });
     },
-    [info, setInfo]
+    [info, setInfo],
   );
 
   const handleBuiltInPlayerToggle = useCallback(
@@ -823,14 +847,14 @@ export function useAnimePreview({ route, navigation }) {
         useBuiltIn,
       });
     },
-    [info, setInfo]
+    [info, setInfo],
   );
 
   const handleDownloadEpisode = useCallback(
     async (item) => {
       try {
         const episode = (info.downloaded_episodes || []).find(
-          (ep) => ep.episode === item.episode
+          (ep) => ep.episode === item.episode,
         );
 
         if (
@@ -848,7 +872,7 @@ export function useAnimePreview({ route, navigation }) {
             setInfo({
               ...info,
               downloaded_episodes: (info.downloaded_episodes || []).filter(
-                (ep) => ep.episode !== item.episode
+                (ep) => ep.episode !== item.episode,
               ),
             });
           }
@@ -890,11 +914,11 @@ export function useAnimePreview({ route, navigation }) {
                   actionLabel: "Копіювати",
                   onActionPress: () => {
                     Clipboard.setString(
-                      `Помилка при завантаженні епізоду: ${error.message || error}`
+                      `Помилка при завантаженні епізоду: ${error.message || error}`,
                     );
                   },
                   duration: 8000,
-                }
+                },
               );
             },
           });
@@ -903,7 +927,7 @@ export function useAnimePreview({ route, navigation }) {
         Logger.error("Помилка при обробці епізоду:", err);
       }
     },
-    [info, setInfo, anime, showSnackbar]
+    [info, setInfo, anime, showSnackbar],
   );
 
   const renderSimilarAnime = useCallback(
@@ -917,7 +941,7 @@ export function useAnimePreview({ route, navigation }) {
       }
       return { item, navigation, winWidth, winHeight };
     },
-    [navigation, initialAnime?.slug, winWidth, winHeight]
+    [navigation, initialAnime?.slug, winWidth, winHeight],
   );
 
   const keyExtractorSimilar = useCallback((item) => item?.slug || "", []);

@@ -316,8 +316,14 @@ export default function AnimePreviewPhone({ route }) {
 
   // Get watch button text
   const getWatchButtonText = () => {
-    if (!info?.watched?.player || !info?.watched?.dubbing || !episodesList) {
-      return "Завантаження...";
+    if ((errorCode && errorCode !== 404) || isLoading || !episodesList) {
+      return WatchButtonState.LOADING;
+    } else if (info?.watched_episodes > 0) {
+      return WatchButtonState.CONTINUE_WATCHING;
+    } else if (errorCode === 404) {
+      return WatchButtonState.NO_TRANSLATION;
+    } else {
+      return WatchButtonState.START_WATCHING;
     }
   };
 
@@ -401,7 +407,7 @@ export default function AnimePreviewPhone({ route }) {
     );
   }
 
-  if (errorCode) {
+  if (errorCode && errorCode !== 404) {
     return (
       <ErrorScreen
         title="Помилка"
@@ -519,18 +525,14 @@ export default function AnimePreviewPhone({ route }) {
           <View style={styles.primaryActionsRow}>
             {/* Watch button */}
             <WatchButton
-              label={
-                isLoading
-                  ? WatchButtonState.LOADING
-                  : WatchButtonState.CONTINUE_WATCHING
-              }
+              label={getWatchButtonText()}
               style={{
                 width: "70%",
               }}
               onWatchPress={handleWatchPress}
               onDownloadPress={handleDownloadPress}
-              isDownloadable={Object.keys(episodesList).length > 0}
-              isActive={Object.keys(episodesList).length > 0}
+              isDownloadable={Object.keys(episodesList || {}).length > 0}
+              isActive={Object.keys(episodesList || {}).length > 0}
             />
 
             {/* Download button */}

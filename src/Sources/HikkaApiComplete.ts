@@ -217,7 +217,7 @@ export class HikkaApiComplete {
   protected static async cachedRequest(
     cacheKey: string,
     requestFn: () => Promise<any>,
-    ttl: number = HikkaApiComplete.CACHE_TTL
+    ttl: number = HikkaApiComplete.CACHE_TTL,
   ) {
     const cachedData = HikkaApiComplete.apiCache[cacheKey];
     const now = Date.now();
@@ -268,7 +268,7 @@ export class HikkaApiComplete {
   }) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/signup`,
-      data
+      data,
     );
     return response.data;
   }
@@ -288,7 +288,7 @@ export class HikkaApiComplete {
   }) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/login`,
-      data
+      data,
     );
     return response.data;
   }
@@ -301,7 +301,7 @@ export class HikkaApiComplete {
   public static async activateAccount(token: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/activation`,
-      { token }
+      { token },
     );
     return response.data;
   }
@@ -314,7 +314,7 @@ export class HikkaApiComplete {
   public static async resendActivation(email: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/activation/resend`,
-      { email }
+      { email },
     );
     return response.data;
   }
@@ -327,7 +327,7 @@ export class HikkaApiComplete {
   public static async requestPasswordReset(email: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/password/reset`,
-      { email }
+      { email },
     );
     return response.data;
   }
@@ -345,7 +345,7 @@ export class HikkaApiComplete {
   }) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/password/confirm`,
-      data
+      data,
     );
     return response.data;
   }
@@ -357,7 +357,7 @@ export class HikkaApiComplete {
    */
   public static async getOAuthUrl(provider: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}auth/oauth/${provider}`
+      `${HikkaApiComplete.apiUrl}auth/oauth/${provider}`,
     );
     return response.data;
   }
@@ -371,7 +371,7 @@ export class HikkaApiComplete {
   public static async exchangeOAuthToken(provider: string, code: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/oauth/${provider}`,
-      { code }
+      { code },
     );
     return response.data;
   }
@@ -382,7 +382,7 @@ export class HikkaApiComplete {
    */
   public static async getTokenInfo() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}auth/token/info`
+      `${HikkaApiComplete.apiUrl}auth/token/info`,
     );
     return response.data;
   }
@@ -394,7 +394,7 @@ export class HikkaApiComplete {
    */
   public static async requestThirdPartyToken(clientReference: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}auth/token/request/${clientReference}`
+      `${HikkaApiComplete.apiUrl}auth/token/request/${clientReference}`,
     );
     return response.data;
   }
@@ -407,7 +407,7 @@ export class HikkaApiComplete {
   public static async generateToken(secret: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}auth/token`,
-      { secret }
+      { secret },
     );
     return response.data;
   }
@@ -418,7 +418,7 @@ export class HikkaApiComplete {
    */
   public static async listThirdPartyTokens() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}auth/token/thirdparty`
+      `${HikkaApiComplete.apiUrl}auth/token/thirdparty`,
     );
     return response.data;
   }
@@ -430,7 +430,7 @@ export class HikkaApiComplete {
    */
   public static async revokeToken(tokenReference: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}auth/token/${tokenReference}`
+      `${HikkaApiComplete.apiUrl}auth/token/${tokenReference}`,
     );
     return response.data;
   }
@@ -443,7 +443,7 @@ export class HikkaApiComplete {
    */
   public static async getCurrentUser() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}user/me`
+      `${HikkaApiComplete.apiUrl}user/me`,
     );
     return response.data;
   }
@@ -457,7 +457,7 @@ export class HikkaApiComplete {
     const cacheKey = `user_${username}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}user/${username}`
+        `${HikkaApiComplete.apiUrl}user/${username}`,
       );
       return response.data;
     });
@@ -470,7 +470,7 @@ export class HikkaApiComplete {
    */
   public static async getUserActivity(username: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}user/${username}/activity`
+      `${HikkaApiComplete.apiUrl}user/${username}/activity`,
     );
     return response.data;
   }
@@ -490,7 +490,7 @@ export class HikkaApiComplete {
   }) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}user/list`,
-      params
+      params,
     );
     return response.data;
   }
@@ -503,7 +503,7 @@ export class HikkaApiComplete {
   public static async updateUsername(username: string) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}settings/username`,
-      { username }
+      { username },
     );
     // Очищаємо кеш профілю після зміни
     delete HikkaApiComplete.apiCache[`user_${username}`];
@@ -544,11 +544,12 @@ export class HikkaApiComplete {
   }): Promise<HikkaPaginatedResponse<HikkaAnimePreview>> {
     const { page = 1, size = 20, ...rest } = params;
     if (!rest.query || rest.query.length < 1) delete rest["query"];
+    Logger.debug("HikkaApiComplete", "anime_search", params);
     const cacheKey = `anime_search_${JSON.stringify(params)}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.post(
         `${HikkaApiComplete.apiUrl}anime?page=${page}&size=${size}`,
-        rest
+        rest,
       );
       return response.data;
     });
@@ -560,12 +561,12 @@ export class HikkaApiComplete {
    * @returns {Promise<HikkaAnime|null>} Об'єкт з деталями аніме або null
    */
   public static async getAnimeDetails(
-    slug: string
+    slug: string,
   ): Promise<HikkaAnime | null> {
     const cacheKey = `anime_details_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}anime/${slug}`
+        `${HikkaApiComplete.apiUrl}anime/${slug}`,
       );
       return response.data;
     }).catch(() => null);
@@ -580,7 +581,7 @@ export class HikkaApiComplete {
     const cacheKey = `anime_characters_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}anime/${slug}/characters`
+        `${HikkaApiComplete.apiUrl}anime/${slug}/characters`,
       );
       return response.data.list;
     });
@@ -595,7 +596,7 @@ export class HikkaApiComplete {
     const cacheKey = `anime_staff_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}anime/${slug}/staff`
+        `${HikkaApiComplete.apiUrl}anime/${slug}/staff`,
       );
       return response.data.list;
     });
@@ -610,7 +611,7 @@ export class HikkaApiComplete {
     const cacheKey = `anime_episodes_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}anime/${slug}/episodes`
+        `${HikkaApiComplete.apiUrl}anime/${slug}/episodes`,
       );
       return response.data.list;
     });
@@ -625,7 +626,7 @@ export class HikkaApiComplete {
     const cacheKey = `anime_recommendations_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}anime/${slug}/recommendations`
+        `${HikkaApiComplete.apiUrl}anime/${slug}/recommendations`,
       );
       return response.data.list;
     });
@@ -641,7 +642,7 @@ export class HikkaApiComplete {
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       try {
         const response = await HikkaApiComplete.axiosInstance.get(
-          `${HikkaApiComplete.apiUrl}anime/${slug}/franchise`
+          `${HikkaApiComplete.apiUrl}anime/${slug}/franchise`,
         );
         return response.data.list;
       } catch (error: any) {
@@ -651,7 +652,7 @@ export class HikkaApiComplete {
         Logger.error(
           "HikkaApiComplete",
           "Помилка при завантаженні франшизи",
-          error
+          error,
         );
         return [];
       }
@@ -668,7 +669,7 @@ export class HikkaApiComplete {
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       try {
         const response = await HikkaApiComplete.axiosInstance.get(
-          `${HikkaApiComplete.apiUrl}anime/${slug}/franchise?page=1&size=15`
+          `${HikkaApiComplete.apiUrl}anime/${slug}/franchise?page=1&size=15`,
         );
         return response.data.list
           .filter((item: any) => item.media_type === "tv")
@@ -680,7 +681,7 @@ export class HikkaApiComplete {
         Logger.error(
           "HikkaApiComplete",
           "Помилка при завантаженні франшизи",
-          error
+          error,
         );
         return [];
       }
@@ -700,7 +701,7 @@ export class HikkaApiComplete {
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.post(
         `${HikkaApiComplete.apiUrl}manga?page=${page}&size=${size}`,
-        rest
+        rest,
       );
       return response.data;
     });
@@ -715,7 +716,7 @@ export class HikkaApiComplete {
     const cacheKey = `manga_details_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}manga/${slug}`
+        `${HikkaApiComplete.apiUrl}manga/${slug}`,
       );
       return response.data;
     });
@@ -730,7 +731,7 @@ export class HikkaApiComplete {
     const cacheKey = `manga_characters_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}manga/${slug}/characters`
+        `${HikkaApiComplete.apiUrl}manga/${slug}/characters`,
       );
       return response.data.list;
     });
@@ -747,7 +748,7 @@ export class HikkaApiComplete {
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.post(
         `${HikkaApiComplete.apiUrl}novel?page=${page}&size=${size}`,
-        rest
+        rest,
       );
       return response.data;
     });
@@ -762,7 +763,7 @@ export class HikkaApiComplete {
     const cacheKey = `novel_details_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}novel/${slug}`
+        `${HikkaApiComplete.apiUrl}novel/${slug}`,
       );
       return response.data;
     });
@@ -777,7 +778,7 @@ export class HikkaApiComplete {
     const cacheKey = `novel_characters_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}novel/${slug}/characters`
+        `${HikkaApiComplete.apiUrl}novel/${slug}/characters`,
       );
       return response.data.list;
     });
@@ -792,7 +793,7 @@ export class HikkaApiComplete {
    */
   public static async getWatchEntry(slug: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}watch/${slug}`
+      `${HikkaApiComplete.apiUrl}watch/${slug}`,
     );
     return response.data;
   }
@@ -814,11 +815,11 @@ export class HikkaApiComplete {
       score?: number;
       episodes?: number;
       rewatches?: number;
-    }
+    },
   ) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}watch/${slug}`,
-      data
+      data,
     );
     return response.data;
   }
@@ -830,7 +831,7 @@ export class HikkaApiComplete {
    */
   public static async removeFromWatchList(slug: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}watch/${slug}`
+      `${HikkaApiComplete.apiUrl}watch/${slug}`,
     );
     return response.data;
   }
@@ -842,7 +843,7 @@ export class HikkaApiComplete {
    */
   public static async getAnimeFollowing(slug: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}watch/${slug}/following`
+      `${HikkaApiComplete.apiUrl}watch/${slug}/following`,
     );
     return response.data;
   }
@@ -856,7 +857,7 @@ export class HikkaApiComplete {
     const cacheKey = `watch_stats_${username}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}watch/${username}/stats`
+        `${HikkaApiComplete.apiUrl}watch/${username}/stats`,
       );
       return response.data;
     });
@@ -870,7 +871,7 @@ export class HikkaApiComplete {
    */
   public static async getRandomWatchEntry(username: string, status: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}watch/random/${username}/${status}`
+      `${HikkaApiComplete.apiUrl}watch/random/${username}/${status}`,
     );
     return response.data;
   }
@@ -887,7 +888,7 @@ export class HikkaApiComplete {
     const { page = 1, size = 15, ...bodyParams } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}watch/${username}/list?page=${page}&size=${size}`,
-      bodyParams
+      bodyParams,
     );
 
     return response.data;
@@ -903,7 +904,7 @@ export class HikkaApiComplete {
    */
   public static async getReadEntry(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}read/${contentType}/${slug}`
+      `${HikkaApiComplete.apiUrl}read/${contentType}/${slug}`,
     );
     return response.data;
   }
@@ -918,11 +919,11 @@ export class HikkaApiComplete {
   public static async addToReadList(
     contentType: string,
     slug: string,
-    data: any
+    data: any,
   ) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}read/${contentType}/${slug}`,
-      data
+      data,
     );
     return response.data;
   }
@@ -935,7 +936,7 @@ export class HikkaApiComplete {
    */
   public static async removeFromReadList(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}read/${contentType}/${slug}`
+      `${HikkaApiComplete.apiUrl}read/${contentType}/${slug}`,
     );
     return response.data;
   }
@@ -950,11 +951,11 @@ export class HikkaApiComplete {
   public static async getUserReadList(
     contentType: string,
     username: string,
-    params: any = {}
+    params: any = {},
   ) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}read/${contentType}/${username}/list`,
-      params
+      params,
     );
     return response.data;
   }
@@ -970,7 +971,7 @@ export class HikkaApiComplete {
     const cacheKey = `character_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}characters/${slug}`
+        `${HikkaApiComplete.apiUrl}characters/${slug}`,
       );
       return response.data;
     });
@@ -988,7 +989,7 @@ export class HikkaApiComplete {
     const { page = 1, size = 20, ...rest } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}characters?page=${page}&size=${size}`,
-      rest
+      rest,
     );
 
     return response.data;
@@ -1003,7 +1004,7 @@ export class HikkaApiComplete {
     const cacheKey = `character_anime_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}characters/${slug}/anime`
+        `${HikkaApiComplete.apiUrl}characters/${slug}/anime`,
       );
       return response.data.list;
     });
@@ -1018,7 +1019,7 @@ export class HikkaApiComplete {
     const cacheKey = `person_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}people/${slug}`
+        `${HikkaApiComplete.apiUrl}people/${slug}`,
       );
       return response.data;
     });
@@ -1036,7 +1037,7 @@ export class HikkaApiComplete {
     const { page = 1, size = 20, ...rest } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}people?page=${page}&size=${size}`,
-      rest
+      rest,
     );
     return response.data;
   }
@@ -1050,7 +1051,7 @@ export class HikkaApiComplete {
     const cacheKey = `person_anime_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}people/${slug}/anime`
+        `${HikkaApiComplete.apiUrl}people/${slug}/anime`,
       );
       return response.data.list;
     });
@@ -1066,7 +1067,7 @@ export class HikkaApiComplete {
   public static async getCollections(params: any = {}) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}collections`,
-      params
+      params,
     );
     return response.data;
   }
@@ -1079,7 +1080,7 @@ export class HikkaApiComplete {
   public static async createCollection(data: any) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}collections/create`,
-      data
+      data,
     );
     return response.data;
   }
@@ -1093,7 +1094,7 @@ export class HikkaApiComplete {
     const cacheKey = `collection_${reference}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}collections/${reference}`
+        `${HikkaApiComplete.apiUrl}collections/${reference}`,
       );
       return response.data;
     });
@@ -1108,7 +1109,7 @@ export class HikkaApiComplete {
   public static async updateCollection(reference: string, data: any) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}collections/${reference}`,
-      data
+      data,
     );
     return response.data;
   }
@@ -1120,7 +1121,7 @@ export class HikkaApiComplete {
    */
   public static async deleteCollection(reference: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}collections/${reference}`
+      `${HikkaApiComplete.apiUrl}collections/${reference}`,
     );
     return response.data;
   }
@@ -1133,7 +1134,7 @@ export class HikkaApiComplete {
    */
   public static async getLatestComments() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}comments/latest`
+      `${HikkaApiComplete.apiUrl}comments/latest`,
     );
     return response.data;
   }
@@ -1144,7 +1145,7 @@ export class HikkaApiComplete {
    */
   public static async getCommentsList() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}comments/list`
+      `${HikkaApiComplete.apiUrl}comments/list`,
     );
     return response.data;
   }
@@ -1159,11 +1160,11 @@ export class HikkaApiComplete {
   public static async writeComment(
     contentType: string,
     slug: string,
-    data: any
+    data: any,
   ) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}`,
-      data
+      data,
     );
     return response.data;
   }
@@ -1178,11 +1179,11 @@ export class HikkaApiComplete {
   public static async setVote(
     contentType: string,
     slug: string,
-    score: number
+    score: number,
   ) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}vote/${contentType}/${slug}`,
-      { score }
+      { score },
     );
     return response.data;
   }
@@ -1195,7 +1196,7 @@ export class HikkaApiComplete {
    */
   public static async getContentComments(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}/list`
+      `${HikkaApiComplete.apiUrl}comments/${contentType}/${slug}/list`,
     );
     return response.data;
   }
@@ -1209,7 +1210,7 @@ export class HikkaApiComplete {
   public static async editComment(commentReference: string, data: any) {
     const response = await HikkaApiComplete.axiosInstance.put(
       `${HikkaApiComplete.apiUrl}comments/${commentReference}`,
-      data
+      data,
     );
     return response.data;
   }
@@ -1221,7 +1222,7 @@ export class HikkaApiComplete {
    */
   public static async deleteComment(commentReference: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}comments/${commentReference}`
+      `${HikkaApiComplete.apiUrl}comments/${commentReference}`,
     );
     return response.data;
   }
@@ -1234,7 +1235,7 @@ export class HikkaApiComplete {
    */
   public static async getNotifications() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}notifications`
+      `${HikkaApiComplete.apiUrl}notifications`,
     );
     return response.data;
   }
@@ -1245,7 +1246,7 @@ export class HikkaApiComplete {
    */
   public static async getNotificationsCount() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}notifications/count`
+      `${HikkaApiComplete.apiUrl}notifications/count`,
     );
     return response.data;
   }
@@ -1257,7 +1258,7 @@ export class HikkaApiComplete {
    */
   public static async markNotificationAsSeen(notificationReference: string) {
     const response = await HikkaApiComplete.axiosInstance.post(
-      `${HikkaApiComplete.apiUrl}notifications/${notificationReference}/seen`
+      `${HikkaApiComplete.apiUrl}notifications/${notificationReference}/seen`,
     );
     return response.data;
   }
@@ -1272,7 +1273,7 @@ export class HikkaApiComplete {
    */
   public static async getFavoriteStatus(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`
+      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`,
     );
     return response.status;
   }
@@ -1285,7 +1286,7 @@ export class HikkaApiComplete {
    */
   public static async addToFavorites(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.put(
-      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`
+      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`,
     );
     return response.data;
   }
@@ -1298,7 +1299,7 @@ export class HikkaApiComplete {
    */
   public static async removeFromFavorites(contentType: string, slug: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`
+      `${HikkaApiComplete.apiUrl}favourite/${contentType}/${slug}`,
     );
     return response.data;
   }
@@ -1315,12 +1316,12 @@ export class HikkaApiComplete {
   public static async getUserFavorites(
     contentType: string,
     username: string,
-    params: any = {}
+    params: any = {},
   ) {
     const { page = 1, size = 15, ...bodyParams } = params;
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}favourite/${contentType}/${username}/list?page=${page}&size=${size}`,
-      bodyParams
+      bodyParams,
     );
     return response.data;
   }
@@ -1334,7 +1335,7 @@ export class HikkaApiComplete {
    */
   public static async getFollowStatus(username: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}follow/${username}`
+      `${HikkaApiComplete.apiUrl}follow/${username}`,
     );
     return response.data;
   }
@@ -1346,7 +1347,7 @@ export class HikkaApiComplete {
    */
   public static async followUser(username: string) {
     const response = await HikkaApiComplete.axiosInstance.put(
-      `${HikkaApiComplete.apiUrl}follow/${username}`
+      `${HikkaApiComplete.apiUrl}follow/${username}`,
     );
     return response.data;
   }
@@ -1358,7 +1359,7 @@ export class HikkaApiComplete {
    */
   public static async unfollowUser(username: string) {
     const response = await HikkaApiComplete.axiosInstance.delete(
-      `${HikkaApiComplete.apiUrl}follow/${username}`
+      `${HikkaApiComplete.apiUrl}follow/${username}`,
     );
     return response.data;
   }
@@ -1372,7 +1373,7 @@ export class HikkaApiComplete {
     const cacheKey = `follow_stats_${username}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}follow/${username}/stats`
+        `${HikkaApiComplete.apiUrl}follow/${username}/stats`,
       );
       return response.data;
     });
@@ -1385,7 +1386,7 @@ export class HikkaApiComplete {
    */
   public static async getUserFollowing(username: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}follow/${username}/following`
+      `${HikkaApiComplete.apiUrl}follow/${username}/following`,
     );
     return response.data;
   }
@@ -1397,7 +1398,7 @@ export class HikkaApiComplete {
    */
   public static async getUserFollowers(username: string) {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}follow/${username}/followers`
+      `${HikkaApiComplete.apiUrl}follow/${username}/followers`,
     );
     return response.data;
   }
@@ -1414,7 +1415,7 @@ export class HikkaApiComplete {
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.post(
         `${HikkaApiComplete.apiUrl}schedule/anime`,
-        params
+        params,
       );
       return response.data;
     });
@@ -1430,7 +1431,7 @@ export class HikkaApiComplete {
     const cacheKey = `genres`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}genres`
+        `${HikkaApiComplete.apiUrl}genres`,
       );
       return response.data.list;
     });
@@ -1450,7 +1451,7 @@ export class HikkaApiComplete {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   }
@@ -1464,7 +1465,7 @@ export class HikkaApiComplete {
     const cacheKey = `company_${slug}`;
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       const response = await HikkaApiComplete.axiosInstance.get(
-        `${HikkaApiComplete.apiUrl}companies/${slug}`
+        `${HikkaApiComplete.apiUrl}companies/${slug}`,
       );
       return response.data;
     });
@@ -1478,7 +1479,7 @@ export class HikkaApiComplete {
   public static async searchCompanies(params: any) {
     const response = await HikkaApiComplete.axiosInstance.post(
       `${HikkaApiComplete.apiUrl}companies`,
-      params
+      params,
     );
     return response.data;
   }
@@ -1489,7 +1490,7 @@ export class HikkaApiComplete {
    */
   public static async getFollowingHistory() {
     const response = await HikkaApiComplete.axiosInstance.get(
-      `${HikkaApiComplete.apiUrl}history/following`
+      `${HikkaApiComplete.apiUrl}history/following`,
     );
     return response.data;
   }
@@ -1502,7 +1503,7 @@ export class HikkaApiComplete {
   public static async getUserHistory(username: string, params?: any) {
     const response = await HikkaApiComplete.axiosInstance.get(
       `${HikkaApiComplete.apiUrl}history/user/${username}`,
-      { params }
+      { params },
     );
     return response.data;
   }
@@ -1521,11 +1522,11 @@ export class HikkaApiComplete {
         Logger.debug(
           "HikkaApiComplete",
           "Завантаження епізодів для slug",
-          slug
+          slug,
         );
 
         const response = await HikkaApiComplete.axiosInstance.get(
-          `${HikkaApiComplete.apiEpisodesUrl}watch/${slug}`
+          `${HikkaApiComplete.apiEpisodesUrl}watch/${slug}`,
         );
 
         Logger.debug("HikkaApiComplete", "Отримано епізоди", response.data);
@@ -1537,7 +1538,7 @@ export class HikkaApiComplete {
         Logger.error(
           "HikkaApiComplete",
           "Помилка при завантаженні епізодів",
-          error
+          error,
         );
         return {
           data: [],

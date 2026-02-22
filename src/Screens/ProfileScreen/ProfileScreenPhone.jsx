@@ -1,12 +1,9 @@
-import { useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Animated,
-  useWindowDimensions,
 } from "react-native";
 import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../../Global/useTheme";
@@ -27,22 +24,12 @@ import {
   FILTERS,
   FAVORITES_FILTERS,
   SCREEN_WIDTH,
-  SCREEN_HEIGHT,
 } from "../../Components/Profile";
 import { isTablet } from "../../Styles/Responsive";
 
 export default function ProfileScreen({ navigation }) {
   const colors = useThemeColors();
   const profile = useProfileScreen(navigation);
-
-  useEffect(() => {
-    Animated.spring(profile.slideAnim, {
-      toValue: -profile.activeTabIndex * SCREEN_WIDTH,
-      useNativeDriver: true,
-      tension: 68,
-      friction: 12,
-    }).start();
-  }, [profile.activeTabIndex]);
 
   if (profile.isLoading) {
     return (
@@ -148,97 +135,51 @@ export default function ProfileScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Tab Content with Slide Animation */}
-        <View
-          style={[
-            styles.tabContentWrapper,
-            {
-              backgroundColor: colors.accent,
-              height: Math.max(
-                profile.activeTab === "list"
-                  ? profile.listTabHeight
-                  : profile.favoritesTabHeight,
-                300
-              ),
-            },
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.tabContentContainer,
-              { transform: [{ translateX: profile.slideAnim }] },
-            ]}
-          >
-            {/* List Tab */}
-            <View
-              style={[
-                { minWidth: SCREEN_WIDTH },
-                isTablet() && { minHeight: SCREEN_HEIGHT },
-              ]}
-            >
-              <View
-                onLayout={(e) =>
-                  profile.setListTabHeight(e.nativeEvent.layout.height)
-                }
-              >
-                <FilterChips
-                  filters={FILTERS}
-                  activeFilter={profile.activeFilter}
-                  onFilterSelect={profile.setActiveFilter}
-                  colors={colors}
-                />
-                <AnimeGrid
-                  data={profile.animeList}
-                  isLoading={profile.isLoadingAnime}
-                  emptyIcon="MonitorPlay"
-                  emptyText="Список порожній"
-                  colors={colors}
-                  navigation={navigation}
-                  showAnimeDetails={profile.showAnimeDetails}
-                  getAnimeFromItem={(item) => item.anime}
-                  cardWidth={
-                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35
-                  }
-                  numColumns={isTablet() ? 5 : 3}
-                />
-              </View>
-            </View>
+        {/* Tab Content */}
+        <View style={[styles.tabContentWrapper, { backgroundColor: colors.accent }]}>
+          {/* List Tab */}
+          <View style={{ display: profile.activeTab === "list" ? "flex" : "none" }}>
+            <FilterChips
+              filters={FILTERS}
+              activeFilter={profile.activeFilter}
+              onFilterSelect={profile.setActiveFilter}
+              colors={colors}
+            />
+            <AnimeGrid
+              data={profile.animeList}
+              isLoading={profile.isLoadingAnime}
+              emptyIcon="MonitorPlay"
+              emptyText="Список порожній"
+              colors={colors}
+              navigation={navigation}
+              showAnimeDetails={profile.showAnimeDetails}
+              getAnimeFromItem={(item) => item.anime}
+              cardWidth={isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35}
+              numColumns={isTablet() ? 5 : 3}
+            />
+          </View>
 
-            {/* Favorites Tab */}
-            <View
-              style={[
-                { minWidth: SCREEN_WIDTH },
-                isTablet() && { minHeight: SCREEN_HEIGHT },
-              ]}
-            >
-              <View
-                onLayout={(e) =>
-                  profile.setFavoritesTabHeight(e.nativeEvent.layout.height)
-                }
-              >
-                <FilterChips
-                  filters={FAVORITES_FILTERS}
-                  activeFilter={profile.activeFavoriteFilter}
-                  onFilterSelect={profile.setActiveFavoriteFilter}
-                  colors={colors}
-                />
-                <AnimeGrid
-                  data={profile.favoritesList}
-                  isLoading={profile.isLoadingFavorites}
-                  emptyIcon="Heart"
-                  emptyText="Список порожній"
-                  colors={colors}
-                  navigation={navigation}
-                  showAnimeDetails={profile.showAnimeDetails}
-                  getAnimeFromItem={(item) => item}
-                  cardWidth={
-                    isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35
-                  }
-                  numColumns={isTablet() ? 5 : 3}
-                />
-              </View>
-            </View>
-          </Animated.View>
+          {/* Favorites Tab */}
+          <View style={{ display: profile.activeTab === "favorites" ? "flex" : "none" }}>
+            <FilterChips
+              filters={FAVORITES_FILTERS}
+              activeFilter={profile.activeFavoriteFilter}
+              onFilterSelect={profile.setActiveFavoriteFilter}
+              colors={colors}
+            />
+            <AnimeGrid
+              data={profile.favoritesList}
+              isLoading={profile.isLoadingFavorites}
+              emptyIcon="Heart"
+              emptyText="Список порожній"
+              colors={colors}
+              navigation={navigation}
+              showAnimeDetails={profile.showAnimeDetails}
+              getAnimeFromItem={(item) => item}
+              cardWidth={isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35}
+              numColumns={isTablet() ? 5 : 3}
+            />
+          </View>
         </View>
         <View style={{ width: "100%", paddingBottom: 45 }} />
       </ScrollView>
@@ -309,11 +250,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   tabContentWrapper: {
-    overflow: "hidden",
     width: "100%",
-  },
-  tabContentContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
   },
 });

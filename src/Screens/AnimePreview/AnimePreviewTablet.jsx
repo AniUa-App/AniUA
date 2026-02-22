@@ -365,6 +365,18 @@ export default function AnimePreviewTablet({ route }) {
     (item) => item?.character?.slug || "",
     [],
   );
+  // Get watch button text
+  const getWatchButtonText = () => {
+    if ((errorCode && errorCode !== 404) || isLoading || !episodesList) {
+      return WatchButtonState.LOADING;
+    } else if (info?.watched_episodes > 0) {
+      return WatchButtonState.CONTINUE_WATCHING;
+    } else if (errorCode === 404) {
+      return WatchButtonState.NO_TRANSLATION;
+    } else {
+      return WatchButtonState.START_WATCHING;
+    }
+  };
 
   const renderSimilarAnime = useCallback(
     ({ item }) => {
@@ -431,7 +443,7 @@ export default function AnimePreviewTablet({ route }) {
     );
   }
 
-  if (errorCode) {
+  if (errorCode && errorCode !== 404) {
     return (
       <ErrorScreen
         title="Помилка"
@@ -585,16 +597,12 @@ export default function AnimePreviewTablet({ route }) {
             }}
           >
             <WatchButton
-              label={
-                isLoading
-                  ? WatchButtonState.LOADING
-                  : WatchButtonState.CONTINUE_WATCHING
-              }
+              label={getWatchButtonText()}
               style={{ width: "80%" }}
               onWatchPress={handleWatchPress}
               onDownloadPress={handleDownloadPress}
-              isDownloadable={Object.keys(episodesList).length > 0}
-              isActive={Object.keys(episodesList).length > 0}
+              isDownloadable={Object.keys(episodesList || {}).length > 0}
+              isActive={Object.keys(episodesList || {}).length > 0}
             />
 
             {/* Favorite button */}

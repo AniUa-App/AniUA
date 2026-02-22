@@ -59,8 +59,9 @@ export function useSearch() {
   const results = resultsByCategory[activeCategory];
   const hasSearched = hasSearchedByCategory[activeCategory];
 
-  const handleSearch = useCallback(async () => {
+  const handleSearch = useCallback(async (filterOverrides) => {
     const query = searchText.trim();
+    const activeFilters = filterOverrides || filters;
 
     setIsLoading(true);
     setHasSearchedByCategory((prev) => ({ ...prev, [activeCategory]: true }));
@@ -72,25 +73,25 @@ export function useSearch() {
         case "anime":
           const searchParams = {
             query,
-            genres: filters.genres.map((g) => Genres[g]).filter(Boolean),
+            genres: activeFilters.genres.map((g) => Genres[g]).filter(Boolean),
             page: 1,
             size: 30,
           };
 
-          if (filters.status && filters.status !== "Байдуже") {
-            searchParams.status = [Statuses[filters.status]];
+          if (activeFilters.status && activeFilters.status !== "Байдуже") {
+            searchParams.status = [Statuses[activeFilters.status]];
           }
 
-          if (filters.seasons && filters.seasons !== "Байдуже") {
-            searchParams.season = [Seasons[filters.seasons]];
+          if (activeFilters.seasons && activeFilters.seasons !== "Байдуже") {
+            searchParams.season = [Seasons[activeFilters.seasons]];
           }
 
-          if (filters.years) {
-            searchParams.years = filters.years;
+          if (activeFilters.years) {
+            searchParams.years = activeFilters.years;
           }
 
-          if (filters.score > 0) {
-            searchParams.score = [filters.score, 10];
+          if (activeFilters.score > 0) {
+            searchParams.score = [activeFilters.score, 10];
           }
 
           const animeResponse =
