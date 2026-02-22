@@ -507,6 +507,48 @@ export function useAnimePreview({ route, navigation }) {
   ]);
 
   // Handlers
+
+  // Оновлює watchStatus і синхронізує підписку на push-сповіщення
+  const updateWatchStatus = useCallback(
+    async (newStatus) => {
+      const previousStatus = watchStatus;
+      setWatchStatus(newStatus);
+
+      const pushToken = NotificationsStorage.getPushToken();
+      const aniuaToken = AniuaAuthStorage.getToken();
+
+      if (pushToken && aniuaToken) {
+        try {
+          if (newStatus === "watching" && previousStatus !== "watching") {
+            NotificationsStorage.addSubscribedSlug(anime.slug);
+            await AniuaApi.updateNotificationSubscription(
+              { token: pushToken, add_slugs: [anime.slug] },
+              { bearerToken: aniuaToken }
+            );
+            Logger.debug("AnimePreview", "Підписано на сповіщення", anime.slug);
+          } else if (
+            newStatus === null ||
+            (previousStatus === "watching" && newStatus !== "watching")
+          ) {
+            NotificationsStorage.removeSubscribedSlug(anime.slug);
+            await AniuaApi.updateNotificationSubscription(
+              { token: pushToken, remove_slugs: [anime.slug] },
+              { bearerToken: aniuaToken }
+            );
+            Logger.debug("AnimePreview", "Відписано від сповіщень", anime.slug);
+          }
+        } catch (notifError) {
+          Logger.warn(
+            "AnimePreview",
+            "Помилка оновлення підписки на сповіщення",
+            notifError
+          );
+        }
+      }
+    },
+    [anime?.slug, watchStatus]
+  );
+
   const handleStatusChange = useCallback(
     async (newStatus) => {
       if (!anime?.slug) return;
@@ -516,69 +558,22 @@ export function useAnimePreview({ route, navigation }) {
         return;
       }
 
-      const previousStatus = watchStatus;
-
       try {
         Logger.debug("setWatchStatus", "Change anime status", newStatus);
         if (newStatus === null) {
           await HikkaApiComplete.removeFromWatchList(anime.slug);
-          setWatchStatus(null);
         } else {
           await HikkaApiComplete.addToWatchList(anime.slug, {
             status: newStatus,
           });
-          setWatchStatus(newStatus);
         }
-
-        // Оновлення підписки на push-сповіщення
-        const pushToken = NotificationsStorage.getPushToken();
-        const aniuaToken = AniuaAuthStorage.getToken();
-
-        if (pushToken && aniuaToken) {
-          try {
-            // Підписуємось на сповіщення коли статус "watching"
-            if (newStatus === "watching" && previousStatus !== "watching") {
-              NotificationsStorage.addSubscribedSlug(anime.slug);
-              await AniuaApi.updateNotificationSubscription(
-                { token: pushToken, add_slugs: [anime.slug] },
-                { bearerToken: aniuaToken }
-              );
-              Logger.debug(
-                "AnimePreview",
-                "Підписано на сповіщення",
-                anime.slug
-              );
-            }
-            // Відписуємось коли видаляємо зі списку або змінюємо статус з "watching"
-            else if (
-              newStatus === null ||
-              (previousStatus === "watching" && newStatus !== "watching")
-            ) {
-              NotificationsStorage.removeSubscribedSlug(anime.slug);
-              await AniuaApi.updateNotificationSubscription(
-                { token: pushToken, remove_slugs: [anime.slug] },
-                { bearerToken: aniuaToken }
-              );
-              Logger.debug(
-                "AnimePreview",
-                "Відписано від сповіщень",
-                anime.slug
-              );
-            }
-          } catch (notifError) {
-            Logger.warn(
-              "AnimePreview",
-              "Помилка оновлення підписки на сповіщення",
-              notifError
-            );
-          }
-        }
+        await updateWatchStatus(newStatus);
       } catch (error) {
         Logger.error("AnimePreview", "Помилка синхронізації статусу", error);
         showSnackbar("Помилка синхронізації з Hikka");
       }
     },
-    [anime?.slug, watchStatus, showSnackbar]
+    [anime?.slug, updateWatchStatus, showSnackbar]
   );
 
   const handleFavoriteToggle = useCallback(async () => {
@@ -657,7 +652,7 @@ export function useAnimePreview({ route, navigation }) {
 
         // Оновлюємо статус локально якщо він не був встановлений
         if (!watchStatus) {
-          setWatchStatus("watching");
+          await updateWatchStatus("watching");
         }
 
         // Emit event для оновлення історії в HistoryComponent
@@ -674,7 +669,7 @@ export function useAnimePreview({ route, navigation }) {
         Logger.error("AnimePreview", "Помилка синхронізації з Hikka", error);
       }
     },
-    [anime?.slug, watchStatus]
+    [anime?.slug, watchStatus, updateWatchStatus]
   );
 
   const handleEpisodeSelect = useCallback(

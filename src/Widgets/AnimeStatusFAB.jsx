@@ -196,7 +196,7 @@ export default function AnimeStatusFAB({
                   }}
                 >
                   <IconComponent
-                    size={isTablet() ? size / 2 : size / 1.6}
+                    size={size / 2}
                     color={item.color}
                     weight={isSelected ? "fill" : "regular"}
                   />

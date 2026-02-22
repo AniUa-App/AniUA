@@ -154,6 +154,12 @@ export default function ProfileScreen({ navigation }) {
             styles.tabContentWrapper,
             {
               backgroundColor: colors.accent,
+              height: Math.max(
+                profile.activeTab === "list"
+                  ? profile.listTabHeight
+                  : profile.favoritesTabHeight,
+                300
+              ),
             },
           ]}
         >
