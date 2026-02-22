@@ -33,6 +33,9 @@ const withArchitectures = (config, architectures) => {
     setOrReplace("android.enableShrinkResourcesInReleaseBuilds", "true");
     setOrReplace("VisionCamera_enableFrameProcessors", "false");
     setOrReplace("expo.useLegacyPackaging", "true");
+    // SPLIT_APKS=true → per-arch APKs (build-release-apk)
+    // SPLIT_APKS unset  → single AAB without splits conflict (build-release)
+    setOrReplace("android.enableAbiSplits", process.env.SPLIT_APKS === "true" ? "true" : "false");
 
     console.log(
       `[expo-plugin-architectures] Set reactNativeArchitectures=${archs.join(",")}`
@@ -75,19 +78,23 @@ const withArchitectures = (config, architectures) => {
       console.log("[expo-plugin-architectures] Added resConfigs 'uk', 'en'");
     }
 
-    // 3. splits block — per-arch APKs + universal APK
-    if (!cfg.modResults.contents.includes("splits {")) {
-      const splitsBlock = [
-        "    splits {",
-        "        abi {",
-        "            reset()",
-        "            enable true",
-        "            universalApk true",
-        `            include ${abiFilters}`,
-        "        }",
-        "    }",
-      ].join("\n");
+    // 3. splits block — controlled by android.enableAbiSplits gradle property.
+    // APK builds (SPLIT_APKS=true): enable=true → per-arch APKs + universal APK.
+    // AAB builds (default):         enable=false → no conflict with shrinkResources
+    //   (issuetracker.google.com/402800800).
+    // Architecture filtering for AAB is handled by ndk.abiFilters above.
+    const splitsBlock = [
+      "    splits {",
+      "        abi {",
+      "            reset()",
+      "            enable = (findProperty('android.enableAbiSplits') ?: 'false').toBoolean()",
+      "            universalApk true",
+      `            include ${abiFilters}`,
+      "        }",
+      "    }",
+    ].join("\n");
 
+    if (!cfg.modResults.contents.includes("splits {")) {
       if (cfg.modResults.contents.includes("buildTypes")) {
         cfg.modResults.contents = cfg.modResults.contents.replace(
           /(\s+)(buildTypes\s*\{)/,
@@ -99,17 +106,17 @@ const withArchitectures = (config, architectures) => {
           `\n${splitsBlock}\n$1`
         );
       }
-
-      console.log(
-        `[expo-plugin-architectures] Added splits.abi (universalApk=true) for ${archs.join(",")}`
-      );
     } else {
-      // Ensure universalApk is true in case it was set to false previously
+      // Update existing splits block to use findProperty
       cfg.modResults.contents = cfg.modResults.contents.replace(
-        /universalApk\s+\w+/,
-        "universalApk true"
+        /splits\s*\{[^}]*abi\s*\{[^}]*\}[^}]*\}/s,
+        splitsBlock
       );
     }
+
+    console.log(
+      `[expo-plugin-architectures] splits.abi controlled by android.enableAbiSplits (SPLIT_APKS=${process.env.SPLIT_APKS || "false"})`
+    );
 
     console.log(
       `[expo-plugin-architectures] Set ndk.abiFilters=${archs.join(",")}`

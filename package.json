@@ -16,7 +16,7 @@
     "set-env": "node ./scripts/set-environment.js",
     "update-release": "npm run set-env && node scripts/update-release.js",
     "build-release": "npm run prebuild && npm run set-env && npx eas build --platform android --profile release --local",
-    "build-release-apk": "npm run prebuild && npm run set-env && (npx eas build --platform android --profile release-apk --local || ls build-*.tar.gz > /dev/null 2>&1)"
+    "build-release-apk": "SPLIT_APKS=true npm run prebuild && npm run set-env && (npx eas build --platform android --profile release-apk --local || ls build-*.tar.gz > /dev/null 2>&1)"
   },
   "dependencies": {
     "@expensify/react-native-live-markdown": "^0.1.322",
