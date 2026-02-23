@@ -116,7 +116,7 @@ function MainTabs() {
                   navigation={props.navigation}
                   route={props.route}
                   isArrow={false}
-                  title="Орбані"
+                  title="Обрані"
                 />
               </View>
             )}

@@ -17,6 +17,7 @@ export enum WatchButtonState {
   NO_TRANSLATION = "Немає перекладу",
   START_WATCHING = "Почати перегляд",
   CONTINUE_WATCHING = "Дивитись",
+  
 }
 
 interface WatchButtonProps {
