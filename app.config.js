@@ -142,6 +142,11 @@ export default {
         },
       ],
     },
+    web: {
+      bundler: "metro",
+      output: "single",
+      favicon: "./assets/AniUA-Logo-Icon.png",
+    },
     assetBundlePatterns: ["**/*"],
     plugins: [
       "@react-native-firebase/app",

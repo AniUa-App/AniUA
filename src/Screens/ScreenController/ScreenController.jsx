@@ -1,4 +1,4 @@
-import { View, StyleSheet, Linking, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Linking, useWindowDimensions, Platform } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStack, Tab, HiddenStackNav } from "./Navigators";
 import HomeScreen from "../Home";
 import AnimeListScreen from "../AnimeList";
-import DownloadScreen from "../Download";
 import {
   NavigationContainer,
   getFocusedRouteNameFromRoute,
@@ -63,7 +62,7 @@ import { useIsTV } from "../../Styles/Responsive";
 import TVSidebarNav from "../../Components/TV/TVSidebarNav";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import AnalyticsService from "../../Services/AnalyticsService";
-import * as Notifications from "expo-notifications";
+import * as Notifications from "expo-notifications";  // eslint-disable-line -- guarded below
 
 // Ініціалізуємо auth токен при запуску застосунку
 HikkaAuthService.initialize();
@@ -120,26 +119,6 @@ function MainTabs() {
                 />
               </View>
             )}
-          </View>
-        )}
-      </Tab.Screen>
-
-      <Tab.Screen name="Download">
-        {(props) => (
-          <View style={{ flex: 1 }}>
-            <DownloadScreen
-              {...props}
-              isNavBarPadding={true}
-              hasManualHeader={true}
-            />
-            <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
-              <Header
-                navigation={props.navigation}
-                route={props.route}
-                isArrow={false}
-                title="Завантажені"
-              />
-            </View>
           </View>
         )}
       </Tab.Screen>
@@ -308,7 +287,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
         const labels = {
           Home: "Головна",
           Bookmarks: "Обрані",
-          Download: "Збережені",
           Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
@@ -321,7 +299,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                 if (isPreview) {
                   setPreviewIndex(index);
                 } else {
-                  if (route.name === "Bookmarks" || route.name === "Download") {
+                  if (route.name === "Bookmarks") {
                     navigation.navigate(route.name, {
                       title: labels[route.name],
                     });
@@ -342,7 +320,6 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                   {
                     Home: Icons.House,
                     Bookmarks: Icons.BookmarkSimple,
-                    Download: Icons.DownloadSimple,
                     Profile: Icons.UserCircle,
                   }[route.name] || null;
                 return (
@@ -513,7 +490,6 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
         const labels = {
           Home: "Головна",
           Bookmarks: "Обрані",
-          Download: "Завантажені",
           Profile: "Профіль",
         };
         const isFocused = visibleStateIndex === index;
@@ -547,7 +523,6 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
                 {
                   Home: Icons.House,
                   Bookmarks: Icons.Heart,
-                  Download: Icons.DownloadSimple,
                   Profile: Icons.UserCircle,
                 }[route.name] || null;
               return (
@@ -760,17 +735,16 @@ export default function ScreenController({ updateInfo }) {
     // Не показуємо error користувачу, просто логуємо
   };
 
-  // Слухаємо натискання на push-сповіщення
+  // Слухаємо натискання на push-сповіщення (тільки на Android)
   useEffect(() => {
-    // Перевіряємо чи додаток відкрився через натискання на сповіщення (коли був закритий)
+    if (Platform.OS === 'web') return;
+
     const checkInitialNotification = async () => {
       const response = await Notifications.getLastNotificationResponseAsync();
-      Notifications;
       if (response) {
         const data = response.notification.request.content.data;
         Logger.debug("ScreenController", "Initial notification found", data);
         if (data?.slug) {
-          // Затримка щоб navigation та MainTabs були готові
           setTimeout(() => {
             navigateToAnime(data.slug);
           }, 500);
@@ -780,11 +754,9 @@ export default function ScreenController({ updateInfo }) {
 
     checkInitialNotification();
 
-    // Слухаємо натискання коли додаток вже відкритий
     const unsubscribe = EventBus.on("notificationTapped", (data) => {
       Logger.debug("ScreenController", "Notification tapped", data);
       if (data?.slug) {
-        // Невелика затримка щоб navigation був готовий
         setTimeout(() => {
           navigateToAnime(data.slug);
         }, 100);

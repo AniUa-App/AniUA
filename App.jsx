@@ -1,5 +1,5 @@
-import React, { useState, useEffect, use } from "react";
-import { View, Text, Linking, AppState } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Linking, AppState, Platform } from "react-native";
 import ScreenController from "./src/Screens/ScreenController/ScreenController";
 import { background, text, primary } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -10,29 +10,22 @@ import SystemNavigationBar from "react-native-system-navigation-bar";
 import Color from "color";
 import SettingsStorage from "./src/Storage/SettingsStorage";
 import NotificationPermission from "./src/Notifications/NotificationPermission";
-import * as FileSystem from "expo-file-system";
 import ErrorBoundary from "./src/Global/ErrorBoundary";
 import { ErrorTestComponent } from "./src/Global/ErrorTestComponent";
 import MainConfig from "./src/cfgs/MainConfig";
 import AndroidHelper from "./src/Global/AndroidHelper";
 import Logger from "./src/Logger/Logger";
 import AllowTheVideoFolder, {
-  getDocumentDirectory,
   getVideoDir,
 } from "./src/FIleSystem/FileSystem";
-import { H2, H3, H5, H6, useCustomFonts } from "./src/Styles/Fonts";
+import { H6, useCustomFonts } from "./src/Styles/Fonts";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { EventBus } from "./src/Global/EventBus";
-import * as Application from "expo-application";
 import { isTablet, isTV } from "./src/Styles/Responsive";
 import { useSnackbar, SnackbarLink } from "./src/Components/Snackbar";
-import { set } from "date-fns";
-import { se } from "date-fns/locale";
-import Markdown from "react-native-markdown-display";
 import { getCurrentRouteName } from "./src/Global/NavigationService";
-import { Log } from "ffmpeg-kit-react-native";
 import { HikkaAuthService } from "./src/Services/HikkaAuthService";
 import { AniuaAuthService } from "./src/Services/AniuaAuthService";
 import AniuaApi from "./src/Api/AniuaApi";
@@ -115,6 +108,8 @@ export default function App() {
    * Логує кожну зміну стану: active, background, inactive
    */
   useEffect(function () {
+    if (Platform.OS === 'web') return;
+
     const subscription = AppState.addEventListener(
       "change",
       async (nextAppState) => {
@@ -169,10 +164,12 @@ export default function App() {
             usedCachedTokens: result.usedCachedTokens,
           });
 
-          // Реєстрація push-токену ПІСЛЯ успішної авторизації
-          registerForPushNotifications().catch((err) => {
-            Logger.warn("App", "Помилка реєстрації push-токену", err);
-          });
+          // Реєстрація push-токену ПІСЛЯ успішної авторизації (тільки на Android)
+          if (Platform.OS !== 'web') {
+            registerForPushNotifications().catch((err) => {
+              Logger.warn("App", "Помилка реєстрації push-токену", err);
+            });
+          }
         } else {
           Logger.warn("App", "AniUA Auth не вдалось ініціалізувати", {
             error: result.error,
@@ -221,51 +218,43 @@ export default function App() {
         Logger.logAppInit("Початок ініціалізації додатка");
 
         try {
-          if (isTV()) {
-            // TV: lock to landscape, set sidebar navigation style
-            await ScreenOrientation.lockAsync(
-              ScreenOrientation.OrientationLock.LANDSCAPE,
-            );
-            try {
-              SystemNavigationBar.navigationHide();
-            } catch {}
-            const existingTVConfig = SettingsStorage.getParameter("userConfig");
-            if (
-              !existingTVConfig ||
-              Object.keys(existingTVConfig).length === 0
-            ) {
-              SettingsStorage.setParameter("userConfig", {
-                navbar: {
-                  placedAt: "Ліворуч",
-                  style: "MD3",
-                },
-              });
-            }
-          } else if (isTablet()) {
-            await ScreenOrientation.unlockAsync();
-            const existingConfig = SettingsStorage.getParameter("userConfig");
-            if (!existingConfig || Object.keys(existingConfig).length === 0) {
-              SettingsStorage.setParameter("userConfig", {
-                navbar: {
-                  placedAt: "Внизу",
-                  style: "MD3",
-                },
-              });
+          if (Platform.OS !== 'web') {
+            if (isTV()) {
+              await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.LANDSCAPE,
+              );
+              try { SystemNavigationBar.navigationHide(); } catch {}
+              const existingTVConfig = SettingsStorage.getParameter("userConfig");
+              if (!existingTVConfig || Object.keys(existingTVConfig).length === 0) {
+                SettingsStorage.setParameter("userConfig", {
+                  navbar: { placedAt: "Ліворуч", style: "MD3" },
+                });
+              }
+            } else if (isTablet()) {
+              await ScreenOrientation.unlockAsync();
+              const existingConfig = SettingsStorage.getParameter("userConfig");
+              if (!existingConfig || Object.keys(existingConfig).length === 0) {
+                SettingsStorage.setParameter("userConfig", {
+                  navbar: { placedAt: "Внизу", style: "MD3" },
+                });
+              }
+            } else {
+              await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.PORTRAIT_UP,
+              );
+              const existingMobileConfig = SettingsStorage.getParameter("userConfig");
+              if (!existingMobileConfig || Object.keys(existingMobileConfig).length === 0) {
+                SettingsStorage.setParameter("userConfig", {
+                  navbar: { style: "MD3" },
+                });
+              }
             }
           } else {
-            await ScreenOrientation.lockAsync(
-              ScreenOrientation.OrientationLock.PORTRAIT_UP,
-            );
-            const existingMobileConfig =
-              SettingsStorage.getParameter("userConfig");
-            if (
-              !existingMobileConfig ||
-              Object.keys(existingMobileConfig).length === 0
-            ) {
+            // Web: no orientation locking, set default config
+            const existingWebConfig = SettingsStorage.getParameter("userConfig");
+            if (!existingWebConfig || Object.keys(existingWebConfig).length === 0) {
               SettingsStorage.setParameter("userConfig", {
-                navbar: {
-                  style: "MD3",
-                },
+                navbar: { style: "MD3" },
               });
             }
           }
@@ -275,9 +264,10 @@ export default function App() {
 
         Logger.logAppInit("Перевірка дозволів.");
         await NotificationPermission();
-        await AllowTheVideoFolder();
-
-        Logger.debug("FileSystem", "Video folder", await getVideoDir());
+        if (Platform.OS !== 'web') {
+          await AllowTheVideoFolder();
+          Logger.debug("FileSystem", "Video folder", await getVideoDir());
+        }
 
         // Затримка необхідна для повної ініціалізації Android Activity перед взаємодією з UI
         Logger.logAppInit("Очікування готовності Android activity");
@@ -428,6 +418,7 @@ export default function App() {
  * Підтримує режими: hidden, dark, light
  */
 export const setupNavigationBar = async () => {
+  if (Platform.OS === 'web') return;
   return AndroidHelper.safeExecute(async () => {
     const navBarType = SettingsStorage.getParameter("SystemNavigationBar_type");
 
