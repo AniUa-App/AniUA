@@ -8,7 +8,7 @@ export default {
   expo: {
     name: CHANNEL !== "release" ? `AniUA ${CHANNEL}` : "AniUA",
     slug: "AniUA",
-    version: "0.0.2",
+    version: "0.0.3",
     orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
@@ -25,7 +25,7 @@ export default {
         EXUpdatesEnabled: false,
       },
     },
-    runtimeVersion: `0.0.2-${CHANNEL}`,
+    runtimeVersion: `0.0.3-${CHANNEL}`,
     extra: {
       hermes: true,
       eas: {
@@ -57,12 +57,12 @@ export default {
       },
     },
     android: {
+      versionCode: 2,
       package:
         CHANNEL === "release"
           ? "aniua.yuzka.site"
           : `aniua.yuzka.site.${CHANNEL}`,
       googleServicesFile: "./google-services.json",
-      versionCode: 1,
       buildType: "apk",
       bundle: {
         languageSplit: false,
