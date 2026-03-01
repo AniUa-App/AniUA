@@ -21,6 +21,15 @@ const WEB_SHIMS = {
   'ffmpeg-kit-react-native': path.resolve(__dirname, 'src/shims/ffmpeg-kit-react-native.js'),
   '@notifee/react-native': path.resolve(__dirname, 'src/shims/notifee.js'),
   'expo-navigation-bar': path.resolve(__dirname, 'src/shims/expo-navigation-bar.js'),
+  'react-native-fast-image': path.resolve(__dirname, 'src/shims/react-native-fast-image.js'),
+  'expo-keep-awake': path.resolve(__dirname, 'src/shims/expo-keep-awake.js'),
+  'react-native-orientation-locker': path.resolve(__dirname, 'src/shims/react-native-orientation-locker.js'),
+  'reactotron-react-native': path.resolve(__dirname, 'src/shims/reactotron-react-native.js'),
+  'reactotron-apisauce': path.resolve(__dirname, 'src/shims/reactotron-apisauce.js'),
+  'reactotron-react-native-mmkv': path.resolve(__dirname, 'src/shims/reactotron-react-native-mmkv.js'),
+  '@react-native-community/netinfo': path.resolve(__dirname, 'src/shims/netinfo.js'),
+  'react-native-linear-gradient': path.resolve(__dirname, 'src/shims/react-native-linear-gradient.js'),
+  'react-native-selectable-text-input': path.resolve(__dirname, 'src/shims/react-native-selectable-text-input.js'),
 };
 
 config.resolver = {

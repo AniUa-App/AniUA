@@ -67,7 +67,7 @@ export default function App() {
 
   MainConfig.debug.isDebug = true;
   Logger.info("App", "isDebug", { isDebug: MainConfig.debug.isDebug });
-  if (MainConfig.debug.isDebug) {
+  if (MainConfig.debug.isDebug && Platform.OS !== 'web') {
     require("./src/cfgs/ReactotronConfig");
   }
 
@@ -147,7 +147,12 @@ export default function App() {
    * - Налаштовує ErrorBoundary
    */
   useEffect(() => {
-    MainConfig.devInfo.deviceId = MainConfig.devInfo.getUniqueId();
+    try {
+      MainConfig.devInfo.deviceId = MainConfig.devInfo.getUniqueId();
+    } catch (e) {
+      Logger.warn("App", "getUniqueId недоступний на цій платформі", e);
+      MainConfig.devInfo.deviceId = "web-" + Math.random().toString(36).slice(2);
+    }
     Logger.debug("App", "Device ID отримано", MainConfig.devInfo.deviceId);
 
     // Ініціалізація Hikka Auth
@@ -263,7 +268,9 @@ export default function App() {
         }
 
         Logger.logAppInit("Перевірка дозволів.");
-        await NotificationPermission();
+        if (Platform.OS !== 'web') {
+          await NotificationPermission();
+        }
         if (Platform.OS !== 'web') {
           await AllowTheVideoFolder();
           Logger.debug("FileSystem", "Video folder", await getVideoDir());
@@ -355,8 +362,8 @@ export default function App() {
           setCurrentAppVersion(_curAppVer);
         }
 
-        // Перевіряємо оновлення через UpdateCheckerService
-        if (isNotFirstLaunch) {
+        // Перевіряємо оновлення через UpdateCheckerService (не на web)
+        if (isNotFirstLaunch && Platform.OS !== 'web') {
           try {
             const result = await UpdateCheckerService.checkForUpdates();
             if (result.available) {

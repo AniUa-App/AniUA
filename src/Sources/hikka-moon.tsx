@@ -1,7 +1,8 @@
 import axios from "axios";
+import { resolveApiUrl } from "../cfgs/ApiProxy";
 
 export class Api {
-  private static apiUrl = "https://api.hikka.io/";
+  private static apiUrl = resolveApiUrl("https://api.hikka.io") + "/";
 
   public async getMostPopularAnimeOfTheYear(page: number = 1, size: number = 1) {
     try {

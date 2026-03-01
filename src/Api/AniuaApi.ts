@@ -3,6 +3,7 @@ import Logger from "../Logger/Logger";
 import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
 import MainConfig, { buildExtra } from "../cfgs/MainConfig";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import { resolveApiUrl } from "../cfgs/ApiProxy";
 
 // ==================== TYPES ====================
 
@@ -374,7 +375,7 @@ export interface MetadataResponse {
 export class AniuaApi {
   // ==================== CONFIGURATION ====================
 
-  private static baseUrl: string = "https://api-aniua.yuzka.site";
+  private static baseUrl: string = resolveApiUrl("https://api-aniua.yuzka.site");
   private static jwtToken: string = MainConfig.devInfo.expoPublickSupabaseKey;
   private static authHeader: string | undefined;
   private static cacheTtl: number = 5 * 60 * 1000; // 5 хвилин

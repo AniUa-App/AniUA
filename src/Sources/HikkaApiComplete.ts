@@ -2,6 +2,7 @@
 
 import axios, { AxiosInstance } from "axios";
 import Logger from "../Logger/Logger";
+import { resolveApiUrl } from "../cfgs/ApiProxy";
 
 // ==================== HIKKA API TYPES ====================
 
@@ -175,8 +176,8 @@ export interface HikkaAnime extends HikkaAnimePreview {
  * Всі запити кешуються на 5 хвилин для оптимізації продуктивності
  */
 export class HikkaApiComplete {
-  protected static apiUrl = "https://api.hikka.io/";
-  protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
+  protected static apiUrl = resolveApiUrl("https://api.hikka.io") + "/";
+  protected static apiEpisodesUrl = resolveApiUrl("https://api.hikka-features.pp.ua") + "/";
   protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
   protected static CACHE_TTL = 30 * 60 * 1000;

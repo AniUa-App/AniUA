@@ -10,6 +10,7 @@ import MainConfig from "../cfgs/MainConfig";
 import Logger from "../Logger/Logger";
 import { EventBus } from "../Global/EventBus";
 import AnalyticsService from "./AnalyticsService";
+import { resolveApiUrl } from "../cfgs/ApiProxy";
 
 /**
  * Сервіс для OAuth авторизації через Hikka
@@ -17,7 +18,7 @@ import AnalyticsService from "./AnalyticsService";
  */
 export class HikkaAuthService {
   private static readonly OAUTH_URL = "https://hikka.io/oauth";
-  private static readonly TOKEN_URL = "https://api.hikka.io/auth/token";
+  private static readonly TOKEN_URL = resolveApiUrl("https://api.hikka.io") + "/auth/token";
   private static readonly DEFAULT_SCOPES = [
     "read:user-details",
     "update:user-details:email",
@@ -229,7 +230,7 @@ export class HikkaAuthService {
             },
           });
           const userResponse = await tempClient.get(
-            "https://api.hikka.io/user/me",
+            resolveApiUrl("https://api.hikka.io") + "/user/me",
           );
           userData = userResponse.data;
         } catch (error) {

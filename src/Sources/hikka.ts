@@ -2,6 +2,7 @@ import axios from "axios";
 import { TransformToCompactJson } from "../Global/Functions";
 import Logger from "../Logger/Logger";
 import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
+import { resolveApiUrl } from "../cfgs/ApiProxy";
 
 /**
  * API клас для роботи з Hikka API (api.hikka.io)
@@ -9,8 +10,8 @@ import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
  * Всі запити кешуються на 5 хвилин для оптимізації продуктивності
  */
 export class HikkaApi {
-  protected static apiUrl = "https://api.hikka.io/";
-  protected static apiEpisodesUrl = "https://api.hikka-features.pp.ua/";
+  protected static apiUrl = resolveApiUrl("https://api.hikka.io") + "/";
+  protected static apiEpisodesUrl = resolveApiUrl("https://api.hikka-features.pp.ua") + "/";
   protected static apiCache: Record<string, { data: any; timestamp: number }> =
     {};
   protected static CACHE_TTL = 30 * 60 * 1000; // Збільшено до 30 хвилин
