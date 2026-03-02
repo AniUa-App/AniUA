@@ -57,7 +57,7 @@ export default {
       },
     },
     android: {
-      versionCode: 2,
+      versionCode: 6,
       package:
         CHANNEL === "release"
           ? "aniua.yuzka.site"
@@ -77,7 +77,6 @@ export default {
       permissions: [
         "android.permission.INTERNET",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.REQUEST_INSTALL_PACKAGES",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
@@ -145,6 +144,7 @@ export default {
     assetBundlePatterns: ["**/*"],
     plugins: [
       "@react-native-firebase/app",
+      ["./expo-plugin-remove-permissions.js"],
       ["@react-native-tvos/config-tv"],
       ["./expo-plugin-tv-support.js"],
       [

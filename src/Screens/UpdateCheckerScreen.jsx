@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,15 +6,12 @@ import {
   ScrollView,
   ActivityIndicator,
   BackHandler,
-  AppState,
   Linking,
 } from "react-native";
-import { TouchableOpacity } from "../Widgets/Button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { useThemeColors } from "../Global/useTheme";
-import { H4, H3, H5, H6, H7, useScaleFontSize } from "../Styles/Fonts";
+import { H4, H5, H7, useScaleFontSize } from "../Styles/Fonts";
 import Icons from "../Styles/Icons";
 import UpdateCheckerService from "../Services/UpdateCheckerService";
 import Logger from "../Logger/Logger";
@@ -30,11 +27,8 @@ export default function UpdateCheckerScreen({ route }) {
   const scaleFontSize = useScaleFontSize();
   const insets = useSafeAreaInsets();
 
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [downloadComplete, setDownloadComplete] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState(null);
-  const appState = useRef(AppState.currentState);
 
   // Забороняємо вихід назад з екрану
   useFocusEffect(
@@ -48,139 +42,31 @@ export default function UpdateCheckerScreen({ route }) {
     }, [])
   );
 
-  // Перевіряємо чи є завантажений APK при запуску
-  useEffect(() => {
-    const checkPendingAPK = async () => {
-      const pendingPath = await UpdateCheckerService.getPendingAPK();
-      if (pendingPath) {
-        setDownloadComplete(true);
-        setDownloadProgress(100);
-      }
-    };
-    checkPendingAPK();
-  }, []);
-
-  // Слухаємо повернення з інсталятора щоб показати кнопку повторно
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      "change",
-      async (nextAppState) => {
-        // Коли користувач повертається в додаток після відмови від встановлення
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextAppState === "active" &&
-          downloadComplete
-        ) {
-          // Перевіряємо чи APK ще існує
-          const pendingPath = await UpdateCheckerService.getPendingAPK();
-          if (pendingPath) {
-            setDownloadComplete(true);
-            setIsDownloading(false);
-          }
-        }
-        appState.current = nextAppState;
-      }
-    );
-
-    return () => subscription.remove();
-  }, [downloadComplete]);
-
-  // Скидаємо стан при зміні інформації про оновлення
-  useEffect(() => {
-    const initState = async () => {
-      if (updateInfo) {
-        // Перевіряємо чи вже є завантажений APK
-        const pendingPath = await UpdateCheckerService.getPendingAPK();
-        if (pendingPath && updateInfo.type === "apk") {
-          setDownloadComplete(true);
-          setDownloadProgress(100);
-          setIsDownloading(false);
-        } else {
-          setIsDownloading(false);
-          setDownloadProgress(0);
-          setDownloadComplete(false);
-        }
-        setError(null);
-      }
-    };
-    initState();
-  }, [updateInfo]);
-
   /**
-   * Обробляє завантаження та встановлення оновлення
+   * Обробляє OTA оновлення
    */
   const handleUpdate = useCallback(async () => {
     if (!updateInfo) return;
 
-    setIsDownloading(true);
+    setIsUpdating(true);
     setError(null);
 
     try {
-      if (updateInfo.type === "ota") {
-        await UpdateCheckerService.applyOTAUpdate();
-      } else if (updateInfo.type === "apk" && updateInfo.downloadUrl) {
-        // Завантажуємо APK
-        await UpdateCheckerService.downloadAPK(
-          updateInfo.downloadUrl,
-          (progress) => {
-            setDownloadProgress(progress.percent);
-          }
-        );
-        setDownloadComplete(true);
-        // Намагаємося відкрити для встановлення
-        await UpdateCheckerService.installPendingAPK();
-      }
+      await UpdateCheckerService.applyOTAUpdate();
     } catch (err) {
       Logger.error("UpdateCheckerScreen", "Помилка оновлення", err);
-      // Якщо помилка під час встановлення (а не завантаження), APK вже завантажено
-      const pendingPath = await UpdateCheckerService.getPendingAPK();
-      if (pendingPath) {
-        setDownloadComplete(true);
-      } else {
-        setError(err.message || "Не вдалося завантажити оновлення");
-      }
-      setIsDownloading(false);
+      setError(err.message || "Не вдалося застосувати оновлення");
+      setIsUpdating(false);
     }
   }, [updateInfo]);
-
-  /**
-   * Встановлює вже завантажений APK
-   */
-  const handleInstallPending = useCallback(async () => {
-    try {
-      setError(null);
-      await UpdateCheckerService.installPendingAPK();
-    } catch (err) {
-      Logger.error("UpdateCheckerScreen", "Помилка встановлення", err);
-      setError(err.message || "Не вдалося відкрити інсталятор");
-    }
-  }, []);
 
   useEffect(() => {
-    const startUpdate = async () => {
-      if (updateInfo) {
-        // Перевіряємо чи вже є завантажений APK
-        const pendingPath = await UpdateCheckerService.getPendingAPK();
-        if (!pendingPath) {
-          handleUpdate();
-        }
-      }
-    };
-    startUpdate();
-  }, [updateInfo]);
-
-  /**
-   * Відкриває URL у браузері (резервний спосіб)
-   */
-  const handleOpenInBrowser = useCallback(async () => {
-    if (updateInfo?.downloadUrl) {
-      try {
-        await UpdateCheckerService.openDownloadUrl(updateInfo.downloadUrl);
-      } catch (err) {
-        Logger.error("UpdateCheckerScreen", "Помилка відкриття URL", err);
-      }
+    if (updateInfo) {
+      handleUpdate();
     }
   }, [updateInfo]);
+
+  const isOTA = updateInfo?.type === "ota";
 
   if (!updateInfo) {
     return (
@@ -199,8 +85,6 @@ export default function UpdateCheckerScreen({ route }) {
       </View>
     );
   }
-
-  const isOTA = updateInfo.type === "ota";
 
   // Форматуємо changelog - заміняємо чекбокси на красиві символи
   const formattedChangelog = updateInfo.changelog
@@ -414,88 +298,20 @@ export default function UpdateCheckerScreen({ route }) {
               </View>
             )}
 
-            {/* Progress bar */}
-            {isDownloading &&
-              updateInfo.type === "apk" &&
-              !downloadComplete && (
-                <View style={styles.progressContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      { backgroundColor: colors.accent },
-                    ]}
-                  >
-                    <Animated.View
-                      style={[
-                        styles.progressFill,
-                        {
-                          backgroundColor: colors.primary,
-                          width: `${downloadProgress}%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text
-                    selectable={true}
-                    style={[
-                      H7,
-                      { textAlign: "center", color: colors.Text(0.7) },
-                    ]}
-                  >
-                    Завантаження: {downloadProgress}%
-                  </Text>
-                </View>
-              )}
-
-            {/* Install button - показується коли APK завантажено */}
-            {downloadComplete && updateInfo.type === "apk" && (
-              <Animated.View
-                entering={FadeIn.duration(300)}
-                style={styles.installContainer}
-              >
-                <View style={styles.downloadedInfo}>
-                  <Icons.CheckCircle
-                    size={20}
-                    color={colors.primary}
-                    weight="fill"
-                  />
-                  <Text
-                    selectable={true}
-                    style={[
-                      H7,
-                      {
-                        color: colors.Text(0.7),
-                      },
-                    ]}
-                  >
-                    APK завантажено в папку Downloads
-                  </Text>
-                </View>
-                <TouchableOpacity
+            {/* Loading indicator */}
+            {isUpdating && (
+              <View style={styles.progressContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text
+                  selectable={true}
                   style={[
-                    styles.installButton,
-                    { backgroundColor: colors.primary },
+                    H7,
+                    { textAlign: "center", color: colors.Text(0.7), marginTop: 8 },
                   ]}
-                  onPress={handleInstallPending}
                 >
-                  <Icons.Download size={20} color="#fff" weight="bold" />
-                  <Text selectable={true} style={[H5]}>
-                    Встановити оновлення
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
-
-            {/* Fallback link */}
-            {error && updateInfo.type === "apk" && updateInfo.downloadUrl && (
-              <TouchableOpacity
-                style={styles.fallbackLink}
-                onPress={handleOpenInBrowser}
-              >
-                <Text selectable={true} style={[H5, { color: colors.primary }]}>
-                  Завантажити через браузер
+                  Застосування оновлення...
                 </Text>
-              </TouchableOpacity>
+              </View>
             )}
           </View>
         </ScrollView>
@@ -504,7 +320,7 @@ export default function UpdateCheckerScreen({ route }) {
         <View style={styles.typeIndicator}>
           <Icons.Info size={14} color={colors.Text(0.4)} />
           <Text selectable={true} style={[H7, { color: colors.Text(0.4) }]}>
-            {isOTA ? "OTA оновлення (швидке)" : "APK оновлення"}
+            OTA оновлення
           </Text>
         </View>
       </View>
@@ -570,56 +386,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 16,
   },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  progressText: {},
-  buttonsContainer: {
-    marginTop: 4,
-  },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  updateButton: {},
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-
-  fallbackLink: {
-    alignItems: "center",
-  },
-  installContainer: {
-    width: "100%",
-  },
-  downloadedInfo: {
-    flexDirection: "row",
-    marginVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-
-  installButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 8,
-  },
-
   typeIndicator: {
     flexDirection: "row",
     alignItems: "center",

@@ -72,7 +72,7 @@ export default function App() {
    */
   const { registerForPushNotifications } = usePushNotifications();
 
-  MainConfig.debug.isDebug = true;
+  MainConfig.debug.isDebug = __DEV__;
   Logger.info("App", "isDebug", { isDebug: MainConfig.debug.isDebug });
   if (MainConfig.debug.isDebug) {
     require("./src/cfgs/ReactotronConfig");
