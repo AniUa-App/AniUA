@@ -38,6 +38,7 @@ import { useNavigation } from "@react-navigation/native";
 import LocalVideoPlayerV2Screen from "../LocalVideoPlayerV2";
 import CustomisationScreen from "../Customisation";
 import SettingsStorage from "../../Storage/SettingsStorage";
+import LogOverlay from "../../Components/LogOverlay";
 import { EventBus } from "../../Global/EventBus";
 import MainScreenCustomisationScreen from "../MainScreenCustomisation";
 import { Text } from "react-native";
@@ -837,6 +838,7 @@ export default function ScreenController({ updateInfo }) {
         </RootStack.Navigator>
       </NavigationContainer>
       <SnowflakesWidget />
+      <LogOverlay />
     </View>
   );
 }

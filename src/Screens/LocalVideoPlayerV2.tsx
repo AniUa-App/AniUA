@@ -52,6 +52,7 @@ import SpeedBottomSheet from "../Widgets/VideoPlayer/SpeedBottomSheetWidget";
 import VolumeWidget from "../Widgets/VideoPlayer/VolumeWidget";
 import QualityWidget from "../Widgets/VideoPlayer/QualityWidget";
 import AnimeStorage from "../Storage/AnimeStorage";
+import SettingsStorage from "../Storage/SettingsStorage";
 import RNFS from "react-native-fs";
 import FileOpener from "react-native-file-opener";
 import { DownloadVideo } from "../Notifications/VideoDownloader";
@@ -147,7 +148,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
-  const [volume, setVolume] = useState<number>(1.0);
+const [volume, setVolume] = useState<number>(1.0);
   const [rate, setRate] = useState<number>(1.0);
   const [currentUrl, setCurrentUrl] = useState<VideoSource | null>(null);
   const [subtitles, setSubtitles] = useState<any[]>([]);
@@ -295,7 +296,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     setEpisodes(_episodes || []);
   }, [_episodes]);
 
-  // Слухаємо прогрес завантаження через EventBus
+// Слухаємо прогрес завантаження через EventBus
   useEffect(() => {
     const handleDownloadProgress = (data) => {
       if (data.slug !== _anime.slug) return;
@@ -429,6 +430,10 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 Logger.error("LocalVideoPlayer", "Retry play failed", e);
               }
             }, 300);
+          } else {
+            setPlayerError(error?.message || "Помилка відтворення відео");
+            isLoadingRef.current = false;
+            setIsLoading(false);
           }
         }
         if (status === "readyToPlay") {
@@ -1329,13 +1334,13 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             pointerEvents="none"
           >
             <View style={styles.errorContainer}>
-              <Text style={[styles.errorIcon]}>⚠️</Text>
-              <Text style={[styles.errorText]}>{playerError}</Text>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.errorText}>{playerError}</Text>
             </View>
           </Animated.View>
         )}
 
-        {/* Оверлей завантаження */}
+{/* Оверлей завантаження */}
         {isLoading && (
           <Animated.View
             entering={FadeIn.duration(200)}
@@ -2227,8 +2232,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     opacity: 0.9,
   },
-
-  // Індикатор перемотування
+// Індикатор перемотування
   seekIndicator: {
     position: "absolute",
     top: 0,

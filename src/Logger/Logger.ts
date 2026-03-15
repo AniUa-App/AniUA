@@ -38,9 +38,39 @@ interface LoggerConfig {
  * Logger.warn('Storage', 'Застаріла версія кешу');
  * Logger.error('VideoPlayer', 'Помилка відтворення', error);
  */
+export interface LogEntry {
+  level: "DEBUG" | "INFO" | "WARN" | "ERROR";
+  context: string;
+  message: string;
+  data?: any;
+  timestamp: string;
+}
+
 class Logger {
   private config: LoggerConfig;
   private reactotron: any = null;
+
+  private static buffer: LogEntry[] = [];
+  private static MAX_BUFFER = 200;
+
+  public static getBuffer(): LogEntry[] {
+    return Logger.buffer;
+  }
+
+  public getBuffer(): LogEntry[] {
+    return Logger.buffer;
+  }
+
+  public static clearBuffer(): void {
+    Logger.buffer = [];
+  }
+
+  private pushToBuffer(entry: LogEntry): void {
+    Logger.buffer.push(entry);
+    if (Logger.buffer.length > Logger.MAX_BUFFER) {
+      Logger.buffer.shift();
+    }
+  }
 
   constructor() {
     // Налаштування за замовчуванням
@@ -133,6 +163,7 @@ class Logger {
    * DEBUG рівень - детальна інформація для розробки
    */
   public debug(context: string, message: string, data?: any): void {
+    this.pushToBuffer({ level: "DEBUG", context, message, data, timestamp: this.getTimestamp() });
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
     const formatted = this.formatMessage("🔍 DEBUG", context, message, data);
@@ -152,6 +183,7 @@ class Logger {
    * INFO рівень - загальна інформація про роботу
    */
   info(context: string, message: string, data?: any): void {
+    this.pushToBuffer({ level: "INFO", context, message, data, timestamp: this.getTimestamp() });
     if (!this.shouldLog(LogLevel.INFO)) return;
 
     const formatted = this.formatMessage("ℹ️  INFO", context, message, data);
@@ -171,6 +203,7 @@ class Logger {
    * WARN рівень - попередження про потенційні проблеми
    */
   warn(context: string, message: string, data?: any): void {
+    this.pushToBuffer({ level: "WARN", context, message, data, timestamp: this.getTimestamp() });
     if (!this.shouldLog(LogLevel.WARN)) return;
 
     const formatted = this.formatMessage("⚠️  WARN", context, message, data);
@@ -190,6 +223,7 @@ class Logger {
    * ERROR рівень - критичні помилки
    */
   error(context: string, message: string, error?: Error | any): void {
+    this.pushToBuffer({ level: "ERROR", context, message: `${message}${error ? `: ${error?.message ?? String(error)}` : ""}`, timestamp: this.getTimestamp() });
     if (!this.shouldLog(LogLevel.ERROR)) return;
 
     const formatted = this.formatMessage("❌ ERROR", context, message, error);

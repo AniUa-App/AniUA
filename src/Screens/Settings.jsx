@@ -3,6 +3,7 @@ import {
   ScrollView,
   Linking,
   Text,
+  Switch,
   useWindowDimensions,
 } from "react-native";
 import React, { useState, useCallback, useRef, useMemo } from "react";
@@ -14,6 +15,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
 import { useSnackbar } from "../Components/Snackbar";
 import MainConfig from "../cfgs/MainConfig";
+import { EventBus } from "../Global/EventBus";
 import * as FileSystem from "expo-file-system/legacy";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeHashStorage from "../Storage/AnimeHashStorage";
@@ -44,6 +46,9 @@ export default function SettingsScreen() {
   const [isRatingVisible, setIsRatingVisible] = useState(false);
   const [defaultPlayer, setDefaultPlayer] = useState(
     SettingsStorage.getParameter("defaultPlayer"),
+  );
+  const [showLogs, setShowLogs] = useState(
+    !!SettingsStorage.getParameter("showLogs"),
   );
   const { width } = useWindowDimensions();
   const isTv = useIsTV();
@@ -174,6 +179,25 @@ export default function SettingsScreen() {
       >
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">
+          <SettingsItemWidget
+            title="Показувати логи"
+            subtitle="Виводить логи поверх відеоплеєра"
+            icon={<Icons.Bug />}
+            button={{
+              Icon: (
+                <Switch
+                  value={showLogs}
+                  onValueChange={(val) => {
+                    setShowLogs(val);
+                    SettingsStorage.setParameter("showLogs", val);
+                    EventBus.emit("showLogs", val);
+                  }}
+                  thumbColor={themeColors.primary}
+                  trackColor={{ false: themeColors.subtle, true: themeColors.primary + "88" }}
+                />
+              ),
+            }}
+          />
           <SettingsItemWidget
             title="Плеєр за замовчуванням"
             subtitle={defaultPlayer || "Не вибрано"}
