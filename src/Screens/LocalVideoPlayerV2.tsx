@@ -146,6 +146,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     _currentEpisode,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [playerError, setPlayerError] = useState<string | null>(null);
   const [volume, setVolume] = useState<number>(1.0);
   const [rate, setRate] = useState<number>(1.0);
   const [currentUrl, setCurrentUrl] = useState<VideoSource | null>(null);
@@ -339,8 +340,22 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         lastTimeUpdateRef.current = 0;
         isLoadingRef.current = true;
         setIsLoading(true);
+        setPlayerError(null);
         Logger.debug("LocalVideoPlayer", "Fetching episode info...");
-        const episodeInfo = await getEpisodeInfo(currentEpisode.video_url);
+        let episodeInfo;
+        if (currentEpisode.m3u8) {
+          Logger.debug("LocalVideoPlayer", "Using m3u8 from episode directly");
+          const qualitys = await ___getQualities(currentEpisode.m3u8);
+          const hasQualities = Object.keys(qualitys).length > 0;
+          episodeInfo = {
+            file: currentEpisode.m3u8,
+            qualitys: hasQualities ? qualitys : { Auto: currentEpisode.m3u8 },
+            poster: currentEpisode.poster ?? _anime.image ?? null,
+            defaultQuality: hasQualities ? undefined : "Auto",
+          };
+        } else {
+          episodeInfo = await getEpisodeInfo(currentEpisode.video_url);
+        }
         Logger.debug("LocalVideoPlayer", "Episode info received", {
           qualities: Object.keys(episodeInfo?.qualitys || {}),
           defaultQuality: episodeInfo?.defaultQuality,
@@ -350,18 +365,25 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
         const available = Object.keys(episodeInfo?.qualitys || {});
         const defaultQ = episodeInfo?.defaultQuality;
         const chosenKey =
-          defaultQ && episodeInfo.qualitys[defaultQ] ? defaultQ : available[0];
+          defaultQ && episodeInfo?.qualitys?.[defaultQ] ? defaultQ : available[0];
         setQuality(chosenKey || null);
         const newUrl = chosenKey ? episodeInfo.qualitys[chosenKey] : null;
         Logger.debug("LocalVideoPlayer", "Setting video URL", {
           quality: chosenKey,
           url: newUrl?.substring(0, 100) + "...",
         });
+        if (!newUrl) {
+          setPlayerError("Не вдалося отримати посилання на відео");
+          isLoadingRef.current = false;
+          setIsLoading(false);
+        }
         setCurrentUrl(newUrl);
       } catch (e) {
         Logger.error("LocalVideoPlayer", "Не вдалося отримати дані епізоду", e);
         isLoadingRef.current = false;
         setIsLoading(false);
+        const msg = e instanceof Error ? e.message : String(e);
+        setPlayerError(`Помилка завантаження відео:\n${msg}`);
       }
     };
     updateEpisode();
@@ -1298,6 +1320,21 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           />
         </View>
 
+        {/* Помилка завантаження */}
+        {playerError && !isLoading && (
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(200)}
+            style={styles.loadingOverlay}
+            pointerEvents="none"
+          >
+            <View style={styles.errorContainer}>
+              <Text style={[styles.errorIcon]}>⚠️</Text>
+              <Text style={[styles.errorText]}>{playerError}</Text>
+            </View>
+          </Animated.View>
+        )}
+
         {/* Оверлей завантаження */}
         {isLoading && (
           <Animated.View
@@ -2176,6 +2213,20 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
   },
+  errorContainer: {
+    alignItems: "center",
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  errorIcon: {
+    fontSize: 36,
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 15,
+    textAlign: "center",
+    opacity: 0.9,
+  },
 
   // Індикатор перемотування
   seekIndicator: {
@@ -2388,35 +2439,41 @@ const styles = StyleSheet.create({
 async function ___getQualities(file) {
   Logger.debug("LocalVideoPlayer", "___getQualities", { file });
   const qualities = {};
-  const m3u8 = new M3U8FileParser();
+  let content: string;
   try {
     const response = await axios.get(file, {
       headers: {
         "Accept-Language": "uk-UA,uk;q=0.8,en-US;q=0.5,en;q=0.3",
       },
       decompress: true,
+      responseType: "text",
     });
+    content = typeof response.data === "string" ? response.data : String(response.data);
     Logger.debug("LocalVideoPlayer", "M3U8 response received", {
-      dataLength: response.data?.length,
+      dataLength: content.length,
+      isMaster: content.includes("#EXT-X-STREAM-INF"),
     });
-    m3u8.read(response.data);
   } catch (err) {
     Logger.error("LocalVideoPlayer", "Failed to fetch M3U8", { file, err });
     return qualities;
   }
 
-  // Отримання якостей з M3U8 файлу
-  const segments = m3u8.getResult()?.segments || [];
-  Logger.debug("LocalVideoPlayer", "M3U8 segments", { count: segments.length });
-  segments.forEach((item) => {
-    if (item.streamInf?.resolution) {
-      const qualityKey =
-        item.url.match(/\/(\d+)\//)?.[1]?.length > 1
-          ? item.url.match(/\/(\d+)\//)?.[1] + "p"
-          : item.url.match(/\/hls\/(\d+)\//)?.[1] + "p";
-      qualities[qualityKey] = item.url;
+  if (content.includes("#EXT-X-STREAM-INF")) {
+    // Master playlist — парсимо варіанти якостей
+    const lines = content.split("\n").map((l) => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith("#EXT-X-STREAM-INF") && lines[i + 1] && !lines[i + 1].startsWith("#")) {
+        const url = lines[i + 1];
+        const resMatch = lines[i].match(/RESOLUTION=\d+x(\d+)/);
+        const height =
+          resMatch?.[1] ??
+          url.match(/\/(\d{3,4})\//)?.[1] ??
+          url.match(/\/hls\/(\d+)\//)?.[1];
+        if (height) qualities[height + "p"] = url;
+      }
     }
-  });
+  }
+
   Logger.debug("LocalVideoPlayer", "___getQualities result", {
     qualities: Object.keys(qualities),
   });
@@ -2456,6 +2513,68 @@ async function ___getPlayerDataFrom_ASHDI_Player(url) {
   }
 }
 
+function _moonDecodeXor32(encoded: string): string {
+  const binaryStr = atob(encoded);
+  const raw = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) raw[i] = binaryStr.charCodeAt(i);
+  const key = raw.slice(0, 32);
+  const payload = raw.slice(32);
+  let result = "";
+  for (let i = 0; i < payload.length; i++)
+    result += String.fromCharCode(payload[i] ^ key[i % 32]);
+  return result;
+}
+
+function _moonDecodeXorStr(encoded: string, key: string): string {
+  const binaryStr = atob(encoded);
+  let result = "";
+  for (let i = 0; i < binaryStr.length; i++)
+    result += String.fromCharCode(
+      binaryStr.charCodeAt(i) ^ key.charCodeAt(i % key.length),
+    );
+  return result;
+}
+
+function _moonParseFallback(
+  html: string,
+): { file?: string; poster?: string } | null {
+  const iifeMatch = html.match(
+    /\(function\(\)\{var \w+=atob\("([^"]+)"\);var _b=Uint8Array\.from\(/,
+  );
+  let script: string | null = null;
+  if (iifeMatch) {
+    try {
+      script = _moonDecodeXor32(iifeMatch[1]);
+    } catch {
+      Logger.warn("LocalVideoPlayer", "MOON fallback: XOR32 decode failed");
+    }
+  } else if (html.includes("new Playerjs")) {
+    script = html;
+  }
+  if (!script) return null;
+
+  const xorKey = script.match(/var\s+k\s*=\s*"([^"]+)"/)?.[1] ?? "mAnK";
+  const pjsMatch = script.match(/new\s+Playerjs\s*\(\s*(\{[\s\S]+?\})\s*\)/);
+  if (!pjsMatch) return null;
+
+  const raw = pjsMatch[1];
+  const result: { file?: string; poster?: string } = {};
+  for (const key of ["file", "poster"] as const) {
+    const xorM = raw.match(
+      new RegExp(`["']?${key}["']?\\s*:\\s*_0xd\\s*\\(\\s*["']([^"']+)["']\\s*\\)`),
+    );
+    if (xorM) {
+      result[key] = _moonDecodeXorStr(xorM[1], xorKey);
+    } else {
+      const plainM = raw.match(
+        new RegExp(`["']?${key}["']?\\s*:\\s*["']([^"']*)["']`),
+      );
+      if (plainM) result[key] = plainM[1];
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 async function ___getPlayerDataFrom_MOON_Player(url) {
   Logger.debug("LocalVideoPlayer", "MOON: fetching player data", { url });
   try {
@@ -2470,6 +2589,17 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
     Logger.debug("LocalVideoPlayer", "MOON: response received", {
       length: htmlContent?.length,
     });
+
+    // Якщо відповідь — це m3u8 безпосередньо, обробляємо як пряме посилання
+    if (
+      typeof htmlContent === "string" &&
+      htmlContent.trimStart().startsWith("#EXTM3U")
+    ) {
+      Logger.debug("LocalVideoPlayer", "MOON: direct m3u8 detected");
+      const qualitys = await ___getQualities(url);
+      return { file: url, qualitys, poster: null };
+    }
+
     // Шукаємо дані плеєра за допомогою регулярних виразів
     const playerData = {};
 
@@ -2481,8 +2611,23 @@ async function ___getPlayerDataFrom_MOON_Player(url) {
       file: fileMatch?.[1]?.substring(0, 80),
     });
     if (!fileMatch?.[1]) {
-      Logger.warn("LocalVideoPlayer", "MOON: no file found in response");
-      return null;
+      Logger.warn("LocalVideoPlayer", "MOON: no file found, trying XOR fallback");
+      const fallback = _moonParseFallback(htmlContent);
+      if (!fallback?.file) {
+        Logger.warn("LocalVideoPlayer", "MOON: fallback also failed");
+        return null;
+      }
+      Logger.debug("LocalVideoPlayer", "MOON: fallback succeeded", {
+        file: fallback.file?.substring(0, 80),
+      });
+      const qualitys = await ___getQualities(fallback.file);
+      const hasQualities = Object.keys(qualitys).length > 0;
+      return {
+        file: fallback.file,
+        qualitys: hasQualities ? qualitys : { Auto: fallback.file },
+        poster: fallback.poster ?? null,
+        defaultQuality: hasQualities ? undefined : "Auto",
+      };
     }
     if (fileMatch[1].includes("webm")) {
       Logger.debug("LocalVideoPlayer", "MOON: webm format detected");

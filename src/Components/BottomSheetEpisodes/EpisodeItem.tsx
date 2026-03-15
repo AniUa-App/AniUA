@@ -187,16 +187,15 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
       onLongPress={isWatchMode ? handleLongPress : undefined}
     >
       <View style={styles.episodeContent} importantForAccessibility="no-hide-descendants">
-        {episode.poster && (
+        {anime?.image && (
           <Image
-            uri={episode.poster}
+            uri={anime.image}
             style={{
               width: 160,
               height: 90,
               borderRadius: 16,
             }}
             resizeMode="cover"
-            onLoad={() => {}}
           />
         )}
         <View style={styles.episodeInfo}>
@@ -208,7 +207,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
               {
                 color: themeColors.text,
                 fontWeight: isDownloadMode ? "100" : undefined,
-                padding: episode.poster ? 0 : 8,
+                padding: 0,
               },
             ]}
           >
@@ -262,7 +261,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           style={[
             styles.shareButtonContainer,
             {
-              position: episode.poster ? "absolute" : "relative",
+              position: anime?.image ? "absolute" : "relative",
             },
           ]}
         >
