@@ -1,7 +1,6 @@
 import React from "react";
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   Text,
   Dimensions,
@@ -10,7 +9,6 @@ import {
 import { StatusBar } from "react-native";
 import SystemNavigationBar from "react-native-system-navigation-bar";
 import { WebView } from "react-native-webview";
-import { Background } from "../Styles/Colors";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 // import Orientation from "react-native-orientation-locker";
@@ -19,6 +17,7 @@ import { BackHandler } from "react-native";
 import Logger from "../Logger/Logger";
 import { setupNavigationBar } from "../../App";
 import { isTV } from "../Styles/Responsive";
+import { useWebVideoPlayerStyles } from "../Styles/components/Screens/WebVideoPlayerStyles";
 
 // Функція для визначення чи це планшет
 const isTablet = () => {
@@ -28,6 +27,7 @@ const isTablet = () => {
 };
 
 export default function WebVideoPlayerScreen({ route }) {
+  const s = useWebVideoPlayerStyles();
   const { videoUrl, title } = route.params;
   const navigation = useNavigation();
 
@@ -68,40 +68,14 @@ export default function WebVideoPlayerScreen({ route }) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       <StatusBar
         barStyle="light-content"
         translucent
         backgroundColor="transparent"
       />
 
-      <WebView source={{ uri: videoUrl }} style={styles.video} />
+      <WebView source={{ uri: videoUrl }} style={s.video} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Background(1),
-  },
-  video: {
-    flex: 1,
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    backgroundColor: Background(0.7),
-    borderRadius: 8,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    zIndex: 999,
-  },
-  title: {
-    color: "text",
-    marginLeft: 10,
-    maxWidth: "80%",
-  },
-});

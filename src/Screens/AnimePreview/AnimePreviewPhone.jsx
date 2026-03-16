@@ -11,7 +11,6 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-  StyleSheet,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
@@ -46,6 +45,7 @@ import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import CommentsSection from "../../Components/CommentsSection";
 import { useIsTabletLandscape } from "../../Styles/Responsive";
 import { ErrorScreen } from "../ErrorScreen";
+import { useAnimePreviewPhoneStyles } from "../../Styles/components/Screens/AnimePreviewPhoneStyles";
 
 const DubbingBottomSheetMemo = React.memo(DubbingBottomSheet);
 const EpisodesBottomSheetMemo = React.memo(EpisodesBottomSheet);
@@ -53,30 +53,33 @@ const MoreBottomSheetMemo = React.memo(MoreBottomSheet);
 const NewEpisodesBottomSheetMemo = React.memo(NewEpisodesBottomSheet);
 
 // Info row component
-const InfoRow = ({ icon, label, value, themeColors }) => (
-  <View style={[styles.infoRow]}>
-    <View
-      style={[
-        styles.infoIcon,
-        { padding: 4, backgroundColor: themeColors.primary, borderRadius: 16 },
-      ]}
-    >
-      {icon}
+const InfoRow = ({ icon, label, value, themeColors }) => {
+  const s = useAnimePreviewPhoneStyles();
+  return (
+    <View style={[s.infoRow]}>
+      <View
+        style={[
+          s.infoIcon,
+          { padding: 4, backgroundColor: themeColors.primary, borderRadius: 16 },
+        ]}
+      >
+        {icon}
+      </View>
+      <Text
+        selectable={true}
+        style={[H5, s.infoLabel, { color: themeColors.text }]}
+      >
+        {label}:
+      </Text>
+      <Text
+        selectable={true}
+        style={[H5, s.infoValue, { color: themeColors.primary }]}
+      >
+        {value}
+      </Text>
     </View>
-    <Text
-      selectable={true}
-      style={[H5, styles.infoLabel, { color: themeColors.text }]}
-    >
-      {label}:
-    </Text>
-    <Text
-      selectable={true}
-      style={[H5, styles.infoValue, { color: themeColors.primary }]}
-    >
-      {value}
-    </Text>
-  </View>
-);
+  );
+};
 
 // Genre tag component
 const GenreTag = ({ name, themeColors }) => (
@@ -89,15 +92,16 @@ const GenreTag = ({ name, themeColors }) => (
 
 // Star rating component
 const StarRating = ({ rating = 0, onRate, themeColors }) => {
+  const s = useAnimePreviewPhoneStyles();
   const stars = [2, 4, 6, 8, 10];
   return (
     <View
-      style={[styles.starsContainer, { backgroundColor: themeColors.subtle }]}
+      style={[s.starsContainer, { backgroundColor: themeColors.subtle }]}
     >
       {stars.map((star) => (
         <TouchableOpacity
           key={star}
-          style={styles.starButton}
+          style={s.starButton}
           onPress={() => onRate && onRate(star)}
         >
           <Icon.Star
@@ -115,6 +119,7 @@ const StarRating = ({ rating = 0, onRate, themeColors }) => {
 
 // Section tabs component
 const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
+  const s = useAnimePreviewPhoneStyles();
   const filteredTabs = tabs.filter(Boolean);
   const [activeTab, setActiveTab] = useState(null);
 
@@ -142,16 +147,16 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
   }
 
   return (
-    <View style={styles.sectionTabsWrapper}>
+    <View style={s.sectionTabsWrapper}>
       {/* Tab buttons */}
-      <View style={[styles.sectionTabsContainer]}>
+      <View style={[s.sectionTabsContainer]}>
         {filteredTabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <TouchableOpacity
               key={tab.key}
               style={[
-                styles.sectionTab,
+                s.sectionTab,
                 {
                   backgroundColor: isActive
                     ? themeColors.activeIcon
@@ -178,13 +183,14 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
 
       {/* Tab content */}
       {activeContent && (
-        <View style={styles.sectionTabContent}>{activeContent}</View>
+        <View style={s.sectionTabContent}>{activeContent}</View>
       )}
     </View>
   );
 };
 
 export default function AnimePreviewPhone({ route }) {
+  const s = useAnimePreviewPhoneStyles();
   const navigation = useNavigation();
   const themeColors = useThemeColors();
   const [titleContainerWidth, setTitleContainerWidth] = useState(null);
@@ -439,7 +445,7 @@ export default function AnimePreviewPhone({ route }) {
         showsVerticalScrollIndicator={false}
       >
         {/* Poster with bloom effect */}
-        <View style={[styles.posterContainer]}>
+        <View style={[s.posterContainer]}>
           {/* Bloom/Glow image using Skia shader */}
           <BloomImage
             uri={anime.image}
@@ -454,7 +460,7 @@ export default function AnimePreviewPhone({ route }) {
           {/* Back button */}
           <TouchableOpacity
             style={[
-              styles.topButton,
+              s.topButton,
               { backgroundColor: themeColors.subtle, left: 16 },
             ]}
             onPress={() => {
@@ -471,7 +477,7 @@ export default function AnimePreviewPhone({ route }) {
           {/* More button */}
           <TouchableOpacity
             style={[
-              styles.topButton,
+              s.topButton,
               {
                 backgroundColor: themeColors.subtle,
                 right: 16,
@@ -484,12 +490,12 @@ export default function AnimePreviewPhone({ route }) {
         </View>
 
         {/* Content */}
-        <View style={styles.contentContainer}>
+        <View style={s.contentContainer}>
           {/* Title section */}
-          <View style={styles.titleWrapper}>
+          <View style={s.titleWrapper}>
             <View
               style={[
-                styles.titleSection,
+                s.titleSection,
                 titleContainerWidth && { width: titleContainerWidth },
               ]}
             >
@@ -505,7 +511,7 @@ export default function AnimePreviewPhone({ route }) {
                 {anime.title_ua || anime.title_en || anime.title_ja}
                 {anime.year ? ` (${anime.year})` : ""}
               </Text>
-              <View style={styles.subtitleRow}>
+              <View style={s.subtitleRow}>
                 <Text
                   selectable={true}
                   style={[
@@ -522,7 +528,7 @@ export default function AnimePreviewPhone({ route }) {
           </View>
 
           {/* Primary action buttons */}
-          <View style={styles.primaryActionsRow}>
+          <View style={s.primaryActionsRow}>
             {/* Watch button */}
             <WatchButton
               label={getWatchButtonText()}
@@ -538,7 +544,7 @@ export default function AnimePreviewPhone({ route }) {
             {/* Download button */}
             {/* <TouchableOpacity
               style={[
-                styles.iconButton,
+                s.iconButton,
                 { backgroundColor: themeColors.subtle },
               ]}
               onPress={() =>
@@ -552,7 +558,7 @@ export default function AnimePreviewPhone({ route }) {
             {/* Favorite button */}
             <TouchableOpacity
               style={[
-                styles.iconButton,
+                s.iconButton,
                 { backgroundColor: themeColors.subtle },
               ]}
               onPress={handleFavoriteToggle}
@@ -574,22 +580,22 @@ export default function AnimePreviewPhone({ route }) {
           {/* Info section */}
           <View
             style={[
-              styles.infoSection,
+              s.infoSection,
               { backgroundColor: themeColors.subtle },
             ]}
           >
             {/* Genre tags */}
-            <View style={styles.iconContainer}>
+            <View style={s.iconContainer}>
               <View
                 style={[
-                  styles.icon,
+                  s.icon,
                   { backgroundColor: themeColors.primary, marginRight: 8 },
                 ]}
               >
                 <Icon.Hash size={24} color={themeColors.inActiveIcon} />
               </View>
               {anime.genres?.length > 0 && (
-                <View style={styles.genresContainer}>
+                <View style={s.genresContainer}>
                   {anime.genres.slice(0, 3).map((genre, index) => (
                     <React.Fragment key={genre.name_ua}>
                       <Text
@@ -660,7 +666,7 @@ export default function AnimePreviewPhone({ route }) {
           </View>
 
           {/* Description */}
-          <View style={styles.descriptionSection}>
+          <View style={s.descriptionSection}>
             <Markdown
               style={{
                 body: [H5, { color: themeColors.text, lineHeight: 22 }],
@@ -682,7 +688,7 @@ export default function AnimePreviewPhone({ route }) {
             {/* 
             {anime?.source && (
               <Text selectable={true}
-                style={[H6, styles.sourceText, { color: themeColors.text }]}
+                style={[H6, s.sourceText, { color: themeColors.text }]}
               >
                 Джерело:{" "}
                 {anime.source === "manga"
@@ -699,12 +705,12 @@ export default function AnimePreviewPhone({ route }) {
           </View>
 
           {/* Rating section */}
-          <View style={styles.ratingSection}>
+          <View style={s.ratingSection}>
             <Text
               selectable={true}
               style={[
                 H4,
-                styles.ratingSectionTitle,
+                s.ratingSectionTitle,
                 { color: themeColors.primary },
               ]}
             >
@@ -875,342 +881,3 @@ export default function AnimePreviewPhone({ route }) {
     </DefaultScreenWidget>
   );
 }
-
-// Phone-specific styles - New redesigned layout
-export const styles = StyleSheet.create({
-  // Container
-  container: {
-    flex: 1,
-  },
-  icon: {
-    padding: 4,
-    borderRadius: 16,
-  },
-  iconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Poster section
-  posterContainer: {
-    position: "relative",
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 82,
-  },
-  poster: {
-    alignItems: "center",
-  },
-  bottomImg: {
-    width: 250,
-    height: 375,
-    position: "absolute",
-    borderRadius: 16,
-    top: -10,
-    zIndex: 1,
-  },
-  blur: {
-    width: 250,
-    height: 375,
-    position: "absolute",
-    borderRadius: 16,
-    zIndex: 1,
-  },
-
-  topImg: {
-    width: 225,
-    height: 350,
-    borderRadius: 16,
-    zIndex: 2,
-  },
-  posterGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  // Content container
-  contentContainer: {
-    alignItems: "center",
-    width: "100%",
-    top: -10,
-  },
-
-  // Title wrapper - row container for centering
-  titleWrapper: {
-    flexDirection: "row",
-    justifyContent: "center",
-    width: "100%",
-    marginBottom: 16,
-  },
-  // Title section
-  titleSection: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    maxWidth: "95%",
-  },
-  subtitleRow: {
-    gap: 8,
-    marginTop: 2,
-  },
-  subtitle: {},
-
-  // Primary actions row (Watch, Download, Favorite)
-  primaryActionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 16,
-  },
-  watchButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  watchButtonText: {
-    fontWeight: "600",
-  },
-  topButton: {
-    top: 50,
-    borderRadius: 16,
-    position: "absolute",
-    justifyContent: "center",
-    alignItems: "center",
-    width: 44,
-    height: 44,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Genres tags
-  genresContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  genreTag: {},
-
-  // Info section
-  infoSection: {
-    padding: 16,
-    borderRadius: 16,
-    width: "95%",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  infoIcon: {
-    alignItems: "center",
-  },
-  infoValue: {
-    fontWeight: "500",
-    flex: 1,
-  },
-
-  // Description
-  descriptionSection: {
-    marginVertical: 10,
-    width: "88%",
-  },
-  descriptionText: {
-    lineHeight: 22,
-    opacity: 0.9,
-  },
-  sourceText: {
-    marginTop: 12,
-    opacity: 0.5,
-    fontStyle: "italic",
-  },
-
-  // Rating section
-  ratingSection: {
-    width: "95%",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  ratingSectionTitle: {
-    marginBottom: 14,
-    width: "100%",
-    textAlign: "left",
-  },
-  starsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    width: "100%",
-    padding: 16,
-    borderRadius: 16,
-  },
-  starButton: {
-    padding: 4,
-  },
-
-  // Section Tabs
-  sectionTabsWrapper: {
-    alignItems: "left",
-    width: "95%",
-    marginBottom: 20,
-  },
-  sectionTabsContainer: {
-    flexDirection: "row",
-    borderRadius: 16,
-    paddingVertical: 6,
-    gap: 12,
-  },
-  sectionTab: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    borderRadius: 12,
-    gap: 6,
-  },
-  sectionTabIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sectionTabContent: {
-    marginTop: 12,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-
-  // Legacy Tabs (deprecated)
-  tabsContainer: {
-    flexDirection: "row",
-    width: "100%",
-    marginBottom: 20,
-    gap: 10,
-  },
-  tab: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 16,
-  },
-  tabActive: {},
-  tabInactive: {},
-
-  // Section header
-  sectionHeader: {
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontWeight: "600",
-  },
-
-  // Similar anime
-  similarContainer: {
-    marginBottom: 20,
-  },
-  similarCard: {
-    marginRight: 12,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  similarImage: {
-    borderRadius: 12,
-  },
-  similarCardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 12,
-  },
-
-  // Characters
-  charactersContainer: {
-    marginBottom: 24,
-  },
-  characterCard: {
-    marginRight: 12,
-    alignItems: "center",
-    width: 100,
-  },
-  characterImage: {
-    borderRadius: 50,
-    marginBottom: 8,
-  },
-  characterName: {
-    textAlign: "center",
-    fontSize: 12,
-  },
-
-  // Legacy styles for compatibility
-  actionsRow: {
-    marginTop: 9,
-    gap: 14,
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  actionButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-    marginBottom: 6,
-  },
-  continueWatchingBtn: {
-    borderRadius: 8,
-    padding: 10,
-    margin: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  headerRow: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  yearEpisodes: {
-    color: "#888",
-    marginBottom: 4,
-  },
-  tagsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 16,
-  },
-  tagItem: {
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
-  ratingContainer: {
-    position: "absolute",
-    top: 50,
-    right: 0,
-    padding: 8,
-    paddingRight: 10,
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-    gap: 6,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  playTrailerBtn: {
-    position: "absolute",
-    flexDirection: "row",
-    alignItems: "center",
-    bottom: 40,
-    left: 20,
-    padding: 10,
-    borderRadius: 8,
-  },
-});

@@ -2,10 +2,10 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   RefreshControl,
 } from "react-native";
+import { useNotificationsScreenStyles } from "../Styles/components/Screens/NotificationsScreenStyles";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,8 +27,9 @@ const NOTIFICATION_CATEGORIES = [
  * Порожній стан екрану сповіщень
  */
 function EmptyNotifications({ colors, scaleFontSize }) {
+  const s = useNotificationsScreenStyles();
   return (
-    <View style={styles.emptyContainer}>
+    <View style={s.emptyContainer}>
       <Icons.BellSlash size={64} color={colors.Text(0.3)} />
       <Text selectable={true} style={H3}>
         Немає сповіщень
@@ -56,6 +57,7 @@ function EmptyNotifications({ colors, scaleFontSize }) {
  */
 export default function NotificationsScreen({ navigation }) {
   const colors = useThemeColors();
+  const s = useNotificationsScreenStyles();
   const scaleFontSize = useScaleFontSize();
   const insets = useSafeAreaInsets();
 
@@ -168,7 +170,7 @@ export default function NotificationsScreen({ navigation }) {
   const keyExtractor = useCallback((item) => item.id, []);
 
   return (
-    <DefaultScreenWidget style={[styles.container]}>
+    <DefaultScreenWidget style={[s.container]}>
       <Header navigation={navigation} title="Сповіщення" isArrow={true} />
 
       <View
@@ -186,7 +188,7 @@ export default function NotificationsScreen({ navigation }) {
 
         {filteredNotifications.length > 0 && (
           <TouchableOpacity
-            style={[styles.clearButton, { backgroundColor: colors.accent }]}
+            style={[s.clearButton, { backgroundColor: colors.accent }]}
             onPress={handleClearAll}
           >
             <Icons.Trash size={28} color={colors.icon} />
@@ -199,13 +201,13 @@ export default function NotificationsScreen({ navigation }) {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={[
-          styles.listContent,
+          s.listContent,
           {
             paddingBottom: insets.bottom + 20,
             backgroundColor: colors.accent,
             height: "100%",
           },
-          filteredNotifications.length === 0 && styles.emptyList,
+          filteredNotifications.length === 0 && s.emptyList,
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -223,41 +225,3 @@ export default function NotificationsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  emptyList: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontFamily: "Nunito-SemiBold",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontFamily: "Nunito-Regular",
-    paddingHorizontal: 40,
-  },
-  clearButton: {
-    marginRight: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 16,
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-  },
-  clearButtonText: {
-    fontFamily: "Nunito-Regular",
-    marginLeft: 6,
-  },
-});

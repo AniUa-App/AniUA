@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   useWindowDimensions,
   ActivityIndicator,
@@ -25,8 +24,10 @@ import { Shadow } from "react-native-shadow-2";
 import Markdown from "react-native-markdown-display";
 import MainConfig from "../cfgs/MainConfig";
 import BloomImage from "../Widgets/BloomImage";
+import { useCharacterScreenStyles } from "../Styles/components/Screens/CharacterScreenStyles";
 
 export default function CharacterScreen() {
+  const s = useCharacterScreenStyles();
   const navigation = useNavigation();
   const route = useRoute();
   const themeColors = useThemeColors();
@@ -182,9 +183,9 @@ export default function CharacterScreen() {
   if (isLoadingCharacter) {
     return (
       <View
-        style={[styles.container, { backgroundColor: themeColors.background }]}
+        style={[s.container, { backgroundColor: themeColors.background }]}
       >
-        <View style={styles.loadingContainer}>
+        <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       </View>
@@ -194,9 +195,9 @@ export default function CharacterScreen() {
   if (!character) {
     return (
       <View
-        style={[styles.container, { backgroundColor: themeColors.background }]}
+        style={[s.container, { backgroundColor: themeColors.background }]}
       >
-        <View style={styles.emptyContainer}>
+        <View style={s.emptyContainer}>
           <Text
             selectable={true}
             style={[H4, { color: themeColors.inActiveText }]}
@@ -214,7 +215,7 @@ export default function CharacterScreen() {
   const headerContent = (
     <View
       style={[
-        styles.header,
+        s.header,
         {
           paddingTop: headerPaddingTop,
           backgroundColor: themeColors.background,
@@ -224,7 +225,7 @@ export default function CharacterScreen() {
     >
       <TouchableOpacity
         style={[
-          styles.backButton,
+          s.backButton,
           { backgroundColor: themeColors.subtle, padding: btnPadding },
         ]}
         onPress={handleGoBack}
@@ -232,11 +233,11 @@ export default function CharacterScreen() {
         <Icons.ArrowCircleLeft size={iconSize} color={themeColors.primary} />
       </TouchableOpacity>
 
-      <View style={styles.headerSpacer} />
+      <View style={s.headerSpacer} />
 
       <TouchableOpacity
         style={[
-          styles.menuButton,
+          s.menuButton,
           { backgroundColor: themeColors.subtle, padding: btnPadding },
         ]}
         onPress={() => {
@@ -267,7 +268,7 @@ export default function CharacterScreen() {
   const namePillContent = (
     <View
       style={[
-        styles.namePill,
+        s.namePill,
         { backgroundColor: themeColors.primary },
         isTV && { paddingVertical: 14, marginTop: TV.padding.section },
       ]}
@@ -275,7 +276,7 @@ export default function CharacterScreen() {
       <Text
         selectable={true}
         style={[
-          styles.nameText,
+          s.nameText,
           { fontSize: scaleFontSize(18), color: themeColors.text },
         ]}
         numberOfLines={1}
@@ -290,7 +291,7 @@ export default function CharacterScreen() {
       style={{
         body: {
           ...H4,
-          ...styles.description,
+          ...s.description,
           color: themeColors.text,
           ...(isTV && { lineHeight: 32, marginHorizontal: TV.padding.screen }),
         },
@@ -306,14 +307,14 @@ export default function CharacterScreen() {
   ) : null;
 
   const animeContent = isLoading ? (
-    <View style={styles.loadingContainer}>
+    <View style={s.loadingContainer}>
       <ActivityIndicator size="large" color={themeColors.primary} />
     </View>
   ) : animeList.length > 0 ? (
     <View style={{ width: "100%" }}>
       <View
         style={[
-          styles.sectionHeader,
+          s.sectionHeader,
           isTV && { paddingHorizontal: TV.padding.screen },
         ]}
       >
@@ -329,7 +330,7 @@ export default function CharacterScreen() {
       />
     </View>
   ) : (
-    <View style={styles.emptyContainer}>
+    <View style={s.emptyContainer}>
       <Text selectable={true} style={[H4, { color: themeColors.inActiveText }]}>
         Немає пов'язаного аніме
       </Text>
@@ -339,13 +340,13 @@ export default function CharacterScreen() {
   if (isTV) {
     return (
       <View
-        style={[styles.container, { backgroundColor: themeColors.background }]}
+        style={[s.container, { backgroundColor: themeColors.background }]}
       >
         {headerContent}
-        <View style={styles.tvLayout}>
+        <View style={s.tvLayout}>
           {/* Left panel — image + name */}
           <ScrollView
-            style={styles.tvLeftPanel}
+            style={s.tvLeftPanel}
             contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
@@ -355,7 +356,7 @@ export default function CharacterScreen() {
 
           {/* Right panel — description + anime */}
           <ScrollView
-            style={styles.tvRightPanel}
+            style={s.tvRightPanel}
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
@@ -369,11 +370,11 @@ export default function CharacterScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: themeColors.background }]}
+      style={[s.container, { backgroundColor: themeColors.background }]}
     >
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+        style={s.scrollView}
+        contentContainerStyle={s.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         {headerContent}
@@ -386,91 +387,3 @@ export default function CharacterScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-  },
-  backButton: {
-    borderRadius: 16,
-    padding: 6,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  menuButton: {
-    borderRadius: 16,
-    padding: 6,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    alignItems: "center",
-  },
-  imageContainer: {
-    overflow: "hidden",
-    borderRadius: 16,
-  },
-  characterImage: {
-    borderRadius: 16,
-  },
-  namePill: {
-    paddingHorizontal: "10%",
-    paddingVertical: 10,
-    borderRadius: 16,
-    marginTop: 20,
-    zIndex: 1,
-    minWidth: 120,
-    alignItems: "center",
-  },
-  nameText: {
-    fontFamily: "Nunito-SemiBold",
-    textAlign: "center",
-  },
-  description: {
-    marginTop: 20,
-    marginHorizontal: 20,
-    textAlign: "left",
-    lineHeight: 24,
-  },
-  sectionHeader: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  loadingContainer: {
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyContainer: {
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  // TV layout
-  tvLayout: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  tvLeftPanel: {
-    width: "35%",
-    paddingHorizontal: TV.padding.screen,
-  },
-  tvRightPanel: {
-    flex: 1,
-    paddingRight: TV.padding.screen,
-  },
-});

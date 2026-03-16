@@ -2,12 +2,12 @@ import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
   BackHandler,
   Linking,
 } from "react-native";
+import { useUpdateCheckerScreenStyles } from "../Styles/components/Screens/UpdateCheckerScreenStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
@@ -24,6 +24,7 @@ import Markdown from "react-native-markdown-display";
 export default function UpdateCheckerScreen({ route }) {
   const updateInfo = route?.params?.updateInfo || null;
   const colors = useThemeColors();
+  const s = useUpdateCheckerScreenStyles();
   const scaleFontSize = useScaleFontSize();
   const insets = useSafeAreaInsets();
 
@@ -72,11 +73,11 @@ export default function UpdateCheckerScreen({ route }) {
     return (
       <View
         style={[
-          styles.screen,
+          s.screen,
           { backgroundColor: colors.background, paddingTop: insets.top + 24 },
         ]}
       >
-        <View style={styles.loadingContainer}>
+        <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text selectable={true} style={[H5, { color: colors.text }]}>
             Перевіряємо оновлення...
@@ -100,7 +101,7 @@ export default function UpdateCheckerScreen({ route }) {
     <DefaultScreenWidget>
       <View
         style={[
-          styles.screen,
+          s.screen,
           {
             paddingTop: insets.top,
             paddingBottom: insets.bottom,
@@ -108,17 +109,17 @@ export default function UpdateCheckerScreen({ route }) {
         ]}
       >
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          style={s.scrollView}
+          contentContainerStyle={s.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Центральний контент */}
-          <View style={styles.centerContent}>
+          <View style={s.centerContent}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={s.header}>
               <View
                 style={[
-                  styles.iconContainer,
+                  s.iconContainer,
                   { backgroundColor: colors.accent },
                 ]}
               >
@@ -153,7 +154,7 @@ export default function UpdateCheckerScreen({ route }) {
             {updateInfo.changelog && (
               <View
                 style={[
-                  styles.changelogContainer,
+                  s.changelogContainer,
                   {
                     backgroundColor: colors.accent,
                   },
@@ -288,10 +289,10 @@ export default function UpdateCheckerScreen({ route }) {
             )}
             {/* Error message */}
             {error && (
-              <View style={[styles.errorContainer]}>
+              <View style={[s.errorContainer]}>
                 <Text
                   selectable={true}
-                  style={[styles.errorText, { color: "red" }]}
+                  style={[s.errorText, { color: "red" }]}
                 >
                   Помилка оновлення: {error}
                 </Text>
@@ -300,7 +301,7 @@ export default function UpdateCheckerScreen({ route }) {
 
             {/* Loading indicator */}
             {isUpdating && (
-              <View style={styles.progressContainer}>
+              <View style={s.progressContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text
                   selectable={true}
@@ -317,7 +318,7 @@ export default function UpdateCheckerScreen({ route }) {
         </ScrollView>
 
         {/* Type indicator - внизу */}
-        <View style={styles.typeIndicator}>
+        <View style={s.typeIndicator}>
           <Icons.Info size={14} color={colors.Text(0.4)} />
           <Text selectable={true} style={[H7, { color: colors.Text(0.4) }]}>
             OTA оновлення
@@ -328,76 +329,3 @@ export default function UpdateCheckerScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  centerContent: {
-    alignItems: "center",
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  changelogContainer: {
-    width: "100%",
-    padding: 16,
-    borderRadius: 16,
-  },
-
-  changelogBox: {
-    borderRadius: 12,
-    padding: 12,
-  },
-
-  errorContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 16,
-    width: "100%",
-  },
-  errorText: {
-    fontFamily: "Nunito-Regular",
-    fontSize: 13,
-    marginLeft: 8,
-    flex: 1,
-  },
-  progressContainer: {
-    width: "100%",
-    marginVertical: 16,
-  },
-  typeIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    gap: 6,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-});

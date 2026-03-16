@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet, Text, ScrollView, Linking } from "react-native";
+import { View, Text, ScrollView, Linking } from "react-native";
 import { useThemeColors } from "../Global/useTheme";
+import { useMangaScreenStyles } from "../Styles/components/Screens/MangaScreenStyles";
 import {
   BookOpen,
   Timer,
@@ -15,6 +16,7 @@ import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 
 export default function MangaScreen() {
   const themeColors = useThemeColors();
+  const s = useMangaScreenStyles();
 
   const handleDonate = () => {
     const url = Config.urls.donateUrl;
@@ -28,14 +30,14 @@ export default function MangaScreen() {
       <ScrollView
         style={{ flex: 1, backgroundColor: "transparent" }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={s.scrollContent}
       >
-        <View style={styles.container}>
-          <View style={styles.content}>
+        <View style={s.container}>
+          <View style={s.content}>
             {/* Іконка */}
             <View
               style={[
-                styles.iconContainer,
+                s.iconContainer,
                 { backgroundColor: themeColors.primary + "20" },
               ]}
             >
@@ -45,7 +47,7 @@ export default function MangaScreen() {
             {/* Заголовок */}
             <Text
               selectable={true}
-              style={[H3, styles.title, { color: themeColors.text }]}
+              style={[H3, s.title, { color: themeColors.text }]}
             >
               Манґа
             </Text>
@@ -53,14 +55,14 @@ export default function MangaScreen() {
             {/* Статус */}
             <View
               style={[
-                styles.statusBadge,
+                s.statusBadge,
                 { backgroundColor: themeColors.accent + "30" },
               ]}
             >
               <Timer size={16} color={themeColors.primary} weight="bold" />
               <Text
                 selectable={true}
-                style={[styles.statusText, { color: themeColors.primary }]}
+                style={[s.statusText, { color: themeColors.primary }]}
               >
                 Йде збір коштів
               </Text>
@@ -70,7 +72,7 @@ export default function MangaScreen() {
             <Text
               selectable={true}
               style={[
-                styles.description,
+                s.description,
                 { color: themeColors.text, opacity: 0.7 },
               ]}
             >
@@ -81,7 +83,7 @@ export default function MangaScreen() {
             {/* Кнопка донату */}
             <TouchableOpacity
               style={[
-                styles.donateButton,
+                s.donateButton,
                 { backgroundColor: themeColors.primary },
               ]}
               onPress={handleDonate}
@@ -92,7 +94,7 @@ export default function MangaScreen() {
                 selectable={true}
                 style={[
                   H4,
-                  styles.donateButtonText,
+                  s.donateButtonText,
                   { color: themeColors.text },
                 ]}
               >
@@ -104,7 +106,7 @@ export default function MangaScreen() {
             <Text
               selectable={true}
               style={[
-                styles.footnote,
+                s.footnote,
                 { color: themeColors.text, opacity: 0.5 },
               ]}
             >
@@ -116,95 +118,3 @@ export default function MangaScreen() {
     </DefaultScreenWidget>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  content: {
-    alignItems: "center",
-    paddingHorizontal: 24,
-    maxWidth: 400,
-    width: "100%",
-  },
-  iconContainer: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  title: {
-    marginBottom: 12,
-    textAlign: "center",
-    fontSize: 28,
-    fontFamily: "Nunito-Bold",
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 20,
-    gap: 6,
-  },
-  statusText: {
-    fontSize: 14,
-    fontFamily: "Nunito-SemiBold",
-  },
-  description: {
-    fontSize: 15,
-    fontFamily: "Nunito-Regular",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  infoCard: {
-    width: "100%",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: "Nunito-Regular",
-    lineHeight: 20,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  donateButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    width: "100%",
-    gap: 10,
-  },
-  donateButtonText: {
-    fontFamily: "Nunito-Bold",
-  },
-  footnote: {
-    fontSize: 13,
-    fontFamily: "Nunito-Regular",
-    textAlign: "center",
-    marginTop: 16,
-  },
-});

@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   Animated,
   Easing,
@@ -40,8 +39,10 @@ import {
   sendRequest,
 } from "../Sources/CustomSet";
 import { PreviewAnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
+import { useMainScreenCustomisationStyles } from "../Styles/components/Screens/MainScreenCustomisationStyles";
 
 export default function MainScreenCustomisationScreen() {
+  const s = useMainScreenCustomisationStyles();
   const themeColors = useThemeColors();
   const [RECOMMENDATIONS, setRecommendations] = useState();
   const [isPersonalRecExpanded, setIsPersonalRecExpanded] = useState(false);
@@ -267,7 +268,7 @@ function PersonalRecList({
   return (
     <View style={{ paddingTop: 8 }}>
       {/* Кнопки керування */}
-      <View style={styles.actionButtons}>
+      <View style={s.actionButtons}>
         <SettingsItemWidget
           title="Очистити всі"
           subtitle="Видалити всі списки"
@@ -288,7 +289,7 @@ function PersonalRecList({
 
       {/* Завантаження */}
       {loading && (
-        <View style={styles.loaderContainer}>
+        <View style={s.loaderContainer}>
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       )}
@@ -308,7 +309,7 @@ function PersonalRecList({
         ))}
 
       {!loading && loadedAnimeLists.length === 0 && (
-        <View style={styles.emptyState}>
+        <View style={s.emptyState}>
           <Icons.ListDashes size={48} color={themeColors.inActiveText} />
           <Text
             selectable={true}
@@ -477,7 +478,7 @@ export function PersonalRecListFilter({
       >
         <View style={{ flex: 1, paddingBottom: 100 }}>
           {/* Заголовок */}
-          <View style={styles.sheetHeader}>
+          <View style={s.sheetHeader}>
             <Text
               selectable={true}
               style={[H4, { color: themeColors.text, fontWeight: "bold" }]}
@@ -487,10 +488,10 @@ export function PersonalRecListFilter({
           </View>
 
           {/* Назва списку */}
-          <View style={styles.inputRow}>
+          <View style={s.inputRow}>
             <View
               style={[
-                styles.inputContainer,
+                s.inputContainer,
                 {
                   backgroundColor: themeColors.accent,
                 },
@@ -529,7 +530,7 @@ export function PersonalRecListFilter({
                 }
               }}
               style={[
-                styles.actionButton,
+                s.actionButton,
                 { backgroundColor: themeColors.primary },
               ]}
             >
@@ -548,7 +549,7 @@ export function PersonalRecListFilter({
           </View>
 
           {/* Фільтри */}
-          <View style={styles.filtersContainer}>
+          <View style={s.filtersContainer}>
             <Text
               selectable={true}
               style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}
@@ -646,50 +647,3 @@ export function PersonalRecListFilter({
     </BottomSheetModal>
   );
 }
-
-const styles = StyleSheet.create({
-  actionButtons: {
-    gap: 2,
-  },
-  loaderContainer: {
-    paddingVertical: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyState: {
-    paddingVertical: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sheetHeader: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    alignItems: "center",
-  },
-  inputRow: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    gap: 12,
-    alignItems: "center",
-  },
-  inputContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    height: 44,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.2)",
-  },
-  actionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filtersContainer: {
-    paddingHorizontal: 16,
-  },
-});

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image } from "react-native";
+import { useLoginScreenStyles } from "../Styles/components/Screens/LoginScreenStyles";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useThemeColors } from "../Global/useTheme";
 import { H2, H5, H6 } from "../Styles/Fonts";
@@ -17,6 +18,7 @@ import { isTV, isTablet, isTabletLandscape } from "../Styles/Responsive";
 export default function LoginScreen({ isCanSkip = true }) {
   const isWideLayout = isTV() || isTabletLandscape();
   const themeColors = useThemeColors();
+  const s = useLoginScreenStyles();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -109,23 +111,23 @@ export default function LoginScreen({ isCanSkip = true }) {
 
   return (
     <DefaultScreenWidget isNavBarPadding={!isTV()}>
-      <View style={[styles.container, isWideLayout && styles.containerWide]}>
+      <View style={[s.container, isWideLayout && s.containerWide]}>
         {/* Верхня частина: логотип зліва + контент справа (wide) або стовпчик (phone) */}
         <View
-          style={[styles.mainContent, isWideLayout && styles.mainContentWide]}
+          style={[s.mainContent, isWideLayout && s.mainContentWide]}
         >
           {/* Логотип */}
           {(isCanSkip && (isTV() || isTablet())) || !isTV() ? (
             <View
               style={[
-                styles.logoContainer,
+                s.logoContainer,
                 { top: isCanSkip && (!isTV() || !isTablet()) ? "25%" : "15%" },
-                isWideLayout && styles.logoContainerWide,
+                isWideLayout && s.logoContainerWide,
               ]}
             >
               <Image
                 source={require("../../assets/AniUA-Logo-Icon.png")}
-                style={[styles.logo, isWideLayout && styles.logoWide]}
+                style={[s.logo, isWideLayout && s.logoWide]}
                 resizeMode="contain"
               />
             </View>
@@ -140,13 +142,13 @@ export default function LoginScreen({ isCanSkip = true }) {
                 position: "absolute",
                 bottom: isCanSkip ? "5%" : "28%",
               },
-              isWideLayout && styles.contentWide,
+              isWideLayout && s.contentWide,
             ]}
           >
             {/* Заголовок */}
             <Text
               selectable={true}
-              style={[H2, styles.title, { color: themeColors.text }]}
+              style={[H2, s.title, { color: themeColors.text }]}
             >
               Вітаємо в AniUA
             </Text>
@@ -154,41 +156,41 @@ export default function LoginScreen({ isCanSkip = true }) {
             {/* Підзаголовок */}
             <Text
               selectable={true}
-              style={[H6, styles.subtitle, { color: themeColors.inActiveText }]}
+              style={[H6, s.subtitle, { color: themeColors.inActiveText }]}
             >
               Увійдіть в аккаунт, щоб зберігати та синхронізувати ваш прогрес.
             </Text>
 
             {/* Кнопки */}
-            <View style={styles.buttonsContainer}>
+            <View style={s.buttonsContainer}>
               <TouchableOpacity
                 style={[
-                  styles.button,
+                  s.button,
                   { backgroundColor: themeColors.primary },
                 ]}
                 onPress={handleLogin}
                 disabled={isLoading}
               >
-                <Text selectable={true} style={[H5, styles.loginButtonText]}>
+                <Text selectable={true} style={[H5, s.loginButtonText]}>
                   {isLoading ? "Завантаження..." : "Увійти"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  styles.button,
-                  styles.qrButton,
+                  s.button,
+                  s.qrButton,
                   { borderColor: themeColors.primary },
                 ]}
                 onPress={() => navigation.navigate("QRLogin")}
                 disabled={isLoading}
               >
-                <View style={styles.qrButtonContent}>
+                <View style={s.qrButtonContent}>
                   <Icons.QrCode size={22} color={themeColors.primary} />
                   <Text
                     selectable={true}
                     style={[
                       H5,
-                      styles.qrButtonText,
+                      s.qrButtonText,
                       { color: themeColors.primary },
                     ]}
                   >
@@ -198,7 +200,7 @@ export default function LoginScreen({ isCanSkip = true }) {
               </TouchableOpacity>
               {isCanSkip && (
                 <TouchableOpacity
-                  style={[styles.button, styles.skipButton]}
+                  style={[s.button, s.skipButton]}
                   onPress={handleSkip}
                   disabled={isLoading}
                 >
@@ -206,7 +208,7 @@ export default function LoginScreen({ isCanSkip = true }) {
                     selectable={true}
                     style={[
                       H5,
-                      styles.skipButtonText,
+                      s.skipButtonText,
                       { color: themeColors.inActiveText },
                     ]}
                   >
@@ -222,15 +224,15 @@ export default function LoginScreen({ isCanSkip = true }) {
         {isCanSkip && (
           <View
             style={[
-              styles.themeOptionsContainer,
-              isWideLayout && styles.themeOptionsContainerWide,
+              s.themeOptionsContainer,
+              isWideLayout && s.themeOptionsContainerWide,
             ]}
           >
             {themeOptions.map((theme) => (
               <TouchableOpacity
                 key={theme.key}
                 style={[
-                  styles.themeOption,
+                  s.themeOption,
                   {
                     backgroundColor: theme.colors.background,
                     borderColor:
@@ -244,7 +246,7 @@ export default function LoginScreen({ isCanSkip = true }) {
               >
                 <View
                   style={[
-                    styles.themePrimaryDot,
+                    s.themePrimaryDot,
                     { backgroundColor: theme.colors.primary },
                   ]}
                 />
@@ -257,119 +259,3 @@ export default function LoginScreen({ isCanSkip = true }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  containerWide: {
-    justifyContent: "center",
-    paddingVertical: 32,
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  mainContentWide: {
-    flex: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 48,
-  },
-  logoContainer: {
-    position: "absolute",
-    top: "20%",
-  },
-  logoContainerWide: {
-    position: "relative",
-    top: undefined,
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logo: {
-    width: 280,
-    height: 280,
-  },
-  logoWide: {
-    width: 320,
-    height: 320,
-  },
-  contentWide: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: "Nunito-Bold",
-    fontSize: 32,
-    textAlign: "center",
-  },
-  subtitle: {
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  buttonsContainer: {
-    width: "100%",
-    gap: 16,
-    paddingTop: 16,
-  },
-  button: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  qrButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-  },
-  qrButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  qrButtonText: {
-    fontFamily: "Nunito-SemiBold",
-    fontSize: 18,
-  },
-  loginButtonText: {
-    fontFamily: "Nunito-Bold",
-    fontSize: 18,
-  },
-  skipButton: {
-    backgroundColor: "transparent",
-    borderWidth: 0,
-  },
-  skipButtonText: {
-    fontFamily: "Nunito-SemiBold",
-    fontSize: 18,
-  },
-  themeOptionsContainer: {
-    flexDirection: "row",
-    gap: 16,
-    justifyContent: "center",
-  },
-  themeOptionsContainerWide: {
-    position: "absolute",
-    bottom: 32,
-    alignSelf: "center",
-  },
-  themeOption: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  themePrimaryDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-});

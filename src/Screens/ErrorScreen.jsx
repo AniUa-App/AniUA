@@ -1,6 +1,7 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import {ErrorWidget} from '../Widgets/ErrorsWidgets';
+import { useErrorScreenStyles } from '../Styles/components/Screens/ErrorScreenStyles';
 
 /**
  * @typedef {Object} ErrorScreenProps
@@ -15,16 +16,10 @@ import {ErrorWidget} from '../Widgets/ErrorsWidgets';
  * @returns {JSX.Element} Компонент екрану помилки
  */
 export const ErrorScreen = ({title, message, onRetry}) => {
+  const s = useErrorScreenStyles();
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       <ErrorWidget title={title} message={message} onRetry={onRetry} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-});

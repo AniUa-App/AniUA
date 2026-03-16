@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
+import { useAnimeWatchScreenStyles } from "../Styles/components/Screens/AnimeWatchScreenStyles";
 import { useNavigation } from "@react-navigation/native";
 import * as NavigationBar from "expo-navigation-bar";
 import { useThemeColors } from "../Global/useTheme";
@@ -13,6 +14,7 @@ import { H4 } from "../Styles/Fonts";
 export default function AnimeWatchScreen({ route }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
+  const s = useAnimeWatchScreenStyles();
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("Завантаження...");
   const handledRef = useRef(false);
@@ -243,7 +245,7 @@ export default function AnimeWatchScreen({ route }) {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: themeColors.background }]}
+      style={[s.container, { backgroundColor: themeColors.background }]}
     >
       {status === "loading" ? (
         <>
@@ -276,11 +278,3 @@ export default function AnimeWatchScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-});

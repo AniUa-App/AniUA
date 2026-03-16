@@ -29,8 +29,10 @@ import {
   FILTERS,
   FAVORITES_FILTERS,
 } from "../../Components/Profile";
+import { useProfileScreenTVStyles } from "../../Styles/components/Screens/ProfileScreenTVStyles";
 
 export default function ProfileScreenTV({ navigation }) {
+  const s = useProfileScreenTVStyles();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const profile = useProfileScreen(navigation);
@@ -38,7 +40,7 @@ export default function ProfileScreenTV({ navigation }) {
   if (profile.isLoading) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={styles.loadingContainer}>
+        <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </DefaultScreenWidget>
@@ -57,26 +59,26 @@ export default function ProfileScreenTV({ navigation }) {
 
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <TVFocusGuideView style={styles.container} autoFocus>
+      <TVFocusGuideView style={s.container} autoFocus>
         {/* Sidebar - Profile info */}
-        <View style={styles.sidebar} focusable={false}>
+        <View style={s.sidebar} focusable={false}>
           <View style={{ left: 16, paddingTop: "20%" }} focusable={false}>
             {/* Avatar */}
             <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
             {/* Username */}
-            <View style={styles.usernameContainer} focusable={false}>
+            <View style={s.usernameContainer} focusable={false}>
               <Text style={[H4, { fontSize: 16 }]}>{profile.displayName}</Text>
               <TVButton
                 onPress={profile.openEditModal}
-                style={[styles.editButton, { backgroundColor: colors.accent }]}
+                style={[s.editButton, { backgroundColor: colors.accent }]}
               >
                 <Icons.Pencil size={14} color={colors.primary} weight="fill" />
               </TVButton>
             </View>
 
             <Text
-              style={[styles.handle, { color: colors.Text(0.5), fontSize: 12 }]}
+              style={[s.handle, { color: colors.Text(0.5), fontSize: 12 }]}
             >
               {profile.handle}
             </Text>
@@ -92,11 +94,11 @@ export default function ProfileScreenTV({ navigation }) {
         </View>
 
         {/* Tabs */}
-        <TVFocusGuideView style={styles.tabsContainer} autoFocus>
+        <TVFocusGuideView style={s.tabsContainer} autoFocus>
           {TABS.map((tab) => (
             <TVButton
               key={tab.id}
-              style={[styles.tabButton, profile.activeTab === tab.id && {}]}
+              style={[s.tabButton, profile.activeTab === tab.id && {}]}
               onPress={() => profile.setActiveTab(tab.id)}
               hasTVPreferredFocus={profile.activeTab === tab.id}
             >
@@ -113,7 +115,7 @@ export default function ProfileScreenTV({ navigation }) {
 
         {/* Content */}
         <ScrollView
-          style={[styles.content, { backgroundColor: colors.accent }]}
+          style={[s.content, { backgroundColor: colors.accent }]}
           contentContainerStyle={{ paddingTop: insets.top }}
           showsVerticalScrollIndicator={false}
           focusable={false}
@@ -183,66 +185,3 @@ export default function ProfileScreenTV({ navigation }) {
     </DefaultScreenWidget>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: TV.padding.screen,
-    paddingTop: 50,
-    paddingBottom: 8,
-  },
-  sidebar: {
-    paddingTop: 20,
-    paddingHorizontal: 8,
-    paddingBottom: 40,
-    width: "35%",
-    flexDirection: "column",
-  },
-  sidebarHeader: {
-    flexDirection: "row",
-    marginBottom: 4,
-  },
-
-  usernameContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-    gap: 6,
-  },
-  editButton: {
-    width: 32,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  handle: {
-    textAlign: "center",
-    marginTop: 2,
-  },
-  content: {
-    width: "30%",
-  },
-  tabsContainer: {
-    justifyContent: "center",
-    alignContent: "center",
-    flexDirection: "column",
-    gap: 8,
-    paddingTop: 16,
-  },
-  tabButton: {
-    borderRadius: 16,
-  },
-});

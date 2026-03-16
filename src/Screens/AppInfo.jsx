@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, Linking } from "react-native";
+import { View, Text, ScrollView, Linking } from "react-native";
+import { useAppInfoStyles } from "../Styles/components/Screens/AppInfoStyles";
 import { TouchableOpacity } from "../Widgets/Button";
 import React, { useEffect } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -97,6 +98,7 @@ export default function AppInfoScreen() {
 }
 function InfoRow({ title = "", value = "", appInfo = [] }) {
   const themeColors = useThemeColors();
+  const s = useAppInfoStyles();
   const onCopy = () => {
     Clipboard.setString(JSON.stringify(appInfo));
     Toast.show("Скопійовано", {
@@ -109,8 +111,8 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
   };
 
   return (
-    <TouchableOpacity onPress={onCopy} activeOpacity={0.8} style={styles.row}>
-      <View style={styles.rowTextContainer}>
+    <TouchableOpacity onPress={onCopy} activeOpacity={0.8} style={s.row}>
+      <View style={s.rowTextContainer}>
         {title?.length > 0 && (
           <Text
             selectable={true}
@@ -121,7 +123,7 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
         )}
       </View>
       <View
-        style={[styles.valuePill, { backgroundColor: themeColors.primary }]}
+        style={[s.valuePill, { backgroundColor: themeColors.primary }]}
       >
         <Text
           selectable={true}
@@ -138,8 +140,9 @@ function InfoRow({ title = "", value = "", appInfo = [] }) {
 
 function Header() {
   const themeColors = useThemeColors();
+  const s = useAppInfoStyles();
   return (
-    <View style={styles.header}>
+    <View style={s.header}>
       <View style={{ flexDirection: "row" }}>
         <AppIcon styles={{ width: 66, height: 66, borderRadius: 12 }} />
         <View style={{ marginLeft: 12 }}>
@@ -161,7 +164,7 @@ function Header() {
         <TouchableOpacity
           activeOpacity={0.8}
           style={[
-            styles.row,
+            s.row,
             {
               justifyContent: "center",
               paddingVertical: 20,
@@ -182,7 +185,7 @@ function Header() {
           }}
         >
           <View
-            style={[styles.valuePill, { backgroundColor: themeColors.primary }]}
+            style={[s.valuePill, { backgroundColor: themeColors.primary }]}
           >
             <Icon.GitPullRequest
               size={24}
@@ -195,31 +198,3 @@ function Header() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 12,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: "100%",
-  },
-  rowTextContainer: {
-    paddingRight: 16,
-    maxWidth: "55%",
-  },
-  valuePill: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    maxWidth: "45%",
-  },
-});

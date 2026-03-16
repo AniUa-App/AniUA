@@ -27,8 +27,10 @@ import {
   FILTERS,
   FAVORITES_FILTERS,
 } from "../../Components/Profile";
+import { useProfileScreenTabletStyles } from "../../Styles/components/Screens/ProfileScreenTabletStyles";
 
 export default function ProfileScreenTablet({ navigation }) {
+  const s = useProfileScreenTabletStyles();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const profile = useProfileScreen(navigation);
@@ -46,7 +48,7 @@ export default function ProfileScreenTablet({ navigation }) {
   if (profile.isLoading) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={styles.loadingContainer}>
+        <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </DefaultScreenWidget>
@@ -56,10 +58,10 @@ export default function ProfileScreenTablet({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={[styles.header, { zIndex: 1 }]}>
+        <View style={[s.header, { zIndex: 1 }]}>
           <TouchableOpacity
             onPress={profile.navigateToSettings}
-            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
+            style={[s.iconButton, { backgroundColor: colors.subtle }]}
           >
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
@@ -73,18 +75,18 @@ export default function ProfileScreenTablet({ navigation }) {
 
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <View style={styles.container}>
+      <View style={s.container}>
         {/* Sidebar */}
         <ScrollView
-          style={styles.sidebar}
+          style={s.sidebar}
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
           {/* Settings button */}
-          <View style={styles.sidebarHeader}>
+          <View style={s.sidebarHeader}>
             <TouchableOpacity
               onPress={profile.navigateToSettings}
-              style={[styles.iconButton, { backgroundColor: colors.accent }]}
+              style={[s.iconButton, { backgroundColor: colors.accent }]}
             >
               <Icons.GearSix size={28} color={colors.primary} />
             </TouchableOpacity>
@@ -94,13 +96,13 @@ export default function ProfileScreenTablet({ navigation }) {
             <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
             {/* Username */}
-            <View style={styles.usernameContainer}>
+            <View style={s.usernameContainer}>
               <Text selectable={true} style={[H4]}>
                 {profile.displayName}
               </Text>
               <TouchableOpacity
                 onPress={profile.openEditModal}
-                style={[styles.editButton, { backgroundColor: colors.accent }]}
+                style={[s.editButton, { backgroundColor: colors.accent }]}
               >
                 <Icons.Pencil size={16} color={colors.primary} weight="fill" />
               </TouchableOpacity>
@@ -108,7 +110,7 @@ export default function ProfileScreenTablet({ navigation }) {
 
             <Text
               selectable={true}
-              style={[styles.handle, { color: colors.Text(0.5) }]}
+              style={[s.handle, { color: colors.Text(0.5) }]}
             >
               {profile.handle}
             </Text>
@@ -125,7 +127,7 @@ export default function ProfileScreenTablet({ navigation }) {
         </ScrollView>
 
         {/* Tabs */}
-        <View style={styles.tabsContainer}>
+        <View style={s.tabsContainer}>
           {TABS.map((tab) => (
             <AnimatedTabButton
               key={tab.id}
@@ -140,13 +142,13 @@ export default function ProfileScreenTablet({ navigation }) {
 
         {/* Content */}
         <ScrollView
-          style={[styles.content, { backgroundColor: colors.accent }]}
+          style={[s.content, { backgroundColor: colors.accent }]}
           contentContainerStyle={{ paddingTop: insets.top }}
           showsVerticalScrollIndicator={false}
         >
           <View
             style={[
-              styles.tabContentWrapper,
+              s.tabContentWrapper,
               {
                 height: Math.max(
                   profile.activeTab === "list"
@@ -231,73 +233,3 @@ export default function ProfileScreenTablet({ navigation }) {
     </DefaultScreenWidget>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 8,
-  },
-  sidebar: {
-    paddingTop: 40,
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-    maxWidth: "40%",
-    flexDirection: "column",
-  },
-  sidebarHeader: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  usernameContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 14,
-    gap: 8,
-  },
-  editButton: {
-    width: 40,
-    height: 24,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  handle: {
-    textAlign: "center",
-    marginTop: 2,
-  },
-  content: {
-    flex: 1,
-  },
-  tabsContainer: {
-    justifyContent: "center",
-    alignContent: "center",
-    flexDirection: "column",
-    gap: 16,
-    top: "4%",
-  },
-  tabContentWrapper: {
-    overflow: "hidden",
-    width: "100%",
-  },
-});

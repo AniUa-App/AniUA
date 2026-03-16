@@ -68,6 +68,7 @@ import type { AnimeInfo } from "../Storage/AnimeStorage";
 import { isTV as isDeviceTV } from "../Styles/Responsive";
 import useTVEventHandler from "../Hooks/useTVEventHandler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLocalVideoPlayerV2Styles } from "../Styles/components/Screens/LocalVideoPlayerV2Styles";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
 
@@ -121,6 +122,7 @@ type LocalVideoPlayerProps = {
 const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   route,
 }) => {
+  const s = useLocalVideoPlayerV2Styles();
   const navigation = useNavigation();
   const themeColors = useThemeColors();
   useKeepAwake("video-player");
@@ -1255,7 +1257,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
   return (
     <View
       style={[
-        styles.container,
+        s.container,
         {
           paddingBottom: insets.bottom,
         },
@@ -1325,12 +1327,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           <Animated.View
             entering={FadeIn.duration(200)}
             exiting={FadeOut.duration(200)}
-            style={styles.loadingOverlay}
+            style={s.loadingOverlay}
             pointerEvents="none"
           >
-            <View style={styles.errorContainer}>
-              <Text style={[styles.errorIcon]}>⚠️</Text>
-              <Text style={[styles.errorText]}>{playerError}</Text>
+            <View style={s.errorContainer}>
+              <Text style={[s.errorIcon]}>⚠️</Text>
+              <Text style={[s.errorText]}>{playerError}</Text>
             </View>
           </Animated.View>
         )}
@@ -1340,11 +1342,11 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
           <Animated.View
             entering={FadeIn.duration(200)}
             exiting={FadeOut.duration(200)}
-            style={styles.loadingOverlay}
+            style={s.loadingOverlay}
             pointerEvents="none"
           >
             <Animated.View
-              style={[styles.loadingContainer, animatedLoadingStyle]}
+              style={[s.loadingContainer, animatedLoadingStyle]}
             >
               <ActivityIndicator size="large" color={themeColors.primary} />
             </Animated.View>
@@ -1357,16 +1359,16 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             entering={FadeIn.duration(100)}
             exiting={FadeOut.duration(100)}
             style={[
-              styles.seekIndicator,
+              s.seekIndicator,
               seekIndicator.direction === "right"
-                ? styles.seekIndicatorRight
-                : styles.seekIndicatorLeft,
+                ? s.seekIndicatorRight
+                : s.seekIndicatorLeft,
             ]}
             pointerEvents="none"
           >
             <View
               style={[
-                styles.seekIndicatorContent,
+                s.seekIndicatorContent,
                 {
                   backgroundColor: themeColors.Background?.(0.7),
                 },
@@ -1411,7 +1413,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             <Animated.View
               entering={FadeIn.duration(300)}
               exiting={FadeOut.duration(200)}
-              style={styles.header}
+              style={s.header}
             >
               <LinearGradient
                 colors={[
@@ -1419,12 +1421,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                   themeColors.Background(0.4),
                   "transparent",
                 ]}
-                style={styles.headerGradient}
+                style={s.headerGradient}
               >
-                <TVFocusGuideView style={styles.headerContent} autoFocus>
+                <TVFocusGuideView style={s.headerContent} autoFocus>
                   <View>
                     <CustomTouchableOpacity
-                      style={styles.headerButton}
+                      style={s.headerButton}
                       activeOpacity={1}
                       delayPressIn={0}
                       delayPressOut={0}
@@ -1452,7 +1454,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     </CustomTouchableOpacity>
                   </View>
 
-                  <View style={styles.titleContainer} focusable={false}>
+                  <View style={s.titleContainer} focusable={false}>
                     <Text
                       selectable={true}
                       style={[H4, { color: themeColors.text }]}
@@ -1468,10 +1470,10 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     </Text>
                   </View>
 
-                  <View style={styles.headerButtons}>
+                  <View style={s.headerButtons}>
                     <View>
                       <CustomTouchableOpacity
-                        style={styles.headerButton}
+                        style={s.headerButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1484,7 +1486,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     {!isDeviceTV() && (
                       <View>
                         <CustomTouchableOpacity
-                          style={styles.headerButton}
+                          style={s.headerButton}
                           activeOpacity={1}
                           delayPressIn={0}
                           delayPressOut={0}
@@ -1516,7 +1518,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                     <View>
                       <CustomTouchableOpacity
-                        style={styles.headerButton}
+                        style={s.headerButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1540,7 +1542,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             <Animated.View
               entering={FadeIn.duration(300)}
               exiting={FadeOut.duration(200)}
-              style={styles.header}
+              style={s.header}
             />
           )}
         </>
@@ -1553,7 +1555,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             <Animated.View
               entering={FadeIn.duration(300)}
               exiting={FadeOut.duration(200)}
-              style={styles.controlsContainer}
+              style={s.controlsContainer}
             >
               <LinearGradient
                 colors={[
@@ -1561,7 +1563,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                   themeColors.Background(0.4),
                   themeColors.Background(0.9),
                 ]}
-                style={styles.controlsGradient}
+                style={s.controlsGradient}
               >
                 {/* Секція прогресу */}
                 <View>
@@ -1577,7 +1579,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     {!isDeviceTV() && (
                       <View>
                         <CustomTouchableOpacity
-                          style={[styles.controlButton]}
+                          style={[s.controlButton]}
                           activeOpacity={1}
                           delayPressIn={0}
                           delayPressOut={0}
@@ -1597,7 +1599,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       </View>
                     )}
                   </View>
-                  <View style={styles.progressContainer}>
+                  <View style={s.progressContainer}>
                     <Text
                       selectable={true}
                       style={[
@@ -1612,7 +1614,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                       {formatTime(currentTime)}
                     </Text>
 
-                    <View style={styles.progressBarContainer}>
+                    <View style={s.progressBarContainer}>
                       <Slider
                         style={{
                           width: "100%",
@@ -1697,12 +1699,12 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                 </View>
 
                 {/* Основні елементи керування */}
-                <TVFocusGuideView style={styles.mainControls} autoFocus>
+                <TVFocusGuideView style={s.mainControls} autoFocus>
                   {/* Ліві елементи керування */}
-                  <View style={styles.leftControlGroup}>
+                  <View style={s.leftControlGroup}>
                     {!isDeviceTV() && (
                       <CustomTouchableOpacity
-                        style={styles.controlButton}
+                        style={s.controlButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1728,7 +1730,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     )}
                     {isLandscape && (
                       <CustomTouchableOpacity
-                        style={[styles.controlButton]}
+                        style={[s.controlButton]}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1752,10 +1754,10 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                   </View>
 
                   {/* Центральні елементи керування відтворенням */}
-                  <View style={styles.playControlGroup}>
+                  <View style={s.playControlGroup}>
                     {isLandscape && (
                       <CustomTouchableOpacity
-                        style={styles.seekButton}
+                        style={s.seekButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1770,7 +1772,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     )}
                     <View>
                       <CustomTouchableOpacity
-                        style={styles.skipButton}
+                        style={s.skipButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1786,13 +1788,13 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                     </View>
 
                     <CustomTouchableOpacity
-                      style={styles.playButtonContainer}
+                      style={s.playButtonContainer}
                       onPress={togglePlayPause}
                       hasTVPreferredFocus={isDeviceTV()}
                     >
                       <View
                         style={[
-                          styles.playButton,
+                          s.playButton,
                           { backgroundColor: themeColors.primary },
                         ]}
                       >
@@ -1806,7 +1808,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                     <View>
                       <CustomTouchableOpacity
-                        style={styles.skipButton}
+                        style={s.skipButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1823,7 +1825,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                     {isLandscape && (
                       <CustomTouchableOpacity
-                        style={styles.seekButton}
+                        style={s.seekButton}
                         activeOpacity={1}
                         delayPressIn={0}
                         delayPressOut={0}
@@ -1839,14 +1841,14 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                   </View>
 
                   {/* Праві елементи керування */}
-                  <View style={styles.rightControlGroup}>
+                  <View style={s.rightControlGroup}>
                     {!isDeviceTV() && (
                       <>
                         {isLandscape && (
                           <>
                             <View>
                               <CustomTouchableOpacity
-                                style={styles.controlButton}
+                                style={s.controlButton}
                                 activeOpacity={1}
                                 delayPressIn={0}
                                 delayPressOut={0}
@@ -1870,7 +1872,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                             <View>
                               <CustomTouchableOpacity
-                                style={styles.controlButton}
+                                style={s.controlButton}
                                 activeOpacity={1}
                                 delayPressIn={0}
                                 delayPressOut={0}
@@ -1992,7 +1994,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
                                 {isDownloading ? (
                                   <View
                                     style={[
-                                      styles.downloadButtonContainer,
+                                      s.downloadButtonContainer,
                                       { top: 8 },
                                     ]}
                                   >
@@ -2037,7 +2039,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
 
                         <View>
                           <CustomTouchableOpacity
-                            style={styles.controlButton}
+                            style={s.controlButton}
                             activeOpacity={1}
                             delayPressIn={0}
                             delayPressOut={0}
@@ -2074,7 +2076,7 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
             >
               <View>
                 <CustomTouchableOpacity
-                  style={[styles.controlButton]}
+                  style={[s.controlButton]}
                   activeOpacity={1}
                   delayPressIn={0}
                   delayPressOut={0}
@@ -2101,23 +2103,23 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
       {showEpisodes && (
         <>
           <Pressable
-            style={styles.episodesOverlay}
+            style={s.episodesOverlay}
             onPress={hideEpisodesPanel}
           />
           <Animated.View
             entering={SlideInRight.duration(250)}
             exiting={SlideOutRight.duration(200)}
             style={[
-              styles.episodesPanel,
+              s.episodesPanel,
               {
                 backgroundColor: themeColors.accent,
                 width: isLandscape ? 400 : 300,
               },
             ]}
           >
-            <View style={styles.episodesPanelContent}>
+            <View style={s.episodesPanelContent}>
               <ScrollView
-                style={styles.episodesList}
+                style={s.episodesList}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingTop: 40, paddingBottom: 20 }}
               >
@@ -2187,254 +2189,6 @@ const LocalVideoPlayerV2Screen: React.FC<LocalVideoPlayerProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  videoTouchArea: {
-    flex: 1,
-  },
-  video: {
-    flex: 1,
-    width: "100%",
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  loadingContainer: {
-    padding: 20,
-    borderRadius: 16,
-  },
-  errorContainer: {
-    alignItems: "center",
-    paddingHorizontal: 32,
-    gap: 12,
-  },
-  errorIcon: {
-    fontSize: 36,
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 15,
-    textAlign: "center",
-    opacity: 0.9,
-  },
-
-  // Індикатор перемотування
-  seekIndicator: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    zIndex: 999,
-  },
-  seekIndicatorLeft: {
-    left: 40,
-  },
-  seekIndicatorRight: {
-    right: 40,
-  },
-  seekIndicatorContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-  },
-
-  // Стилі заголовка
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  headerGradient: {
-    paddingTop: 40,
-    paddingBottom: 16,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 25,
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    padding: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  titleContainer: {
-    flex: 1,
-    marginHorizontal: 16,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  // Контейнер елементів керування
-  controlsContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  controlsGradient: {
-    paddingHorizontal: 25,
-    paddingTop: 30,
-  },
-
-  // Секція прогресу
-
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressBarContainer: {
-    flex: 1,
-    marginHorizontal: 8,
-    height: 60,
-    justifyContent: "center",
-  },
-  progressBarBackground: {
-    height: 4,
-    borderRadius: 2,
-    position: "relative",
-  },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 2,
-    position: "absolute",
-  },
-
-  // Основні елементи керування
-  mainControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  leftControlGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    flex: 1,
-  },
-  rightControlGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    flex: 1,
-  },
-  controlButton: {
-    padding: 12,
-    marginHorizontal: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-
-  // Елементи керування відтворенням
-  playControlGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 2,
-  },
-  seekButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 8,
-    marginHorizontal: 8,
-    minWidth: 40,
-  },
-  skipButton: {
-    padding: 12,
-    marginHorizontal: 16,
-  },
-  playButtonContainer: {
-    marginHorizontal: 20,
-  },
-  playButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  downloadButtonContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Додаткові елементи керування
-  secondaryControls: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 0,
-  },
-  centerInfo: {
-    flex: 1,
-    alignItems: "center",
-  },
-  qualityText: {},
-
-  // Панель епізодів
-  episodesPanel: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 300,
-    zIndex: 11,
-  },
-  episodesPanelContent: {
-    flex: 1,
-  },
-  episodesPanelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 25,
-    paddingVertical: 16,
-    paddingTop: 50,
-    borderBottomWidth: 1,
-  },
-  episodesBackButton: {
-    padding: 8,
-  },
-  episodeCount: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
-  },
-  episodesList: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  episodesOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-  },
-});
 
 async function ___getQualities(file) {
   Logger.debug("LocalVideoPlayer", "___getQualities", { file });

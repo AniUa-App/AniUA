@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, Linking } from "react-native";
+import { View, Text, Linking } from "react-native";
+import { usePrivilegesStyles } from "../Styles/components/Screens/PrivilegesStyles";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { useThemeColors } from "../Global/useTheme";
 import { H2, H3, H4, H6 } from "../Styles/Fonts";
@@ -9,9 +10,10 @@ import { useNavigation } from "@react-navigation/native";
 
 function Row({ icon, label, color }) {
   const theme = useThemeColors();
+  const s = usePrivilegesStyles();
   return (
-    <View style={styles.row}>
-      <View style={[styles.iconBox, {}]}>{icon}</View>
+    <View style={s.row}>
+      <View style={[s.iconBox, {}]}>{icon}</View>
       <Text selectable={true} style={[H4, { color: color ?? theme.Text(0.7) }]}>
         {label}
       </Text>
@@ -21,6 +23,7 @@ function Row({ icon, label, color }) {
 
 export default function PrivilegesScreen() {
   const theme = useThemeColors();
+  const s = usePrivilegesStyles();
   const navigation = useNavigation();
 
   const goDonate = () => {
@@ -32,12 +35,12 @@ export default function PrivilegesScreen() {
 
   return (
     <DefaultScreenWidget>
-      <View style={styles.container}>
+      <View style={s.container}>
         {/* Кохай */}
         <Text selectable={true} style={[H2, { paddingLeft: 0 }]}>
           Кохай
         </Text>
-        <View style={[styles.card]}>
+        <View style={[s.card]}>
           <Row
             label="Перегляд аніме"
             icon={<Icons.Eye size={34} color={theme.inActiveText} />}
@@ -53,13 +56,13 @@ export default function PrivilegesScreen() {
         </View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: theme.Text(0.12) }]} />
+        <View style={[s.divider, { backgroundColor: theme.Text(0.12) }]} />
 
         {/* Сенпай */}
         <Text selectable={true} style={[H2, {}]}>
           Сенпай
         </Text>
-        <View style={[styles.card, {}]}>
+        <View style={[s.card, {}]}>
           <Row
             label="Кастомізація головного меню"
             color={theme.text}
@@ -96,7 +99,7 @@ export default function PrivilegesScreen() {
 
         <TouchableOpacity
           onPress={goDonate}
-          style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
+          style={[s.primaryBtn, { backgroundColor: theme.primary }]}
         >
           <Text selectable={true} style={[H4, { color: theme.text }]}>
             Пожертвувати
@@ -107,50 +110,3 @@ export default function PrivilegesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 26,
-    paddingTop: 16,
-  },
-  card: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-  },
-  iconBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  divider: {
-    height: 1,
-    marginVertical: 15,
-    borderRadius: 1,
-    width: "90%",
-    alignSelf: "center",
-  },
-  primaryBtn: {
-    alignSelf: "center",
-    paddingHorizontal: 90,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 24,
-  },
-  skipBtn: {
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginTop: 14,
-  },
-});

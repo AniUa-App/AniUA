@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef } from "react";
 import {
   View,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   StatusBar,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
+import { useSearchScreenStyles } from "../../Styles/components/Screens/SearchScreenStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColors } from "../../Global/useTheme";
@@ -30,6 +30,7 @@ export default function SearchScreen() {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
   const isTV = useIsTV();
+  const s = useSearchScreenStyles();
 
   const flatListRef = useRef(null);
   const filterSheetRef = useRef(null);
@@ -107,7 +108,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <DefaultScreenWidget style={[styles.container, {}]} isNavBarPadding={false}>
+    <DefaultScreenWidget style={[s.container, {}]} isNavBarPadding={false}>
       <SearchHeaderComponent
         searchText={searchText}
         onChangeText={setSearchText}
@@ -129,7 +130,7 @@ export default function SearchScreen() {
       {isLoading ? (
         <View
           style={[
-            styles.loadingContainer,
+            s.loadingContainer,
             { backgroundColor: themeColors.accent },
           ]}
         >
@@ -151,7 +152,7 @@ export default function SearchScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
-              styles.resultsContainer,
+              s.resultsContainer,
               { backgroundColor: themeColors.accent },
             ]}
             removeClippedSubviews={true}
@@ -199,16 +200,3 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  resultsContainer: {
-    flexGrow: 1,
-  },
-});

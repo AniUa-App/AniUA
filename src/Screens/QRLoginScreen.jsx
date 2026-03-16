@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
+import { useQRLoginScreenStyles } from "../Styles/components/Screens/QRLoginScreenStyles";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { TouchableOpacity } from "../Widgets/Button";
 import QRCodeStyled from "react-native-qrcode-styled";
@@ -24,6 +25,7 @@ import { isTV } from "../Styles/Responsive";
 
 export default function QRLoginScreen() {
   const themeColors = useThemeColors();
+  const s = useQRLoginScreenStyles();
   const navigation = useNavigation();
   const [state, setState] = useState("generating"); // generating | ready | connecting | success | error | timeout
   const [qrValue, setQrValue] = useState("");
@@ -105,21 +107,21 @@ export default function QRLoginScreen() {
 
   return (
     <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={!isTV()}>
-      <View style={[styles.container, { marginTop: insets.top }]}>
+      <View style={[s.container, { marginTop: insets.top }]}>
         {/* Back button */}
         <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: themeColors.accent }]}
+          style={[s.backButton, { backgroundColor: themeColors.accent }]}
           onPress={() => navigation.goBack()}
         >
           <Icons.ArrowLeft size={32} color={themeColors.primary} />
         </TouchableOpacity>
 
-        <Text style={[H2, styles.title, { color: themeColors.text }]}>
+        <Text style={[H2, s.title, { color: themeColors.text }]}>
           Вхід по QR-коду
         </Text>
 
         <Text
-          style={[H6, styles.subtitle, { color: themeColors.inActiveText }]}
+          style={[H6, s.subtitle, { color: themeColors.inActiveText }]}
         >
           {state === "ready" &&
             "Відскануйте цей QR-код з пристрою, на якому ви вже авторизовані."}
@@ -130,7 +132,7 @@ export default function QRLoginScreen() {
           {state === "timeout" && "Час очікування вичерпано"}
         </Text>
 
-        <View style={styles.qrContainer}>
+        <View style={s.qrContainer}>
           {state === "generating" && (
             <ActivityIndicator size="large" color={themeColors.primary} />
           )}
@@ -139,7 +141,7 @@ export default function QRLoginScreen() {
             <>
               <View
                 style={[
-                  styles.qrWrapper,
+                  s.qrWrapper,
                   { backgroundColor: themeColors.accent },
                 ]}
               >
@@ -159,10 +161,10 @@ export default function QRLoginScreen() {
                 />
               </View>
               {MainConfig.debug.isDebug && (
-                <View style={styles.debugContainer}>
+                <View style={s.debugContainer}>
                   <TouchableOpacity
                     style={[
-                      styles.debugCopyButton,
+                      s.debugCopyButton,
                       { borderColor: themeColors.primary },
                     ]}
                     onPress={() => {
@@ -202,7 +204,7 @@ export default function QRLoginScreen() {
           )}
 
           {state === "connecting" && (
-            <View style={styles.statusContainer}>
+            <View style={s.statusContainer}>
               <ActivityIndicator size="large" color={themeColors.primary} />
               <Text style={[H6, { color: themeColors.text, marginTop: 16 }]}>
                 Отримання даних...
@@ -211,7 +213,7 @@ export default function QRLoginScreen() {
           )}
 
           {state === "success" && (
-            <View style={styles.statusContainer}>
+            <View style={s.statusContainer}>
               <Icons.CheckCircle
                 size={64}
                 color={themeColors.primary}
@@ -224,7 +226,7 @@ export default function QRLoginScreen() {
           )}
 
           {(state === "error" || state === "timeout") && (
-            <View style={styles.statusContainer}>
+            <View style={s.statusContainer}>
               <Icons.WarningCircle
                 size={64}
                 color={themeColors.redBookmark || "#ff4444"}
@@ -245,7 +247,7 @@ export default function QRLoginScreen() {
               </Text>
               <TouchableOpacity
                 style={[
-                  styles.retryButton,
+                  s.retryButton,
                   { backgroundColor: themeColors.primary },
                 ]}
                 onPress={handleRetry}
@@ -259,84 +261,17 @@ export default function QRLoginScreen() {
         {state === "ready" && (
           <>
             <Text
-              style={[H6, styles.hint, { color: themeColors.inActiveText }]}
+              style={[H6, s.hint, { color: themeColors.inActiveText }]}
             >
               Налаштування {"\u2192"} Додати пристрій
             </Text>
           </>
         )}
       </View>
-      <Text style={[H6, styles.hint, { color: themeColors.redBookmark }]}>
+      <Text style={[H6, s.hint, { color: themeColors.redBookmark }]}>
         Обидва пристрої мають бути в одній мережі (один WiFi)
       </Text>
     </DefaultScreenWidget>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-  },
-  backButton: {
-    position: "absolute",
-    top: 16,
-    left: 16,
-    padding: 8,
-    width: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    height: 44,
-  },
-  title: {
-    fontFamily: "Nunito-Bold",
-    fontSize: 28,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 32,
-    paddingHorizontal: 16,
-  },
-  qrContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 260,
-  },
-  qrWrapper: {
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "white",
-  },
-  statusContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  retryButton: {
-    marginTop: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-  },
-  hint: {
-    marginTop: 24,
-    textAlign: "center",
-  },
-  debugContainer: {
-    alignItems: "center",
-    marginTop: 12,
-  },
-  debugCopyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-});

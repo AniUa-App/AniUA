@@ -26,15 +26,17 @@ import {
   SCREEN_WIDTH,
 } from "../../Components/Profile";
 import { isTablet } from "../../Styles/Responsive";
+import { useProfileScreenPhoneStyles } from "../../Styles/components/Screens/ProfileScreenPhoneStyles";
 
 export default function ProfileScreen({ navigation }) {
+  const s = useProfileScreenPhoneStyles();
   const colors = useThemeColors();
   const profile = useProfileScreen(navigation);
 
   if (profile.isLoading) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={styles.loadingContainer}>
+        <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </DefaultScreenWidget>
@@ -44,10 +46,10 @@ export default function ProfileScreen({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={[styles.header, { zIndex: 1 }]}>
+        <View style={[s.header, { zIndex: 1 }]}>
           <TouchableOpacity
             onPress={profile.navigateToSettings}
-            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
+            style={[s.iconButton, { backgroundColor: colors.subtle }]}
           >
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
@@ -62,15 +64,15 @@ export default function ProfileScreen({ navigation }) {
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        style={s.container}
+        contentContainerStyle={s.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={s.header}>
           <TouchableOpacity
             onPress={profile.navigateToSettings}
-            style={[styles.iconButton, { backgroundColor: colors.subtle }]}
+            style={[s.iconButton, { backgroundColor: colors.subtle }]}
           >
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
@@ -80,14 +82,14 @@ export default function ProfileScreen({ navigation }) {
         <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
         {/* Username */}
-        <View style={styles.usernameContainer}>
+        <View style={s.usernameContainer}>
           <Text selectable={true} style={[H4]}>
             {profile.displayName}
           </Text>
           <TouchableOpacity
             onPress={profile.openEditModal}
             style={[
-              styles.editButton,
+              s.editButton,
               { backgroundColor: colors.subtle, width: 44 },
             ]}
           >
@@ -97,7 +99,7 @@ export default function ProfileScreen({ navigation }) {
 
         <Text
           selectable={true}
-          style={[styles.handle, { color: colors.Text(0.5) }]}
+          style={[s.handle, { color: colors.Text(0.5) }]}
         >
           {profile.handle}
         </Text>
@@ -121,7 +123,7 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Tabs */}
         <View
-          style={[styles.tabsContainer, { borderBottomColor: colors.subtle }]}
+          style={[s.tabsContainer, { borderBottomColor: colors.subtle }]}
         >
           {TABS.map((tab) => (
             <AnimatedTabButton
@@ -136,7 +138,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Tab Content */}
-        <View style={[styles.tabContentWrapper, { backgroundColor: colors.accent }]}>
+        <View style={[s.tabContentWrapper, { backgroundColor: colors.accent }]}>
           {/* List Tab */}
           <View style={{ display: profile.activeTab === "list" ? "flex" : "none" }}>
             <FilterChips
@@ -197,59 +199,3 @@ export default function ProfileScreen({ navigation }) {
     </DefaultScreenWidget>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 8,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  usernameContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 14,
-    gap: 8,
-  },
-  editButton: {
-    padding: 4,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 16,
-  },
-  handle: {
-    textAlign: "center",
-    marginTop: 2,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginTop: 20,
-    marginHorizontal: 20,
-  },
-  tabContentWrapper: {
-    width: "100%",
-  },
-});

@@ -1,4 +1,5 @@
 import { View, StyleSheet, Linking, useWindowDimensions } from "react-native";
+import { useScreenControllerStyles } from "../../Styles/components/Screens/ScreenControllerStyles";
 import { TouchableOpacity } from "../../Widgets/Button";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { BlurView } from "expo-blur";
@@ -58,7 +59,7 @@ import CharacterScreen from "../CharacterScreen";
 import ProfileScreen from "../ProfileScreen";
 import NotificationsScreen from "../NotificationsScreen";
 import UpdateCheckerScreen from "../UpdateCheckerScreen";
-import { Background, background } from "../../Styles/Colors";
+import { background } from "../../Styles/Colors";
 import { useIsTV } from "../../Styles/Responsive";
 import TVSidebarNav from "../../Components/TV/TVSidebarNav";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
@@ -215,6 +216,7 @@ function AnimatedIconContainer({ focused, themeColors, children }) {
 
 // Кастомна панель навігації з підписом під іконками
 export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
+  const s = useScreenControllerStyles();
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
   const [userConfig, setUserConfig] = useState(
@@ -273,7 +275,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
   return (
     <View
       style={[
-        !isVertical && styles.container2,
+        !isVertical && s.container2,
         positionStyles[placedAt],
         {
           backgroundColor: isCustomisation
@@ -332,11 +334,11 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
               }
             }}
             style={[
-              isVertical ? styles.tabItemVerticalSide : styles.tabItemVertical,
+              isVertical ? s.tabItemVerticalSide : s.tabItemVertical,
               {},
             ]}
           >
-            <View style={styles.iconShadow} pointerEvents="none">
+            <View style={s.iconShadow} pointerEvents="none">
               {(() => {
                 const IconComponent =
                   {
@@ -366,7 +368,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
             <Text
               selectable={true}
               style={[
-                styles.textBelow,
+                s.textBelow,
                 { color: themeColors.text, paddingVertical: 4 },
               ]}
             >
@@ -426,6 +428,7 @@ export function ThemedNavBar({ state, navigation, isPreview = false }) {
 
 // Кастомна панель навігації
 export function CustomNavBar({ state, navigation, isPreview = false }) {
+  const s = useScreenControllerStyles();
   const themeColors = useThemeColors();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -470,7 +473,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
   return (
     <View
       style={[
-        styles.container,
+        s.container,
         {
           backgroundColor: isCustomisation
             ? userConfig?.navbar?.backgroundColor || themeColors.background
@@ -535,7 +538,7 @@ export function CustomNavBar({ state, navigation, isPreview = false }) {
               }
             }}
             style={[
-              styles.tabItem,
+              s.tabItem,
               {
                 width: tabWidth,
                 justifyContent: "center",
@@ -840,59 +843,3 @@ export default function ScreenController({ updateInfo }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    flexDirection: "row",
-    justifyContent: "center",
-    backgroundColor: Background(0.6),
-    width: "80%",
-    alignSelf: "center",
-    bottom: 25,
-    borderRadius: 8,
-    paddingVertical: 12,
-    overflow: "hidden",
-  },
-  container2: {
-    position: "absolute",
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    backgroundColor: Background(0.6),
-    width: "100%",
-    alignSelf: "center",
-    paddingVertical: 8,
-    paddingBottom: 25,
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  tabItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 36,
-  },
-  tabItemVertical: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 56,
-    borderRadius: 14,
-  },
-  text: {},
-  textBelow: {
-    fontFamily: "Nunito-SemiBold",
-    fontSize: 12,
-    textAlign: "center",
-  },
-  iconShadow: {},
-  tabItemVerticalSide: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 64,
-    width: 64,
-    borderRadius: 16,
-    marginBottom: 8,
-  },
-});

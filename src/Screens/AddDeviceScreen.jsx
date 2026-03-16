@@ -3,10 +3,10 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   ActivityIndicator,
   Dimensions,
 } from "react-native";
+import { useAddDeviceScreenStyles } from "../Styles/components/Screens/AddDeviceScreenStyles";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { TouchableOpacity } from "../Widgets/Button";
 import {
@@ -30,6 +30,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCAN_AREA_SIZE = SCREEN_WIDTH * 0.65;
 
 export default function AddDeviceScreen() {
+  const s = useAddDeviceScreenStyles(SCAN_AREA_SIZE);
   const themeColors = useThemeColors();
   const navigation = useNavigation();
   const route = useRoute();
@@ -176,7 +177,7 @@ export default function AddDeviceScreen() {
   if (!hasPermission) {
     return (
       <DefaultScreenWidget isCheckInternet={false}>
-        <View style={styles.centeredContainer}>
+        <View style={s.centeredContainer}>
           <Icons.Camera size={64} color={themeColors.inActiveText} />
           <Text
             style={[
@@ -205,7 +206,7 @@ export default function AddDeviceScreen() {
           </Text>
           <TouchableOpacity
             style={[
-              styles.permissionButton,
+              s.permissionButton,
               { backgroundColor: themeColors.primary },
             ]}
             onPress={requestPermission}
@@ -239,9 +240,9 @@ export default function AddDeviceScreen() {
         >
           <Icons.ArrowLeft size={32} color={themeColors.primary} />
         </TouchableOpacity>
-        <View style={styles.centeredContainer}>
+        <View style={s.centeredContainer}>
           {state === "debug_edit" && debugPayload && (
-            <View style={styles.debugEditContainer}>
+            <View style={s.debugEditContainer}>
               <Text
                 style={[
                   H2,
@@ -288,7 +289,7 @@ export default function AddDeviceScreen() {
               </Text>
               <TextInput
                 style={[
-                  styles.debugInput,
+                  s.debugInput,
                   { color: themeColors.text, borderColor: themeColors.primary },
                 ]}
                 value={debugHost}
@@ -315,7 +316,7 @@ export default function AddDeviceScreen() {
               </Text>
               <TouchableOpacity
                 style={[
-                  styles.debugConnectButton,
+                  s.debugConnectButton,
                   { backgroundColor: themeColors.primary },
                 ]}
                 onPress={handleDebugConnect}
@@ -410,7 +411,7 @@ export default function AddDeviceScreen() {
               </Text>
               <TouchableOpacity
                 style={[
-                  styles.retryButton,
+                  s.retryButton,
                   { backgroundColor: themeColors.primary },
                 ]}
                 onPress={handleRetry}
@@ -426,7 +427,7 @@ export default function AddDeviceScreen() {
 
   // Scanning state — camera
   return (
-    <View style={styles.fullScreen}>
+    <View style={s.fullScreen}>
       {device && (
         <Camera
           style={StyleSheet.absoluteFill}
@@ -437,70 +438,70 @@ export default function AddDeviceScreen() {
       )}
 
       {/* Dark overlay with transparent scanning window */}
-      <View style={styles.overlayContainer}>
+      <View style={s.overlayContainer}>
         {/* Top */}
-        <View style={[styles.overlayPart, { flex: 1 }]} />
+        <View style={[s.overlayPart, { flex: 1 }]} />
 
         {/* Middle row */}
-        <View style={styles.middleRow}>
-          <View style={[styles.overlayPart, { flex: 1 }]} />
-          <View style={styles.scanWindow}>
+        <View style={s.middleRow}>
+          <View style={[s.overlayPart, { flex: 1 }]} />
+          <View style={s.scanWindow}>
             {/* Corner markers */}
             <View
               style={[
-                styles.corner,
-                styles.cornerTL,
+                s.corner,
+                s.cornerTL,
                 { borderColor: themeColors.primary },
               ]}
             />
             <View
               style={[
-                styles.corner,
-                styles.cornerTR,
+                s.corner,
+                s.cornerTR,
                 { borderColor: themeColors.primary },
               ]}
             />
             <View
               style={[
-                styles.corner,
-                styles.cornerBL,
+                s.corner,
+                s.cornerBL,
                 { borderColor: themeColors.primary },
               ]}
             />
             <View
               style={[
-                styles.corner,
-                styles.cornerBR,
+                s.corner,
+                s.cornerBR,
                 { borderColor: themeColors.primary },
               ]}
             />
           </View>
-          <View style={[styles.overlayPart, { flex: 1 }]} />
+          <View style={[s.overlayPart, { flex: 1 }]} />
         </View>
 
         {/* Bottom */}
-        <View style={[styles.overlayPart, { flex: 1 }]} />
+        <View style={[s.overlayPart, { flex: 1 }]} />
       </View>
 
       {/* Title */}
-      <View style={styles.topContent}>
+      <View style={s.topContent}>
         <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: themeColors.accent }]}
+          style={[s.backButton, { backgroundColor: themeColors.accent }]}
           onPress={() => navigation.goBack()}
         >
           <Icons.ArrowLeft size={32} color={themeColors.primary} />
         </TouchableOpacity>
-        <Text style={[H2, styles.scanTitle]}>Сканування QR-коду</Text>
-        <Text style={[H6, styles.scanSubtitle]}>
+        <Text style={[H2, s.scanTitle]}>Сканування QR-коду</Text>
+        <Text style={[H6, s.scanSubtitle]}>
           Наведіть камеру на QR-код на екрані нового пристрою
         </Text>
       </View>
 
       {/* DEV: Paste from clipboard */}
       {MainConfig.debug.isDebug && (
-        <View style={styles.debugBottomContent}>
+        <View style={s.debugBottomContent}>
           <TouchableOpacity
-            style={styles.debugPasteButton}
+            style={s.debugPasteButton}
             onPress={handlePasteFromClipboard}
           >
             <Icons.ClipboardText size={18} color="#fff" />
@@ -513,146 +514,3 @@ export default function AddDeviceScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fullScreen: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  centeredContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-  },
-  overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  overlayPart: {
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  middleRow: {
-    flexDirection: "row",
-    height: SCAN_AREA_SIZE,
-  },
-  scanWindow: {
-    width: SCAN_AREA_SIZE,
-    height: SCAN_AREA_SIZE,
-  },
-  corner: {
-    position: "absolute",
-    width: 24,
-    height: 24,
-    borderWidth: 3,
-  },
-  cornerTL: {
-    top: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 8,
-  },
-  cornerTR: {
-    top: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-    borderTopRightRadius: 8,
-  },
-  cornerBL: {
-    bottom: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 8,
-  },
-  cornerBR: {
-    bottom: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    borderBottomRightRadius: 8,
-  },
-  topContent: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    alignItems: "center",
-  },
-  backButton: {
-    position: "absolute",
-    top: 48,
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    left: 16,
-    zIndex: 1,
-  },
-  scanTitle: {
-    color: "#fff",
-    fontFamily: "Nunito-Bold",
-    fontSize: 24,
-    textAlign: "center",
-    marginTop: 16,
-  },
-  scanSubtitle: {
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
-    marginTop: 8,
-    paddingHorizontal: 16,
-  },
-  permissionButton: {
-    marginTop: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-  },
-  retryButton: {
-    marginTop: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-  },
-  debugBottomContent: {
-    position: "absolute",
-    bottom: 60,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  debugPasteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  debugEditContainer: {
-    alignItems: "center",
-    width: "100%",
-  },
-  debugInput: {
-    width: "80%",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    textAlign: "center",
-    fontFamily: "Nunito-SemiBold",
-  },
-  debugConnectButton: {
-    marginTop: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-  },
-});
