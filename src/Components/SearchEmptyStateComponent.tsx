@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import Icons from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { H5 } from "../Styles/Fonts";
+import { useSearchEmptyStateComponentStyles } from "../Styles/components/SearchEmptyStateComponentStyles";
 
 interface SearchEmptyStateComponentProps {
   hasSearched: boolean;
@@ -14,15 +15,16 @@ export default function SearchEmptyStateComponent({
   isLoading = false,
 }: SearchEmptyStateComponentProps) {
   const themeColors = useThemeColors();
+  const s = useSearchEmptyStateComponentStyles();
 
   if (isLoading) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.subtle }]}>
+    <View style={[s.container, { backgroundColor: themeColors.subtle }]}>
       <Icons.MagnifyingGlass size={64} color={themeColors.text} weight="thin" />
       <Text
         selectable={true}
-        style={[H5, styles.text, { color: themeColors.text }]}
+        style={[H5, s.text, { color: themeColors.text }]}
       >
         {hasSearched ? "Нічого не знайдено" : "Введіть запит для пошуку"}
       </Text>
@@ -30,15 +32,3 @@ export default function SearchEmptyStateComponent({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: "60%",
-  },
-  text: {
-    opacity: 0.6,
-    marginTop: 16,
-  },
-});

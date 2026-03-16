@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { H6 } from "../Styles/Fonts";
+import { useSearchCategoryTabsComponentStyles } from "../Styles/components/SearchCategoryTabsComponentStyles";
 
 export interface SearchCategory {
   id: string;
@@ -23,13 +24,14 @@ export default function SearchCategoryTabsComponent({
   onCategoryChange,
 }: SearchCategoryTabsComponentProps) {
   const themeColors = useThemeColors();
+  const s = useSearchCategoryTabsComponentStyles();
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={styles.scrollView}
-      contentContainerStyle={[styles.container]}
+      style={s.scrollView}
+      contentContainerStyle={[s.container]}
     >
       {categories.map((category) => {
         const isActive = activeCategory === category.id;
@@ -43,7 +45,7 @@ export default function SearchCategoryTabsComponent({
           <TouchableOpacity
             key={category.id}
             style={[
-              styles.tab,
+              s.tab,
               {
                 backgroundColor: themeColors.subtle,
                 borderBottomLeftRadius: isActive ? 0 : 18,
@@ -54,7 +56,7 @@ export default function SearchCategoryTabsComponent({
             ]}
             onPress={() => onCategoryChange(category.id)}
           >
-            <View style={styles.tabContent}>
+            <View style={s.tabContent}>
               {IconComponent && (
                 <IconComponent
                   size={18}
@@ -86,27 +88,3 @@ export default function SearchCategoryTabsComponent({
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    height: 55,
-    gap: 8,
-  },
-  tab: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 12,
-    height: 36,
-    borderRadius: 18,
-  },
-  tabContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

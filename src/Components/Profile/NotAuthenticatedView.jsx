@@ -1,22 +1,25 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import Icons from "../../Styles/Icons";
+import { useNotAuthenticatedViewStyles } from "../../Styles/components/Profile/NotAuthenticatedViewStyles";
 
 export default function NotAuthenticatedView({
   colors,
   scaleFontSize,
   onLogin,
 }) {
+  const s = useNotAuthenticatedViewStyles();
+
   return (
-    <View style={styles.notAuthContainer}>
-      <View style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}>
+    <View style={s.notAuthContainer}>
+      <View style={[s.avatarOuter, { backgroundColor: colors.subtle }]}>
         <Icons.User size={72} color={colors.Text(0.3)} weight="regular" />
       </View>
 
       <Text
         selectable={true}
         style={[
-          styles.notAuthTitle,
+          s.notAuthTitle,
           { color: colors.text, fontSize: scaleFontSize(18) },
         ]}
       >
@@ -26,7 +29,7 @@ export default function NotAuthenticatedView({
       <Text
         selectable={true}
         style={[
-          styles.notAuthSubtitle,
+          s.notAuthSubtitle,
           { color: colors.Text(0.5), fontSize: scaleFontSize(14) },
         ]}
       >
@@ -34,14 +37,14 @@ export default function NotAuthenticatedView({
       </Text>
 
       <TouchableOpacity
-        style={[styles.loginButton, { backgroundColor: colors.primary }]}
+        style={[s.loginButton, { backgroundColor: colors.primary }]}
         onPress={onLogin}
       >
         <Icons.SignIn size={20} color={colors.background} weight="bold" />
         <Text
           selectable={true}
           style={[
-            styles.loginButtonText,
+            s.loginButtonText,
             { color: colors.background, fontSize: scaleFontSize(15) },
           ]}
         >
@@ -52,42 +55,3 @@ export default function NotAuthenticatedView({
   );
 }
 
-const styles = StyleSheet.create({
-  notAuthContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  avatarOuter: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  notAuthTitle: {
-    fontFamily: "Nunito-Bold",
-    marginTop: 20,
-    textAlign: "center",
-  },
-  notAuthSubtitle: {
-    fontFamily: "Nunito-Regular",
-    marginTop: 8,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  loginButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 10,
-  },
-  loginButtonText: {
-    fontFamily: "Nunito-Bold",
-  },
-});

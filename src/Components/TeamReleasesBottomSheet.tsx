@@ -1,5 +1,5 @@
 import React, { RefObject } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TouchableOpacity } from "../Widgets/Button";
@@ -7,6 +7,7 @@ import { useThemeColors } from "../Global/useTheme";
 import { H3, H5 } from "../Styles/Fonts";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 import { Team } from "../Api/AniuaApi";
+import { useTeamReleasesBottomSheetStyles } from "../Styles/components/TeamReleasesBottomSheetStyles";
 
 interface Anime {
   slug: string;
@@ -33,6 +34,7 @@ export default function TeamReleasesBottomSheet({
 }: TeamReleasesBottomSheetProps) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
+  const s = useTeamReleasesBottomSheetStyles();
 
   return (
     <BottomSheetModal
@@ -55,10 +57,10 @@ export default function TeamReleasesBottomSheet({
       )}
     >
       <BottomSheetView
-        style={[styles.container, { paddingBottom: insets.bottom }]}
+        style={[s.container, { paddingBottom: insets.bottom }]}
       >
         {/* Заголовок з назвою команди */}
-        <View style={styles.header}>
+        <View style={s.header}>
           <Text selectable={true} style={[H3, { color: themeColors.text }]}>
             {selectedTeam?.name}
           </Text>
@@ -72,7 +74,7 @@ export default function TeamReleasesBottomSheet({
 
         {/* Контент */}
         {isLoading ? (
-          <View style={styles.loadingContainer}>
+          <View style={s.loadingContainer}>
             <ActivityIndicator size="large" color={themeColors.primary} />
           </View>
         ) : teamReleases.length > 0 ? (
@@ -83,7 +85,7 @@ export default function TeamReleasesBottomSheet({
             navigation={navigation}
           />
         ) : (
-          <View style={styles.loadingContainer}>
+          <View style={s.loadingContainer}>
             <Text
               selectable={true}
               style={[H5, { color: themeColors.inActiveText }]}
@@ -97,18 +99,3 @@ export default function TeamReleasesBottomSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

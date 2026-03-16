@@ -1,7 +1,6 @@
 import React, { useEffect, useContext } from "react";
 import {
   Text,
-  StyleSheet,
   View,
   Linking,
   Dimensions,
@@ -25,6 +24,7 @@ import { H6, H7 } from "../../Styles/Fonts";
 import Icons from "../../Styles/Icons";
 import Logger from "../../Logger/Logger";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
+import { useSnackbarWidgetStyles } from "../../Styles/components/Snackbar/SnackbarWidgetStyles";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const DISMISS_THRESHOLD = SCREEN_WIDTH * 0.3;
@@ -61,6 +61,7 @@ export default function Snackbar({
   onDecline,
 }) {
   const themeColors = useThemeColors();
+  const s = useSnackbarWidgetStyles();
   const safeAreaContext = useContext(SafeAreaInsetsContext);
   const insets = safeAreaContext || { top: 0, bottom: 0, left: 0, right: 0 };
   const opacity = useSharedValue(1);
@@ -73,7 +74,7 @@ export default function Snackbar({
       return (
         <Text
           selectable={true}
-          style={[H6, styles.message, { color: themeColors.text }]}
+          style={[H6, s.message, { color: themeColors.text }]}
         >
           {String(message)}
         </Text>
@@ -84,7 +85,7 @@ export default function Snackbar({
       return null;
     }
 
-    return <View style={styles.message}>{message}</View>;
+    return <View style={s.message}>{message}</View>;
   };
 
   useEffect(() => {
@@ -196,9 +197,9 @@ export default function Snackbar({
           : FadeOutDown.duration(300).easing(Easing.in(Easing.cubic))
       }
       style={[
-        styles.container,
+        s.container,
         isTop
-          ? styles.containerTop
+          ? s.containerTop
           : {
               bottom: insets.bottom + 72,
             },
@@ -206,18 +207,18 @@ export default function Snackbar({
     >
       <GestureDetector gesture={panGesture}>
         <Animated.View
-          style={[styles.snackbar, { backgroundColor }, animatedSwipeStyle]}
+          style={[s.snackbar, { backgroundColor }, animatedSwipeStyle]}
         >
           {renderMessage()}
 
-          <View style={styles.actionsContainer}>
+          <View style={s.actionsContainer}>
             {isConfirm ? (
               <>
                 <TouchableOpacity onPress={handleConfirm}>
                   <Animated.View
                     style={[
-                      styles.actionButton,
-                      styles.confirmButton,
+                      s.actionButton,
+                      s.confirmButton,
                       { backgroundColor: themeColors.primary },
                       animatedButtonStyle,
                     ]}
@@ -226,7 +227,7 @@ export default function Snackbar({
                       selectable={true}
                       style={[
                         H7,
-                        styles.actionText,
+                        s.actionText,
                         { color: themeColors.text },
                       ]}
                     >
@@ -238,8 +239,8 @@ export default function Snackbar({
                   <View
                     style={[
                       {
-                        ...styles.actionButton,
-                        ...styles.declineButton,
+                        ...s.actionButton,
+                        ...s.declineButton,
                         backgroundColor: themeColors.background,
                       },
                     ]}
@@ -248,7 +249,7 @@ export default function Snackbar({
                       selectable={true}
                       style={[
                         H7,
-                        styles.actionText,
+                        s.actionText,
                         { color: themeColors.text },
                       ]}
                     >
@@ -260,13 +261,13 @@ export default function Snackbar({
             ) : actionLabel ? (
               <TouchableOpacity onPress={handleActionPress}>
                 <Animated.View
-                  style={[styles.actionButton, animatedButtonStyle]}
+                  style={[s.actionButton, animatedButtonStyle]}
                 >
                   <Text
                     selectable={true}
                     style={[
                       H6,
-                      styles.actionText,
+                      s.actionText,
                       {
                         color: isTop ? themeColors.text : themeColors.primary,
                       },
@@ -277,7 +278,7 @@ export default function Snackbar({
                 </Animated.View>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity onPress={handleClose} style={s.closeButton}>
                 <Icons.X
                   size={24}
                   color={isTop ? themeColors.text : themeColors.primary}
@@ -308,69 +309,10 @@ export function SnackbarLink({ children, url, color }) {
       selectable={true}
       onPress={handlePress}
       suppressHighlighting={false}
-      style={[styles.link, { color }]}
+      style={[s.link, { color }]}
     >
       {children}
     </Text>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    zIndex: 9999,
-  },
-  containerBottom: {
-    bottom: 10,
-  },
-  containerTop: {
-    top: 24,
-  },
-  snackbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingLeft: 20,
-    paddingRight: 12,
-    borderRadius: 12,
-  },
-  message: {
-    flex: 1,
-    marginRight: 12,
-    lineHeight: 20,
-  },
-  actionsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  actionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  confirmButton: {
-    minWidth: 50,
-    alignItems: "center",
-  },
-  declineButton: {
-    minWidth: 50,
-    alignItems: "center",
-  },
-  actionText: {
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  link: {
-    textDecorationLine: "underline",
-  },
-});

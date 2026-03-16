@@ -1,5 +1,5 @@
 import React, { useState, useEffect, RefObject } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
@@ -9,6 +9,7 @@ import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import InputPickerWidget from "../Widgets/InputPickerWidget";
 import SliderWidget from "../Widgets/SliderWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
+import { useSearchFilterBottomSheetStyles } from "../Styles/components/SearchFilterBottomSheetStyles";
 
 export interface SearchFilters {
   status: string;
@@ -48,6 +49,7 @@ export default function SearchFilterBottomSheet({
   const [score, setScore] = useState(filters.score);
   const [genres, setGenres] = useState(filters.genres);
   const themeColors = useThemeColors();
+  const s = useSearchFilterBottomSheetStyles();
 
   // Синхронізуємо локальний стейт з пропсами при зміні фільтрів
   useEffect(() => {
@@ -96,25 +98,25 @@ export default function SearchFilterBottomSheet({
       )}
     >
       <BottomSheetScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={s.scrollView}
+        contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {activeCategory === "anime" ? (
-          <View style={styles.content}>
+          <View style={s.content}>
             {/* Заголовок */}
-            <View style={styles.headerRow}>
+            <View style={s.headerRow}>
               <Text
                 selectable={true}
                 style={[H4, { color: themeColors.text, fontSize: 18 }]}
               >
                 Фільтри пошуку
               </Text>
-              <View style={styles.headerButtons}>
+              <View style={s.headerButtons}>
                 <TouchableOpacity
                   onPress={handleReset}
                   style={[
-                    styles.headerButton,
+                    s.headerButton,
                     { backgroundColor: themeColors.accent },
                   ]}
                 >
@@ -123,7 +125,7 @@ export default function SearchFilterBottomSheet({
                 <TouchableOpacity
                   onPress={handleApply}
                   style={[
-                    styles.headerButton,
+                    s.headerButton,
                     { backgroundColor: themeColors.accent },
                   ]}
                 >
@@ -153,7 +155,7 @@ export default function SearchFilterBottomSheet({
             />
 
             {/* Сезон */}
-            <Text selectable={true} style={[H4, styles.sectionLabel]}>
+            <Text selectable={true} style={[H4, s.sectionLabel]}>
               Сезон
             </Text>
             <SegmentedControlLabelWidget
@@ -173,7 +175,7 @@ export default function SearchFilterBottomSheet({
             />
 
             {/* Жанри */}
-            <Text selectable={true} style={[H4, styles.sectionLabel]}>
+            <Text selectable={true} style={[H4, s.sectionLabel]}>
               Жанри
             </Text>
             <InputPickerWidget
@@ -189,7 +191,7 @@ export default function SearchFilterBottomSheet({
               min={1990}
               max={new Date().getFullYear()}
               value={years[0]}
-              style={styles.slider}
+              style={s.slider}
               onChange={(item: number) =>
                 setYears([item, new Date().getFullYear()])
               }
@@ -202,7 +204,7 @@ export default function SearchFilterBottomSheet({
               max={10}
               value={score}
               defaultValue={0}
-              style={styles.slider}
+              style={s.slider}
               onChange={(item: number) => setScore(item)}
             />
           </View>
@@ -239,40 +241,3 @@ export default function SearchFilterBottomSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-    paddingTop: 8,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sectionLabel: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  slider: {
-    marginTop: 16,
-  },
-});

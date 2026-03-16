@@ -1,10 +1,11 @@
 import React, { useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import TVModal from "./TVModal";
 import { TV } from "../../Styles/TVStyles";
+import { useTVDubbingSelectorStyles } from "../../Styles/components/TV/TVDubbingSelectorStyles";
 
 export default function TVDubbingSelector({
   episodesList,
@@ -14,6 +15,7 @@ export default function TVDubbingSelector({
 }) {
   const modalRef = useRef(null);
   const themeColors = useThemeColors();
+  const s = useTVDubbingSelectorStyles();
 
   const players = Object.keys(episodesList || {});
 
@@ -22,10 +24,10 @@ export default function TVDubbingSelector({
   return (
     <>
       <TVButton
-        style={[styles.triggerButton, { backgroundColor: themeColors.subtle }]}
+        style={[s.triggerButton, { backgroundColor: themeColors.subtle }]}
         onPress={open}
       >
-        <Text style={[styles.triggerText, { color: themeColors.primary }]}>
+        <Text style={[s.triggerText, { color: themeColors.primary }]}>
           {currentDubbing || "Вибрати дубляж"}
         </Text>
       </TVButton>
@@ -34,10 +36,10 @@ export default function TVDubbingSelector({
         {players.map((player) => {
           const dubbings = Object.keys(episodesList[player] || {});
           return (
-            <View key={player} style={styles.playerSection}>
+            <View key={player} style={s.playerSection}>
               <Text
                 style={[
-                  styles.playerTitle,
+                  s.playerTitle,
                   { color: themeColors.inActiveText },
                 ]}
               >
@@ -50,7 +52,7 @@ export default function TVDubbingSelector({
                   <TVButton
                     key={`${player}-${dubbing}`}
                     style={[
-                      styles.dubbingItem,
+                      s.dubbingItem,
                       {
                         backgroundColor: isActive
                           ? themeColors.Primary(0.2)
@@ -65,7 +67,7 @@ export default function TVDubbingSelector({
                   >
                     <Text
                       style={[
-                        styles.dubbingText,
+                        s.dubbingText,
                         {
                           color: isActive
                             ? themeColors.primary
@@ -86,35 +88,3 @@ export default function TVDubbingSelector({
   );
 }
 
-const styles = StyleSheet.create({
-  triggerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: TV.button.borderRadius,
-    minHeight: TV.button.minHeight,
-  },
-  triggerText: {
-    fontFamily: "Nunito-SemiBold",
-  },
-  playerSection: {
-    marginBottom: 16,
-  },
-  playerTitle: {
-    fontFamily: "Nunito-SemiBold",
-    marginBottom: 8,
-    textTransform: "uppercase",
-  },
-  dubbingItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginBottom: 4,
-    minHeight: TV.button.minHeight,
-    justifyContent: "center",
-  },
-  dubbingText: {
-    fontFamily: "Nunito-Medium",
-  },
-});

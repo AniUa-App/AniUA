@@ -3,12 +3,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Alert,
 } from "react-native";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { useThemeColors } from "../Global/useTheme";
+import { useHikkaAuthButtonStyles } from "../Styles/components/HikkaAuthButtonStyles";
 
 interface HikkaAuthButtonProps {
   onAuthSuccess?: (user: any) => void;
@@ -31,6 +31,7 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
   const theme = useThemeColors();
+  const s = useHikkaAuthButtonStyles(isAuthenticated);
 
   useEffect(() => {
     checkAuthStatus();
@@ -90,42 +91,11 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
     ]);
   };
 
-  const styles = StyleSheet.create({
-    button: {
-      backgroundColor: isAuthenticated ? theme.green : theme.purple,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      minheight: 44,
-    },
-    buttonDisabled: {
-      opacity: 0.6,
-    },
-    buttonText: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    userInfo: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    username: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-      marginRight: 8,
-    },
-  });
-
   if (isLoading) {
     return (
-      <View style={[styles.button, styles.buttonDisabled, style]}>
+      <View style={[s.button, s.buttonDisabled, style]}>
         <ActivityIndicator color={theme.text} size="small" />
-        <Text selectable={true} style={[styles.buttonText, { marginLeft: 8 }]}>
+        <Text selectable={true} style={[s.buttonText, { marginLeft: 8 }]}>
           Авторизація...
         </Text>
       </View>
@@ -135,15 +105,15 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
   if (isAuthenticated && user) {
     return (
       <TouchableOpacity
-        style={[styles.button, style]}
+        style={[s.button, style]}
         onPress={handleLogout}
         activeOpacity={0.7}
       >
-        <View style={styles.userInfo}>
-          <Text selectable={true} style={styles.username}>
+        <View style={s.userInfo}>
+          <Text selectable={true} style={s.username}>
             @{user.username}
           </Text>
-          <Text selectable={true} style={styles.buttonText}>
+          <Text selectable={true} style={s.buttonText}>
             Вийти
           </Text>
         </View>
@@ -153,11 +123,11 @@ export const HikkaAuthButton: React.FC<HikkaAuthButtonProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, style]}
+      style={[s.button, style]}
       onPress={handleLogin}
       activeOpacity={0.7}
     >
-      <Text selectable={true} style={styles.buttonText}>
+      <Text selectable={true} style={s.buttonText}>
         Увійти через Hikka
       </Text>
     </TouchableOpacity>

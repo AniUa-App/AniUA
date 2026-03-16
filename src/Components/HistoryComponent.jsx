@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { AnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
 import SettingsStorage from "../Storage/SettingsStorage";
 import UserStorage from "../Storage/UserStorage";
 import { useThemeColors } from "../Global/useTheme";
 import { EventBus } from "../Global/EventBus";
+import { useHistoryComponentStyles } from "../Styles/components/HistoryComponentStyles";
 
 const HistoryComponent = () => {
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const showHistory = SettingsStorage.getParameter("showHistory") !== "false"
   const colors = useThemeColors();
+  const s = useHistoryComponentStyles();
   const user = UserStorage.getUser();
 
   const fetchHistory = useCallback(async () => {
@@ -49,7 +51,7 @@ const HistoryComponent = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loaderContainer}>
+      <View style={s.loaderContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -67,13 +69,5 @@ const HistoryComponent = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  loaderContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
-    height: 200,
-  },
-});
 
 export default HistoryComponent;

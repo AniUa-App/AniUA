@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   ScrollView,
-  StyleSheet,
   BackHandler,
   Pressable,
 } from "react-native";
@@ -11,10 +10,12 @@ import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import { TV } from "../../Styles/TVStyles";
 import { useEffect } from "react";
+import { useTVModalStyles } from "../../Styles/components/TV/TVModalStyles";
 
 const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
   const [visible, setVisible] = useState(false);
   const themeColors = useThemeColors();
+  const s = useTVModalStyles();
 
   useImperativeHandle(ref, () => ({
     present: () => setVisible(true),
@@ -46,7 +47,7 @@ const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
       }}
     >
       <Pressable
-        style={styles.backdrop}
+        style={s.backdrop}
         onPress={() => {
           setVisible(false);
           onClose?.();
@@ -54,7 +55,7 @@ const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
       >
         <Pressable
           style={[
-            styles.container,
+            s.container,
             { backgroundColor: themeColors.background },
           ]}
           onPress={(e) => e.stopPropagation()}
@@ -62,7 +63,7 @@ const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
           {title && (
             <Text
               style={[
-                styles.title,
+                s.title,
                 {
                   color: themeColors.text,
                   borderBottomColor: themeColors.subtle,
@@ -73,7 +74,7 @@ const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
             </Text>
           )}
           <ScrollView
-            style={styles.content}
+            style={s.content}
             showsVerticalScrollIndicator={false}
           >
             {children}
@@ -84,29 +85,5 @@ const TVModal = forwardRef(function TVModal({ title, children, onClose }, ref) {
   );
 });
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    width: "50%",
-    maxHeight: "80%",
-    borderRadius: TV.button.borderRadius,
-    padding: TV.padding.section,
-    elevation: 10,
-  },
-  title: {
-    fontFamily: "Nunito-SemiBold",
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  content: {
-    flex: 1,
-  },
-});
 
 export default TVModal;

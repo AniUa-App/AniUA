@@ -1,10 +1,11 @@
 import React, { useRef, useCallback } from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
+import { View, ScrollView } from "react-native";
 import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import { TV } from "../../Styles/TVStyles";
 import Icons from "../../Styles/Icons";
+import { useTVStatusSelectorStyles } from "../../Styles/components/TV/TVStatusSelectorStyles";
 
 const STATUSES = [
   {
@@ -51,6 +52,7 @@ export default function TVStatusSelector({
   isFavoritesTab = true,
 }) {
   const themeColors = useThemeColors();
+  const s = useTVStatusSelectorStyles();
   const lastPressTime = useRef(0);
 
   const handlePress = useCallback(
@@ -67,8 +69,8 @@ export default function TVStatusSelector({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={styles.scrollView}
-      contentContainerStyle={styles.container}
+      style={s.scrollView}
+      contentContainerStyle={s.container}
     >
       {STATUSES.map((status) => {
         const isActive = currentStatus === status.key;
@@ -78,7 +80,7 @@ export default function TVStatusSelector({
           <TVButton
             key={status.key}
             style={[
-              styles.tab,
+              s.tab,
               {
                 backgroundColor: themeColors.accent,
                 borderBottomLeftRadius: isActive ? 0 : 18,
@@ -90,7 +92,7 @@ export default function TVStatusSelector({
             onPress={() => handlePress(status.key)}
             hasTVPreferredFocus={isActive}
           >
-            <View style={styles.tabContent}>
+            <View style={s.tabContent}>
               {IconComponent && (
                 <IconComponent
                   size={18}
@@ -100,7 +102,7 @@ export default function TVStatusSelector({
               )}
               <Text
                 style={[
-                  styles.label,
+                  s.label,
                   {
                     color: isActive
                       ? themeColors.text
@@ -118,31 +120,3 @@ export default function TVStatusSelector({
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
-  container: {
-    paddingHorizontal: TV.padding.screen,
-    paddingVertical: 16,
-    height: 55,
-    gap: 8,
-  },
-  tab: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 12,
-    height: 36,
-    borderRadius: 18,
-  },
-  tabContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  label: {
-    fontFamily: "Nunito-SemiBold",
-    marginLeft: 6,
-  },
-});

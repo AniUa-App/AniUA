@@ -1,9 +1,10 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import TextInputComponent from "./TextInputComponent";
+import { useSearchHeaderComponentStyles } from "../Styles/components/SearchHeaderComponentStyles";
 
 interface SearchHeaderComponentProps {
   searchText: string;
@@ -29,11 +30,12 @@ export default function SearchHeaderComponent({
   activeCategory,
 }: SearchHeaderComponentProps) {
   const themeColors = useThemeColors();
+  const s = useSearchHeaderComponentStyles();
 
   return (
     <View
       style={[
-        styles.header,
+        s.header,
         {
           paddingTop,
         },
@@ -41,7 +43,7 @@ export default function SearchHeaderComponent({
     >
       {/* Back Button */}
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: themeColors.subtle }]}
+        style={[s.button, { backgroundColor: themeColors.subtle }]}
         onPress={onGoBack}
       >
         <Icons.ArrowLeft
@@ -52,7 +54,7 @@ export default function SearchHeaderComponent({
       </TouchableOpacity>
 
       {/* Search Input */}
-      <View style={styles.searchInputContainer}>
+      <View style={s.searchInputContainer}>
         <TextInputComponent
           title={searchText}
           onChangeText={onChangeText}
@@ -66,7 +68,7 @@ export default function SearchHeaderComponent({
 
       <TouchableOpacity
         style={[
-          styles.button,
+          s.button,
           {
             backgroundColor:
               activeCategory === "anime" || activeCategory === "team"
@@ -94,18 +96,3 @@ export default function SearchHeaderComponent({
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-  },
-  button: {
-    padding: 6,
-    borderRadius: 16,
-  },
-  searchInputContainer: {
-    flex: 1,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-  },
-});

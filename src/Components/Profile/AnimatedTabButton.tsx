@@ -1,7 +1,8 @@
 import { useRef, useEffect } from "react";
-import { Animated, StyleSheet } from "react-native";
+import { Animated } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import Icons from "../../Styles/Icons";
+import { useAnimatedTabButtonStyles } from "../../Styles/components/Profile/AnimatedTabButtonStyles";
 
 interface Tab {
   id: string;
@@ -27,6 +28,7 @@ export default function AnimatedTabButton({
   colors,
   orientation = "vertical",
 }: AnimatedTabButtonProps) {
+  const s = useAnimatedTabButtonStyles();
   const scaleAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function AnimatedTabButton({
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Animated.View
         style={[
-          styles.tabItem,
+          s.tabItem,
           {
             backgroundColor: colors.accent,
             width: animatedSize,
@@ -85,11 +87,3 @@ export default function AnimatedTabButton({
   );
 }
 
-const styles = StyleSheet.create({
-  tabItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

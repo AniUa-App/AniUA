@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import {
   View,
-  StyleSheet,
   FlatList,
   Linking,
   useWindowDimensions,
@@ -12,6 +11,7 @@ import { Image } from "../Widgets/LoadersWidgets";
 import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { useIsLandscape } from "../Styles/Responsive";
+import { useYouTubeVideosStyles } from "../Styles/components/YouTubeVideosStyles";
 
 interface VideoItem {
   url: string;
@@ -48,6 +48,7 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
   const { width: windowWidth } = useWindowDimensions();
   const colors = useThemeColors();
   const isLandscape = useIsLandscape();
+  const s = useYouTubeVideosStyles();
 
   const videoWidth = 280;
   const videoHeight = videoWidth * (9 / 16);
@@ -66,7 +67,7 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
       return (
         <TouchableOpacity
           style={[
-            styles.videoContainer,
+            s.videoContainer,
             {
               width: videoWidth,
               height: videoHeight,
@@ -76,10 +77,10 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
           onPress={() => handlePress(item.url)}
           activeOpacity={0.8}
         >
-          <Image uri={thumbnailUrl} style={styles.thumbnail} />
+          <Image uri={thumbnailUrl} style={s.thumbnail} />
           <View
             style={[
-              styles.playButtonContainer,
+              s.playButtonContainer,
               { backgroundColor: colors.Background(0.5) },
             ]}
           >
@@ -109,35 +110,8 @@ export default function YouTubeVideos({ videos, style }: YouTubeVideosProps) {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={[style]}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      ItemSeparatorComponent={() => <View style={s.separator} />}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  videoContainer: {
-    borderRadius: 12,
-    overflow: "hidden",
-    position: "relative",
-  },
-  thumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  playButtonContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  playButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingLeft: 4,
-  },
-  separator: {
-    width: 12,
-  },
-});

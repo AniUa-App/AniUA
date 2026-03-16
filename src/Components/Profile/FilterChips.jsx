@@ -1,7 +1,8 @@
-import { ScrollView, Text, StyleSheet } from "react-native";
+import { ScrollView, Text } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import Icons from "../../Styles/Icons";
 import { H5 } from "../../Styles/Fonts";
+import { useFilterChipsStyles } from "../../Styles/components/Profile/FilterChipsStyles";
 
 export default function FilterChips({
   filters,
@@ -9,11 +10,13 @@ export default function FilterChips({
   onFilterSelect,
   colors,
 }) {
+  const s = useFilterChipsStyles();
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.filtersContainer}
+      contentContainerStyle={s.filtersContainer}
     >
       {filters.map((filter, index) => {
         const Icon = Icons[filter.icon];
@@ -23,7 +26,7 @@ export default function FilterChips({
           <TouchableOpacity
             key={filter.id}
             style={[
-              styles.filterChip,
+              s.filterChip,
               {
                 borderColor: colors.background,
                 backgroundColor: colors.background,
@@ -56,19 +59,3 @@ export default function FilterChips({
   );
 }
 
-const styles = StyleSheet.create({
-  filtersContainer: {
-    flexDirection: "row",
-    gap: 8,
-    height: 38,
-  },
-  filterChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderRadius: 18,
-    marginTop: 8,
-    gap: 5,
-  },
-});

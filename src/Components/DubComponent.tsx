@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
   StyleProp,
   ViewStyle,
   TextStyle,
@@ -11,6 +10,7 @@ import { TouchableOpacity } from "../Widgets/Button";
 import Icons from "../Styles/Icons";
 import { H5, H6 } from "../Styles/Fonts";
 import { useThemeColors } from "../Global/useTheme";
+import { useDubComponentStyles } from "../Styles/components/DubComponentStyles";
 
 interface DubComponentProps {
   logo?: string;
@@ -48,6 +48,7 @@ export default function DubComponent({
   nextFocusUp,
 }: DubComponentProps) {
   const themeColors = useThemeColors();
+  const s = useDubComponentStyles();
 
   return (
     <TouchableOpacity
@@ -55,7 +56,7 @@ export default function DubComponent({
       nextFocusDown={nextFocusDown}
       nextFocusUp={nextFocusUp}
       style={[
-        styles.resultItem,
+        s.resultItem,
         { backgroundColor: themeColors.background },
         style,
       ]}
@@ -66,21 +67,21 @@ export default function DubComponent({
     >
       <View
         style={[
-          styles.resultImageContainer,
+          s.resultImageContainer,
           { backgroundColor: themeColors.subtle },
         ]}
       >
         {logo ? (
           <FastImage
             source={{ uri: logo }}
-            style={styles.resultImage}
+            style={s.resultImage}
             resizeMode="cover"
           />
         ) : (
           <Icons.Image size={40} color={themeColors.text} weight="regular" />
         )}
       </View>
-      <View style={styles.resultInfo}>
+      <View style={s.resultInfo}>
         <View style={{ flexDirection: "row", gap: 4 }}>
           <Text
             style={[H5, { color: themeColors.text }, style]}
@@ -128,30 +129,3 @@ export default function DubComponent({
   );
 }
 
-const styles = StyleSheet.create({
-  resultItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    marginBottom: 8,
-  },
-  resultImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    overflow: "hidden",
-  },
-  resultImage: {
-    width: "100%",
-    height: "100%",
-  },
-  resultInfo: {
-    flex: 1,
-    marginRight: 8,
-  },
-});

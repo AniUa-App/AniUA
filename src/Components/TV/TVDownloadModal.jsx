@@ -1,11 +1,12 @@
 import React, { useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import TVModal from "./TVModal";
 import { TV } from "../../Styles/TVStyles";
 import Icons from "../../Styles/Icons";
+import { useTVDownloadModalStyles } from "../../Styles/components/TV/TVDownloadModalStyles";
 
 export default function TVDownloadModal({
   episodes,
@@ -15,27 +16,28 @@ export default function TVDownloadModal({
 }) {
   const modalRef = useRef(null);
   const themeColors = useThemeColors();
+  const s = useTVDownloadModalStyles();
 
   const open = () => modalRef.current?.present();
 
   return (
     <>
       <TVButton
-        style={[styles.triggerButton, { backgroundColor: themeColors.subtle }]}
+        style={[s.triggerButton, { backgroundColor: themeColors.subtle }]}
         onPress={open}
       >
         <Icons.DownloadSimple size={32} color={themeColors.text} />
       </TVButton>
 
       <TVModal ref={modalRef} title={title}>
-        <View style={styles.episodesGrid}>
+        <View style={s.episodesGrid}>
           {(Array.isArray(episodes) ? episodes : []).map((episode) => {
             const isDownloaded = checkForDownloaded?.(episode);
             return (
               <TVButton
                 key={episode.episode}
                 style={[
-                  styles.episodeItem,
+                  s.episodeItem,
                   {
                     backgroundColor: isDownloaded
                       ? themeColors.Primary(0.2)
@@ -49,7 +51,7 @@ export default function TVDownloadModal({
               >
                 <Text
                   style={[
-                    styles.episodeText,
+                    s.episodeText,
                     {
                       color: isDownloaded
                         ? themeColors.primary
@@ -75,30 +77,3 @@ export default function TVDownloadModal({
   );
 }
 
-const styles = StyleSheet.create({
-  triggerButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: TV.button.minWidth,
-    height: TV.button.minHeight,
-    borderRadius: TV.button.borderRadius,
-  },
-  episodesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  episodeItem: {
-    flexDirection: "row",
-    minWidth: 64,
-    minHeight: TV.button.minHeight,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  episodeText: {
-    fontFamily: "Nunito-SemiBold",
-  },
-});

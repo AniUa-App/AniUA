@@ -1,11 +1,12 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, Image } from "react-native";
 import { H3, H4, H5, Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import { TV } from "../../Styles/TVStyles";
 import Icons from "../../Styles/Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTVSidebarNavStyles } from "../../Styles/components/TV/TVSidebarNavStyles";
 
 const NAV_ITEMS = [
   { name: "Home", label: "Головна", icon: "House" },
@@ -28,13 +29,14 @@ const NAV_ITEMS = [
 export default function TVSidebarNav({ state, navigation }) {
   const themeColors = useThemeColors();
   const insets = useSafeAreaInsets();
+  const s = useTVSidebarNavStyles();
 
   const activeRouteName = state.routes[state.index]?.name;
 
   return (
     <View
       style={[
-        styles.container,
+        s.container,
         {
           backgroundColor: themeColors.Background(0.95),
           paddingTop: Math.max(insets.top, 24),
@@ -43,10 +45,10 @@ export default function TVSidebarNav({ state, navigation }) {
       ]}
     >
       {/* App logo/title area */}
-      <View style={styles.logoArea}>
+      <View style={s.logoArea}>
         <Image
           source={require("../../../assets/AniUA-Logo.png")}
-          style={[styles.logo]}
+          style={[s.logo]}
           resizeMode="contain"
         />
         <View style={{ flexDirection: "column" }}>
@@ -56,7 +58,7 @@ export default function TVSidebarNav({ state, navigation }) {
       </View>
 
       {/* Nav items */}
-      <View style={styles.navItems}>
+      <View style={s.navItems}>
         {NAV_ITEMS.map((item) => {
           const isActive = activeRouteName === item.name;
           const IconComponent = Icons[item.icon];
@@ -65,7 +67,7 @@ export default function TVSidebarNav({ state, navigation }) {
             <TVButton
               key={item.name}
               style={[
-                styles.navItem,
+                s.navItem,
                 isActive && {
                   backgroundColor: themeColors.Primary(0.15),
                 },
@@ -90,7 +92,7 @@ export default function TVSidebarNav({ state, navigation }) {
               )}
               <Text
                 style={[
-                  styles.navLabel,
+                  s.navLabel,
                   {
                     color: isActive ? themeColors.primary : themeColors.text,
                   },
@@ -106,45 +108,3 @@ export default function TVSidebarNav({ state, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: TV.sidebar.width,
-    zIndex: 10,
-    justifyContent: "flex-start",
-    borderRightWidth: 1,
-    borderRightColor: "rgba(255, 255, 255, 0.1)",
-  },
-  logo: {
-    width: 64,
-    height: 64,
-  },
-  logoArea: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  appTitle: {},
-  navItems: {
-    flex: 1,
-    paddingHorizontal: 12,
-    gap: 4,
-  },
-  navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: TV.button.borderRadius,
-    minHeight: 56,
-  },
-  navLabel: {
-    fontFamily: "Nunito-SemiBold",
-  },
-});

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ActivityIndicator,
-  StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
@@ -19,6 +18,7 @@ import { Shadow } from "react-native-shadow-2";
 import MarkdownComponent from "./MarkdownComponent";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import BloomImage from "../Widgets/BloomImage";
+import { useCharacterDetailBottomSheetStyles } from "../Styles/components/CharacterDetailBottomSheetStyles";
 
 interface Character {
   slug?: string;
@@ -59,6 +59,7 @@ export default function CharacterDetailBottomSheet({
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const scaleFontSize = useScaleFontSize();
+  const s = useCharacterDetailBottomSheetStyles();
 
   const name =
     character?.name_ua ||
@@ -99,9 +100,9 @@ export default function CharacterDetailBottomSheet({
       )}
     >
       <BottomSheetScrollView
-        style={styles.container}
+        style={s.container}
         contentContainerStyle={[
-          styles.contentContainer,
+          s.contentContainer,
           { paddingTop: insets.top, paddingBottom: insets.bottom + 20 },
         ]}
         showsVerticalScrollIndicator={false}
@@ -109,7 +110,7 @@ export default function CharacterDetailBottomSheet({
         {/* Character Image with Gradient Shadow */}
 
         {image && (
-          <View style={[styles.imageContainer]}>
+          <View style={[s.imageContainer]}>
             <BloomImage
               uri={image}
               width={imageSize.width}
@@ -124,12 +125,12 @@ export default function CharacterDetailBottomSheet({
 
         {/* Character Name Pill */}
         <View
-          style={[styles.namePill, { backgroundColor: themeColors.primary }]}
+          style={[s.namePill, { backgroundColor: themeColors.primary }]}
         >
           <Text
             selectable={true}
             style={[
-              styles.nameText,
+              s.nameText,
               { fontSize: scaleFontSize(18), color: themeColors.text },
             ]}
             numberOfLines={1}
@@ -140,7 +141,7 @@ export default function CharacterDetailBottomSheet({
 
         {/* Description */}
         {description ? (
-          <View style={styles.descriptionContainer}>
+          <View style={s.descriptionContainer}>
             <MarkdownComponent
               style={{
                 body: {
@@ -157,13 +158,13 @@ export default function CharacterDetailBottomSheet({
         ) : null}
 
         {isLoading ? (
-          <View style={styles.loadingContainer}>
+          <View style={s.loadingContainer}>
             <ActivityIndicator size="large" color={themeColors.primary} />
           </View>
         ) : animeList.length > 0 ? (
           <>
             {/* Anime Section */}
-            <View style={styles.sectionHeader}>
+            <View style={s.sectionHeader}>
               <Text selectable={true} style={[H3, { color: themeColors.text }]}>
                 Аніме
               </Text>
@@ -179,7 +180,7 @@ export default function CharacterDetailBottomSheet({
             />
           </>
         ) : (
-          <View style={styles.emptyContainer}>
+          <View style={s.emptyContainer}>
             <Text
               selectable={true}
               style={[H4, { color: themeColors.inActiveText }]}
@@ -193,59 +194,3 @@ export default function CharacterDetailBottomSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    alignItems: "center",
-  },
-  imageContainer: {
-    overflow: "hidden",
-    borderRadius: 16,
-  },
-  characterImage: {
-    borderRadius: 16,
-  },
-  imageGradient: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-  },
-  namePill: {
-    paddingHorizontal: "10%",
-    paddingVertical: 10,
-    borderRadius: 16,
-    marginTop: 20,
-    zIndex: 1,
-    minWidth: 120,
-    alignItems: "center",
-  },
-  nameText: {
-    fontFamily: "Nunito-SemiBold",
-    textAlign: "center",
-  },
-  descriptionContainer: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    width: "100%",
-  },
-  sectionHeader: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  loadingContainer: {
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyContainer: {
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

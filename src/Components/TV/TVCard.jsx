@@ -1,16 +1,18 @@
 import React, { useState, useCallback } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { useThemeColors } from "../../Global/useTheme";
+import { useTVCardStyles } from "../../Styles/components/TV/TVCardStyles";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function TVCard({ onPress, cardWidth, children, style }) {
   const themeColors = useThemeColors();
+  const s = useTVCardStyles();
   const scale = useSharedValue(1);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -34,7 +36,7 @@ export default function TVCard({ onPress, cardWidth, children, style }) {
       onFocus={handleFocus}
       onBlur={handleBlur}
       style={[
-        styles.card,
+        s.card,
         cardWidth ? { width: cardWidth } : null,
         style,
         animatedStyle,
@@ -45,8 +47,3 @@ export default function TVCard({ onPress, cardWidth, children, style }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    overflow: "hidden",
-  },
-});

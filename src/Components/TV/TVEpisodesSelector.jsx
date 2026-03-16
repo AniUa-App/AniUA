@@ -1,10 +1,11 @@
 import React, { useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import TVButton from "./TVButton";
 import TVModal from "./TVModal";
 import { TV } from "../../Styles/TVStyles";
+import { useTVEpisodesSelectorStyles } from "../../Styles/components/TV/TVEpisodesSelectorStyles";
 
 export default function TVEpisodesSelector({
   episodes,
@@ -14,29 +15,30 @@ export default function TVEpisodesSelector({
 }) {
   const modalRef = useRef(null);
   const themeColors = useThemeColors();
+  const s = useTVEpisodesSelectorStyles();
 
   const open = () => modalRef.current?.present();
 
   return (
     <>
       <TVButton
-        style={[styles.triggerButton, { backgroundColor: themeColors.subtle }]}
+        style={[s.triggerButton, { backgroundColor: themeColors.subtle }]}
         onPress={open}
       >
-        <Text style={[styles.triggerText, { color: themeColors.text }]}>
+        <Text style={[s.triggerText, { color: themeColors.text }]}>
           Серії
         </Text>
       </TVButton>
 
       <TVModal ref={modalRef} title={title}>
-        <View style={styles.episodesGrid}>
+        <View style={s.episodesGrid}>
           {(Array.isArray(episodes) ? episodes : []).map((episode) => {
             const isWatched = checkForStyle?.(episode);
             return (
               <TVButton
                 key={episode.episode}
                 style={[
-                  styles.episodeItem,
+                  s.episodeItem,
                   {
                     backgroundColor: isWatched
                       ? themeColors.Primary(0.2)
@@ -50,7 +52,7 @@ export default function TVEpisodesSelector({
               >
                 <Text
                   style={[
-                    styles.episodeText,
+                    s.episodeText,
                     {
                       color: isWatched ? themeColors.primary : themeColors.text,
                     },
@@ -67,34 +69,3 @@ export default function TVEpisodesSelector({
   );
 }
 
-const styles = StyleSheet.create({
-  triggerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: TV.button.borderRadius,
-    minHeight: TV.button.minHeight,
-  },
-  triggerText: {
-    fontFamily: "Nunito-SemiBold",
-  },
-  episodesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  episodeItem: {
-    minWidth: 64,
-    minHeight: TV.button.minHeight,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  episodeText: {
-    fontFamily: "Nunito-SemiBold",
-  },
-});

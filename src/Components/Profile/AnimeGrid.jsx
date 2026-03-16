@@ -1,8 +1,9 @@
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import Icons from "../../Styles/Icons";
 import { SCREEN_WIDTH } from "./constants";
 import AnimeCard from "../AnimeCard";
 import { H6 } from "../../Styles/Fonts";
+import { useAnimeGridStyles } from "../../Styles/components/Profile/AnimeGridStyles";
 
 export default function AnimeGrid({
   data,
@@ -16,9 +17,11 @@ export default function AnimeGrid({
   numColumns = 3,
   cardWidth = SCREEN_WIDTH * 0.34,
 }) {
+  const s = useAnimeGridStyles();
+
   if (isLoading) {
     return (
-      <View style={styles.emptyState}>
+      <View style={s.emptyState}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -27,11 +30,11 @@ export default function AnimeGrid({
   if (data.length === 0) {
     const EmptyIcon = Icons[emptyIcon];
     return (
-      <View style={styles.emptyState}>
+      <View style={s.emptyState}>
         <EmptyIcon size={48} color={colors.Text(0.3)} weight="regular" />
         <Text
           selectable={true}
-          style={[H6, styles.emptyStateText, { color: colors.Text(0.5) }]}
+          style={[H6, s.emptyStateText, { color: colors.Text(0.5) }]}
         >
           {emptyText}
         </Text>
@@ -42,13 +45,13 @@ export default function AnimeGrid({
   const itemWidth = `${Math.floor(100 / numColumns)}%`;
 
   return (
-    <View style={styles.animeGridContainer}>
+    <View style={s.animeGridContainer}>
       {data.map((item, index) => {
         const anime = getAnimeFromItem ? getAnimeFromItem(item) : item;
         return (
           <View
             key={anime?.slug || index}
-            style={[styles.animeGridItem, { width: itemWidth }]}
+            style={[s.animeGridItem, { width: itemWidth }]}
           >
             <AnimeCard
               anime={anime}
@@ -63,27 +66,3 @@ export default function AnimeGrid({
   );
 }
 
-const styles = StyleSheet.create({
-  emptyState: {
-    width: "100%",
-    alignItems: "center",
-    paddingTop: 40,
-    minHeight: "50%",
-  },
-  emptyStateText: {
-    textAlign: "center",
-    marginTop: 8,
-  },
-  animeGridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingTop: 12,
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    minHeight: "50%",
-  },
-  animeGridItem: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

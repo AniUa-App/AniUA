@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { memo, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Animated, { FadeInDown, FadeOut, Layout } from "react-native-reanimated";
@@ -12,6 +12,7 @@ import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import Icons from "../Styles/Icons";
 import { format, formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
+import { useNotificationCardStyles } from "../Styles/components/NotificationCardStyles";
 
 /**
  * Форматує час отримання сповіщення
@@ -46,6 +47,7 @@ const NotificationCard = memo(function NotificationCard({
 }) {
   const navigation = propNavigation || useNavigation();
   const themeColors = useThemeColors();
+  const s = useNotificationCardStyles();
   const [animeDetails, setAnimeDetails] = useState(null);
 
   // Підвантажуємо деталі аніме якщо є slug
@@ -78,7 +80,7 @@ const NotificationCard = memo(function NotificationCard({
 
   const renderRightActions = () => {
     return (
-      <View style={[styles.deleteAction, {}]}>
+      <View style={[s.deleteAction, {}]}>
         <Icons.Trash size={24} color="#fff" />
       </View>
     );
@@ -98,7 +100,7 @@ const NotificationCard = memo(function NotificationCard({
         <TouchableOpacity
           activeOpacity={0.8}
           style={[
-            styles.container,
+            s.container,
             {
               backgroundColor: item.read
                 ? themeColors.background
@@ -109,12 +111,12 @@ const NotificationCard = memo(function NotificationCard({
         >
           {/* Постер аніме */}
           {posterImage ? (
-            <Image uri={posterImage} style={styles.poster} />
+            <Image uri={posterImage} style={s.poster} />
           ) : (
             <View
               style={[
-                styles.poster,
-                styles.posterPlaceholder,
+                s.poster,
+                s.posterPlaceholder,
                 { backgroundColor: themeColors.accent },
               ]}
             >
@@ -123,13 +125,13 @@ const NotificationCard = memo(function NotificationCard({
           )}
 
           {/* Інформація про сповіщення */}
-          <View style={styles.content}>
+          <View style={s.content}>
             {/* Заголовок (назва аніме або title сповіщення) */}
             <Text
               selectable={true}
               selectable={true}
               style={[
-                styles.title,
+                s.title,
                 {
                   color: themeColors.text,
                   fontWeight: item.read ? "normal" : "600",
@@ -144,7 +146,7 @@ const NotificationCard = memo(function NotificationCard({
             {item.body ? (
               <Text
                 selectable={true}
-                style={[styles.body, { color: themeColors.primary }]}
+                style={[s.body, { color: themeColors.primary }]}
                 numberOfLines={1}
               >
                 {item.body}
@@ -153,11 +155,11 @@ const NotificationCard = memo(function NotificationCard({
 
             {/* Команда озвучення */}
             {item.data?.team && (
-              <View style={styles.teamRow}>
+              <View style={s.teamRow}>
                 <Icons.Microphone size={14} color={themeColors.Text(0.5)} />
                 <Text
                   selectable={true}
-                  style={[styles.team, { color: themeColors.Text(0.6) }]}
+                  style={[s.team, { color: themeColors.Text(0.6) }]}
                   numberOfLines={1}
                 >
                   {item.data.team}
@@ -168,7 +170,7 @@ const NotificationCard = memo(function NotificationCard({
             {/* Час отримання */}
             <Text
               selectable={true}
-              style={[styles.time, { color: themeColors.Text(0.5) }]}
+              style={[s.time, { color: themeColors.Text(0.5) }]}
             >
               {formatNotificationTime(item.receivedAt)}
             </Text>
@@ -178,7 +180,7 @@ const NotificationCard = memo(function NotificationCard({
           {!item.read && (
             <View
               style={[
-                styles.unreadDot,
+                s.unreadDot,
                 { backgroundColor: themeColors.primary },
               ]}
             />
@@ -189,68 +191,5 @@ const NotificationCard = memo(function NotificationCard({
   );
 });
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 10,
-  },
-  poster: {
-    width: 70,
-    height: 100,
-    borderRadius: 12,
-  },
-  posterPlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  content: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: "Nunito-SemiBold",
-    fontSize: H6.fontSize,
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  body: {
-    fontFamily: "Nunito-Medium",
-    fontSize: H7.fontSize,
-    marginBottom: 4,
-  },
-  teamRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 4,
-  },
-  team: {
-    fontFamily: "Nunito-Regular",
-    fontSize: H7.fontSize,
-  },
-  time: {
-    fontFamily: "Nunito-Regular",
-    fontSize: H7.fontSize,
-  },
-  unreadDot: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  deleteAction: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 80,
-    height: "100%",
-    borderRadius: 16,
-    marginBottom: 10,
-  },
-});
 
 export default NotificationCard;

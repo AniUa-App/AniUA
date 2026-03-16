@@ -2,7 +2,6 @@ import React, { useState, useCallback, memo, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ActivityIndicator,
   Keyboard,
   Image,
@@ -29,6 +28,7 @@ import {
   parseExpensiMark,
 } from "@expensify/react-native-live-markdown";
 import { useIsTabletLandscape } from "../Styles/Responsive";
+import { useCommentsSectionStyles } from "../Styles/components/CommentsSectionStyles";
 
 // Custom parser that extends parseExpensiMark with spoiler support
 function parseWithSpoiler(text: string) {
@@ -169,6 +169,7 @@ const CommentItem = memo(function CommentItem({
 }: CommentItemProps) {
   const [showReplies, setShowReplies] = useState(false);
   const isTabletLandscape = useIsTabletLandscape();
+  const s = useCommentsSectionStyles();
   const isAuthor =
     currentUsername && comment.author?.username === currentUsername;
 
@@ -224,32 +225,32 @@ const CommentItem = memo(function CommentItem({
   return (
     <View
       style={[
-        styles.commentContainer,
-        isReply && styles.replyContainer,
+        s.commentContainer,
+        isReply && s.replyContainer,
         { backgroundColor: themeColors.accent },
       ]}
     >
       {/* Comment header */}
-      <View style={styles.commentHeader}>
+      <View style={s.commentHeader}>
         {/* Avatar */}
         {comment.author?.avatar ? (
           <Image
             source={{ uri: comment.author.avatar }}
-            style={[styles.avatar, { backgroundColor: themeColors.background }]}
+            style={[s.avatar, { backgroundColor: themeColors.background }]}
           />
         ) : (
           <View
-            style={[styles.avatar, { backgroundColor: themeColors.background }]}
+            style={[s.avatar, { backgroundColor: themeColors.background }]}
           >
             <Icon.User size={24} color={themeColors.primary} />
           </View>
         )}
 
         {/* Username */}
-        <View style={styles.headerContent}>
+        <View style={s.headerContent}>
           <Text
             selectable={true}
-            style={[H5, styles.username, { color: themeColors.text }]}
+            style={[H5, s.username, { color: themeColors.text }]}
           >
             {comment.author?.username || "Користувач AniUa"}
           </Text>
@@ -264,10 +265,10 @@ const CommentItem = memo(function CommentItem({
         </View>
         {/* Vote row */}
         <View
-          style={[styles.voteRow, { backgroundColor: themeColors.background }]}
+          style={[s.voteRow, { backgroundColor: themeColors.background }]}
         >
           <TouchableOpacity
-            style={[styles.voteButton, {}]}
+            style={[s.voteButton, {}]}
             onPress={() => handleVote(comment.my_score === 1 ? 0 : 1)}
             disabled={isVoting || !HikkaAuthService.isAuthenticated()}
           >
@@ -287,7 +288,7 @@ const CommentItem = memo(function CommentItem({
           </Text>
 
           <TouchableOpacity
-            style={[styles.voteButton, {}]}
+            style={[s.voteButton, {}]}
             onPress={() => handleVote(comment.my_score === -1 ? 0 : -1)}
             disabled={isVoting || !HikkaAuthService.isAuthenticated()}
           >
@@ -313,17 +314,17 @@ const CommentItem = memo(function CommentItem({
       {HikkaAuthService.isAuthenticated() && depth < 2 && (
         <View
           style={[
-            styles.commentActions,
+            s.commentActions,
             {
               justifyContent: isAuthor ? "space-between" : "flex-end",
             },
           ]}
         >
           {isAuthor && (
-            <View style={styles.bottomLeftButtonsContainer}>
+            <View style={s.bottomLeftButtonsContainer}>
               <TouchableOpacity
                 style={[
-                  styles.editAndDeleteButton,
+                  s.editAndDeleteButton,
                   {
                     backgroundColor: themeColors.background,
                   },
@@ -348,7 +349,7 @@ const CommentItem = memo(function CommentItem({
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  styles.editAndDeleteButton,
+                  s.editAndDeleteButton,
                   { backgroundColor: themeColors.background },
                   isTabletLandscape && {
                     width: 135,
@@ -373,7 +374,7 @@ const CommentItem = memo(function CommentItem({
           )}
           <TouchableOpacity
             style={[
-              styles.replyButton,
+              s.replyButton,
               { backgroundColor: themeColors.background },
             ]}
             isActive={false}
@@ -390,13 +391,13 @@ const CommentItem = memo(function CommentItem({
       {repliesCount > 0 && (
         <>
           <TouchableOpacity
-            style={styles.toggleRepliesButton}
+            style={s.toggleRepliesButton}
             onPress={handleToggleReplies}
           >
             {/* Divider */}
             <View
               style={[
-                styles.divider,
+                s.divider,
                 {
                   backgroundColor: themeColors.primary,
                 },
@@ -410,7 +411,7 @@ const CommentItem = memo(function CommentItem({
             </Text>
             <View
               style={[
-                styles.divider,
+                s.divider,
                 {
                   backgroundColor: themeColors.primary,
                 },
@@ -420,7 +421,7 @@ const CommentItem = memo(function CommentItem({
 
           {/* Replies list */}
           {showReplies && (
-            <View style={styles.repliesList}>
+            <View style={s.repliesList}>
               {comment.replies?.map((reply) => (
                 <CommentItem
                   key={reply.reference}
@@ -468,6 +469,7 @@ const CommentInput = memo(function CommentInput({
 }: CommentInputProps) {
   const [text, setText] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const s = useCommentsSectionStyles();
 
   // Set text when editing starts
   useEffect(() => {
@@ -561,12 +563,12 @@ const CommentInput = memo(function CommentInput({
   );
 
   return (
-    <View style={styles.inputContainer}>
+    <View style={s.inputContainer}>
       {/* Edit indicator */}
       {editingComment && (
         <View
           style={[
-            styles.replyIndicator,
+            s.replyIndicator,
             { backgroundColor: themeColors.subtle },
           ]}
         >
@@ -590,7 +592,7 @@ const CommentInput = memo(function CommentInput({
       {replyTo && !editingComment && (
         <View
           style={[
-            styles.replyIndicator,
+            s.replyIndicator,
             { backgroundColor: themeColors.subtle },
           ]}
         >
@@ -607,7 +609,7 @@ const CommentInput = memo(function CommentInput({
       )}
 
       {/* Input row */}
-      <View style={styles.inputRow}>
+      <View style={s.inputRow}>
         <SelectableTextInputWrapper
           menuOptions={COMMENT_MENU_OPTIONS}
           onSelection={handleMenuSelection}
@@ -625,7 +627,7 @@ const CommentInput = memo(function CommentInput({
             textAlignVertical="top"
             markdownStyle={markdownStyle}
             style={[
-              styles.textInput,
+              s.textInput,
               {
                 backgroundColor: themeColors.subtle,
                 color: themeColors.text,
@@ -635,7 +637,7 @@ const CommentInput = memo(function CommentInput({
         </SelectableTextInputWrapper>
         <TouchableOpacity
           style={[
-            styles.sendButton,
+            s.sendButton,
             {
               backgroundColor:
                 text.trim() && !isSubmitting
@@ -677,6 +679,7 @@ function CommentsSection({
   isInputVisible = true,
 }: CommentsSectionProps) {
   const themeColors = useThemeColors();
+  const s = useCommentsSectionStyles();
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -955,7 +958,7 @@ function CommentsSection({
   // Loading state
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={s.centerContainer}>
         <ActivityIndicator size="large" color={themeColors.primary} />
       </View>
     );
@@ -964,7 +967,7 @@ function CommentsSection({
   // Error state
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={s.centerContainer}>
         <Text
           selectable={true}
           style={[H5, { color: themeColors.inActiveText }]}
@@ -972,7 +975,7 @@ function CommentsSection({
           {error}
         </Text>
         <TouchableOpacity
-          style={[styles.retryButton, { backgroundColor: themeColors.subtle }]}
+          style={[s.retryButton, { backgroundColor: themeColors.subtle }]}
           onPress={loadComments}
         >
           <Text selectable={true} style={[H5, { color: themeColors.primary }]}>
@@ -984,7 +987,7 @@ function CommentsSection({
   }
 
   return (
-    <View style={styles.sectionContainer}>
+    <View style={s.sectionContainer}>
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -994,7 +997,7 @@ function CommentsSection({
             colors={[themeColors.primary]}
           />
         }
-        contentContainerStyle={styles.container}
+        contentContainerStyle={s.container}
       >
         {/* Comment input (only for authenticated users) */}
         {HikkaAuthService.isAuthenticated() && isInputVisible && (
@@ -1011,7 +1014,7 @@ function CommentsSection({
 
         {/* Comments list */}
         {comments.length === 0 ? (
-          <View style={styles.emptyContainer}>
+          <View style={s.emptyContainer}>
             <Text
               selectable={true}
               style={[H5, { color: themeColors.inActiveText }]}
@@ -1054,7 +1057,7 @@ function CommentsSection({
         statusBarTranslucent
         onRequestClose={cancelDeleteComment}
       >
-        <View style={styles.modalOverlay}>
+        <View style={s.modalOverlay}>
           <Snackbar
             visible={deleteConfirm.visible}
             message="Видалити цей коментар?"
@@ -1071,164 +1074,5 @@ function CommentsSection({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    flex: 1,
-    width: "100%",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  container: {
-    width: "100%",
-  },
-  centerContainer: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  commentContainer: {
-    padding: 16,
-    borderRadius: 16,
-  },
-  replyContainer: {
-    marginLeft: 4,
-    marginTop: 4,
-    paddingTop: 16,
-  },
-  commentHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  headerContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  username: {
-    fontFamily: "Nunito-SemiBold",
-  },
-  commentText: {
-    lineHeight: 22,
-    marginTop: 4,
-  },
-  voteRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8,
-    borderRadius: 16,
-    padding: 4,
-  },
-  voteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  editAndDeleteButton: {
-    marginTop: 4,
-    padding: 16,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 38,
-    height: 38,
-  },
-  replyButton: {
-    marginTop: 4,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    height: 38,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  divider: {
-    height: 1,
-    marginTop: 20,
-    borderRadius: 16,
-    flex: 1,
-    bottom: 4,
-    marginBottom: 8,
-  },
-  toggleRepliesButton: {
-    alignItems: "center",
-    flexDirection: "row",
-    flex: 1,
-    justifyContent: "center",
-    paddingVertical: 12,
-    gap: 8,
-  },
-  repliesList: {
-    marginTop: 4,
-    flex: 1,
-  },
-  emptyContainer: {
-    padding: 24,
-    alignItems: "center",
-  },
-  retryButton: {
-    marginTop: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  // Input styles
-  inputContainer: {
-    marginBottom: 16,
-    width: "100%",
-  },
-  replyIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  commentActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  bottomLeftButtonsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    width: "100%",
-  },
-  textInput: {
-    flex: 1,
-    flexGrow: 1,
-    minHeight: 44,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    fontSize: 15,
-    fontFamily: "Nunito-Regular",
-    lineHeight: 20,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default memo(CommentsSection);

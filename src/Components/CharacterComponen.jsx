@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import React from "react";
 import { TouchableOpacity } from "../Widgets/Button";
 import { H3, H4 } from "../Styles/Fonts";
@@ -7,6 +7,7 @@ import { useWindowDimensions } from "react-native";
 import { isTabletLandscape, isTablet, useIsTV } from "../Styles/Responsive";
 import { TV } from "../Styles/TVStyles";
 import { useThemeColors } from "../Global/useTheme";
+import { useCharacterComponentStyles } from "../Styles/components/CharacterComponentStyles";
 
 const CharacterComponent = React.memo(function CharacterComponent({
   item,
@@ -17,6 +18,7 @@ const CharacterComponent = React.memo(function CharacterComponent({
   const { width, height } = useWindowDimensions();
   const themeColors = useThemeColors();
   const isTVDevice = useIsTV();
+  const s = useCharacterComponentStyles();
 
   const name = item.name_ua || item.name_en || item.name_ja || item.name;
   const image = item.image;
@@ -33,7 +35,7 @@ const CharacterComponent = React.memo(function CharacterComponent({
   return (
     <TouchableOpacity
       style={[
-        styles.cardContainer,
+        s.cardContainer,
         {
           backgroundColor: themeColors.background,
         },
@@ -50,18 +52,18 @@ const CharacterComponent = React.memo(function CharacterComponent({
       <Image
         uri={image}
         style={[
-          styles.characterImage,
+          s.characterImage,
           imageDims,
           isTVDevice && {
             marginRight: TV.padding.card,
           },
         ]}
       />
-      <View style={[styles.infoContainer, isTVDevice && { paddingTop: 8 }]}>
+      <View style={[s.infoContainer, isTVDevice && { paddingTop: 8 }]}>
         <Text
           numberOfLines={2}
           ellipsizeMode="tail"
-          style={[styles.name, isTVDevice && { marginBottom: 12 }]}
+          style={[s.name, isTVDevice && { marginBottom: 12 }]}
         >
           {name}
         </Text>
@@ -80,28 +82,3 @@ const CharacterComponent = React.memo(function CharacterComponent({
 });
 
 export default CharacterComponent;
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    flexDirection: "row",
-    backgroundColor: "transparent",
-    padding: 10,
-    borderRadius: 18,
-    marginVertical: 5,
-    marginHorizontal: 10,
-    alignItems: "flex-start",
-  },
-  characterImage: {
-    borderRadius: 18,
-    marginRight: 10,
-  },
-  infoContainer: {
-    flex: 1,
-    paddingTop: 5,
-  },
-  name: {
-    ...H3,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-});

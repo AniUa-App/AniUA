@@ -271,8 +271,8 @@ export default function App() {
               });
             }
           }
-        } catch (e) {
-          Logger.logAppInit("Помилка блокування орієнтації", false, e);
+        } catch {
+          // Activity може бути ще не готова — некритично, ігноруємо
         }
 
         Logger.logAppInit("Перевірка дозволів.");

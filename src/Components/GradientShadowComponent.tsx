@@ -1,7 +1,8 @@
 import React, { ReactNode } from "react";
-import { View, StyleSheet, ViewStyle } from "react-native";
+import { View, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import { BlurView } from "expo-blur";
+import { useGradientShadowComponentStyles } from "../Styles/components/GradientShadowComponentStyles";
 
 interface GradientShadowProps {
   children: ReactNode;
@@ -28,6 +29,7 @@ export default function GradientShadow({
   blur = 0,
   style,
 }: GradientShadowProps) {
+  const s = useGradientShadowComponentStyles();
   const wrapperWidth = width + shadowSize * 2;
   const wrapperHeight = height + shadowSize * 2;
   const cornerRadius = borderRadius + shadowSize;
@@ -66,7 +68,7 @@ export default function GradientShadow({
   return (
     <View
       style={[
-        styles.wrapper,
+        s.wrapper,
         { width: wrapperWidth, height: wrapperHeight },
         style,
       ]}
@@ -75,7 +77,7 @@ export default function GradientShadow({
       {renderShadowLayer(
         [startColor, endColor],
         {
-          ...styles.shadowTop,
+          ...s.shadowTop,
           width: width,
           height: shadowSize,
           left: shadowSize,
@@ -88,7 +90,7 @@ export default function GradientShadow({
       {renderShadowLayer(
         [endColor, startColor],
         {
-          ...styles.shadowBottom,
+          ...s.shadowBottom,
           width: width,
           height: shadowSize,
           left: shadowSize,
@@ -101,7 +103,7 @@ export default function GradientShadow({
       {renderShadowLayer(
         [startColor, endColor],
         {
-          ...styles.shadowLeft,
+          ...s.shadowLeft,
           height: height,
           width: shadowSize,
           top: shadowSize,
@@ -114,7 +116,7 @@ export default function GradientShadow({
       {renderShadowLayer(
         [endColor, startColor],
         {
-          ...styles.shadowRight,
+          ...s.shadowRight,
           height: height,
           width: shadowSize,
           top: shadowSize,
@@ -190,26 +192,3 @@ export default function GradientShadow({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  shadowTop: {
-    position: "absolute",
-    top: 0,
-  },
-  shadowBottom: {
-    position: "absolute",
-    bottom: 0,
-  },
-  shadowLeft: {
-    position: "absolute",
-    left: 0,
-  },
-  shadowRight: {
-    position: "absolute",
-    right: 0,
-  },
-});

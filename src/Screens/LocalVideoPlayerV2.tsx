@@ -2468,7 +2468,7 @@ async function ___getQualities(file) {
         const height =
           resMatch?.[1] ??
           url.match(/\/(\d{3,4})\//)?.[1] ??
-          url.match(/\/hls\/(\d+)\//)?.[1];
+          url.match(/\/hls.(\d+)\//)?.[1];
         if (height) qualities[height + "p"] = url;
       }
     }
@@ -2554,7 +2554,7 @@ function _moonParseFallback(
   if (!script) return null;
 
   const xorKey = script.match(/var\s+k\s*=\s*"([^"]+)"/)?.[1] ?? "mAnK";
-  const pjsMatch = script.match(/new\s+Playerjs\s*\(\s*(\{[\s\S]+?\})\s*\)/);
+  const pjsMatch = script.match(/new\s+Playerjs.*\(\s*(\{[\s.]+?\})\s*\)/);
   if (!pjsMatch) return null;
 
   const raw = pjsMatch[1];

@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ViewStyle,
 } from "react-native";
@@ -11,6 +10,7 @@ import Icon from "../Styles/Icons";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import { H5 } from "../Styles/Fonts";
+import { useWatchButtonStyles } from "../Styles/components/WatchButtonStyles";
 
 export enum WatchButtonState {
   LOADING = "Завантаження контенту...",
@@ -38,12 +38,13 @@ export default function WatchButton({
   isActive,
 }: WatchButtonProps) {
   const colors = useThemeColors();
+  const s = useWatchButtonStyles();
 
   return (
-    <View style={[styles.container, {}, style]}>
+    <View style={[s.container, {}, style]}>
       <TouchableOpacity
         style={[
-          styles.watchButton,
+          s.watchButton,
           { backgroundColor: isActive ? colors.primary : colors.Primary(0.3) },
         ]}
         onPress={isActive ? onWatchPress : null}
@@ -60,7 +61,7 @@ export default function WatchButton({
       {isDownloadable && (
         <TouchableOpacity
           style={[
-            styles.downloadButton,
+            s.downloadButton,
             {
               borderLeftColor: colors.background,
               backgroundColor: isActive ? colors.primary : colors.Primary(0.3),
@@ -80,27 +81,3 @@ export default function WatchButton({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    overflow: "hidden",
-    width: 44,
-    height: 44,
-  },
-  watchButton: {
-    flex: 1,
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  downloadButton: {
-    width: "18%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    borderLeftWidth: 1,
-  },
-});

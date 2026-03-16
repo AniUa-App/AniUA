@@ -5,10 +5,10 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
-  StyleSheet,
 } from "react-native";
 import { TouchableOpacity } from "../../Widgets/Button";
 import { H4 } from "../../Styles/Fonts";
+import { useUsernameEditModalStyles } from "../../Styles/components/Profile/UsernameEditModalStyles";
 
 export default function UsernameEditModal({
   visible,
@@ -19,6 +19,8 @@ export default function UsernameEditModal({
   isUpdating,
   colors,
 }) {
+  const s = useUsernameEditModalStyles();
+
   return (
     <Modal
       visible={visible}
@@ -26,26 +28,26 @@ export default function UsernameEditModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
+      <Pressable style={s.modalOverlay} onPress={onClose}>
         <Pressable
-          style={[styles.modalContent, { backgroundColor: colors.background }]}
+          style={[s.modalContent, { backgroundColor: colors.background }]}
           onPress={(e) => e.stopPropagation()}
         >
           <Text
             selectable={true}
-            style={[H4, styles.modalTitle, { color: colors.text }]}
+            style={[H4, s.modalTitle, { color: colors.text }]}
           >
             Змінити ім'я користувача
           </Text>
 
           <View
             style={[
-              styles.modalInputContainer,
+              s.modalInputContainer,
               { backgroundColor: colors.accent },
             ]}
           >
             <TextInput
-              style={[H4, styles.modalInput, { color: colors.text }]}
+              style={[H4, s.modalInput, { color: colors.text }]}
               value={username}
               onChangeText={onChangeUsername}
               placeholder="Нове ім'я користувача"
@@ -57,10 +59,10 @@ export default function UsernameEditModal({
             />
           </View>
 
-          <View style={styles.modalButtons}>
+          <View style={s.modalButtons}>
             <TouchableOpacity
               onPress={onClose}
-              style={[styles.modalButton, { backgroundColor: colors.accent }]}
+              style={[s.modalButton, { backgroundColor: colors.accent }]}
               disabled={isUpdating}
             >
               <Text selectable={true} style={[H4, { color: colors.text }]}>
@@ -70,7 +72,7 @@ export default function UsernameEditModal({
 
             <TouchableOpacity
               onPress={onSubmit}
-              style={[styles.modalButton, { backgroundColor: colors.primary }]}
+              style={[s.modalButton, { backgroundColor: colors.primary }]}
               disabled={isUpdating}
             >
               {isUpdating ? (
@@ -88,43 +90,3 @@ export default function UsernameEditModal({
   );
 }
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: 20,
-    padding: 24,
-  },
-  modalTitle: {
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalInputContainer: {
-    height: 52,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-  },
-  modalInput: {
-    flex: 1,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 24,
-  },
-  modalButton: {
-    flex: 1,
-    height: 52,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

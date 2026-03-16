@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import {
   View,
-  StyleSheet,
   FlatList,
   Linking,
   Text,
@@ -13,6 +12,7 @@ import Icon from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
 import { H5, H6 } from "../Styles/Fonts";
 import LinearGradient from "react-native-linear-gradient";
+import { useMusicOSTStyles } from "../Styles/components/MusicOSTStyles";
 
 interface OSTItem {
   index: number;
@@ -36,6 +36,7 @@ function getOSTLabel(type: string, index: number): string {
 export default function MusicOST({ ost, style }: MusicOSTProps) {
   const { width: windowWidth } = useWindowDimensions();
   const colors = useThemeColors();
+  const s = useMusicOSTStyles();
 
   const cardWidth = windowWidth * 0.65;
   const cardHeight = cardWidth * (9 / 16);
@@ -49,7 +50,7 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
       return (
         <TouchableOpacity
           style={[
-            styles.cardContainer,
+            s.cardContainer,
             {
               width: cardWidth,
               height: cardHeight,
@@ -62,11 +63,11 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
             colors={["#1DB954", "#191414"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.gradient}
+            style={s.gradient}
           />
 
           {/* Badge */}
-          <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+          <View style={[s.badge, { backgroundColor: colors.primary }]}>
             <Text
               selectable={true}
               selectable={true}
@@ -77,25 +78,25 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
           </View>
 
           {/* Center icon */}
-          <View style={styles.iconContainer}>
+          <View style={s.iconContainer}>
             <Icon.SpotifyLogo size={48} color="#FFFFFF" weight="fill" />
           </View>
 
           {/* Bottom info */}
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}
-            style={styles.bottomGradient}
+            style={s.bottomGradient}
           >
             <Text
               selectable={true}
-              style={[H5, styles.title]}
+              style={[H5, s.title]}
               numberOfLines={1}
             >
               {item.title}
             </Text>
             <Text
               selectable={true}
-              style={[H6, styles.author]}
+              style={[H6, s.author]}
               numberOfLines={1}
             >
               {item.author}
@@ -125,52 +126,8 @@ export default function MusicOST({ ost, style }: MusicOSTProps) {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={[style]}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      ItemSeparatorComponent={() => <View style={s.separator} />}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  cardContainer: {
-    borderRadius: 12,
-    overflow: "hidden",
-    position: "relative",
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  badge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    zIndex: 2,
-  },
-  iconContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bottomGradient: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    paddingTop: 24,
-  },
-  title: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  author: {
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 2,
-  },
-  separator: {
-    width: 12,
-  },
-});

@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { H4, H5, H6 } from "../../Styles/Fonts";
+import { useProfileStatsPhoneStyles, useProfileStatsTabletsStyles } from "../../Styles/components/Profile/ProfileStatsStyles";
 import { JSX, useMemo } from "react";
 import Icon from "../../Styles/Icons";
 import Svg, { Circle } from "react-native-svg";
@@ -38,6 +39,7 @@ function ProfileStatsPhone({
   favorites: any;
   colors: any;
 }) {
+  const s = useProfileStatsPhoneStyles();
   const userStats = [
     {
       value: stats?.planned ?? 0,
@@ -58,12 +60,12 @@ function ProfileStatsPhone({
   ];
 
   return (
-    <View style={stylesPhone.statsContainer}>
+    <View style={s.statsContainer}>
       {userStats.map((stat, index) => (
         <View
           key={index}
           style={[
-            stylesPhone.statItem,
+            s.statItem,
             {
               backgroundColor: colors.accent,
             },
@@ -101,6 +103,7 @@ function ProfileStatsTablet({
   favorites: any;
   colors: any;
 }) {
+  const s = useProfileStatsTabletsStyles();
   const userStats = [
     {
       key: "planned",
@@ -169,16 +172,16 @@ function ProfileStatsTablet({
   return (
     <View
       style={[
-        stylesTablets.statsContainer,
+        s.statsContainer,
         {
           backgroundColor: colors.accent,
         },
       ]}
     >
-      <View style={stylesTablets.statsRow}>
-        <View style={stylesTablets.statsList}>
+      <View style={s.statsRow}>
+        <View style={s.statsList}>
           {sortedUserStatsList.map((stat, index) => (
-            <View key={index} style={[stylesTablets.statItem]}>
+            <View key={index} style={[s.statItem]}>
               <stat.icon size={24} color={stat.color} weight="fill" />
               <Text
                 selectable={true}
@@ -207,7 +210,7 @@ function ProfileStatsTablet({
           ))}
         </View>
         {total > 0 && (
-          <View style={stylesTablets.chartContainer}>
+          <View style={s.chartContainer}>
             <Svg width={size} height={size}>
               <Circle
                 cx={center}
@@ -241,7 +244,7 @@ function ProfileStatsTablet({
                 });
               })()}
             </Svg>
-            <View style={stylesTablets.chartCenter}>
+            <View style={s.chartCenter}>
               <Text
                 style={[
                   H4,
@@ -267,7 +270,7 @@ function ProfileStatsTablet({
             </View>
             <View
               style={[
-                stylesTablets.statItem,
+                s.statItem,
                 {
                   marginTop: 8,
                   justifyContent: "center",
@@ -315,6 +318,7 @@ function ProfileStatsTV({
   favorites: any;
   colors: any;
 }) {
+  const s = useProfileStatsTabletsStyles();
   const userStats = [
     {
       key: "planned",
@@ -384,18 +388,18 @@ function ProfileStatsTV({
     <View
       focusable={false}
       style={[
-        stylesTablets.statsContainer,
+        s.statsContainer,
         {
           backgroundColor: colors.accent,
         },
       ]}
     >
-      <View style={stylesTablets.statsRow} focusable={false}>
-        <View style={stylesTablets.statsList} focusable={false}>
+      <View style={s.statsRow} focusable={false}>
+        <View style={s.statsList} focusable={false}>
           {sortedUserStatsList.map((stat, index) => (
             <View
               key={index}
-              style={[stylesTablets.statItem]}
+              style={[s.statItem]}
               focusable={false}
             >
               <stat.icon size={24} color={stat.color} weight="fill" />
@@ -427,63 +431,3 @@ function ProfileStatsTV({
     </View>
   );
 }
-const stylesPhone = StyleSheet.create({
-  statsContainer: {
-    flexDirection: "row",
-    width: "100%",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginHorizontal: 20,
-    marginTop: 20,
-    gap: 8,
-  },
-  statItem: {
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-
-    gap: 4,
-  },
-});
-
-const stylesTablets = StyleSheet.create({
-  statsContainer: {
-    flexDirection: "column",
-    marginHorizontal: 16,
-    marginTop: 20,
-    borderRadius: 16,
-    padding: 16,
-  },
-  statsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 84,
-  },
-  statsList: {
-    gap: 16,
-  },
-  chartContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chartCenter: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 38,
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    alignSelf: "flex-start",
-  },
-  iconContainer: {
-    padding: 8,
-    borderRadius: 10,
-  },
-  textContainer: {
-    flex: 1,
-  },
-});

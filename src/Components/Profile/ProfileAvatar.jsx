@@ -1,20 +1,22 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Image } from "../../Widgets/LoadersWidgets";
 import Icons from "../../Styles/Icons";
+import { useProfileAvatarStyles } from "../../Styles/components/Profile/ProfileAvatarStyles";
 
 export default function ProfileAvatar({ avatarUrl, colors }) {
   const hasCustomAvatar = avatarUrl && !avatarUrl.includes("/avatar/");
+  const s = useProfileAvatarStyles();
 
   return (
-    <View style={styles.avatarContainer}>
+    <View style={s.avatarContainer}>
       {!hasCustomAvatar ? (
         <Image
           uri={avatarUrl}
-          style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}
+          style={[s.avatarOuter, { backgroundColor: colors.subtle }]}
           resizeMode="cover"
         />
       ) : (
-        <View style={[styles.avatarOuter, { backgroundColor: colors.subtle }]}>
+        <View style={[s.avatarOuter, { backgroundColor: colors.subtle }]}>
           <Icons.User size={72} color={colors.Text(0.5)} weight="regular" />
         </View>
       )}
@@ -22,17 +24,3 @@ export default function ProfileAvatar({ avatarUrl, colors }) {
   );
 }
 
-const styles = StyleSheet.create({
-  avatarContainer: {
-    alignItems: "center",
-    marginTop: 4,
-  },
-  avatarOuter: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-});
