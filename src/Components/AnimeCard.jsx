@@ -1,12 +1,11 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { memo, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColors } from "../Global/useTheme";
-import { H6, H7 } from "../Styles/Fonts";
 import { Image } from "../Widgets/LoadersWidgets";
 import { prefetchBloomImage } from "../Widgets/BloomImage";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useIsTV } from "../Styles/Responsive";
+import { useAnimeCardStyles } from "../Styles/components/AnimeCardStyles";
 
 /**
  * Компонент картки аніме з підвантаженням деталей
@@ -23,10 +22,9 @@ const AnimeCard = memo(function AnimeCard({
   navigation: propNavigation,
 }) {
   const navigation = propNavigation || useNavigation();
-  const themeColors = useThemeColors();
+  const s = useAnimeCardStyles();
   const [details, setDetails] = useState(null);
   const isTV = useIsTV();
-  const [isFocused, setIsFocused] = useState(null);
 
   // Підвантажуємо деталі якщо немає жанрів
   useEffect(() => {
@@ -78,49 +76,34 @@ const AnimeCard = memo(function AnimeCard({
 
   return (
     <Pressable
-      style={({ focused, pressed }) => [
-        styles.container,
+      style={({ focused }) => [
+        s.container,
         { width },
-        isTV &&
-          focused && {
-            ...styles.tvFocused,
-            borderColor: themeColors.primary,
-            backgroundColor: themeColors.accent,
-            width: width + 4,
-          },
-        !isTV && {
-          padding: 8,
+        isTV && focused && {
+          ...s.tvFocused,
         },
+        !isTV && s.containerPhone,
       ]}
       onPress={handlePress}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
     >
       <Image
         uri={anime.image}
-        style={[
-          {
-            width: "100%",
-            aspectRatio: showDetails ? 0.75 : 0.7,
-            borderRadius: 21,
-            marginTop: 1,
-          },
-        ]}
+        style={showDetails ? s.image : s.imageCompact}
       />
       {showDetails && (
-        <View style={styles.details}>
+        <View style={s.details}>
           <Text
             selectable={false}
-            style={[H7, styles.title, { color: themeColors.text }]}
+            style={s.title}
             numberOfLines={2}
           >
             {anime.title_ua || anime.title_en || anime.title_ja}
           </Text>
-          <View style={styles.infoRow}>
+          <View style={s.infoRow}>
             {genres && (
               <Text
                 selectable={false}
-                style={[H6, styles.genres, { color: themeColors.primary }]}
+                style={s.genre}
                 numberOfLines={1}
               >
                 {genres}
@@ -129,7 +112,7 @@ const AnimeCard = memo(function AnimeCard({
             {episodes && (
               <Text
                 selectable={false}
-                style={[H6, styles.episodes, { color: themeColors.primary }]}
+                style={s.episodes}
               >
                 {genres?.length > 15
                   ? null
@@ -145,34 +128,5 @@ const AnimeCard = memo(function AnimeCard({
   );
 });
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 18,
-    padding: 4,
-    paddingBottom: 6,
-  },
-  details: {
-    marginTop: 6,
-    paddingHorizontal: 2,
-  },
-  title: {
-    lineHeight: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    gap: 3,
-  },
-  genres: {
-    marginTop: 2,
-  },
-  episodes: {
-    marginTop: 2,
-  },
-  tvFocused: {
-    borderWidth: 1,
-    zIndex: 100,
-    transform: [{ scale: 1.09 }],
-  },
-});
 
 export default AnimeCard;

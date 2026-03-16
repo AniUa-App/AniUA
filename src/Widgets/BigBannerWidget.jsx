@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback, useRef, useState } from "react";
 import {
   View,
-  StyleSheet,
   useWindowDimensions,
   Text,
   FlatList,
@@ -22,12 +21,12 @@ import Animated, {
 } from "react-native-reanimated";
 import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
-import { H2, H4 } from "../Styles/Fonts";
+import { useBigBannerStyles } from "../Styles/components/BigBannerStyles";
 
-const CARD_BORDER_RADIUS = 20;
 
 const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
   const themeColors = useThemeColors();
+  const s = useBigBannerStyles();
   const animatedStyle = useAnimatedStyle(() => {
     // Нормалізуємо progress для loop режиму
     let normalizedProgress = progress.value % total;
@@ -59,15 +58,16 @@ const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
 
   return (
     <TouchableOpacity onPress={() => onPress?.(index)}>
-      <Animated.View style={[styles.paginationDot, animatedStyle]} />
+      <Animated.View style={[s.paginationDot, animatedStyle]} />
     </TouchableOpacity>
   );
 });
 
 const PaginationDots = React.memo(({ total, progress, onPress }) => {
+  const s = useBigBannerStyles();
   if (total <= 1) return null;
   return (
-    <View style={styles.paginationContainer}>
+    <View style={s.paginationContainer}>
       {Array.from({ length: total }).map((_, index) => (
         <AnimatedDot
           key={index}
@@ -89,6 +89,7 @@ const Mobile = React.memo(({ animes }) => {
   const flatListRef = useRef(null);
   const progress = useSharedValue(0);
   const themeColors = useThemeColors();
+  const s = useBigBannerStyles();
   const currentIndexRef = useRef(0);
   const autoPlayRef = useRef(null);
   const isTouchingRef = useRef(false);
@@ -183,16 +184,7 @@ const Mobile = React.memo(({ animes }) => {
       return (
         <TouchableOpacity
           onPress={() => handlePress(item)}
-          style={[
-            styles.itemContainer,
-            {
-              width: BANNER_WIDTH,
-              height: BANNER_HEIGHT,
-              alignItems: "center",
-              justifyContent: "center",
-              flex: 1,
-            },
-          ]}
+          style={[s.itemContainer, { width: BANNER_WIDTH, height: BANNER_HEIGHT, alignItems: "center", justifyContent: "center" }]}
         >
           <BloomImage
             uri={item.image}
@@ -205,90 +197,39 @@ const Mobile = React.memo(({ animes }) => {
             resizeMode={FastImage.resizeMode.cover}
             fadePercent={0.2}
           />
-          {/* Darkening gradient overlay */}
           <LinearGradient
-            colors={["transparent", themeColors.Background(0.5)]}
+            colors={s.gradientColors}
             locations={[0, 1]}
-            style={[
-              styles.gradientOverlay,
-              {
-                width: BANNER_WIDTH * 0.9,
-                height: BANNER_HEIGHT * 0.9,
-              },
-            ]}
+            style={[s.gradientOverlay, { width: BANNER_WIDTH * 0.9, height: BANNER_HEIGHT * 0.9 }]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
           />
-          {/* Rating badge */}
           {score > 0 && (
-            <View
-              style={[
-                styles.ratingBadge,
-                { backgroundColor: themeColors.Background(0.8) },
-              ]}
-            >
-              <Icons.StarFour size={32} color={themeColors.primary} />
-              <Text selectable={true} style={[H4, { color: themeColors.text }]}>
-                {score.toFixed(1)}
-              </Text>
+            <View style={s.ratingBadge}>
+              <Icons.StarFour size={s.mobile.iconSize} color={themeColors.primary} />
+              <Text selectable={true} style={s.ratingText}>{score.toFixed(1)}</Text>
             </View>
           )}
-          {/* Title and play button */}
-          <View
-            style={[
-              styles.bottomOverlay,
-              {
-                alignItems: title.length > 20 ? "flex-start" : "center",
-              },
-            ]}
-          >
-            <View style={styles.titleContainer}>
-              <Text
-                selectable={true}
-                style={[
-                  H2,
-                  {
-                    color: themeColors.text,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {title}
-                {year ? ` (${year})` : ""}
+          <View style={[s.bottomOverlay, { alignItems: title.length > 20 ? "flex-start" : "center" }]}>
+            <View style={s.titleContainer}>
+              <Text selectable={true} style={s.title} numberOfLines={2}>
+                {title}{year ? ` (${year})` : ""}
               </Text>
             </View>
-            <View
-              style={[
-                styles.playButton,
-                {
-                  backgroundColor: themeColors.background,
-                  width: 54,
-                  height: 54,
-                },
-              ]}
-            >
-              <Icons.PlayCircle size={32} color={themeColors.primary} />
+            <View style={s.mobile.playButton}>
+              <Icons.PlayCircle size={s.mobile.iconSize} color={themeColors.primary} />
             </View>
           </View>
         </TouchableOpacity>
       );
     },
-    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],
+    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT],
   );
 
   if (!animes?.length) return null;
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height: BANNER_HEIGHT,
-          backgroundColor: "transparent",
-          alignItems: "center",
-        },
-      ]}
-    >
+    <View style={[s.container, { height: BANNER_HEIGHT, backgroundColor: "transparent", alignItems: "center" }]}>
       <FlatList
         ref={flatListRef}
         data={animes}
@@ -308,11 +249,7 @@ const Mobile = React.memo(({ animes }) => {
         snapToAlignment="start"
         scrollEventThrottle={16}
       />
-      <PaginationDots
-        total={animes.length}
-        progress={progress}
-        onPress={onPressPagination}
-      />
+      <PaginationDots total={animes.length} progress={progress} onPress={onPressPagination} />
     </View>
   );
 });
@@ -325,6 +262,7 @@ const Tablet = React.memo(({ animes }) => {
   const flatListRef = useRef(null);
   const progress = useSharedValue(0);
   const themeColors = useThemeColors();
+  const s = useBigBannerStyles();
   const currentIndexRef = useRef(0);
   const autoPlayRef = useRef(null);
   const isTouchingRef = useRef(false);
@@ -419,15 +357,7 @@ const Tablet = React.memo(({ animes }) => {
       return (
         <TouchableOpacity
           onPress={() => handlePress(item)}
-          style={[
-            styles.itemContainer,
-            {
-              width: BANNER_WIDTH,
-              height: BANNER_HEIGHT,
-              alignItems: "center",
-              justifyContent: "center",
-            },
-          ]}
+          style={[s.itemContainer, { width: BANNER_WIDTH, height: BANNER_HEIGHT, alignItems: "center", justifyContent: "center" }]}
         >
           <BloomImage
             uri={item.image}
@@ -440,90 +370,39 @@ const Tablet = React.memo(({ animes }) => {
             resizeMode={FastImage.resizeMode.cover}
             fadePercent={0.2}
           />
-          {/* Darkening gradient overlay */}
           <LinearGradient
-            colors={["transparent", themeColors.Background(0.5)]}
+            colors={s.gradientColors}
             locations={[0, 1]}
-            style={[
-              styles.gradientOverlay,
-              {
-                width: BANNER_WIDTH * 0.83,
-                height: BANNER_HEIGHT * 0.85,
-              },
-            ]}
+            style={[s.gradientOverlay, { width: BANNER_WIDTH * 0.83, height: BANNER_HEIGHT * 0.85 }]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
           />
-          {/* Rating badge */}
           {score > 0 && (
-            <View
-              style={[
-                styles.ratingBadge,
-                { backgroundColor: themeColors.Background(0.8) },
-              ]}
-            >
-              <Icons.StarFour size={28} color={themeColors.primary} />
-              <Text selectable={true} style={[H4, { color: themeColors.text }]}>
-                {score.toFixed(1)}
-              </Text>
+            <View style={s.ratingBadge}>
+              <Icons.StarFour size={s.tablet.iconSize} color={themeColors.primary} />
+              <Text selectable={true} style={s.ratingText}>{score.toFixed(1)}</Text>
             </View>
           )}
-          {/* Title and play button */}
-          <View
-            style={[
-              styles.bottomOverlay,
-              {
-                alignItems: title.length > 20 ? "flex-start" : "center",
-              },
-            ]}
-          >
-            <View style={styles.titleContainer}>
-              <Text
-                selectable={true}
-                style={[
-                  H2,
-                  {
-                    color: themeColors.text,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {title}
-                {year ? ` (${year})` : ""}
+          <View style={[s.bottomOverlay, { alignItems: title.length > 20 ? "flex-start" : "center" }]}>
+            <View style={s.titleContainer}>
+              <Text selectable={true} style={s.title} numberOfLines={2}>
+                {title}{year ? ` (${year})` : ""}
               </Text>
             </View>
-            <View
-              style={[
-                styles.playButton,
-                {
-                  backgroundColor: themeColors.background,
-                  width: 44,
-                  height: 44,
-                },
-              ]}
-            >
-              <Icons.PlayCircle size={28} color={themeColors.primary} />
+            <View style={s.tablet.playButton}>
+              <Icons.PlayCircle size={s.tablet.iconSize} color={themeColors.primary} />
             </View>
           </View>
         </TouchableOpacity>
       );
     },
-    [handlePress, themeColors, BANNER_WIDTH, BANNER_HEIGHT],
+    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT],
   );
 
   if (!animes?.length) return null;
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height: BANNER_HEIGHT,
-          backgroundColor: "transparent",
-          alignItems: "center",
-        },
-      ]}
-    >
+    <View style={[s.container, { height: BANNER_HEIGHT, backgroundColor: "transparent", alignItems: "center" }]}>
       <FlatList
         ref={flatListRef}
         data={animes}
@@ -543,91 +422,10 @@ const Tablet = React.memo(({ animes }) => {
         snapToAlignment="start"
         scrollEventThrottle={16}
       />
-      <PaginationDots
-        total={animes.length}
-        progress={progress}
-        onPress={onPressPagination}
-      />
+      <PaginationDots total={animes.length} progress={progress} onPress={onPressPagination} />
     </View>
   );
 });
 
 export default { Mobile, Tablet };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#000",
-  },
-  itemContainer: {
-    flex: 1,
-    borderRadius: CARD_BORDER_RADIUS,
-    overflow: "hidden",
-  },
-  itemImage: {
-    width: "100%",
-    height: "100%",
-  },
-  bottomGradient: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "50%",
-  },
-  paginationContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-    zIndex: 10,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-  },
-  paginationDotActive: {
-    width: 24,
-    backgroundColor: "#E53935",
-  },
-  ratingBadge: {
-    position: "absolute",
-    top: "12%",
-    right: "8.7%",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-    gap: 4,
-  },
-
-  bottomOverlay: {
-    margin: 18,
-    position: "absolute",
-    bottom: "8%",
-    left: "8%",
-    right: "8%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  titleContainer: {
-    flex: 1,
-  },
-
-  playButton: {
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  gradientOverlay: {
-    position: "absolute",
-    borderRadius: 16,
-  },
-});

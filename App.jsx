@@ -1,7 +1,7 @@
 import React, { useState, useEffect, use } from "react";
 import { View, Text, Linking, AppState } from "react-native";
 import ScreenController from "./src/Screens/ScreenController/ScreenController";
-import { background, text, primary } from "./src/Styles/Colors";
+import { background, text } from "./src/Styles/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Loader from "./src/Widgets/Splash";
@@ -20,7 +20,8 @@ import AllowTheVideoFolder, {
   getDocumentDirectory,
   getVideoDir,
 } from "./src/FIleSystem/FileSystem";
-import { H2, H3, H5, H6, useCustomFonts } from "./src/Styles/Fonts";
+import { useCustomFonts } from "./src/Styles/Fonts";
+import { useAppRootStyles } from "./src/Styles/components/AppRootStyles";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { ThemeProvider } from "./src/Global/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -65,6 +66,7 @@ export default function App() {
    * для коректної роботи React правил хуків
    */
   const fontsLoaded = useCustomFonts();
+  const s = useAppRootStyles();
 
   /**
    * Хук для роботи з push-сповіщеннями
@@ -98,9 +100,9 @@ export default function App() {
   useEffect(() => {
     if (!isLoading && !isNotFirstLaunch) {
       showSnackbar(
-        <Text selectable={true} style={H6}>
+        <Text selectable={true} style={s.snackbarText}>
           Використовуючи додаток, ви погоджуєтесь з нашими{" "}
-          <SnackbarLink url={MainConfig.urls.appUrl + `#terms`} color={primary}>
+          <SnackbarLink url={MainConfig.urls.appUrl + `#terms`} color={s.snackbarLinkColor}>
             правилами
           </SnackbarLink>
           .
@@ -396,9 +398,9 @@ export default function App() {
    */
   if (!fontsLoaded || isLoading) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={s.root}>
         <SafeAreaProvider>
-          <BottomSheetModalProvider style={{ flex: 1 }}>
+          <BottomSheetModalProvider style={s.root}>
             <Loader isNotFirstLaunch={isNotFirstLaunch} />
           </BottomSheetModalProvider>
         </SafeAreaProvider>
@@ -407,10 +409,10 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={s.root}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <BottomSheetModalProvider style={{ flex: 1 }}>
+          <BottomSheetModalProvider style={s.root}>
             <RootSiblingParent>
               <ScreenController updateInfo={updateInfo} />
               {isErrorBoundary && <ErrorTestComponent />}

@@ -1,12 +1,11 @@
 import { useEffect, useCallback, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, Text } from "react-native";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withSpring } from "react-native-reanimated";
-import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
-import { H5 } from "../Styles/Fonts";
+import { useTopNavigationStyles } from "../Styles/components/TopNavigationStyles";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import NotificationsStorage from "../Storage/NotificationsStorage";
 import { EventBus } from "../Global/EventBus";
@@ -19,15 +18,12 @@ const TABS = [
   { key: "manga", label: "Манґа" },
 ];
 
-const TAB_WIDTH = 68;
-const TAB_HEIGHT = 44;
-const INDICATOR_PADDING = 4;
 
 export default function TopNavigationComponent({
   activeTab = "anime",
   onTabChange,
 }) {
-  const themeColors = useThemeColors();
+  const s = useTopNavigationStyles();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isTabletLandscape = useIsTabletLandscape();
@@ -100,7 +96,7 @@ export default function TopNavigationComponent({
   return (
     <View
       style={[
-        styles.container,
+        s.container,
         {
           paddingTop: insets.top + 2,
           backgroundColor: "transparent",
@@ -110,20 +106,15 @@ export default function TopNavigationComponent({
       ]}
     >
       {/* Left - Notification Bell */}
-      <TouchableOpacity
-        style={[styles.iconButton, { backgroundColor: themeColors.Text(0.08) }]}
-        onPress={handleNotificationPress}
-      >
+      <TouchableOpacity style={s.iconButton} onPress={handleNotificationPress}>
         <Icons.BellSimple
-          size={28}
-          color={themeColors.text}
+          size={s.iconSize}
+          color={s.activeFontStyle.color}
           weight={unreadCount > 0 ? "fill" : "regular"}
         />
         {unreadCount > 0 && (
-          <View
-            style={[styles.badge, { backgroundColor: themeColors.primary }]}
-          >
-            <Text selectable={true} style={styles.badgeText}>
+          <View style={s.badge}>
+            <Text selectable={true} style={s.badgeText}>
               {unreadCount > 9 ? "9+" : unreadCount}
             </Text>
           </View>
@@ -132,7 +123,7 @@ export default function TopNavigationComponent({
 
       {/* Category Tabs */}
       <SegmentedControl
-        values={TABS.map((s) => String(s.label))}
+        values={TABS.map((tab) => String(tab.label))}
         selectedIndex={activeIndex}
         onChange={(event) =>
           handleTabPress(
@@ -140,91 +131,19 @@ export default function TopNavigationComponent({
             event.nativeEvent.selectedSegmentIndex,
           )
         }
-        tintColor={themeColors.primary}
+        tintColor={s.badge.backgroundColor}
         backgroundColor={"transparent"}
-        sliderStyle={{
-          borderRadius: 16,
-        }}
-        style={{
-          width: "70%",
-          height: 44,
-        }}
-        fontStyle={{
-          ...H5,
-          color: themeColors.Text(0.5),
-        }}
-        activeFontStyle={{
-          ...H5,
-          fontWeight: "normal",
-          color: themeColors.text,
-        }}
+        sliderStyle={s.segmentedSlider}
+        style={s.segmentedControl}
+        fontStyle={s.fontStyle}
+        activeFontStyle={s.activeFontStyle}
       />
-      {/* Spacer to push tabs to the right - only on tablet landscape */}
 
       {/* Right - Search Icon */}
-      <TouchableOpacity
-        style={[
-          styles.iconButton,
-          {
-            backgroundColor: themeColors.Text(0.08),
-          },
-        ]}
-        onPress={handleSearchPress}
-      >
-        <Icons.MagnifyingGlass size={28} color={themeColors.text} />
+      <TouchableOpacity style={s.iconButton} onPress={handleSearchPress}>
+        <Icons.MagnifyingGlass size={s.iconSize} color={s.activeFontStyle.color} />
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  badge: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontFamily: "Nunito-Bold",
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    overflow: "hidden",
-  },
-  indicator: {
-    position: "absolute",
-    height: TAB_HEIGHT,
-    borderRadius: 16,
-    top: INDICATOR_PADDING,
-  },
-  tab: {
-    width: TAB_WIDTH,
-    height: TAB_HEIGHT + INDICATOR_PADDING * 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  tabText: {},
-});

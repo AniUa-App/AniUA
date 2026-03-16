@@ -4,6 +4,7 @@ import {
   View,
   PixelRatio,
   useWindowDimensions,
+
 } from "react-native";
 import { text } from "./Colors";
 import { useFonts } from "expo-font";
@@ -58,12 +59,13 @@ export function Fonts() {
 
 // Hook для отримання динамічного scale та scaleFontSize
 export const useScaleFontSize = () => {
-  const { width, height } = useWindowDimensions();
-
+  const {  width , height } = useWindowDimensions();
+  const physicalWidth = width * PixelRatio.get();
+  const physicalHeight = height * PixelRatio.get();
   return useMemo(() => {
-    const scale = Math.min(width, height) / 390;
-    const scale_landscape = Math.min(width, height) / 650;
-    const scale_tv = Math.min(width, height) / 700;
+    const scale = Math.min(physicalWidth, physicalHeight) / 390;
+    const scale_landscape = Math.min(physicalWidth, physicalHeight) / 650;
+    const scale_tv = Math.min(physicalWidth, physicalHeight) / 700;
 
     const scaleFontSize = (size) => {
       const newSize =
@@ -72,7 +74,7 @@ export const useScaleFontSize = () => {
     };
 
     return scaleFontSize;
-  }, [width, height]);
+  }, [physicalWidth, physicalHeight]);
 };
 
 // Функція для обчислення розміру шрифту (для StaticStyles - буде виконано один раз)

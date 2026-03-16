@@ -1,8 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
-  useWindowDimensions,
   FlatList as RNFlatList,
 } from "react-native";
 import { TouchableOpacity } from "./Button";
@@ -10,16 +8,13 @@ import {
   ScrollView,
   FlatList as GHFlatList,
 } from "react-native-gesture-handler";
-import { isTV as checkIsTV, isTV } from "../Styles/Responsive";
+import { isTV as checkIsTV } from "../Styles/Responsive";
+import { useAnimeListHStyles } from "../Styles/components/AnimeListHStyles";
 
 const FlatList = checkIsTV() ? RNFlatList : GHFlatList;
 
 import Icon from "../Styles/Icons";
-import { useThemeColors } from "../Global/useTheme";
-import { H3 } from "../Styles/Fonts";
-import { Image } from "./LoadersWidgets";
-import { isTablet, isTabletLandscape } from "../Styles/Responsive";
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AniuaApi } from "../Api/AniuaApi";
 import { useFocusEffect } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
@@ -37,8 +32,7 @@ export function AnimeListHorizontal({
   onClickMore = null,
   navigation,
 }) {
-  const themeColors = useThemeColors();
-  const { width } = useWindowDimensions();
+  const s = useAnimeListHStyles();
   // Налаштування показу деталей
   const [showAnimeDetails, setShowAnimeDetails] = useState(
     SettingsStorage.getParameter("hideAnimeListDetails") !== "true",
@@ -64,16 +58,6 @@ export function AnimeListHorizontal({
     }, []);
   }
 
-  // Ширина картки
-  const cardWidth = useMemo(() => {
-    return isTabletLandscape()
-      ? width * 0.12
-      : isTablet()
-        ? width * 0.2
-        : isTV()
-          ? width * 0.12
-          : width * 0.35;
-  }, [width]);
 
   // Конфігурація для визначення видимих елементів
   const viewabilityConfig = useRef({
@@ -98,12 +82,12 @@ export function AnimeListHorizontal({
       <AnimeCard
         anime={anime}
         key={`${anime.slug}-${index}` || index}
-        width={cardWidth}
+        width={s.cardWidth}
         showDetails={showAnimeDetails}
         navigation={navigation}
       />
     ),
-    [cardWidth, showAnimeDetails, navigation],
+    [s, showAnimeDetails, navigation],
   );
 
   const keyExtractor = useCallback((item, index) => {
@@ -113,33 +97,17 @@ export function AnimeListHorizontal({
   const content = (
     <>
       <TouchableOpacity
-        style={styles.header}
+        style={s.header}
         activeOpacity={1}
         onPress={onClickMore}
         tvFocusable={!!onClickMore}
       >
         {title?.length > 0 && (
-          <Text
-            style={[
-              styles.title,
-              H3,
-              { color: themeColors.text, padding: 0, margin: 0 },
-            ]}
-          >
-            {title || ""}
-          </Text>
+          <Text style={s.title}>{title || ""}</Text>
         )}
         {!!onClickMore && (
-          <View
-            style={[
-              styles.arrowRightIcon,
-              {
-                borderRadius: 16,
-                backgroundColor: themeColors.accent,
-              },
-            ]}
-          >
-            <Icon.ArrowRight size={24} color={themeColors.primary} />
+          <View style={s.arrowIcon}>
+            <Icon.ArrowRight size={s.iconSize} color={s.arrowIconColor} />
           </View>
         )}
       </TouchableOpacity>
@@ -159,7 +127,7 @@ export function AnimeListHorizontal({
         nestedScrollEnabled={true}
         focusable={false}
         contentContainerStyle={[
-          styles.listContent,
+          s.listContent,
           checkIsTV() && { paddingVertical: 8 },
         ]}
         style={checkIsTV() ? { overflow: "visible" } : undefined}
@@ -176,30 +144,16 @@ export function PreviewAnimeListHorizontal({
   title,
   onPress = () => {},
 }) {
-  const themeColors = useThemeColors();
-  const { width, height } = useWindowDimensions();
+  const s = useAnimeListHStyles();
 
   return (
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
-      <View style={styles.header} activeOpacity={1}>
+      <View style={s.header} activeOpacity={1}>
         {title?.length > 0 && (
-          <Text
-            selectable={true}
-            style={[styles.title, H3, { color: themeColors.text }]}
-          >
-            {title || ""}
-          </Text>
+          <Text selectable={true} style={s.title}>{title || ""}</Text>
         )}
-        <View
-          style={[
-            styles.arrowRightIcon,
-            {
-              borderRadius: 16,
-              backgroundColor: themeColors.accent,
-            },
-          ]}
-        >
-          <Icon.ArrowRight size={28} color={themeColors.primary} />
+        <View style={s.arrowIcon}>
+          <Icon.ArrowRight size={s.iconSize} color={s.arrowIconColor} />
         </View>
       </View>
 
@@ -208,42 +162,16 @@ export function PreviewAnimeListHorizontal({
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
-        {animeList.map((anime, index) => {
-          // Ширина завжди однакова
-          const cardWidth = isTabletLandscape()
-            ? width * 0.12
-            : isTablet()
-              ? width * 0.2
-              : width * 0.35;
-
-          return (
-            <AnimeCard
-              key={`${anime.slug || index}-${index}`}
-              anime={anime}
-              width={cardWidth}
-              onPress={() => onPress(anime)}
-            />
-          );
-        })}
+        {animeList.map((anime, index) => (
+          <AnimeCard
+            key={`${anime.slug || index}-${index}`}
+            anime={anime}
+            width={s.cardWidth}
+            onPress={() => onPress(anime)}
+          />
+        ))}
       </ScrollView>
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  arrowRightIcon: {
-    width: 38,
-    height: 38,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    width: "100%",
-    marginTop: 10,
-  },
-  listContent: {},
-});

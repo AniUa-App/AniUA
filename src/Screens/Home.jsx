@@ -8,7 +8,6 @@ import React, {
 import {
   View,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
   StatusBar,
 } from "react-native";
@@ -36,6 +35,7 @@ import MangaScreen from "./MangaScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContentTypeTab } from "./ScreenController/Navigators";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
+import { useHomeStyles } from "../Styles/components/HomeStyles";
 
 /**
  * Кастомний TabBar для ContentTypeTab навігатора
@@ -72,7 +72,7 @@ function ContentTypeTabBar({ state, navigation }) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const colors = useThemeColors();
+  const s = useHomeStyles();
   const hikkaUser = useHikkaUser();
   const isTabletDevice = useIsTablet();
   const isLandscape = useIsLandscape();
@@ -134,7 +134,7 @@ export default function HomeScreen() {
   if (isTV) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={{ flex: 1 }} focusable={false}>
+        <View style={s.contentNavigator} focusable={false}>
           <AnimeTabContent
             historyData={hikkaUser?.history}
             refetchUserData={hikkaUser?.refetch}
@@ -149,31 +149,24 @@ export default function HomeScreen() {
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
       <View
-        style={{
-          flex: 1,
-          flexDirection: showSidebar ? "row" : "column",
-          marginTop: showSidebar ? insets.top : 0,
-        }}
+        style={[
+          s.mainLayout,
+          showSidebar && { flexDirection: "row", marginTop: insets.top },
+        ]}
       >
         {/* Sidebar — завжди в дереві (width 0 у portrait) щоб навігатор
             залишався на тій самій позиції і не перемонтовувався */}
-        <View
-          style={{
-            width: showSidebar ? "40%" : 0,
-            height: showSidebar ? "100%" : 0,
-            overflow: "hidden",
-          }}
-        >
+        <View style={showSidebar ? s.sidebarVisible : s.sidebarHidden}>
           {showSidebar && (
             <>
-              <View style={{ backgroundColor: "transparent", zIndex: 2 }}>
+              <View style={s.sidebarNav}>
                 <TopNavigationComponent
                   activeTab={activeTabKey}
                   onTabChange={handleTabChange}
                 />
               </View>
               {recommendations?.isDefaultBigBanner !== false && (
-                <View style={{ flex: 1 }}>
+                <View style={s.contentNavigator}>
                   <BigBannerWidget.Tablet animes={bannerAnimes} />
                 </View>
               )}
@@ -181,7 +174,7 @@ export default function HomeScreen() {
           )}
         </View>
         {/* Навігатор контенту — єдиний екземпляр, ніколи не перемонтовується */}
-        <View style={{ flex: 1, height: showSidebar ? "100%" : undefined }}>
+        <View style={showSidebar ? s.contentNavigatorSidebar : s.contentNavigator}>
           <ContentTypeTab.Navigator
             initialRouteName="AnimeTab"
             tabBar={(props) => {
@@ -190,15 +183,7 @@ export default function HomeScreen() {
               }
               if (showSidebar) return null;
               return (
-                <View
-                  style={{
-                    marginTop: 8,
-                    backgroundColor: "transparent",
-                    zIndex: 2,
-                    position: "absolute",
-                    width: "100%",
-                  }}
-                >
+                <View style={s.tabBar}>
                   <ContentTypeTabBar {...props} />
                 </View>
               );
@@ -208,8 +193,8 @@ export default function HomeScreen() {
               animationEnabled: true,
               lazy: true,
             }}
-            sceneContainerStyle={{ backgroundColor: "transparent" }}
-            style={{ backgroundColor: "transparent" }}
+            sceneContainerStyle={s.transparent}
+            style={s.transparent}
           >
             <ContentTypeTab.Screen name="DoramaTab" component={DoramaScreen} />
             <ContentTypeTab.Screen name="AnimeTab">
@@ -238,6 +223,7 @@ function AnimeTabContent({
   isTabletMode = false,
 }) {
   const colors = useThemeColors();
+  const s = useHomeStyles();
   const isTV = useIsTV();
   const isTabletPort = useIsTabletPortrait();
   const insets = useSafeAreaInsets();
@@ -345,16 +331,8 @@ function AnimeTabContent({
   // Планшет landscape / TV - тільки контент, банер рендериться в HomeScreen
   if (isTabletMode) {
     const content = (
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} focusable={false}>
-        <View
-          style={{
-            flex: 1,
-            paddingBottom: 50,
-            width: "95%",
-            alignSelf: "center",
-          }}
-          focusable={false}
-        >
+      <ScrollView style={s.contentNavigator} showsVerticalScrollIndicator={false} focusable={false}>
+        <View style={s.tabletContent} focusable={false}>
           {animeHistory?.length > 0 && (
             <AnimeListHorizontal
               title="Історія перегляду"
@@ -396,25 +374,18 @@ function AnimeTabContent({
   // Телефон - повний layout з банером
   return (
     <DefaultScreenWidget isNavBarPadding={false}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={s.contentNavigator} showsVerticalScrollIndicator={false}>
         {recommendations?.isDefaultBigBanner !== false && (
           <View style={{ marginTop: insets.top + 24 }}>
             <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
           </View>
         )}
         {isLoading ? (
-          <View style={styles.loaderContainer}>
+          <View style={s.loaderContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
-          <View
-            style={{
-              flex: 1,
-              width: isTabletPort ? "98%" : "95%",
-              alignSelf: "center",
-              paddingHorizontal: isTabletPort ? 8 : 0,
-            }}
-          >
+          <View style={isTabletPort ? s.contentContainerTablet : s.contentContainer}>
             {animeHistory?.length > 0 && (
               <AnimeListHorizontal
                 title="Історія перегляду"
@@ -439,7 +410,7 @@ function AnimeTabContent({
             )}
           </View>
         )}
-        <View style={{ height: 64 }} />
+        <View style={s.spacer} />
       </ScrollView>
     </DefaultScreenWidget>
   );
@@ -451,6 +422,7 @@ function AnimeTabContent({
 const CustomPersonalRecList = React.memo(() => {
   const [personalRecList, setPersonalRecList] = useState([]);
   const colors = useThemeColors();
+  const s = useHomeStyles();
   const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
@@ -505,7 +477,7 @@ const CustomPersonalRecList = React.memo(() => {
 
   if (isLoading) {
     return (
-      <View style={styles.loaderContainer}>
+      <View style={s.loaderContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -520,7 +492,7 @@ const CustomPersonalRecList = React.memo(() => {
 
   return (
     <>
-      {nonEmptyLists.map((animeList, index) => {
+      {nonEmptyLists.map((animeList) => {
         // Find the original index in personalRecList for onClickMore
         const originalIndex = personalRecList.findIndex(
           (item) => item.name === animeList.name,
@@ -554,11 +526,3 @@ const CustomPersonalRecList = React.memo(() => {
   );
 });
 
-const styles = StyleSheet.create({
-  loaderContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
-    height: 200,
-  },
-});
