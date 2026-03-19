@@ -3,6 +3,7 @@ import {
   ScrollView,
   Linking,
   Text,
+  Switch,
   useWindowDimensions,
 } from "react-native";
 import React, { useState, useCallback, useRef, useMemo } from "react";
@@ -28,7 +29,6 @@ import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { TouchableOpacity } from "../Widgets/Button";
 import { H4, H6 } from "../Styles/Fonts";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
-import { SegmentedControlLabelWidget } from "../Widgets/Buttons";
 import {
   useIsTablet,
   maxContentWidth,
@@ -42,20 +42,19 @@ export default function SettingsScreen() {
   const themeColors = useThemeColors();
   const { snackbar, showSnackbar, showConfirmSnackbar } = useSnackbar();
   const [isRatingVisible, setIsRatingVisible] = useState(false);
-  const [defaultPlayer, setDefaultPlayer] = useState(
-    SettingsStorage.getParameter("defaultPlayer"),
+  const [useBuiltinPlayer, setUseBuiltinPlayer] = useState(
+    !!SettingsStorage.getParameter("useBuiltinPlayer"),
   );
   const { width } = useWindowDimensions();
   const isTv = useIsTV();
 
   // Refs для BottomSheet
-  const playerSheetRef = useRef(null);
   const partnersSheetRef = useRef(null);
 
   // Перечитуємо налаштування при фокусі на екран
   useFocusEffect(
     useCallback(() => {
-      setDefaultPlayer(SettingsStorage.getParameter("defaultPlayer"));
+      setUseBuiltinPlayer(!!SettingsStorage.getParameter("useBuiltinPlayer"));
     }, []),
   );
 
@@ -124,11 +123,9 @@ export default function SettingsScreen() {
     }
   };
 
-  const handlePlayerSelect = (player) => {
-    SettingsStorage.setParameter("defaultPlayer", player);
-    setDefaultPlayer(player);
-    showSnackbar(`Плеєр "${player}" вибрано за замовчуванням`);
-    playerSheetRef.current?.close();
+  const handleBuiltinPlayerToggle = (value) => {
+    SettingsStorage.setParameter("useBuiltinPlayer", value);
+    setUseBuiltinPlayer(value);
   };
 
   return (
@@ -175,11 +172,22 @@ export default function SettingsScreen() {
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">
           <SettingsItemWidget
-            title="Плеєр за замовчуванням"
-            subtitle={defaultPlayer || "Не вибрано"}
+            title="Вбудований плеєр"
+            subtitle="Використовувати вбудований відеоплеєр"
             icon={<Icons.Play />}
-            showChevron
-            onPress={() => playerSheetRef.current?.present()}
+            button={{
+              Icon: (
+                <Switch
+                  value={useBuiltinPlayer}
+                  onValueChange={handleBuiltinPlayerToggle}
+                  thumbColor={themeColors.primary}
+                  trackColor={{
+                    false: themeColors.subtle,
+                    true: themeColors.Background(0.4),
+                  }}
+                />
+              ),
+            }}
           />
           <SettingsItemWidget
             title="Очистити кеш"
@@ -321,52 +329,6 @@ export default function SettingsScreen() {
 
         <View style={{ height: 30 }} />
       </ScrollView>
-
-      {/* BottomSheet для вибору плеєра */}
-      <BottomSheetModal
-        ref={playerSheetRef}
-        snapPoints={["20%"]}
-        enableDynamicSizing={false}
-        enablePanDownToClose={true}
-        backgroundStyle={{ backgroundColor: themeColors.subtle }}
-        handleIndicatorStyle={{ backgroundColor: themeColors.Background(0.6) }}
-        backdropComponent={(props) => (
-          <TouchableOpacity
-            {...props}
-            onPress={() => playerSheetRef.current?.close()}
-          />
-        )}
-      >
-        <View style={{ padding: 16 }}>
-          <Text
-            selectable={true}
-            style={[
-              H4,
-              {
-                color: themeColors.text,
-                textAlign: "center",
-                marginBottom: 16,
-              },
-            ]}
-          >
-            Плеєр за замовчуванням
-          </Text>
-          <SegmentedControlLabelWidget
-            segments={MainConfig.players.map((player) => ({
-              label: player.slice(0, 10),
-            }))}
-            value={defaultPlayer?.slice(0, 10)}
-            onChange={(label) => {
-              const player = MainConfig.players.find(
-                (p) => p.slice(0, 10) === label,
-              );
-              if (player) {
-                handlePlayerSelect(player);
-              }
-            }}
-          />
-        </View>
-      </BottomSheetModal>
 
       {/* BottomSheet для партнерів */}
       <BottomSheetModal

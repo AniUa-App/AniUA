@@ -8,6 +8,8 @@ type SearchScreenStyles = {
   loadingContainer: ViewStyle;
   /** Контейнер списку результатів */
   resultsContainer: ViewStyle;
+  /** Обгортка списку (TVFocusGuideView / flex: 1) */
+  listWrapper: ViewStyle;
 };
 
 export const useSearchScreenStyles = (): SearchScreenStyles => {
@@ -15,7 +17,12 @@ export const useSearchScreenStyles = (): SearchScreenStyles => {
 
   return {
     container: { flex: 1 },
-    loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
     resultsContainer: { flexGrow: 1 },
+    listWrapper: { flex: 1 },
   };
 };

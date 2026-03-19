@@ -15,7 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import AnimeStorage from "../../Storage/AnimeStorage";
 import { H2 } from "../../Styles/Fonts";
 import Logger from "../../Logger/Logger";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/Screens/AnimeListStyles";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 

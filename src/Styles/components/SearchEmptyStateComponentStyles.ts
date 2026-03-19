@@ -21,7 +21,7 @@ export const useSearchEmptyStateComponentStyles =
       },
       text: {
         opacity: 0.6,
-        marginTop: layout.s(16),
+        marginTop: layout.spacing.lg,
       },
     };
   };

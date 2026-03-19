@@ -444,28 +444,17 @@ export function useAnimePreview({ route, navigation }) {
 
               if (!newInfo.player || !newInfo.dub_team) {
                 let selectedPlayer = null;
-                const defaultPlayerFromSettings =
-                  SettingsStorage.getParameter("defaultPlayer");
 
-                if (
-                  defaultPlayerFromSettings &&
-                  sortedData[defaultPlayerFromSettings] &&
-                  typeof sortedData[defaultPlayerFromSettings] === "object" &&
-                  Object.keys(sortedData[defaultPlayerFromSettings]).length > 0
-                ) {
-                  selectedPlayer = defaultPlayerFromSettings;
-                } else {
-                  for (const [key, value] of Object.entries(sortedData)) {
-                    if (
-                      key !== "type" &&
-                      key !== "0" &&
-                      typeof value === "object" &&
-                      value !== null &&
-                      Object.keys(value).length > 0
-                    ) {
-                      selectedPlayer = key;
-                      break;
-                    }
+                for (const [key, value] of Object.entries(sortedData)) {
+                  if (
+                    key !== "type" &&
+                    key !== "0" &&
+                    typeof value === "object" &&
+                    value !== null &&
+                    Object.keys(value).length > 0
+                  ) {
+                    selectedPlayer = key;
+                    break;
                   }
                 }
 
@@ -716,7 +705,9 @@ export function useAnimePreview({ route, navigation }) {
       NavigationBar.setVisibilityAsync("hidden");
       episodesSheetRef.current?.close();
 
-      if (info.player === "Вбудований плеєр") {
+      const useBuiltinPlayer = SettingsStorage.getParameter("useBuiltinPlayer");
+
+      if (useBuiltinPlayer || info.player === "Вбудований плеєр") {
         navigation.navigate("HiddenStack", {
           screen: "LocalVideoPlayer",
           params: {

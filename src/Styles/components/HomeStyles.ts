@@ -34,18 +34,18 @@ export const useHomeStyles = (): HomeStyles => {
   const layout = useLayout();
 
   return {
-    loaderContainer: { justifyContent: "center", alignItems: "center", padding: layout.s(30), height: layout.s(200) },
+    loaderContainer: { justifyContent: "center", alignItems: "center", padding: layout.s(30), height: layout.sizing.img },
     sidebarNav: { backgroundColor: "transparent", zIndex: 2 },
     tabBar: { marginTop: layout.spacing.sm, backgroundColor: "transparent", zIndex: 2, position: "absolute", width: "100%" },
     transparent: { backgroundColor: "transparent" },
-    tabletContent: { flex: 1, paddingBottom: layout.s(50), width: "95%", alignSelf: "center" },
-    spacer: { height: layout.s(64) },
+    tabletContent: { flex: 1, paddingBottom: layout.spacing.xl5, width: "95%", alignSelf: "center" },
+    spacer: { height: layout.sizing.md },
     mainLayout: { flex: 1, flexDirection: "column" },
     sidebarHidden: { width: 0, height: 0, overflow: "hidden" },
     sidebarVisible: { width: "40%", height: "100%", overflow: "hidden" },
     contentNavigator: { flex: 1 },
     contentNavigatorSidebar: { flex: 1, height: "100%" },
     contentContainer: { flex: 1, width: "97%", alignSelf: "center" },
-    contentContainerTablet: { flex: 1, width: "98%", alignSelf: "center", paddingHorizontal: layout.s(8) },
+    contentContainerTablet: { flex: 1, width: "98%", alignSelf: "center", paddingHorizontal: layout.spacing.sm },
   };
 };

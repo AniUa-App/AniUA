@@ -46,20 +46,15 @@ export default function SearchCategoryTabsComponent({
             key={category.id}
             style={[
               s.tab,
-              {
-                backgroundColor: themeColors.subtle,
-                borderBottomLeftRadius: isActive ? 0 : 18,
-                borderBottomRightRadius: isActive ? 0 : 18,
-                height: isActive ? 40 : 34,
-                paddingBottom: isActive ? 2 : 0,
-              },
+              isActive ? s.tabActive : s.tabInactive,
+              { backgroundColor: themeColors.subtle },
             ]}
             onPress={() => onCategoryChange(category.id)}
           >
             <View style={s.tabContent}>
               {IconComponent && (
                 <IconComponent
-                  size={18}
+                  size={s.iconSize}
                   color={
                     isActive ? themeColors.activeIcon : themeColors.inActiveText
                   }
@@ -70,11 +65,11 @@ export default function SearchCategoryTabsComponent({
                 selectable={true}
                 style={[
                   H6,
+                  s.tabLabel,
                   {
                     color: isActive
                       ? themeColors.text
                       : themeColors.inActiveText,
-                    marginLeft: 6,
                   },
                 ]}
               >

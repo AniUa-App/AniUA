@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
@@ -46,7 +45,7 @@ export default function ProfileScreen({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={[s.header, { zIndex: 1 }]}>
+        <View style={s.header}>
           <TouchableOpacity
             onPress={profile.navigateToSettings}
             style={[s.iconButton, { backgroundColor: colors.subtle }]}
@@ -54,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
         </View>
-        <View style={StyleSheet.absoluteFill}>
+        <View style={s.loginContainer}>
           <LoginScreen isCanSkip={false} />
         </View>
       </DefaultScreenWidget>
@@ -104,14 +103,7 @@ export default function ProfileScreen({ navigation }) {
           {profile.handle}
         </Text>
 
-        <View
-          style={{
-            width: "100%",
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <View style={s.statsWrapper}>
           {/* Stats */}
           <ProfileStats
             stats={profile.stats}
@@ -183,7 +175,7 @@ export default function ProfileScreen({ navigation }) {
             />
           </View>
         </View>
-        <View style={{ width: "100%", paddingBottom: 45 }} />
+        <View style={s.bottomSpacer} />
       </ScrollView>
 
       <UsernameEditModal

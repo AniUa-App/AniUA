@@ -52,7 +52,7 @@ import { getPlayerInfo, convertHikkaEpisodes } from "./helpers";
 import { DubbingButton } from "./DubbingButton";
 import { PlayerTabs } from "./PlayerTabs";
 import { EpisodeItem } from "./EpisodeItem";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetEpisodesStyles";
 
 const BottomSheetEpisodesComponent = forwardRef<
   BottomSheetEpisodesRef,

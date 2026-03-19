@@ -19,7 +19,7 @@ export const useYouTubeVideosStyles = (): YouTubeVideosStyles => {
 
   return {
     videoContainer: {
-      borderRadius: layout.s(12),
+      borderRadius: layout.radius.md,
       overflow: "hidden",
       position: "relative",
     },
@@ -37,12 +37,12 @@ export const useYouTubeVideosStyles = (): YouTubeVideosStyles => {
       alignItems: "center",
     },
     playButton: {
-      width: layout.s(64),
-      height: layout.s(64),
+      width: layout.sizing.md,
+      height: layout.sizing.md,
       borderRadius: layout.s(32),
       justifyContent: "center",
       alignItems: "center",
-      paddingLeft: layout.s(4),
+      paddingLeft: layout.spacing.xs,
     },
     separator: {
       width: layout.s(12),

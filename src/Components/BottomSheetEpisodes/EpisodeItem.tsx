@@ -6,7 +6,7 @@ import { useThemeColors } from "../../Global/useTheme";
 import { Image } from "../../Widgets/LoadersWidgets";
 import { TouchableOpacity } from "../../Widgets/Button";
 import { Episode } from "../../Api/AniuaApi";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetEpisodesStyles";
 
 export interface DownloadStatus {
   episode: number;
@@ -250,7 +250,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
           {isDownloadMode && hasError && (
             <Text
               selectable={false}
-              style={[H6, { color: themeColors.primary, marginTop: 2 }]}
+              style={[H6, { color: themeColors.background, marginTop: 2 }]}
               numberOfLines={1}
             >
               Помилка: натисніть для повтору

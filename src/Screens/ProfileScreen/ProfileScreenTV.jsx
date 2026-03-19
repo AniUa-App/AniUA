@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
   TVFocusGuideView as RNTVFocusGuideView,
@@ -50,7 +49,7 @@ export default function ProfileScreenTV({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={StyleSheet.absoluteFill}>
+        <View style={s.loginContainer}>
           <LoginScreen isCanSkip={false} />
         </View>
       </DefaultScreenWidget>
@@ -62,13 +61,13 @@ export default function ProfileScreenTV({ navigation }) {
       <TVFocusGuideView style={s.container} autoFocus>
         {/* Sidebar - Profile info */}
         <View style={s.sidebar} focusable={false}>
-          <View style={{ left: 16, paddingTop: "20%" }} focusable={false}>
+          <View style={s.avatarWrapper} focusable={false}>
             {/* Avatar */}
             <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
             {/* Username */}
             <View style={s.usernameContainer} focusable={false}>
-              <Text style={[H4, { fontSize: 16 }]}>{profile.displayName}</Text>
+              <Text style={[H4, s.displayNameText]}>{profile.displayName}</Text>
               <TVButton
                 onPress={profile.openEditModal}
                 style={[s.editButton, { backgroundColor: colors.accent }]}
@@ -78,7 +77,7 @@ export default function ProfileScreenTV({ navigation }) {
             </View>
 
             <Text
-              style={[s.handle, { color: colors.Text(0.5), fontSize: 12 }]}
+              style={[s.handle, { color: colors.Text(0.5) }]}
             >
               {profile.handle}
             </Text>
@@ -168,7 +167,7 @@ export default function ProfileScreenTV({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 100 }} />
+          <View style={s.bottomSpacer} />
         </ScrollView>
       </TVFocusGuideView>
 

@@ -5,7 +5,7 @@ import { H4, H5 } from "../../Styles/Fonts";
 import Icon from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { Player } from "./types";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetDownloadStyles";
 
 interface DownloadDubbingButtonProps {
   dubbingName: string;

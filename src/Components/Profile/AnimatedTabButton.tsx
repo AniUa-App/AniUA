@@ -44,17 +44,20 @@ export default function AnimatedTabButton({
 
   const animatedSize = scaleAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [44, 46],
+    outputRange: [s.button.size, s.button.size],
   });
 
   const animatedBorderRadius = scaleAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [16, 0],
+    outputRange: [s.button.borderRadius.borderTopLeftRadius, 0],
   });
 
   const animatedTopBorderRadius = scaleAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [16, 16],
+    outputRange: [
+      s.button.borderRadius.borderTopLeftRadius,
+      s.button.borderRadius.borderTopRightRadius,
+    ],
   });
 
   return (
@@ -81,9 +84,11 @@ export default function AnimatedTabButton({
           },
         ]}
       >
-        <Icon size={28} color={isActive ? colors.activeIcon : colors.icon} />
+        <Icon
+          size={s.icon.size}
+          color={isActive ? colors.activeIcon : colors.icon}
+        />
       </Animated.View>
     </TouchableOpacity>
   );
 }
-

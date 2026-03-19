@@ -48,7 +48,7 @@ import { getPlayerInfo } from "./helpers";
 import { DownloadDubbingButton } from "./DownloadDubbingButton";
 import { PlayerTabs } from "./PlayerTabs";
 import { EpisodeItem } from "../BottomSheetEpisodes/EpisodeItem";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetDownloadStyles";
 
 // Конвертація даних Hikka API
 const convertHikkaEpisodes = (

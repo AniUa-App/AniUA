@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
   Animated,
@@ -58,7 +57,7 @@ export default function ProfileScreenTablet({ navigation }) {
   if (!profile.isAuthenticated) {
     return (
       <DefaultScreenWidget isNavBarPadding={true}>
-        <View style={[s.header, { zIndex: 1 }]}>
+        <View style={s.header}>
           <TouchableOpacity
             onPress={profile.navigateToSettings}
             style={[s.iconButton, { backgroundColor: colors.subtle }]}
@@ -66,7 +65,7 @@ export default function ProfileScreenTablet({ navigation }) {
             <Icons.GearSix size={32} color={colors.primary} />
           </TouchableOpacity>
         </View>
-        <View style={StyleSheet.absoluteFill}>
+        <View style={s.loginContainer}>
           <LoginScreen isCanSkip={false} />
         </View>
       </DefaultScreenWidget>
@@ -79,7 +78,7 @@ export default function ProfileScreenTablet({ navigation }) {
         {/* Sidebar */}
         <ScrollView
           style={s.sidebar}
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={s.sidebarContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Settings button */}
@@ -91,7 +90,7 @@ export default function ProfileScreenTablet({ navigation }) {
               <Icons.GearSix size={28} color={colors.primary} />
             </TouchableOpacity>
           </View>
-          <View style={{ left: 32, paddingTop: "5%" }}>
+          <View style={s.avatarWrapper}>
             {/* Avatar */}
             <ProfileAvatar avatarUrl={profile.user?.avatar} colors={colors} />
 
@@ -216,7 +215,7 @@ export default function ProfileScreenTablet({ navigation }) {
             </Animated.View>
           </View>
 
-          <View style={{ height: 100 }} />
+          <View style={s.bottomSpacer} />
         </ScrollView>
       </View>
 

@@ -25,20 +25,20 @@ export const useNotificationsScreenStyles = (): NotificationsScreenStyles => {
 
   return {
     container: { flex: 1 },
-    listContent: { paddingHorizontal: layout.s(16), paddingTop: layout.s(8) },
+    listContent: { paddingHorizontal: layout.spacing.lg, paddingTop: layout.spacing.sm },
     emptyList: { flex: 1, justifyContent: "center" },
     emptyContainer: { alignItems: "center", justifyContent: "center" },
-    emptyTitle: { fontFamily: "Nunito-SemiBold", marginBottom: layout.s(8) },
-    emptySubtitle: { fontFamily: "Nunito-Regular", paddingHorizontal: layout.s(40) },
+    emptyTitle: { fontFamily: "Nunito-SemiBold", marginBottom: layout.spacing.sm },
+    emptySubtitle: { fontFamily: "Nunito-Regular", paddingHorizontal: layout.spacing.xl3 },
     clearButton: {
-      marginRight: layout.s(16),
+      marginRight: layout.spacing.lg,
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: layout.s(16),
-      width: layout.s(44),
-      height: layout.s(44),
+      borderRadius: layout.radius.lg,
+      width: layout.sizing.touch,
+      height: layout.sizing.touch,
       justifyContent: "center",
     },
-    clearButtonText: { fontFamily: "Nunito-Regular", marginLeft: layout.s(6) },
+    clearButtonText: { fontFamily: "Nunito-Regular", marginLeft: layout.spacing.xsm },
   };
 };

@@ -10,6 +10,6 @@ export const useAnimeWatchScreenStyles = (): AnimeWatchScreenStyles => {
   const layout = useLayout();
 
   return {
-    container: { flex: 1, justifyContent: "center", alignItems: "center", padding: layout.s(32) },
+    container: { flex: 1, justifyContent: "center", alignItems: "center", padding: layout.spacing.xxl },
   };
 };

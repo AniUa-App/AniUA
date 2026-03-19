@@ -15,7 +15,7 @@ import LoginScreen from "../LoginScreen";
 import { useThemeColors } from "../../Global/useTheme";
 import { H2 } from "../../Styles/Fonts";
 // import { useGridColumns } from "../../Styles/Responsive";
-import { styles, STATUS_TITLES, getGridItemWidth } from "./styles";
+import { styles, STATUS_TITLES, getGridItemWidth } from "../../Styles/components/Screens/BookmarkStyles";
 import { TVFocusableGrid, TVStatusSelector } from "../../Components/TV";
 
 export default function BookmarkTV({ ...props }) {

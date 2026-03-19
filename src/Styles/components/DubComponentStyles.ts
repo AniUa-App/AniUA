@@ -19,18 +19,18 @@ export const useDubComponentStyles = (): DubComponentStyles => {
     resultItem: {
       flexDirection: "row",
       alignItems: "center",
-      padding: layout.s(8),
-      paddingHorizontal: layout.s(12),
-      borderRadius: layout.s(18),
-      marginBottom: layout.s(8),
+      padding: layout.spacing.sm,
+      paddingHorizontal: layout.spacing.md,
+      borderRadius: layout.radius.xlg,
+      marginBottom: layout.spacing.sm,
     },
     resultImageContainer: {
-      width: layout.s(50),
-      height: layout.s(50),
-      borderRadius: layout.s(18),
+      width: layout.sizing.touchMd,
+      height: layout.sizing.touchMd,
+      borderRadius: layout.radius.xlg,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: layout.s(12),
+      marginRight: layout.spacing.md,
       overflow: "hidden",
     },
     resultImage: {
@@ -39,7 +39,7 @@ export const useDubComponentStyles = (): DubComponentStyles => {
     },
     resultInfo: {
       flex: 1,
-      marginRight: layout.s(8),
+      marginRight: layout.spacing.sm,
     },
   };
 };

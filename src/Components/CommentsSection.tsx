@@ -5,8 +5,6 @@ import {
   ActivityIndicator,
   Keyboard,
   Image,
-  ScrollView,
-  RefreshControl,
   Alert,
   Modal,
   NativeSyntheticEvent,
@@ -683,7 +681,6 @@ function CommentsSection({
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [votingMap, setVotingMap] = useState<VotingMap>({});
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -801,12 +798,6 @@ function CommentsSection({
   }, [loadComments]);
 
   // Handle pull-to-refresh
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await loadComments();
-    setIsRefreshing(false);
-  }, [loadComments]);
-
   // Handle reply
   const handleReply = useCallback((comment: Comment) => {
     setReplyTo(comment);
@@ -988,17 +979,7 @@ function CommentsSection({
 
   return (
     <View style={s.sectionContainer}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={themeColors.primary}
-            colors={[themeColors.primary]}
-          />
-        }
-        contentContainerStyle={s.container}
-      >
+      <View style={s.container}>
         {/* Comment input (only for authenticated users) */}
         {HikkaAuthService.isAuthenticated() && isInputVisible && (
           <CommentInput
@@ -1047,7 +1028,7 @@ function CommentsSection({
             ))}
           </View>
         )}
-      </ScrollView>
+      </View>
 
       {/* Delete confirmation Snackbar in Modal */}
       <Modal

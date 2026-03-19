@@ -14,11 +14,11 @@ export const useProfileAvatarStyles = (): ProfileAvatarStyles => {
   return {
     avatarContainer: {
       alignItems: "center",
-      marginTop: layout.s(4),
+      marginTop: layout.spacing.xs,
     },
     avatarOuter: {
-      width: layout.s(90),
-      height: layout.s(90),
+      width: layout.sizing.lg,
+      height: layout.sizing.lg,
       borderRadius: layout.s(45),
       justifyContent: "center",
       alignItems: "center",

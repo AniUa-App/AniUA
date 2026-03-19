@@ -21,6 +21,8 @@ type ProfileStatsTabletsStyles = {
   chartCenter: ViewStyle;
   /** Елемент статистики */
   statItem: ViewStyle;
+  /** Елемент статистики під графіком (з додатковими відступами) */
+  chartStatItem: ViewStyle;
   /** Контейнер іконки */
   iconContainer: ViewStyle;
   /** Контейнер тексту */
@@ -36,16 +38,16 @@ export const useProfileStatsPhoneStyles = (): ProfileStatsPhoneStyles => {
       width: "100%",
       flexWrap: "wrap",
       justifyContent: "center",
-      marginHorizontal: layout.s(20),
-      marginTop: layout.s(20),
-      gap: layout.s(8),
+      marginHorizontal: layout.spacing.xlg,
+      marginTop: layout.spacing.xlg,
+      gap: layout.spacing.sm,
     },
     statItem: {
       alignItems: "center",
-      paddingVertical: layout.s(12),
+      paddingVertical: layout.spacing.md,
       paddingHorizontal: layout.s(14),
-      borderRadius: layout.s(16),
-      gap: layout.s(4),
+      borderRadius: layout.radius.lg,
+      gap: layout.spacing.xs,
     },
   };
 };
@@ -56,10 +58,10 @@ export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
   return {
     statsContainer: {
       flexDirection: "column",
-      marginHorizontal: layout.s(16),
-      marginTop: layout.s(20),
-      borderRadius: layout.s(16),
-      padding: layout.s(16),
+      marginHorizontal: layout.spacing.lg,
+      marginTop: layout.spacing.xlg,
+      borderRadius: layout.radius.lg,
+      padding: layout.spacing.lg,
     },
     statsRow: {
       flexDirection: "row",
@@ -67,7 +69,7 @@ export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
       gap: layout.s(84),
     },
     statsList: {
-      gap: layout.s(16),
+      gap: layout.spacing.lg,
     },
     chartContainer: {
       alignItems: "center",
@@ -86,12 +88,21 @@ export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
     statItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: layout.s(12),
+      gap: layout.spacing.md,
       alignSelf: "flex-start",
     },
+    chartStatItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: layout.spacing.md,
+      alignSelf: "flex-start",
+      marginTop: layout.spacing.sm,
+      justifyContent: "center",
+      marginLeft: layout.spacing.lg,
+    },
     iconContainer: {
-      padding: layout.s(8),
-      borderRadius: layout.s(10),
+      padding: layout.spacing.sm,
+      borderRadius: layout.radius.xmd,
     },
     textContainer: {
       flex: 1,

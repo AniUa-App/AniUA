@@ -15,11 +15,13 @@ import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
 import LoginScreen from "../LoginScreen";
 import { useThemeColors } from "../../Global/useTheme";
 import { H2 } from "../../Styles/Fonts";
-import { styles, STATUS_TITLES } from "./styles";
+import { styles, STATUS_TITLES } from "../../Styles/components/Screens/BookmarkStyles";
+import { useLayout } from "../../Styles/Layout";
 
 // Phone version of Bookmark screen (vertical list)
 export default function BookmarkPhone({ ...props }) {
   const colors = useThemeColors();
+  const layout = useLayout();
   const [currentStatus, setCurrentStatus] = useState("favourite");
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

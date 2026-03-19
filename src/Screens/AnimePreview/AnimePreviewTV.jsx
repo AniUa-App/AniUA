@@ -7,8 +7,10 @@ import {
   FlatList,
   findNodeHandle,
   BackHandler,
+  StyleSheet,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 
 const TVFocusGuideView = RNTVFocusGuideView || View;
 import { useNavigation } from "@react-navigation/native";
@@ -18,6 +20,7 @@ import DefaultScreenWidget from "../../Widgets/DefaultScreenWidget";
 import WatchButton, { WatchButtonState } from "../../Components/WatchButton";
 import AnimeStatusFAB from "../../Widgets/AnimeStatusFAB";
 import BloomImage from "../../Widgets/BloomImage";
+import { Image } from "../../Widgets/LoadersWidgets";
 import { AnimeListHorizontal } from "../../Widgets/AnimeListHorizontalWidget";
 import Icon from "../../Styles/Icons";
 import { H3, H4, H5 } from "../../Styles/Fonts";
@@ -421,6 +424,18 @@ export default function AnimePreviewTV({ route }) {
           showsVerticalScrollIndicator={false}
           focusable={false}
         >
+          {/* Top section: poster + title + watch button — with background image */}
+          <View style={{ overflow: "hidden" }} focusable={false}>
+            {/* Background image with gradient fade */}
+            <Image uri={anime.image} style={[StyleSheet.absoluteFill, { opacity: 0.45 }]} />
+            <LinearGradient
+              colors={["transparent", themeColors.Background?.(1) ?? themeColors.background]}
+              locations={[0, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+
           {/* Poster with bloom effect */}
           <View
             style={{
@@ -568,6 +583,7 @@ export default function AnimePreviewTV({ route }) {
               )}
             </TVButton>
           </View>
+          </View>{/* end top background wrapper */}
 
           {/* Info section */}
           <View

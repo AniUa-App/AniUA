@@ -22,12 +22,12 @@ export const usePrivilegesStyles = (): PrivilegesStyles => {
   const layout = useLayout();
 
   return {
-    container: { flex: 1, paddingHorizontal: layout.s(26), paddingTop: layout.s(16) },
-    card: { paddingHorizontal: layout.s(12), paddingTop: layout.s(8) },
-    row: { flexDirection: "row", alignItems: "center", gap: layout.s(12), paddingVertical: layout.s(12) },
-    iconBox: { width: layout.s(34), height: layout.s(34), borderRadius: layout.s(10), alignItems: "center", justifyContent: "center" },
+    container: { flex: 1, paddingHorizontal: layout.s(26), paddingTop: layout.spacing.lg },
+    card: { paddingHorizontal: layout.spacing.md, paddingTop: layout.spacing.sm },
+    row: { flexDirection: "row", alignItems: "center", gap: layout.spacing.md, paddingVertical: layout.spacing.md },
+    iconBox: { width: layout.s(34), height: layout.s(34), borderRadius: layout.radius.xmd, alignItems: "center", justifyContent: "center" },
     divider: { height: 1, marginVertical: layout.s(15), borderRadius: 1, width: "90%", alignSelf: "center" },
-    primaryBtn: { alignSelf: "center", paddingHorizontal: layout.s(90), paddingVertical: layout.s(10), borderRadius: layout.s(8), marginTop: layout.s(24) },
-    skipBtn: { alignSelf: "center", flexDirection: "row", gap: layout.s(8), paddingHorizontal: layout.s(16), paddingVertical: layout.s(8), borderRadius: layout.s(12), marginTop: layout.s(14) },
+    primaryBtn: { alignSelf: "center", paddingHorizontal: layout.s(90), paddingVertical: layout.spacing.xmd, borderRadius: layout.radius.sm, marginTop: layout.spacing.xl },
+    skipBtn: { alignSelf: "center", flexDirection: "row", gap: layout.spacing.sm, paddingHorizontal: layout.spacing.lg, paddingVertical: layout.spacing.sm, borderRadius: layout.radius.md, marginTop: layout.s(14) },
   };
 };

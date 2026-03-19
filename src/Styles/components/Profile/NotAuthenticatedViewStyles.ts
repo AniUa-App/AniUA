@@ -16,47 +16,46 @@ type NotAuthenticatedViewStyles = {
   loginButtonText: TextStyle;
 };
 
-export const useNotAuthenticatedViewStyles =
-  (): NotAuthenticatedViewStyles => {
-    const layout = useLayout();
+export const useNotAuthenticatedViewStyles = (): NotAuthenticatedViewStyles => {
+  const layout = useLayout();
 
-    return {
-      notAuthContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: layout.s(40),
-      },
-      avatarOuter: {
-        width: layout.s(90),
-        height: layout.s(90),
-        borderRadius: layout.s(45),
-        justifyContent: "center",
-        alignItems: "center",
-        overflow: "hidden",
-      },
-      notAuthTitle: {
-        fontFamily: "Nunito-Bold",
-        marginTop: layout.s(20),
-        textAlign: "center",
-      },
-      notAuthSubtitle: {
-        fontFamily: "Nunito-Regular",
-        marginTop: layout.s(8),
-        textAlign: "center",
-        lineHeight: layout.s(20),
-      },
-      loginButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: layout.s(14),
-        paddingHorizontal: layout.s(24),
-        borderRadius: layout.s(12),
-        marginTop: layout.s(24),
-        gap: layout.s(10),
-      },
-      loginButtonText: {
-        fontFamily: "Nunito-Bold",
-      },
-    };
+  return {
+    notAuthContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: layout.spacing.xl3,
+    },
+    avatarOuter: {
+      width: layout.sizing.lg,
+      height: layout.sizing.lg,
+      borderRadius: layout.s(45),
+      justifyContent: "center",
+      alignItems: "center",
+      overflow: "hidden",
+    },
+    notAuthTitle: {
+      fontFamily: "Nunito-Bold",
+      marginTop: layout.spacing.xlg,
+      textAlign: "center",
+    },
+    notAuthSubtitle: {
+      fontFamily: "Nunito-Regular",
+      marginTop: layout.spacing.sm,
+      textAlign: "center",
+      lineHeight: layout.spacing.xlg,
+    },
+    loginButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: layout.s(14),
+      paddingHorizontal: layout.spacing.xl,
+      borderRadius: layout.radius.md,
+      marginTop: layout.spacing.xl,
+      gap: layout.spacing.xmd,
+    },
+    loginButtonText: {
+      fontFamily: "Nunito-Bold",
+    },
   };
+};

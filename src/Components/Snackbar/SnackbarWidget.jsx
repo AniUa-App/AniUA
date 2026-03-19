@@ -296,6 +296,7 @@ export default function Snackbar({
  * Helper компонент для створення посилання в snackbar
  */
 export function SnackbarLink({ children, url, color }) {
+  const s = useSnackbarWidgetStyles();
   Logger.debug("SnackbarLink", "URL", { url });
   const handlePress = () => {
     Logger.debug("SnackbarLink", "Link pressed");

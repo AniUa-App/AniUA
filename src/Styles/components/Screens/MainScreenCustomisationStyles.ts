@@ -24,21 +24,21 @@ export const useMainScreenCustomisationStyles = (): MainScreenCustomisationStyle
   const layout = useLayout();
 
   return {
-    actionButtons: { gap: layout.s(2) },
-    loaderContainer: { paddingVertical: layout.s(32), alignItems: "center", justifyContent: "center" },
-    emptyState: { paddingVertical: layout.s(32), alignItems: "center", justifyContent: "center" },
-    sheetHeader: { paddingHorizontal: layout.s(16), paddingBottom: layout.s(16), alignItems: "center" },
-    inputRow: { flexDirection: "row", paddingHorizontal: layout.s(16), marginBottom: layout.s(16), gap: layout.s(12), alignItems: "center" },
+    actionButtons: { gap: layout.spacing.xxs },
+    loaderContainer: { paddingVertical: layout.spacing.xxl, alignItems: "center", justifyContent: "center" },
+    emptyState: { paddingVertical: layout.spacing.xxl, alignItems: "center", justifyContent: "center" },
+    sheetHeader: { paddingHorizontal: layout.spacing.lg, paddingBottom: layout.spacing.lg, alignItems: "center" },
+    inputRow: { flexDirection: "row", paddingHorizontal: layout.spacing.lg, marginBottom: layout.spacing.lg, gap: layout.spacing.md, alignItems: "center" },
     inputContainer: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      height: layout.s(44),
-      paddingHorizontal: layout.s(16),
-      borderRadius: layout.s(12),
+      height: layout.sizing.touch,
+      paddingHorizontal: layout.spacing.lg,
+      borderRadius: layout.radius.md,
       backgroundColor: "rgba(0,0,0,0.2)",
     },
-    actionButton: { width: layout.s(44), height: layout.s(44), borderRadius: layout.s(12), alignItems: "center", justifyContent: "center" },
-    filtersContainer: { paddingHorizontal: layout.s(16) },
+    actionButton: { width: layout.sizing.touch, height: layout.sizing.touch, borderRadius: layout.radius.md, alignItems: "center", justifyContent: "center" },
+    filtersContainer: { paddingHorizontal: layout.spacing.lg },
   };
 };

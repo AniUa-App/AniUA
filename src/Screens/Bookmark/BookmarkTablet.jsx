@@ -16,11 +16,13 @@ import LoginScreen from "../LoginScreen";
 import { useThemeColors } from "../../Global/useTheme";
 import { H2 } from "../../Styles/Fonts";
 import { useIsLandscape } from "../../Styles/Responsive";
-import { styles, STATUS_TITLES, getGridItemWidth } from "./styles";
+import { styles, STATUS_TITLES, getGridItemWidth } from "../../Styles/components/Screens/BookmarkStyles";
+import { useLayout } from "../../Styles/Layout";
 
 // Tablet version of Bookmark screen (grid layout)
 export default function BookmarkTablet({ ...props }) {
   const colors = useThemeColors();
+  const layout = useLayout();
   const [currentStatus, setCurrentStatus] = useState("favourite");
   const [animeList, setAnimeList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -19,19 +19,19 @@ export const useAppInfoStyles = (): AppInfoStyles => {
     header: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: layout.s(16),
-      paddingTop: layout.s(6),
-      paddingBottom: layout.s(12),
+      paddingHorizontal: layout.spacing.lg,
+      paddingTop: layout.spacing.xsm,
+      paddingBottom: layout.spacing.md,
     },
     row: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: layout.s(16),
-      paddingVertical: layout.s(12),
+      paddingHorizontal: layout.spacing.lg,
+      paddingVertical: layout.spacing.md,
       width: "100%",
     },
-    rowTextContainer: { paddingRight: layout.s(16), maxWidth: "55%" },
-    valuePill: { paddingVertical: layout.s(6), paddingHorizontal: layout.s(10), borderRadius: layout.s(10), maxWidth: "45%" },
+    rowTextContainer: { paddingRight: layout.spacing.lg, maxWidth: "55%" },
+    valuePill: { paddingVertical: layout.spacing.xsm, paddingHorizontal: layout.spacing.xmd, borderRadius: layout.radius.xmd, maxWidth: "45%" },
   };
 };

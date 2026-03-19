@@ -17,10 +17,10 @@ export const useWatchButtonStyles = (): WatchButtonStyles => {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: layout.s(12),
+      borderRadius: layout.radius.md,
       overflow: "hidden",
-      width: layout.s(44),
-      height: layout.s(44),
+      width: layout.sizing.touch,
+      height: layout.sizing.touch,
     },
     watchButton: {
       flex: 1,

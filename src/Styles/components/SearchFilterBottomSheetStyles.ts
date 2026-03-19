@@ -29,36 +29,36 @@ export const useSearchFilterBottomSheetStyles =
         flex: 1,
       },
       scrollContent: {
-        paddingBottom: layout.s(40),
-        paddingTop: layout.s(8),
+        paddingBottom: layout.spacing.xl3,
+        paddingTop: layout.spacing.sm,
       },
       content: {
         flex: 1,
-        paddingHorizontal: layout.s(16),
+        paddingHorizontal: layout.spacing.lg,
       },
       headerRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: layout.s(20),
+        marginBottom: layout.spacing.xlg,
       },
       headerButtons: {
         flexDirection: "row",
-        gap: layout.s(10),
+        gap: layout.spacing.xmd,
       },
       headerButton: {
         width: layout.s(40),
         height: layout.s(40),
-        borderRadius: layout.s(16),
+        borderRadius: layout.radius.lg,
         alignItems: "center",
         justifyContent: "center",
       },
       sectionLabel: {
-        marginTop: layout.s(16),
-        marginBottom: layout.s(8),
+        marginTop: layout.spacing.lg,
+        marginBottom: layout.spacing.sm,
       },
       slider: {
-        marginTop: layout.s(16),
+        marginTop: layout.spacing.lg,
       },
     };
   };

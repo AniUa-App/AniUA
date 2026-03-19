@@ -13,6 +13,7 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import Markdown from "react-native-markdown-display";
 import Clipboard from "@react-native-clipboard/clipboard";
@@ -44,7 +45,7 @@ import {
 import AnimeCard from "../../Components/AnimeCard";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
 import CommentsSection from "../../Components/CommentsSection";
-import { tabletStyles as styles } from "./styles"; // Using tabletStyles but relying on manual styles for consistency
+import { tabletStyles as styles } from "../../Styles/components/Screens/AnimePreviewBaseStyles";
 import { useIsTabletLandscape } from "../../Styles/Responsive";
 import { ErrorScreen } from "../ErrorScreen";
 
@@ -476,6 +477,18 @@ export default function AnimePreviewTablet({ route }) {
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
+          {/* Top section: poster + title + watch button — with background image */}
+          <View style={{ overflow: "hidden" }}>
+            {/* Background image with gradient fade */}
+            <Image uri={anime.image} style={[StyleSheet.absoluteFill, { opacity: 0.45 }]} />
+            <LinearGradient
+              colors={["transparent", themeColors.Background?.(1) ?? themeColors.background]}
+              locations={[0, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+
           {/* Poster with bloom effect */}
           <View
             style={{
@@ -634,6 +647,8 @@ export default function AnimePreviewTablet({ route }) {
               )}
             </TouchableOpacity>
           </View>
+          </View>{/* end top background wrapper */}
+
           {/* Info section */}
           <View
             style={[

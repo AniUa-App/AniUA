@@ -7,7 +7,7 @@ import { MoonIcon, AshdiIcon } from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { Player } from "./types";
 import { PLAYER_ORDER } from "./constants";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetDownloadStyles";
 
 interface PlayerTabsProps {
   availablePlayers: string[];

@@ -108,7 +108,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <DefaultScreenWidget style={[s.container, {}]} isNavBarPadding={false}>
+    <DefaultScreenWidget style={s.container} isNavBarPadding={false}>
       <SearchHeaderComponent
         searchText={searchText}
         onChangeText={setSearchText}
@@ -129,15 +129,12 @@ export default function SearchScreen() {
 
       {isLoading ? (
         <View
-          style={[
-            s.loadingContainer,
-            { backgroundColor: themeColors.accent },
-          ]}
+          style={[s.loadingContainer, { backgroundColor: themeColors.accent }]}
         >
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : (
-        <TVFocusGuideView autoFocus style={{ flex: 1 }}>
+        <TVFocusGuideView autoFocus style={s.listWrapper}>
           <FlatList
             ref={flatListRef}
             data={results}
@@ -199,4 +196,3 @@ export default function SearchScreen() {
     </DefaultScreenWidget>
   );
 }
-

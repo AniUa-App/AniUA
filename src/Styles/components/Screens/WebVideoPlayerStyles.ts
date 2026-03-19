@@ -22,15 +22,15 @@ export const useWebVideoPlayerStyles = (): WebVideoPlayerStyles => {
     video: { flex: 1 },
     backButton: {
       position: "absolute",
-      top: layout.s(40),
-      left: layout.s(20),
+      top: layout.spacing.xl3,
+      left: layout.spacing.xlg,
       backgroundColor: Background(0.7),
-      borderRadius: layout.s(8),
-      padding: layout.s(10),
+      borderRadius: layout.radius.sm,
+      padding: layout.spacing.xmd,
       flexDirection: "row",
       alignItems: "center",
       zIndex: 999,
     },
-    title: { color: "text", marginLeft: layout.s(10), maxWidth: "80%" },
+    title: { color: "text", marginLeft: layout.spacing.xmd, maxWidth: "80%" },
   };
 };

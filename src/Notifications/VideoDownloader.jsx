@@ -582,7 +582,7 @@ export async function DownloadVideo({
         progress: 40 + randNumber(16),
         data: [response.data],
       });
-      var { success, data: availableQualities } = dataToQuality(response.data);
+      var { success, data: availableQualities } = dataToQuality(response.data, m3u8Url);
       if (!success) {
         updateStatus("error", {
           progress: -1,
@@ -824,6 +824,10 @@ export async function getPlayerDataFrom_MOON_Player(url) {
     // Використовуємо регулярні вирази для пошуку параметрів плеєра
     const idMatch = htmlContent.match(/id:\s*"([^"]+)"/);
     const fileMatch = htmlContent.match(/file:\s*"([^"]+)"/);
+    if (!fileMatch?.[1]) {
+      Logger.warn("MOON_Player", "no file found in response");
+      return null;
+    }
     if (fileMatch[1].includes("webm")) {
       const data = {};
       const temp_ = fileMatch[1].split(",");
@@ -864,21 +868,55 @@ const getTotalMs = async (tsFilesCount) => {
   return tsFilesCount * avgTsDuration;
 };
 
-function dataToQuality(data) {
-  const qualityMatches = [
-    ...data.matchAll(
-      /#EXT-X-STREAM-INF.*RESOLUTION=\d+x(\d+).*?\n(https:\/\/[^\s]+)/g
-    ),
-  ];
+function dataToQuality(data, baseUrl = "") {
+  // Resolve base origin for relative URLs
+  let baseOrigin = "";
+  let basePath = "";
+  if (baseUrl) {
+    try {
+      const u = new URL(baseUrl);
+      baseOrigin = u.origin;
+      basePath = u.href.substring(0, u.href.lastIndexOf("/") + 1);
+    } catch (_) {}
+  }
 
-  if (qualityMatches.length === 0) {
+  const resolveUrl = (url) => {
+    if (!url) return url;
+    url = url.trim();
+    if (url.startsWith("http")) return url;
+    if (url.startsWith("//")) return "https:" + url;
+    if (url.startsWith("/")) return baseOrigin + url;
+    return basePath + url;
+  };
+
+  const lines = data.split("\n").map((l) => l.trim()).filter(Boolean);
+  const availableQualities = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].startsWith("#EXT-X-STREAM-INF")) continue;
+    const urlLine = lines[i + 1];
+    if (!urlLine || urlLine.startsWith("#")) continue;
+
+    const resolvedUrl = resolveUrl(urlLine);
+
+    // Спочатку RESOLUTION=WxH, потім з URL (/1080/, /720/ тощо)
+    const resMatch = lines[i].match(/RESOLUTION=\d+x(\d+)/);
+    const height =
+      resMatch?.[1] ??
+      resolvedUrl.match(/\/(\d{3,4})\//)?.[1] ??
+      resolvedUrl.match(/\/hls[._](\d+)\//)?.[1];
+
+    if (height) {
+      availableQualities.push({ quality: height + "p", url: resolvedUrl });
+    }
+  }
+
+  if (availableQualities.length === 0) {
     return { success: false, error: "no_quality_options_found" };
   }
 
-  const availableQualities = qualityMatches.map((match) => ({
-    quality: match[1] + "p",
-    url: match[2],
-  }));
+  // Сортуємо за спаданням якості
+  availableQualities.sort((a, b) => parseInt(b.quality) - parseInt(a.quality));
 
   return { success: true, data: availableQualities };
 }

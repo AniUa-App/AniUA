@@ -17,7 +17,7 @@ import AnimeStorage from "../../Storage/AnimeStorage";
 import Logger from "../../Logger/Logger";
 import { useGridColumns } from "../../Styles/Responsive";
 import { prefetchBloomImage } from "../../Widgets/BloomImage";
-import { styles, getGridItemWidth } from "./styles";
+import { styles, getGridItemWidth } from "../../Styles/components/Screens/DownloadStyles";
 import { TVFocusableGrid, TVButton } from "../../Components/TV";
 import BottomSheetDownload from "../../Components/BottomSheetDownload";
 

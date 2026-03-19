@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { View, StyleSheet, Text, Animated, Pressable } from "react-native";
+import { View, Text, Animated, Pressable } from "react-native";
 import { TouchableOpacity } from "./Button";
 import { useThemeColors } from "../Global/useTheme";
-import { H4, H5 } from "../Styles/Fonts";
+import { H4 } from "../Styles/Fonts";
 import Icon from "../Styles/Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Color from "color";
-import { isTablet } from "../Styles/Responsive";
+import { useAnimeStatusFABStyles } from "../Styles/components/AnimeStatusFABStyles";
 
 export default function AnimeStatusFAB({
   currentStatus = null,
@@ -14,9 +14,9 @@ export default function AnimeStatusFAB({
   style,
   bottomOffset = 20,
   isFavoritesTab = false,
-  size = 64,
 }) {
   const themeColors = useThemeColors();
+  const s = useAnimeStatusFABStyles();
   const [isOpen, setIsOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -133,12 +133,11 @@ export default function AnimeStatusFAB({
     <>
       {/* Overlay для закриття меню при натисканні поза FAB */}
       {isOpen && (
-        <Pressable style={styles.overlay} onPress={() => setIsOpen(false)} />
+        <Pressable style={s.overlay} onPress={() => setIsOpen(false)} />
       )}
       <View
         style={[
-          styles.container,
-
+          s.container,
           style,
           {
             right: 20,
@@ -187,7 +186,7 @@ export default function AnimeStatusFAB({
               >
                 <TouchableOpacity
                   style={[
-                    styles.menuItem,
+                    s.menuItem,
                     { backgroundColor: themeColors.subtle },
                   ]}
                   onPress={() => {
@@ -196,7 +195,7 @@ export default function AnimeStatusFAB({
                   }}
                 >
                   <IconComponent
-                    size={size / 2}
+                    size={s.iconSize}
                     color={item.color}
                     weight={isSelected ? "fill" : "regular"}
                   />
@@ -212,22 +211,14 @@ export default function AnimeStatusFAB({
         {/* FAB кнопка */}
         <View
           style={[
-            styles.fab,
-            {
-              backgroundColor: themeColors.subtle,
-              width: size,
-              height: size,
-              borderRadius: size / 4,
-            },
+            s.fab,
+            { backgroundColor: themeColors.subtle },
           ]}
         >
           <TouchableOpacity
             style={[
-              styles.fab,
+              s.fab,
               {
-                width: size,
-                height: size,
-                borderRadius: size / 4,
                 backgroundColor:
                   selectedItem.label === "Не дивлюсь"
                     ? themeColors.inActiveIcon
@@ -239,22 +230,14 @@ export default function AnimeStatusFAB({
             activeOpacity={1}
           >
             <Animated.View
-              style={[
-                styles.fab,
-                {
-                  transform: [{ scale: scaleAnim }],
-                  width: size,
-                  height: size,
-                  borderRadius: size / 4,
-                },
-              ]}
+              style={[s.fab, { transform: [{ scale: scaleAnim }] }]}
             >
               {selectedItem ? (
                 (() => {
                   const SelectedIcon = selectedItem.icon;
                   return (
                     <SelectedIcon
-                      size={size / 2}
+                      size={s.iconSize}
                       color={selectedItem.color}
                       weight={"fill"}
                     />
@@ -262,7 +245,7 @@ export default function AnimeStatusFAB({
                 })()
               ) : (
                 <Icon.CircleTrash
-                  size={size / 2}
+                  size={s.iconSize}
                   color={themeColors.inActiveIcon}
                   weight={isOpen ? "fill" : "regular"}
                 />
@@ -275,31 +258,3 @@ export default function AnimeStatusFAB({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  container: {
-    position: "absolute",
-    alignItems: "flex-end",
-  },
-  fab: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 12,
-  },
-});

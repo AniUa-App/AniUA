@@ -25,16 +25,16 @@ export const useTVStatusSelectorStyles = (): TVStatusSelectorStyles => {
     },
     container: {
       paddingHorizontal: TV.padding.screen,
-      paddingVertical: layout.s(16),
+      paddingVertical: layout.spacing.lg,
       height: layout.s(55),
-      gap: layout.s(8),
+      gap: layout.spacing.sm,
     },
     tab: {
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: layout.s(12),
-      height: layout.s(36),
-      borderRadius: layout.s(18),
+      paddingHorizontal: layout.spacing.md,
+      height: layout.button.heightSm,
+      borderRadius: layout.radius.xlg,
     },
     tabContent: {
       flexDirection: "row",
@@ -43,7 +43,7 @@ export const useTVStatusSelectorStyles = (): TVStatusSelectorStyles => {
     },
     label: {
       fontFamily: "Nunito-SemiBold",
-      marginLeft: layout.s(6),
+      marginLeft: layout.spacing.xsm,
     },
   };
 };

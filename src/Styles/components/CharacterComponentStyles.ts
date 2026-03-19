@@ -20,15 +20,15 @@ export const useCharacterComponentStyles = (): CharacterComponentStyles => {
     cardContainer: {
       flexDirection: "row",
       backgroundColor: "transparent",
-      padding: layout.s(10),
-      borderRadius: layout.s(18),
+      padding: layout.spacing.xmd,
+      borderRadius: layout.radius.xlg,
       marginVertical: layout.s(5),
-      marginHorizontal: layout.s(10),
+      marginHorizontal: layout.spacing.xmd,
       alignItems: "flex-start",
     },
     characterImage: {
-      borderRadius: layout.s(18),
-      marginRight: layout.s(10),
+      borderRadius: layout.radius.xlg,
+      marginRight: layout.spacing.xmd,
     },
     infoContainer: {
       flex: 1,
@@ -36,7 +36,7 @@ export const useCharacterComponentStyles = (): CharacterComponentStyles => {
     },
     name: {
       ...H3,
-      marginBottom: layout.s(8),
+      marginBottom: layout.spacing.sm,
       textAlign: "center",
     },
   };

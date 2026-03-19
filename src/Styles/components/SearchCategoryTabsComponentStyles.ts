@@ -1,15 +1,23 @@
 import { useLayout } from "../Layout";
-import type { ViewStyle } from "react-native";
+import type { ViewStyle, TextStyle } from "react-native";
 
 type SearchCategoryTabsComponentStyles = {
   /** ScrollView категорій */
   scrollView: ViewStyle;
   /** Контейнер рядка вкладок */
   container: ViewStyle;
-  /** Одна вкладка категорії */
+  /** Базові стилі вкладки */
   tab: ViewStyle;
+  /** Вкладка в активному стані */
+  tabActive: ViewStyle;
+  /** Вкладка в неактивному стані */
+  tabInactive: ViewStyle;
   /** Вміст вкладки (іконка + мітка) */
   tabContent: ViewStyle;
+  /** Мітка вкладки */
+  tabLabel: TextStyle;
+  /** Розмір іконки вкладки */
+  iconSize: number;
 };
 
 export const useSearchCategoryTabsComponentStyles =
@@ -22,22 +30,34 @@ export const useSearchCategoryTabsComponentStyles =
         flexShrink: 0,
       },
       container: {
-        paddingHorizontal: layout.s(16),
-        paddingVertical: layout.s(16),
+        paddingHorizontal: layout.spacing.lg,
+        paddingVertical: layout.spacing.lg,
         height: layout.s(55),
-        gap: layout.s(8),
+        gap: layout.spacing.sm,
       },
       tab: {
         alignItems: "center",
         justifyContent: "center",
-        paddingHorizontal: layout.s(12),
-        height: layout.s(36),
-        borderRadius: layout.s(18),
+        paddingHorizontal: layout.spacing.md,
+        borderRadius: layout.radius.xlg,
+      },
+      tabActive: {
+        height: layout.s(40),
+        paddingBottom: layout.spacing.xxs,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+      },
+      tabInactive: {
+        height: layout.s(34),
       },
       tabContent: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
       },
+      tabLabel: {
+        marginLeft: layout.spacing.xsm,
+      },
+      iconSize: layout.icon.sm,
     };
   };

@@ -21,7 +21,7 @@ import Logger from "../../Logger/Logger";
 import { isTabletLandscape, isTablet } from "../../Styles/Responsive";
 import { prefetchBloomImage } from "../../Widgets/BloomImage";
 import BottomSheetDownloadComponent from "../../Components/BottomSheetDownload/BottomSheetDownloadComponent";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/Screens/DownloadStyles";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 

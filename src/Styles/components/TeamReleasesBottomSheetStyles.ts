@@ -19,8 +19,8 @@ export const useTeamReleasesBottomSheetStyles =
         flex: 1,
       },
       header: {
-        paddingHorizontal: layout.s(20),
-        paddingVertical: layout.s(12),
+        paddingHorizontal: layout.spacing.xlg,
+        paddingVertical: layout.spacing.md,
         alignItems: "center",
       },
       loadingContainer: {

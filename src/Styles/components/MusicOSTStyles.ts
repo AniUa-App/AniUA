@@ -25,7 +25,7 @@ export const useMusicOSTStyles = (): MusicOSTStyles => {
 
   return {
     cardContainer: {
-      borderRadius: layout.s(12),
+      borderRadius: layout.radius.md,
       overflow: "hidden",
       position: "relative",
     },
@@ -38,10 +38,10 @@ export const useMusicOSTStyles = (): MusicOSTStyles => {
     },
     badge: {
       position: "absolute",
-      top: layout.s(10),
-      left: layout.s(10),
-      paddingHorizontal: layout.s(10),
-      paddingVertical: layout.s(4),
+      top: layout.spacing.xmd,
+      left: layout.spacing.xmd,
+      paddingHorizontal: layout.spacing.xmd,
+      paddingVertical: layout.spacing.xs,
       borderRadius: layout.s(6),
       zIndex: 2,
     },
@@ -59,9 +59,9 @@ export const useMusicOSTStyles = (): MusicOSTStyles => {
       bottom: 0,
       left: 0,
       right: 0,
-      paddingHorizontal: layout.s(12),
-      paddingVertical: layout.s(10),
-      paddingTop: layout.s(24),
+      paddingHorizontal: layout.spacing.md,
+      paddingVertical: layout.spacing.xmd,
+      paddingTop: layout.spacing.xl,
     },
     title: {
       color: "#FFFFFF",
@@ -69,7 +69,7 @@ export const useMusicOSTStyles = (): MusicOSTStyles => {
     },
     author: {
       color: "rgba(255,255,255,0.7)",
-      marginTop: layout.s(2),
+      marginTop: layout.spacing.xxs,
     },
     separator: {
       width: layout.s(12),

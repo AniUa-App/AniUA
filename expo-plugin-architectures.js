@@ -69,7 +69,16 @@ const withArchitectures = (config, architectures) => {
       );
     }
 
-    // 2. resConfigs — keep only Ukrainian and English, strip everything else from libs
+    // 2. 16KB page size alignment (Android 15+ / Google Play requirement)
+    if (!cfg.modResults.contents.includes("ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES")) {
+      cfg.modResults.contents = cfg.modResults.contents.replace(
+        /(ndk\s*\{[^}]*\})/,
+        `$1\n        externalNativeBuild {\n            cmake {\n                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"\n            }\n        }`
+      );
+      console.log("[expo-plugin-architectures] Added 16KB page size alignment flag");
+    }
+
+    // 3. resConfigs — keep only Ukrainian and English, strip everything else from libs
     if (!cfg.modResults.contents.includes("resConfigs")) {
       cfg.modResults.contents = cfg.modResults.contents.replace(
         /(ndk\s*\{[^}]*\})/,
@@ -78,7 +87,7 @@ const withArchitectures = (config, architectures) => {
       console.log("[expo-plugin-architectures] Added resConfigs 'uk', 'en'");
     }
 
-    // 3. splits block — controlled by android.enableAbiSplits gradle property.
+    // 4. splits block — controlled by android.enableAbiSplits gradle property.
     // APK builds (SPLIT_APKS=true): enable=true → per-arch APKs + universal APK.
     // AAB builds (default):         enable=false → no conflict with shrinkResources
     //   (issuetracker.google.com/402800800).

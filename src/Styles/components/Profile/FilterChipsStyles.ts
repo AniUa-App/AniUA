@@ -14,16 +14,16 @@ export const useFilterChipsStyles = (): FilterChipsStyles => {
   return {
     filtersContainer: {
       flexDirection: "row",
-      gap: layout.s(8),
-      height: layout.s(38),
+      gap: layout.spacing.sm,
+      height: layout.sizing.touchSm,
     },
     filterChip: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: layout.s(12),
+      paddingHorizontal: layout.spacing.md,
       borderWidth: 1,
-      borderRadius: layout.s(18),
-      marginTop: layout.s(8),
+      borderRadius: layout.radius.xlg,
+      marginTop: layout.spacing.sm,
       gap: layout.s(5),
     },
   };

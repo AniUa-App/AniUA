@@ -268,17 +268,7 @@ function ProfileStatsTablet({
                 Обрані
               </Text>
             </View>
-            <View
-              style={[
-                s.statItem,
-                {
-                  marginTop: 8,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginLeft: 16,
-                },
-              ]}
-            >
+            <View style={s.chartStatItem}>
               <Text
                 selectable={true}
                 style={[

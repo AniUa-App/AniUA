@@ -17,16 +17,16 @@ export const useSearchHeaderComponentStyles =
     return {
       header: {
         flexDirection: "row",
-        paddingHorizontal: layout.s(16),
+        paddingHorizontal: layout.spacing.lg,
       },
       button: {
-        padding: layout.s(6),
-        borderRadius: layout.s(16),
+        padding: layout.spacing.xsm,
+        borderRadius: layout.radius.lg,
       },
       searchInputContainer: {
         flex: 1,
-        borderRadius: layout.s(16),
-        paddingHorizontal: layout.s(12),
+        borderRadius: layout.radius.lg,
+        paddingHorizontal: layout.spacing.md,
       },
     };
   };

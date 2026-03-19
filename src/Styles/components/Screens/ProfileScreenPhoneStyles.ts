@@ -22,6 +22,12 @@ type ProfileScreenPhoneStyles = {
   tabsContainer: ViewStyle;
   /** Обгортка вмісту вкладок */
   tabContentWrapper: ViewStyle;
+  /** Контейнер екрану входу (absoluteFill) */
+  loginContainer: ViewStyle;
+  /** Обгортка статистики профілю */
+  statsWrapper: ViewStyle;
+  /** Нижній відступ-заповнювач */
+  bottomSpacer: ViewStyle;
 };
 
 export const useProfileScreenPhoneStyles = (): ProfileScreenPhoneStyles => {
@@ -29,21 +35,25 @@ export const useProfileScreenPhoneStyles = (): ProfileScreenPhoneStyles => {
 
   return {
     container: { flex: 1 },
-    contentContainer: { flexGrow: 1, paddingBottom: layout.s(20) },
+    contentContainer: { flexGrow: 1, paddingBottom: layout.spacing.xlg },
     loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
     header: {
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-      paddingHorizontal: layout.s(20),
-      paddingTop: layout.s(50),
-      paddingBottom: layout.s(8),
+      paddingHorizontal: layout.spacing.xlg,
+      paddingTop: layout.spacing.xl5,
+      paddingBottom: layout.spacing.sm,
+      zIndex: 1,
     },
-    iconButton: { width: layout.s(44), height: layout.s(44), borderRadius: layout.s(16), justifyContent: "center", alignItems: "center" },
-    usernameContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: layout.s(14), gap: layout.s(8) },
-    editButton: { padding: layout.s(4), justifyContent: "center", alignItems: "center", borderRadius: layout.s(16) },
-    handle: { textAlign: "center", marginTop: layout.s(2) },
-    tabsContainer: { flexDirection: "row", justifyContent: "space-evenly", marginTop: layout.s(20), marginHorizontal: layout.s(20) },
+    iconButton: { width: layout.sizing.touch, height: layout.sizing.touch, borderRadius: layout.radius.lg, justifyContent: "center", alignItems: "center" },
+    usernameContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: layout.s(14), gap: layout.spacing.sm },
+    editButton: { padding: layout.spacing.xs, justifyContent: "center", alignItems: "center", borderRadius: layout.radius.lg },
+    handle: { textAlign: "center", marginTop: layout.spacing.xxs },
+    tabsContainer: { flexDirection: "row", justifyContent: "space-evenly", marginTop: layout.spacing.xlg, marginHorizontal: layout.spacing.xlg },
     tabContentWrapper: { width: "100%" },
+    loginContainer: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
+    statsWrapper: { width: "100%", flex: 1, justifyContent: "center", alignItems: "center" },
+    bottomSpacer: { width: "100%", paddingBottom: layout.s(45) },
   };
 };

@@ -10,10 +10,14 @@ type ProfileScreenTabletStyles = {
   header: ViewStyle;
   /** Бічна панель з профілем */
   sidebar: ViewStyle;
+  /** Вміст бічної панелі (ScrollView contentContainerStyle) */
+  sidebarContent: ViewStyle;
   /** Заголовок бічної панелі */
   sidebarHeader: ViewStyle;
   /** Кнопка-іконка */
   iconButton: ViewStyle;
+  /** Обгортка аватара з відступами */
+  avatarWrapper: ViewStyle;
   /** Контейнер імені користувача */
   usernameContainer: ViewStyle;
   /** Кнопка редагування імені */
@@ -26,6 +30,10 @@ type ProfileScreenTabletStyles = {
   tabsContainer: ViewStyle;
   /** Обгортка вмісту вкладок */
   tabContentWrapper: ViewStyle;
+  /** Контейнер екрану входу (absoluteFill) */
+  loginContainer: ViewStyle;
+  /** Нижній відступ-заповнювач */
+  bottomSpacer: ViewStyle;
 };
 
 export const useProfileScreenTabletStyles = (): ProfileScreenTabletStyles => {
@@ -38,18 +46,23 @@ export const useProfileScreenTabletStyles = (): ProfileScreenTabletStyles => {
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-      paddingHorizontal: layout.s(20),
-      paddingTop: layout.s(50),
-      paddingBottom: layout.s(8),
+      paddingHorizontal: layout.spacing.xlg,
+      paddingTop: layout.spacing.xl5,
+      paddingBottom: layout.spacing.sm,
+      zIndex: 1,
     },
-    sidebar: { paddingTop: layout.s(40), paddingHorizontal: layout.s(16), paddingBottom: layout.s(100), maxWidth: "40%", flexDirection: "column" },
-    sidebarHeader: { flexDirection: "row", marginBottom: layout.s(8) },
-    iconButton: { width: layout.s(44), height: layout.s(44), borderRadius: layout.s(16), justifyContent: "center", alignItems: "center" },
-    usernameContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: layout.s(14), gap: layout.s(8) },
+    sidebar: { paddingTop: layout.spacing.xl3, paddingHorizontal: layout.spacing.lg, paddingBottom: layout.s(100), maxWidth: "40%", flexDirection: "column" },
+    sidebarContent: { flexGrow: 1 },
+    sidebarHeader: { flexDirection: "row", marginBottom: layout.spacing.sm },
+    avatarWrapper: { left: layout.spacing.xxl, paddingTop: "5%" },
+    iconButton: { width: layout.sizing.touch, height: layout.sizing.touch, borderRadius: layout.radius.lg, justifyContent: "center", alignItems: "center" },
+    usernameContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: layout.s(14), gap: layout.spacing.sm },
     editButton: { width: layout.s(40), height: layout.s(24), borderRadius: layout.s(14), justifyContent: "center", alignItems: "center" },
-    handle: { textAlign: "center", marginTop: layout.s(2) },
+    handle: { textAlign: "center", marginTop: layout.spacing.xxs },
     content: { flex: 1 },
-    tabsContainer: { justifyContent: "center", alignContent: "center", flexDirection: "column", gap: layout.s(16), top: "4%" },
+    tabsContainer: { justifyContent: "center", alignContent: "center", flexDirection: "column", gap: layout.spacing.lg, top: "4%" },
     tabContentWrapper: { overflow: "hidden", width: "100%" },
+    loginContainer: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
+    bottomSpacer: { height: layout.sizing.xl },
   };
 };

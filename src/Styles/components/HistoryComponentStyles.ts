@@ -14,7 +14,7 @@ export const useHistoryComponentStyles = (): HistoryComponentStyles => {
       justifyContent: "center",
       alignItems: "center",
       padding: layout.s(30),
-      height: layout.s(200),
+      height: layout.sizing.img,
     },
   };
 };

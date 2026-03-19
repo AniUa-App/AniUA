@@ -24,13 +24,13 @@ export const useHikkaAuthButtonStyles = (
   return {
     button: {
       backgroundColor: isAuthenticated ? theme.green : theme.purple,
-      paddingVertical: layout.s(12),
-      paddingHorizontal: layout.s(24),
-      borderRadius: layout.s(8),
+      paddingVertical: layout.spacing.md,
+      paddingHorizontal: layout.spacing.xl,
+      borderRadius: layout.radius.sm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      minHeight: layout.s(44),
+      minHeight: layout.sizing.touch,
     },
     buttonDisabled: {
       opacity: 0.6,
@@ -48,7 +48,7 @@ export const useHikkaAuthButtonStyles = (
       color: theme.text,
       fontSize: layout.font.lg,
       fontWeight: "600",
-      marginRight: layout.s(8),
+      marginRight: layout.spacing.sm,
     },
   };
 };

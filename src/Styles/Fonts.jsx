@@ -57,34 +57,32 @@ export function Fonts() {
   return null;
 }
 
+// moderateScale для шрифтів: factor=0.5 запобігає надмірному зростанню на великих екранах
+const moderateFontScale = (size, linearScale, factor = 0.5) => {
+  const moderated = size + (size * linearScale - size) * factor;
+  return Math.round(PixelRatio.roundToNearestPixel(moderated));
+};
+
 // Hook для отримання динамічного scale та scaleFontSize
 export const useScaleFontSize = () => {
-  const {  width , height } = useWindowDimensions();
-  const physicalWidth = width * PixelRatio.get();
-  const physicalHeight = height * PixelRatio.get();
+  const { width, height } = useWindowDimensions();
   return useMemo(() => {
-    const scale = Math.min(physicalWidth, physicalHeight) / 390;
-    const scale_landscape = Math.min(physicalWidth, physicalHeight) / 650;
-    const scale_tv = Math.min(physicalWidth, physicalHeight) / 700;
+    const shortSide = Math.min(width, height); // логічні dp
+    const baseline = isTV() ? 540 : isTabletLandscape() ? 800 : isTablet() ? 600 : 390;
+    const linearScale = shortSide / baseline;
 
-    const scaleFontSize = (size) => {
-      const newSize =
-        size * (isTV() ? scale_tv : isTablet() ? scale_landscape : scale);
-      return Math.round(PixelRatio.roundToNearestPixel(newSize));
-    };
+    const scaleFontSize = (size) => moderateFontScale(size, linearScale);
 
     return scaleFontSize;
-  }, [physicalWidth, physicalHeight]);
+  }, [width, height]);
 };
 
 // Функція для обчислення розміру шрифту (для StaticStyles - буде виконано один раз)
 const getStaticFontSize = (size, width, height) => {
-  const scale = Math.min(width, height) / 390;
-  const scale_landscape = Math.min(width, height) / 650;
-  const scale_tv = Math.min(width, height) / 700;
-  const newSize =
-    size * (isTV() ? scale_tv : isTablet() ? scale_landscape : scale);
-  return Math.round(PixelRatio.roundToNearestPixel(newSize));
+  const shortSide = Math.min(width, height); // логічні dp
+  const baseline = isTV() ? 540 : isTabletLandscape() ? 800 : isTablet() ? 600 : 390;
+  const linearScale = shortSide / baseline;
+  return moderateFontScale(size, linearScale);
 };
 
 // Статичні стилі заголовків (для зворотної сумісності)
@@ -104,6 +102,12 @@ export const H3 = {
   color: text,
   fontFamily: "Nunito-SemiBold",
 };
+
+export const H3_05 = {
+  fontSize: getStaticFontSize(22, staticWidth, staticHeight),
+  color: text,
+  fontFamily: "Nunito-SemiBold",
+}
 
 export const H4 = {
   fontSize: getStaticFontSize(18, staticWidth, staticHeight),

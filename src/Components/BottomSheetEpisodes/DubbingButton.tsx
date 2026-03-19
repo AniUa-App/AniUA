@@ -5,7 +5,7 @@ import { H4, H5 } from "../../Styles/Fonts";
 import Icon from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { DubbingButtonProps } from "./types";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetEpisodesStyles";
 import { accent } from "../../Styles/Colors";
 
 export const DubbingButton = React.memo(

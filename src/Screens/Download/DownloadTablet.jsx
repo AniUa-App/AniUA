@@ -21,7 +21,7 @@ import Logger from "../../Logger/Logger";
 import { useGridColumns } from "../../Styles/Responsive";
 import { prefetchBloomImage } from "../../Widgets/BloomImage";
 import BottomSheetDownloadComponent from "../../Components/BottomSheetDownload/BottomSheetDownloadComponent";
-import { styles, getGridItemWidth } from "./styles";
+import { styles, getGridItemWidth } from "../../Styles/components/Screens/DownloadStyles";
 
 const MAX_CONCURRENT_REQUESTS = 10;
 

@@ -33,14 +33,14 @@ export const useNotificationCardStyles = (): NotificationCardStyles => {
   return {
     container: {
       flexDirection: "row",
-      borderRadius: layout.s(16),
-      padding: layout.s(12),
-      marginBottom: layout.s(10),
+      borderRadius: layout.radius.lg,
+      padding: layout.spacing.md,
+      marginBottom: layout.spacing.xmd,
     },
     poster: {
       width: layout.s(70),
-      height: layout.s(100),
-      borderRadius: layout.s(12),
+      height: layout.sizing.xl,
+      borderRadius: layout.radius.md,
     },
     posterPlaceholder: {
       justifyContent: "center",
@@ -48,25 +48,25 @@ export const useNotificationCardStyles = (): NotificationCardStyles => {
     },
     content: {
       flex: 1,
-      marginLeft: layout.s(12),
+      marginLeft: layout.spacing.md,
       justifyContent: "center",
     },
     title: {
       fontFamily: "Nunito-SemiBold",
       fontSize: H6.fontSize,
       lineHeight: layout.s(18),
-      marginBottom: layout.s(4),
+      marginBottom: layout.spacing.xs,
     },
     body: {
       fontFamily: "Nunito-Medium",
       fontSize: H7.fontSize,
-      marginBottom: layout.s(4),
+      marginBottom: layout.spacing.xs,
     },
     teamRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: layout.s(4),
-      marginBottom: layout.s(4),
+      gap: layout.spacing.xs,
+      marginBottom: layout.spacing.xs,
     },
     team: {
       fontFamily: "Nunito-Regular",
@@ -78,19 +78,19 @@ export const useNotificationCardStyles = (): NotificationCardStyles => {
     },
     unreadDot: {
       position: "absolute",
-      top: layout.s(12),
-      right: layout.s(12),
+      top: layout.spacing.md,
+      right: layout.spacing.md,
       width: layout.s(8),
       height: layout.s(8),
-      borderRadius: layout.s(4),
+      borderRadius: layout.radius.xs,
     },
     deleteAction: {
       justifyContent: "center",
       alignItems: "center",
       width: layout.s(80),
       height: "100%",
-      borderRadius: layout.s(16),
-      marginBottom: layout.s(10),
+      borderRadius: layout.radius.lg,
+      marginBottom: layout.spacing.xmd,
     },
   };
 };

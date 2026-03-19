@@ -32,8 +32,8 @@ export const useTVModalStyles = (): TVModalStyles => {
     },
     title: {
       fontFamily: "Nunito-SemiBold",
-      marginBottom: layout.s(16),
-      paddingBottom: layout.s(12),
+      marginBottom: layout.spacing.lg,
+      paddingBottom: layout.spacing.md,
       borderBottomWidth: 1,
     },
     content: {

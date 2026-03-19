@@ -1,7 +1,8 @@
 import { useLayout } from "../Layout";
 import { useThemeColors } from "../../Global/useTheme";
-import { H3 } from "../Fonts.jsx";
+import { H2, H3, H3_05 } from "../Fonts.jsx";
 import type { ViewStyle, TextStyle } from "react-native";
+import { background } from "../Colors";
 
 type AnimeListHStyles = {
   /** Ширина картки аніме (залежить від типу пристрою) */
@@ -33,20 +34,21 @@ export const useAnimeListHStyles = (): AnimeListHStyles => {
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "flex-end",
+      alignItems: "center",
       backgroundColor: "transparent",
       width: "100%",
       marginTop: layout.spacing.sm,
     },
     title: {
-      ...H3,
+      ...H2,
       padding: 0,
-      marginLeft: layout.s(4),
+      marginLeft: layout.spacing.md,
       color: theme.text,
+      paddingVertical: layout.paddings.xs,
     },
     arrowIcon: {
-      width: layout.s(38),
-      height: layout.s(38),
+      width: layout.sizing.touchSm,
+      height: layout.sizing.touchSm,
       borderRadius: layout.radius.lg,
       justifyContent: "center",
       alignItems: "center",

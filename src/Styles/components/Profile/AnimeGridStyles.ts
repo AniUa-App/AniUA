@@ -19,17 +19,17 @@ export const useAnimeGridStyles = (): AnimeGridStyles => {
     emptyState: {
       width: "100%",
       alignItems: "center",
-      paddingTop: layout.s(40),
+      paddingTop: layout.spacing.xl3,
       minHeight: "50%",
     },
     emptyStateText: {
       textAlign: "center",
-      marginTop: layout.s(8),
+      marginTop: layout.spacing.sm,
     },
     animeGridContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      paddingTop: layout.s(12),
+      paddingTop: layout.spacing.md,
       alignItems: "flex-start",
       justifyContent: "flex-start",
       minHeight: "50%",

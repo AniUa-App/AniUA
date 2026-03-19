@@ -33,13 +33,13 @@ export const useAnimeCardStyles = (): AnimeCardStyles => {
   return {
     image: { width: "100%", aspectRatio: 0.75, borderRadius: layout.s(21) },
     imageCompact: { width: "100%", aspectRatio: 0.7, borderRadius: layout.s(21) },
-    container: { borderRadius: layout.s(18), padding: layout.s(4), paddingBottom: layout.s(6) },
-    containerPhone: { paddingHorizontal: layout.s(8) },
-    details: { marginTop: layout.s(6), paddingHorizontal: layout.s(2) },
-    title: { ...H7, lineHeight: layout.s(16), color: theme.text },
+    container: { borderRadius: layout.radius.xlg, padding: layout.spacing.xs, paddingBottom: layout.spacing.xsm },
+    containerPhone: { paddingHorizontal: layout.spacing.sm },
+    details: { marginTop: layout.spacing.xsm, paddingHorizontal: layout.spacing.xxs },
+    title: { ...H7, lineHeight: layout.spacing.lg, color: theme.text },
     infoRow: { flexDirection: "row", gap: layout.s(3) },
-    genre: { ...H6, marginTop: layout.s(2), color: theme.primary },
-    episodes: { ...H6, marginTop: layout.s(2), color: theme.primary },
+    genre: { ...H6, marginTop: layout.spacing.xxs, color: theme.primary },
+    episodes: { ...H6, marginTop: layout.spacing.xxs, color: theme.primary },
     tvFocused: { borderWidth: 1, zIndex: 100, borderColor: theme.primary, backgroundColor: theme.accent, transform: [{ scale: 1.09 }] },
   };
 };

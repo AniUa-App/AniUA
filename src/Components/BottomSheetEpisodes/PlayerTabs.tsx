@@ -7,7 +7,7 @@ import { MoonIcon, AshdiIcon } from "../../Styles/Icons";
 import { useThemeColors } from "../../Global/useTheme";
 import { PlayerTabsProps } from "./types";
 import { PLAYER_ORDER } from "./constants";
-import { styles } from "./styles";
+import { styles } from "../../Styles/components/BottomSheetEpisodesStyles";
 
 export const PlayerTabs = React.memo(
   ({ availablePlayers, activePlayer, onPlayerSelect, hasTVPreferredFocus, nextFocusUp, firstTabInnerRef }: PlayerTabsProps) => {

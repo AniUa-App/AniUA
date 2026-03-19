@@ -34,46 +34,46 @@ export const useSnackbarWidgetStyles = (): SnackbarWidgetStyles => {
   return {
     container: {
       position: "absolute",
-      left: layout.s(16),
-      right: layout.s(16),
+      left: layout.spacing.lg,
+      right: layout.spacing.lg,
       zIndex: 9999,
     },
     containerBottom: {
-      bottom: layout.s(10),
+      bottom: layout.spacing.xmd,
     },
     containerTop: {
-      top: layout.s(24),
+      top: layout.spacing.xl,
     },
     snackbar: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: layout.s(14),
-      paddingLeft: layout.s(20),
-      paddingRight: layout.s(12),
-      borderRadius: layout.s(12),
+      paddingLeft: layout.spacing.xlg,
+      paddingRight: layout.spacing.md,
+      borderRadius: layout.radius.md,
     },
     message: {
       flex: 1,
-      marginRight: layout.s(12),
-      lineHeight: layout.s(20),
+      marginRight: layout.spacing.md,
+      lineHeight: layout.spacing.xlg,
     },
     actionsContainer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: layout.s(4),
+      gap: layout.spacing.xs,
     },
     actionButton: {
-      paddingVertical: layout.s(8),
-      paddingHorizontal: layout.s(12),
-      borderRadius: layout.s(8),
+      paddingVertical: layout.spacing.sm,
+      paddingHorizontal: layout.spacing.md,
+      borderRadius: layout.radius.sm,
     },
     confirmButton: {
-      minWidth: layout.s(50),
+      minWidth: layout.sizing.touchMd,
       alignItems: "center",
     },
     declineButton: {
-      minWidth: layout.s(50),
+      minWidth: layout.sizing.touchMd,
       alignItems: "center",
     },
     actionText: {
@@ -81,8 +81,8 @@ export const useSnackbarWidgetStyles = (): SnackbarWidgetStyles => {
       letterSpacing: 0.5,
     },
     closeButton: {
-      padding: layout.s(8),
-      borderRadius: layout.s(20),
+      padding: layout.spacing.sm,
+      borderRadius: layout.radius.xxlg,
       alignItems: "center",
       justifyContent: "center",
     },
