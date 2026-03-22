@@ -17,7 +17,7 @@ import Icon from "../Styles/Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Hikka from "../../assets/hikka.svg";
 
-export default function Loader({ isNotFirstLaunch = false }) {
+export default function Loader({}) {
   const insets = useSafeAreaInsets();
   const styles = useSplashStyles();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -53,7 +53,9 @@ export default function Loader({ isNotFirstLaunch = false }) {
     (Updates && Updates.channel) ||
     Constants?.expoConfig?.updates?.channel ||
     "unknown";
-
+  const isBeta = () => {
+    return !["g_release", "release"].includes(expoChannel);
+  };
   useEffect(() => {
     setTimeout(() => {
       Animated.parallel([
@@ -78,80 +80,77 @@ export default function Loader({ isNotFirstLaunch = false }) {
       ]).start();
     }, 1000);
 
-    setTimeout(
-      () => {
-        // 1. Лого з'являється знизу з zoom-out
+    setTimeout(() => {
+      // 1. Лого з'являється знизу з zoom-out
+      Animated.parallel([
+        Animated.timing(welcomeOpacity, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(welcomeTranslateY, {
+          toValue: 0,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(welcomeScale, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // 2. Hikka вилітає зліва (після лого + 200ms паузи)
+      setTimeout(() => {
         Animated.parallel([
-          Animated.timing(welcomeOpacity, {
+          Animated.timing(hikkaOpacity, {
             toValue: 1,
             duration: 500,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
-          Animated.timing(welcomeTranslateY, {
+          Animated.timing(hikkaTranslateX, {
             toValue: 0,
             duration: 500,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
-          Animated.timing(welcomeScale, {
+          Animated.timing(hikkaScale, {
             toValue: 1,
             duration: 600,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
         ]).start();
+      }, 700);
 
-        // 2. Hikka вилітає зліва (після лого + 200ms паузи)
-        setTimeout(() => {
-          Animated.parallel([
-            Animated.timing(hikkaOpacity, {
-              toValue: 1,
-              duration: 500,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-            Animated.timing(hikkaTranslateX, {
-              toValue: 0,
-              duration: 500,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-            Animated.timing(hikkaScale, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-          ]).start();
-        }, 700);
-
-        // 3. Moon вилітає справа (після Hikka + 200ms паузи)
-        setTimeout(() => {
-          Animated.parallel([
-            Animated.timing(moonOpacity, {
-              toValue: 1,
-              duration: 500,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-            Animated.timing(moonTranslateX, {
-              toValue: 0,
-              duration: 500,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-            Animated.timing(moonScale, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-          ]).start();
-        }, 400);
-      },
-      !isNotFirstLaunch ? 0 : 1000,
-    );
+      // 3. Moon вилітає справа (після Hikka + 200ms паузи)
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(moonOpacity, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(moonTranslateX, {
+            toValue: 0,
+            duration: 500,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(moonScale, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 400);
+    }, 0);
 
     setTimeout(() => {
       Animated.parallel([
@@ -185,7 +184,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
         backgroundColor="transparent"
       />
 
-      {!imageLoaded && <View style={styles.logo(isNotFirstLaunch)} />}
+      {!imageLoaded && <View style={styles.logo()} />}
 
       <Animated.View
         style={{
@@ -198,10 +197,7 @@ export default function Loader({ isNotFirstLaunch = false }) {
       >
         <FastImage
           source={require("../../assets/AniUA-Logo.png")}
-          style={[
-            styles.logo(isNotFirstLaunch),
-            !imageLoaded && { position: "absolute" },
-          ]}
+          style={[styles.logo(), !imageLoaded && { position: "absolute" }]}
           onLoadEnd={() => setImageLoaded(true)}
         />
 
@@ -239,25 +235,6 @@ export default function Loader({ isNotFirstLaunch = false }) {
         </View>
       </Animated.View>
 
-      {!isNotFirstLaunch && (
-        <Animated.View
-          style={[
-            styles.welcomeTextContainer,
-            {
-              opacity: welcomeOpacity_1,
-              transform: [
-                { translateY: welcomeTranslateY_1 },
-                { scale: welcomeScale_1 },
-              ],
-            },
-          ]}
-        >
-          <Text selectable={true} style={[H2, styles.welcomeTextFont]}>
-            {`Вітаємо`}
-          </Text>
-        </Animated.View>
-      )}
-
       <Animated.View
         style={[
           styles.versionContainer(insets.bottom),
@@ -271,9 +248,9 @@ export default function Loader({ isNotFirstLaunch = false }) {
         ]}
       >
         <Text selectable={true} style={[H4, styles.versionText]}>
-          {`${appVersion || "1.0.0"}${`-${gitHash}` || "unknown"}${`${expoChannel}` !== "release" ? `-${expoChannel}` : ""}`}
+          {`${appVersion || "1.0.0"}${`-${gitHash}` || "unknown"}${isBeta() ? `-${expoChannel}` : ""}`}
         </Text>
-        {expoChannel !== "release" && (
+        {isBeta() && (
           <Icon.WarningCircleIcon
             color={"red"}
             size={24}

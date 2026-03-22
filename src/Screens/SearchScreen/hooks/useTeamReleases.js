@@ -5,7 +5,7 @@ import Logger from "../../../Logger/Logger";
 export function useTeamReleases(sheetRef) {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamReleases, setTeamReleases] = useState([]);
-  const [isLoadingReleases, setIsLoadingReleases] = useState(false);
+  const [isLoading_releases, setIsLoading_releases] = useState(false);
 
   const handleTeamPress = useCallback(
     async (team) => {
@@ -18,7 +18,7 @@ export function useTeamReleases(sheetRef) {
 
       setSelectedTeam(team);
       setTeamReleases([]);
-      setIsLoadingReleases(true);
+      setIsLoading_releases(true);
       sheetRef.current?.present();
 
       try {
@@ -32,11 +32,11 @@ export function useTeamReleases(sheetRef) {
               Logger.warn(
                 "useTeamReleases",
                 `Не вдалося завантажити аніме ${slug}`,
-                error
+                error,
               );
               return null;
             }
-          })
+          }),
         );
 
         const validAnime = animeDetails.filter((anime) => anime !== null);
@@ -49,16 +49,16 @@ export function useTeamReleases(sheetRef) {
       } catch (error) {
         Logger.error("useTeamReleases", "Помилка завантаження релізів", error);
       } finally {
-        setIsLoadingReleases(false);
+        setIsLoading_releases(false);
       }
     },
-    [sheetRef]
+    [sheetRef],
   );
 
   return {
     selectedTeam,
     teamReleases,
-    isLoadingReleases,
+    isLoading_releases,
     handleTeamPress,
   };
 }

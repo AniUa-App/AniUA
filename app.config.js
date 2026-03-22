@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 dotenv.config({ path: ".env.local", override: true });
-const CHANNEL = process.env.CHANNEL || "GRelease";
+const CHANNEL = process.env.CHANNEL || "g_release";
 export default {
   expo: {
-    name: CHANNEL !== "GRelease" ? `AniUA ${CHANNEL}` : "AniUA",
+    name: CHANNEL !== "g_release" ? `AniUA ${CHANNEL}` : "AniUA",
     slug: "AniUA",
     version: "0.1.0",
     orientation: "default",
@@ -18,7 +18,7 @@ export default {
       url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       enabled: true,
       checkAutomatically: "ON_LOAD",
-      channel: "GRelease",
+      channel: "g_release",
     },
     ios: {
       infoPlist: {
@@ -59,7 +59,7 @@ export default {
     android: {
       versionCode: 1,
       package:
-        CHANNEL === "GRelease"
+        CHANNEL === "g_release"
           ? "aniua.yuzka.site"
           : `aniua.yuzka.site.${CHANNEL}`,
       googleServicesFile: "./google-services.json",

@@ -49,7 +49,7 @@ export default function SearchScreen() {
     setIsVerified,
   } = useSearch();
 
-  const { selectedTeam, teamReleases, isLoadingReleases, handleTeamPress } =
+  const { selectedTeam, teamReleases, isLoading_releases, handleTeamPress } =
     useTeamReleases(teamReleasesSheetRef);
 
   const {
@@ -167,7 +167,7 @@ export default function SearchScreen() {
         sheetRef={teamReleasesSheetRef}
         selectedTeam={selectedTeam}
         teamReleases={teamReleases}
-        isLoading={isLoadingReleases}
+        isLoading={isLoading_releases}
         navigation={navigation}
       />
 

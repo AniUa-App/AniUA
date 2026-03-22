@@ -28,10 +28,10 @@ export const useSplashStyles = (): SplashStyles => {
       alignItems: "center",
     },
 
-    logo: (isNotFirstLaunch: boolean) => ({
+    logo: () => ({
       width: layout.s(300),
       height: layout.s(300),
-      marginTop: isNotFirstLaunch ? layout.s(30) : -layout.s(100),
+      marginTop: -layout.s(100),
     }),
 
     moonIcon: {

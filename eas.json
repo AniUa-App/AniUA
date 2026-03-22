@@ -4,27 +4,27 @@
   },
   "build": {
     "release": {
-      "channel": "GRelease",
+      "channel": "g_release",
       "env": {
-        "CHANNEL": "GRelease"
+        "CHANNEL": "g_release"
       },
       "android": {
         "buildType": "app-bundle"
       }
     },
     "aab-release": {
-      "channel": "GRelease",
+      "channel": "g_release",
       "env": {
-        "CHANNEL": "GRelease"
+        "CHANNEL": "g_release"
       },
       "android": {
         "buildType": "app-bundle"
       }
     },
     "release-apk": {
-      "channel": "GRelease",
+      "channel": "g_release",
       "env": {
-        "CHANNEL": "GRelease"
+        "CHANNEL": "g_release"
       },
       "android": {
         "buildType": "apk"

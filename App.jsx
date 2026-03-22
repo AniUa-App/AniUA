@@ -404,7 +404,7 @@ export default function App() {
       <GestureHandlerRootView style={s.root}>
         <SafeAreaProvider>
           <BottomSheetModalProvider style={s.root}>
-            <Loader isNotFirstLaunch={isNotFirstLaunch} />
+            <Loader />
           </BottomSheetModalProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
