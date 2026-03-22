@@ -8,6 +8,9 @@ type SearchHeaderComponentStyles = {
   button: ViewStyle;
   /** Контейнер поля пошуку */
   searchInputContainer: ViewStyle;
+  icon: {
+    size: number;
+  };
 };
 
 export const useSearchHeaderComponentStyles =
@@ -20,13 +23,19 @@ export const useSearchHeaderComponentStyles =
         paddingHorizontal: layout.spacing.lg,
       },
       button: {
-        padding: layout.spacing.xsm,
+        width: layout.sizing.touch,
+        height: layout.sizing.touch,
+        justifyContent: "center",
+        alignItems: "center",
         borderRadius: layout.radius.lg,
       },
       searchInputContainer: {
         flex: 1,
         borderRadius: layout.radius.lg,
         paddingHorizontal: layout.spacing.md,
+      },
+      icon: {
+        size: layout.icon.lg,
       },
     };
   };

@@ -454,7 +454,7 @@ export class AniuaApi {
    * @example
    * ```typescript
    * AniuaApi.configure({
-   *   baseUrl: "https://api.aniua.yuzka.site",
+   *   baseUrl: "https://api.",
    *   cacheTtl: 10 * 60 * 1000, // 10 хвилин
    *   timeout: 20000
    * });

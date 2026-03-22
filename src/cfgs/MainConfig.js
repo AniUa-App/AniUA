@@ -107,7 +107,7 @@ export default {
   partnerStudios: [],
 
   urls: {
-    appUrl: "https://aniua.yuzka.site/",
+    appUrl: "https://aniua.app/",
     appUri: appUri || "aniua://",
     dubbingsUrl: "",
     telegramChannelUrl: "",
@@ -119,7 +119,7 @@ export default {
     version: getSafeVersion(),
     buildId: toSafeString(Constants?.expoConfig?.android?.versionCode),
     gitShortHash: toSafeString(
-      buildExtra.commitHashShort || buildExtra.commitHash
+      buildExtra.commitHashShort || buildExtra.commitHash,
     ),
     uniqueAccountId: "",
     gitHash: toSafeString(buildExtra.commitHash || process.env.GIT_HASH),
@@ -134,7 +134,7 @@ export default {
     getUniqueId: () => Application.getAndroidId(),
     packageName: toSafeString(Constants?.expoConfig?.android?.package),
     expoPublickSupabaseKey: toSafeString(
-      buildExtra.expoPublickSupabaseKey || process.env.EXPO_PUBLIC_SUPABASE_KEY
+      buildExtra.expoPublickSupabaseKey || process.env.EXPO_PUBLIC_SUPABASE_KEY,
     ),
   },
   partners: {

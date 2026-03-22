@@ -236,6 +236,7 @@ export default function AnimePreviewPhone({ route }) {
     handleNewEpisodeSelect,
     handleNewTeamChange,
     handleBuiltInPlayerToggle,
+    effectiveUseBuiltIn,
     keyExtractorSimilar,
   } = useAnimePreview({ route, navigation });
 
@@ -612,10 +613,10 @@ export default function AnimePreviewPhone({ route }) {
                       },
                     ]}
                   >
-                    {anime.genres
-                      .slice(0, 3)
-                      .map((g) => g.name_ua)
-                      .join(", ")}
+                    {anime?.genres
+                      ?.slice(0, 3)
+                      ?.map((g) => g.name_ua)
+                      ?.join(", ")}
                   </Text>
                 </View>
               </View>
@@ -686,7 +687,7 @@ export default function AnimePreviewPhone({ route }) {
                 anime?.synopsis_ua ||
                 anime?.synopsis_en ||
                 "Опис відсутній"
-              )?.replaceAll("hikka.io", "aniua.yuzka.site")}
+              )?.replaceAll("hikka.io", "aniua.app")}
             </Markdown>
             {/* 
             {anime?.source && (
@@ -841,7 +842,7 @@ export default function AnimePreviewPhone({ route }) {
             info?.watched_episodes?.[info?.watched_episodes?.length - 1]
           }
           currentTeam={info?.dub_team}
-          useBuiltInPlayer={info?.useBuiltIn ?? false}
+          useBuiltInPlayer={effectiveUseBuiltIn}
           watchedEpisodes={info?.watched_episodes || []}
           onSelectEpisode={handleNewEpisodeSelect}
           onTeamChange={handleNewTeamChange}

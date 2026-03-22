@@ -42,7 +42,7 @@ class AnalyticsService {
   }
 
   static logScreen(screenName: string, screenClass?: string): void {
-    Logger.debug(TAG, "screen_view", { screenName, screenClass });
+    Logger.debug(TAG, "screen_view", { screenName, screenClass: screenClass ?? screenName });
     if (this.isDebug()) return;
     logEvent(getAnalytics(), "screen_view", {
       firebase_screen: screenName,

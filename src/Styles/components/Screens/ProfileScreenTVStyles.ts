@@ -33,6 +33,10 @@ type ProfileScreenTVStyles = {
   loginContainer: ViewStyle;
   /** Нижній відступ-заповнювач */
   bottomSpacer: ViewStyle;
+  /** Кількість колонок сітки аніме */
+  numColumns: number;
+  /** Ширина картки аніме */
+  cardWidth: number;
 };
 
 export const useProfileScreenTVStyles = (): ProfileScreenTVStyles => {
@@ -61,5 +65,7 @@ export const useProfileScreenTVStyles = (): ProfileScreenTVStyles => {
     tabButton: { borderRadius: layout.radius.lg },
     loginContainer: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
     bottomSpacer: { height: layout.sizing.xl },
+    numColumns: 3,
+    cardWidth: layout.s(120),
   };
 };

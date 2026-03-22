@@ -58,7 +58,7 @@ export default function CharacterScreen() {
     character?.description_ua ||
     character?.description ||
     ""
-  ).replaceAll("hikka.io", "aniua.yuzka.site");
+  ).replaceAll("hikka.io", "aniua.app");
 
   const imageSize = useMemo(() => {
     if (isTV) {
@@ -182,9 +182,7 @@ export default function CharacterScreen() {
   }, [navigation]);
   if (isLoadingCharacter) {
     return (
-      <View
-        style={[s.container, { backgroundColor: themeColors.background }]}
-      >
+      <View style={[s.container, { backgroundColor: themeColors.background }]}>
         <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
@@ -194,9 +192,7 @@ export default function CharacterScreen() {
 
   if (!character) {
     return (
-      <View
-        style={[s.container, { backgroundColor: themeColors.background }]}
-      >
+      <View style={[s.container, { backgroundColor: themeColors.background }]}>
         <View style={s.emptyContainer}>
           <Text
             selectable={true}
@@ -339,9 +335,7 @@ export default function CharacterScreen() {
 
   if (isTV) {
     return (
-      <View
-        style={[s.container, { backgroundColor: themeColors.background }]}
-      >
+      <View style={[s.container, { backgroundColor: themeColors.background }]}>
         {headerContent}
         <View style={s.tvLayout}>
           {/* Left panel — image + name */}
@@ -369,9 +363,7 @@ export default function CharacterScreen() {
   }
 
   return (
-    <View
-      style={[s.container, { backgroundColor: themeColors.background }]}
-    >
+    <View style={[s.container, { backgroundColor: themeColors.background }]}>
       <ScrollView
         style={s.scrollView}
         contentContainerStyle={s.contentContainer}

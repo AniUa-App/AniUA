@@ -1,4 +1,5 @@
 import { useLayout } from "../../Layout";
+import { isTablet } from "../../Responsive";
 import type { ViewStyle, TextStyle } from "react-native";
 
 type ProfileScreenPhoneStyles = {
@@ -28,6 +29,10 @@ type ProfileScreenPhoneStyles = {
   statsWrapper: ViewStyle;
   /** Нижній відступ-заповнювач */
   bottomSpacer: ViewStyle;
+  /** Кількість колонок сітки аніме */
+  numColumns: number;
+  /** Ширина картки аніме */
+  cardWidth: number;
 };
 
 export const useProfileScreenPhoneStyles = (): ProfileScreenPhoneStyles => {
@@ -48,12 +53,14 @@ export const useProfileScreenPhoneStyles = (): ProfileScreenPhoneStyles => {
     },
     iconButton: { width: layout.sizing.touch, height: layout.sizing.touch, borderRadius: layout.radius.lg, justifyContent: "center", alignItems: "center" },
     usernameContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: layout.s(14), gap: layout.spacing.sm },
-    editButton: { padding: layout.spacing.xs, justifyContent: "center", alignItems: "center", borderRadius: layout.radius.lg },
+    editButton: { width: layout.sizing.touch, padding: layout.spacing.xs, justifyContent: "center", alignItems: "center", borderRadius: layout.radius.lg },
     handle: { textAlign: "center", marginTop: layout.spacing.xxs },
     tabsContainer: { flexDirection: "row", justifyContent: "space-evenly", marginTop: layout.spacing.xlg, marginHorizontal: layout.spacing.xlg },
     tabContentWrapper: { width: "100%" },
     loginContainer: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
     statsWrapper: { width: "100%", flex: 1, justifyContent: "center", alignItems: "center" },
     bottomSpacer: { width: "100%", paddingBottom: layout.s(45) },
+    numColumns: isTablet() ? 5 : 3,
+    cardWidth: layout.cardWidth,
   };
 };

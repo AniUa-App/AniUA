@@ -198,10 +198,10 @@ export default function MarkdownComponent({
   [key: string]: any;
 }) {
   const colors = useThemeColors();
-  children = children?.replaceAll("hikka.io/anime/", "aniua.yuzka.site/anime/");
+  children = children?.replaceAll("hikka.io/anime/", "aniua.app/anime/");
   children = children?.replaceAll(
     "hikka.io/characters/",
-    "aniua.yuzka.site/characters/"
+    "aniua.app/characters/",
   );
 
   const baseStyles = useMemo(
@@ -308,7 +308,7 @@ export default function MarkdownComponent({
         backgroundColor: colors.background,
       },
     }),
-    [colors]
+    [colors],
   );
 
   const containerRules = useMemo(() => buildContainerRules(colors), [colors]);
@@ -356,7 +356,7 @@ export default function MarkdownComponent({
         </Text>
       ),
     }),
-    []
+    [],
   );
 
   const mergedRules = useMemo(
@@ -365,7 +365,7 @@ export default function MarkdownComponent({
       ...containerRules,
       ...(rules || {}),
     }),
-    [selectableTextRules, containerRules, rules]
+    [selectableTextRules, containerRules, rules],
   );
 
   const mergedStyles = useMemo(
@@ -373,7 +373,7 @@ export default function MarkdownComponent({
       ...baseStyles,
       ...(style || {}),
     }),
-    [baseStyles, style]
+    [baseStyles, style],
   );
 
   const navigationContext = useContext(NavigationContainerRefContext);
@@ -390,7 +390,7 @@ export default function MarkdownComponent({
           navigation.dispatch(
             StackActions.push("CharacterScreen", {
               slug: link.split("/").pop(),
-            })
+            }),
           );
           return false;
         } else if (navigation && link.includes("/anime/")) {
@@ -398,7 +398,7 @@ export default function MarkdownComponent({
           navigation.dispatch(
             StackActions.push("AnimePreview", {
               slug: link.split("/").pop(),
-            })
+            }),
           );
           return false;
         }

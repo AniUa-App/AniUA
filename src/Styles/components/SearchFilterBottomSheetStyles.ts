@@ -47,8 +47,8 @@ export const useSearchFilterBottomSheetStyles =
         gap: layout.spacing.xmd,
       },
       headerButton: {
-        width: layout.s(40),
-        height: layout.s(40),
+        width: layout.sizing.touchSm,
+        height: layout.sizing.touchSm,
         borderRadius: layout.radius.lg,
         alignItems: "center",
         justifyContent: "center",

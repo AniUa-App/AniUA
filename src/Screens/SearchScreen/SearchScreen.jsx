@@ -1,15 +1,12 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
   View,
   FlatList,
   ActivityIndicator,
-  StatusBar,
   TVFocusGuideView as RNTVFocusGuideView,
 } from "react-native";
 import { useSearchScreenStyles } from "../../Styles/components/Screens/SearchScreenStyles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColors } from "../../Global/useTheme";
 import { useIsTV } from "../../Styles/Responsive";
 import SearchHeaderComponent from "../../Components/SearchHeaderComponent";
 import SearchCategoryTabsComponent from "../../Components/SearchCategoryTabsComponent";
@@ -27,8 +24,6 @@ const TVFocusGuideView = RNTVFocusGuideView || View;
 
 export default function SearchScreen() {
   const navigation = useNavigation();
-  const themeColors = useThemeColors();
-  const insets = useSafeAreaInsets();
   const isTV = useIsTV();
   const s = useSearchScreenStyles();
 
@@ -63,11 +58,6 @@ export default function SearchScreen() {
     isLoadingCharacter,
     handleCharacterPress,
   } = useCharacterDetails(characterSheetRef);
-
-  const headerPaddingTop = useMemo(
-    () => Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
-    [insets.top],
-  );
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -115,7 +105,7 @@ export default function SearchScreen() {
         onSubmitEditing={handleSearch}
         onGoBack={handleGoBack}
         onFilterPress={() => filterSheetRef.current?.present()}
-        paddingTop={headerPaddingTop}
+        paddingTop={s.headerPaddingTop}
         placeholder="Пошук аніме..."
         autoFocus={true}
         activeCategory={activeCategory}
@@ -128,10 +118,8 @@ export default function SearchScreen() {
       />
 
       {isLoading ? (
-        <View
-          style={[s.loadingContainer, { backgroundColor: themeColors.accent }]}
-        >
-          <ActivityIndicator size="large" color={themeColors.primary} />
+        <View style={s.loadingContainer}>
+          <ActivityIndicator size="large" color={s.loaderColor} />
         </View>
       ) : (
         <TVFocusGuideView autoFocus style={s.listWrapper}>
@@ -148,10 +136,7 @@ export default function SearchScreen() {
             }
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[
-              s.resultsContainer,
-              { backgroundColor: themeColors.accent },
-            ]}
+            contentContainerStyle={s.resultsContainer}
             removeClippedSubviews={true}
             maxToRenderPerBatch={10}
             windowSize={5}

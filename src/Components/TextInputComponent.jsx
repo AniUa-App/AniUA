@@ -1,22 +1,6 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Animated,
-  Easing,
-  ScrollView,
-} from "react-native";
-import React, { useRef, useState, useLayoutEffect } from "react";
-import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
-import { HikkaSets } from "../Sources/HikkaSets";
-import { useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { useCallback } from "react";
-import { ActivityIndicator } from "react-native";
-import { TouchableOpacity } from "../Widgets/Button";
-import Logger from "../Logger/Logger";
-import { useThemeColors } from "../Global/useTheme";
+import { View, TextInput } from "react-native";
+import { useState } from "react";
+import { useTextInputComponentStyles } from "../Styles/components/TextInputComponentStyles";
 
 export default function TextInputComponent({
   title = "",
@@ -27,7 +11,7 @@ export default function TextInputComponent({
   autoFocus = false,
   style,
 }) {
-  const themeColors = useThemeColors();
+  const s = useTextInputComponentStyles();
   const [isFocused, setIsFocused] = useState(false);
   return (
     <View style={[style]}>
@@ -40,19 +24,10 @@ export default function TextInputComponent({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
-        placeholderTextColor={themeColors.inActiveText}
+        placeholderTextColor={s.placeholderColor}
         returnKeyType={returnKeyType}
         autoFocus={autoFocus}
-        style={{
-          height: 45,
-          width: "100%",
-          paddingHorizontal: 16,
-          color: themeColors.text,
-          backgroundColor: themeColors.Subtle(1),
-          borderRadius: 16,
-          borderWidth: isFocused ? 1 : 0,
-          borderColor: isFocused ? themeColors.primary : "transparent",
-        }}
+        style={s.input(isFocused)}
       />
     </View>
   );

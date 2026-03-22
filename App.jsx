@@ -102,7 +102,10 @@ export default function App() {
       showSnackbar(
         <Text selectable={true} style={s.snackbarText}>
           Використовуючи додаток, ви погоджуєтесь з нашими{" "}
-          <SnackbarLink url={MainConfig.urls.appUrl + `#terms`} color={s.snackbarLinkColor}>
+          <SnackbarLink
+            url={MainConfig.urls.appUrl + `#terms`}
+            color={s.snackbarLinkColor}
+          >
             правилами
           </SnackbarLink>
           .

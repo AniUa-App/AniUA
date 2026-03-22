@@ -1,8 +1,4 @@
-import {
-  View,
-  Text,
-  FlatList as RNFlatList,
-} from "react-native";
+import { View, Text, FlatList as RNFlatList } from "react-native";
 import { TouchableOpacity } from "./Button";
 import {
   ScrollView,
@@ -19,6 +15,7 @@ import { AniuaApi } from "../Api/AniuaApi";
 import { useFocusEffect } from "@react-navigation/native";
 import SettingsStorage from "../Storage/SettingsStorage";
 import AnimeCard from "../Components/AnimeCard";
+import { background } from "../Styles/Colors";
 
 const TVCellRenderer = ({ children, style, ...props }) => (
   <View style={[style, { overflow: "visible" }]} collapsable={false} {...props}>
@@ -57,7 +54,6 @@ export function AnimeListHorizontal({
       );
     }, []);
   }
-
 
   // Конфігурація для визначення видимих елементів
   const viewabilityConfig = useRef({
@@ -102,9 +98,7 @@ export function AnimeListHorizontal({
         onPress={onClickMore}
         tvFocusable={!!onClickMore}
       >
-        {title?.length > 0 && (
-          <Text style={s.title}>{title || ""}</Text>
-        )}
+        {title?.length > 0 && <Text style={s.title}>{title || ""}</Text>}
         {!!onClickMore && (
           <View style={s.arrowIcon}>
             <Icon.ArrowRight size={s.iconSize} color={s.arrowIconColor} />
@@ -150,7 +144,9 @@ export function PreviewAnimeListHorizontal({
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress}>
       <View style={s.header} activeOpacity={1}>
         {title?.length > 0 && (
-          <Text selectable={true} style={s.title}>{title || ""}</Text>
+          <Text selectable={true} style={s.title}>
+            {title || ""}
+          </Text>
         )}
         <View style={s.arrowIcon}>
           <Icon.ArrowRight size={s.iconSize} color={s.arrowIconColor} />
@@ -174,4 +170,3 @@ export function PreviewAnimeListHorizontal({
     </TouchableOpacity>
   );
 }
-

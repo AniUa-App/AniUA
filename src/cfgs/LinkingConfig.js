@@ -50,12 +50,14 @@ const config = {
 
 // Фільтруємо валідні URL prefixes
 const validPrefixes = [MainConfig.urls.appUri, MainConfig.urls.appUrl].filter(
-  (prefix) => prefix && typeof prefix === "string" && prefix.trim() !== ""
+  (prefix) => prefix && typeof prefix === "string" && prefix.trim() !== "",
 );
 
 // Якщо немає валідних префіксів, використовуємо дефолтні
 const finalPrefixes =
-  validPrefixes.length > 0 ? validPrefixes : ["aniua://", "https://aniua.yuzka.site"];
+  validPrefixes.length > 0
+    ? [...validPrefixes, "https://aniua.app/"]
+    : ["aniua://", "https://aniua.app/"];
 
 export default {
   prefixes: finalPrefixes,
@@ -75,17 +77,31 @@ export default {
     Logger.debug("LinkingConfig", "Нормалізований path", { normalizedPath });
 
     // Дозволяємо шляхи /anime/*, /characters/*, /hikka-callback (для OAuth) та /login/* (QR авторизація)
-    const isAnimeUrl = normalizedPath.startsWith("/anime/") || normalizedPath === "/anime";
-    const isCharacterUrl = normalizedPath.startsWith("/characters/") || normalizedPath === "/characters";
-    const isOAuthCallback = normalizedPath.startsWith("/hikka-callback") || normalizedPath === "hikka-callback";
+    const isAnimeUrl =
+      normalizedPath.startsWith("/anime/") || normalizedPath === "/anime";
+    const isCharacterUrl =
+      normalizedPath.startsWith("/characters/") ||
+      normalizedPath === "/characters";
+    const isOAuthCallback =
+      normalizedPath.startsWith("/hikka-callback") ||
+      normalizedPath === "hikka-callback";
     const isLoginUrl = normalizedPath.startsWith("/login/");
 
     if (!isAnimeUrl && !isCharacterUrl && !isOAuthCallback && !isLoginUrl) {
-      Logger.warn("LinkingConfig", "Only /anime/{slug}, /characters/{slug}, /hikka-callback and /login/{data} URLs are allowed. Ignored:", path);
+      Logger.warn(
+        "LinkingConfig",
+        "Only /anime/{slug}, /characters/{slug}, /hikka-callback and /login/{data} URLs are allowed. Ignored:",
+        path,
+      );
       return undefined;
     }
 
-    Logger.debug("LinkingConfig", "URL пройшов валідацію", { isAnimeUrl, isCharacterUrl, isOAuthCallback, isLoginUrl });
+    Logger.debug("LinkingConfig", "URL пройшов валідацію", {
+      isAnimeUrl,
+      isCharacterUrl,
+      isOAuthCallback,
+      isLoginUrl,
+    });
 
     // Викликаємо стандартну функцію React Navigation
     const {
@@ -94,10 +110,15 @@ export default {
 
     try {
       const state = defaultGetStateFromPath(normalizedPath, options);
-      Logger.debug("LinkingConfig", "Створено navigation state", { state: JSON.stringify(state) });
+      Logger.debug("LinkingConfig", "Створено navigation state", {
+        state: JSON.stringify(state),
+      });
       return state;
     } catch (error) {
-      Logger.warn("LinkingConfig", "Invalid URL path ignored:", { path: normalizedPath, error });
+      Logger.warn("LinkingConfig", "Invalid URL path ignored:", {
+        path: normalizedPath,
+        error,
+      });
       // Navigate to a friendly InvalidLink screen when the path can't be parsed
       return {
         routes: [

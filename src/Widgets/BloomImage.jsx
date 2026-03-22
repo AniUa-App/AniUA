@@ -17,6 +17,13 @@ import {
   Skia,
 } from "@shopify/react-native-skia";
 import { useThemeColors } from "../Global/useTheme";
+import {
+  BLOOM_DEFAULTS,
+  BLOOM_ADVANCED_DEFAULTS,
+  BLOOM_COLOR_MATRIX,
+  BLOOM_ADVANCED_COLOR_MATRIX,
+  useBloomImageStyles,
+} from "../Styles/components/BloomImageStyles";
 
 // Глобальний кеш для Skia зображень
 const imageCache = new Map();
@@ -68,14 +75,16 @@ export default function BloomImage({
   uri,
   width,
   height,
-  borderRadius = 16,
+  borderRadius = BLOOM_DEFAULTS.borderRadius,
   blurBorderRadius,
-  blurRadius = 10,
-  glowScale = 1.03,
-  glowOpacity = 2,
-  fadePercent = 0.2,
+  blurRadius = BLOOM_DEFAULTS.blurRadius,
+  glowScale = BLOOM_DEFAULTS.glowScale,
+  glowOpacity = BLOOM_DEFAULTS.glowOpacity,
+  fadePercent = BLOOM_DEFAULTS.fadePercent,
   style,
 }) {
+  const themeColors = useThemeColors();
+  const s = useBloomImageStyles(width, height, borderRadius);
   const effectiveBlurBorderRadius = blurBorderRadius ?? borderRadius;
   // Спробуємо отримати з кешу або завантажити через useImage
   const [cachedImage] = useState(() => imageCache.get(uri));
@@ -92,22 +101,8 @@ export default function BloomImage({
   const image = cachedImage || loadedImage;
 
   if (!image) {
-    const themeColors = useThemeColors();
     return (
-      <View
-        style={[
-          {
-            width,
-            height,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius,
-            zIndex: 2,
-            backgroundColor: themeColors.background,
-          },
-          style,
-        ]}
-      >
+      <View style={[s.container, style]}>
         <ActivityIndicator size="large" color={themeColors.primary} />
       </View>
     );
@@ -272,9 +267,7 @@ export default function BloomImage({
             <Blur blur={blurRadius} />
             {/* Підсилення інтенсивності кольорів */}
             <ColorMatrix
-              matrix={[
-                1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
-              ]}
+              matrix={BLOOM_COLOR_MATRIX}
             />
           </Image>
         </Group>
@@ -311,12 +304,12 @@ export default function BloomImage({
  */
 export function BloomImageAdvanced({
   uri,
-  width = 225,
-  height = 350,
-  borderRadius = 16,
-  blurRadius = 20,
-  glowScale = 1.08,
-  glowOpacity = 0.7,
+  width = BLOOM_ADVANCED_DEFAULTS.width,
+  height = BLOOM_ADVANCED_DEFAULTS.height,
+  borderRadius = BLOOM_ADVANCED_DEFAULTS.borderRadius,
+  blurRadius = BLOOM_ADVANCED_DEFAULTS.blurRadius,
+  glowScale = BLOOM_ADVANCED_DEFAULTS.glowScale,
+  glowOpacity = BLOOM_ADVANCED_DEFAULTS.glowOpacity,
   style,
 }) {
   const image = useImage(uri);
@@ -355,10 +348,7 @@ export function BloomImageAdvanced({
           >
             <Blur blur={blurRadius * 0.7} />
             <ColorMatrix
-              matrix={[
-                1.3, 0, 0, 0, 0.05, 0, 1.3, 0, 0, 0.05, 0, 0, 1.3, 0, 0.05, 0,
-                0, 0, 1, 0,
-              ]}
+              matrix={BLOOM_ADVANCED_COLOR_MATRIX}
             />
           </Image>
         </Group>

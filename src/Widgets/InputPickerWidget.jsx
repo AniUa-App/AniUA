@@ -8,18 +8,15 @@ import React, {
 import {
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity as RNTouchableOpacity,
   ScrollView,
   TextInput,
   Modal,
   Pressable,
   Keyboard,
 } from "react-native";
-import { useThemeColors } from "../Global/useTheme";
-import { H4, H5 } from "../Styles/Fonts";
 import Icons from "../Styles/Icons";
 import { TouchableOpacity } from "./Button";
+import { useInputPickerWidgetStyles } from "../Styles/components/InputPickerWidgetStyles";
 
 /**
  * Віджет вибору зі списку зі зручним багатовибором і чипами вибраних значень під полем
@@ -46,7 +43,7 @@ export default function InputPickerWidget({
   maxDropdownHeight = 240,
   chipStyle,
 }) {
-  const colors = useThemeColors();
+  const s = useInputPickerWidgetStyles();
   const inputContainerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -118,29 +115,20 @@ export default function InputPickerWidget({
             if (multiple) setIsOpen(true);
           }}
           activeOpacity={0.8}
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderRadius: 6,
-            marginHorizontal: 8,
-            marginVertical: 6,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
+          style={s.option}
         >
-          <Text selectable={true} style={[H5, { color: colors.text }]}>
+          <Text selectable={true} style={s.optionText}>
             {item.label}
           </Text>
           {active ? (
-            <Icons.Check size={18} color={colors.primary} />
+            <Icons.Check size={s.iconSize} color={s.iconPrimaryColor} />
           ) : (
-            <Icons.Plus size={18} color={colors.text} />
+            <Icons.Plus size={s.iconSize} color={s.iconColor} />
           )}
         </TouchableOpacity>
       );
     },
-    [colors, isSelected, updateSelection, multiple],
+    [s, isSelected, updateSelection, multiple],
   );
 
   const filteredItems = useMemo(() => {
@@ -172,26 +160,16 @@ export default function InputPickerWidget({
           }}
           activeOpacity={0.9}
         >
-          <View
-            style={{
-              height: 44,
-              borderRadius: 16,
-              backgroundColor: colors.accent,
-              paddingHorizontal: 14,
-              alignItems: "center",
-              flexDirection: "row",
-              opacity: 0.95,
-            }}
-          >
+          <View style={s.trigger}>
             <TextInput
               value={query}
               editable={false}
               pointerEvents="none"
               placeholder={placeholder}
-              placeholderTextColor={colors.text}
-              style={[H4, { color: colors.text, flex: 1 }]}
+              placeholderTextColor={s.placeholderColor}
+              style={s.inputText}
             />
-            <Icons.CaretDown size={18} color={colors.text} />
+            <Icons.CaretDown size={s.iconSize} color={s.iconColor} />
           </View>
         </TouchableOpacity>
       </View>
@@ -204,7 +182,7 @@ export default function InputPickerWidget({
         >
           <View style={{ flex: 1 }}>
             <Pressable
-              style={StyleSheet.absoluteFillObject}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
               onPress={() => {
                 setIsOpen(false);
                 inputRef.current?.blur?.();
@@ -220,45 +198,27 @@ export default function InputPickerWidget({
                 width: anchor.width,
               }}
             >
-              <View
-                style={{
-                  height: 44,
-                  borderRadius: 16,
-                  backgroundColor: colors.subtle,
-                  paddingHorizontal: 14,
-                  alignItems: "center",
-                  flexDirection: "row",
-                  opacity: 0.95,
-                }}
-              >
+              <View style={s.activeInput}>
                 <TextInput
                   ref={inputRef}
                   value={query}
                   onChangeText={setQuery}
                   placeholder={placeholder}
-                  placeholderTextColor={colors.text}
-                  style={[H4, { color: colors.text, flex: 1 }]}
+                  placeholderTextColor={s.placeholderColor}
+                  style={s.inputText}
                 />
                 <TouchableOpacity
                   onPress={() => setIsOpen(false)}
                   activeOpacity={0.7}
                 >
-                  <Icons.CaretUp size={18} color={colors.text} />
+                  <Icons.CaretUp size={s.iconSize} color={s.iconColor} />
                 </TouchableOpacity>
               </View>
             </View>
             <View
               style={[
-                styles.dropdown,
-                {
-                  position: "absolute",
-                  left: anchor.x,
-                  top: anchor.y + 52,
-                  width: anchor.width,
-                  backgroundColor: colors.background,
-                  borderColor: colors.subtle,
-                  maxHeight: maxDropdownHeight,
-                },
+                s.dropdown,
+                s.dropdownPositioned(anchor, maxDropdownHeight),
                 dropdownStyle,
               ]}
             >
@@ -278,24 +238,17 @@ export default function InputPickerWidget({
 
       {/* Чипи вибраних значень */}
       {internalSelected.length > 0 ? (
-        <View style={styles.chipsContainer}>
+        <View style={s.chipsContainer}>
           {internalSelected.map((value) => (
-            <View
-              key={value}
-              style={[
-                styles.chip,
-                { backgroundColor: colors.primary },
-                chipStyle,
-              ]}
-            >
+            <View key={value} style={[s.chip, chipStyle]}>
               <TouchableOpacity
                 onPress={() => removeChip(value)}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                style={{ marginRight: 6 }}
+                style={s.chipRemove}
               >
-                <Icons.XCircle size={16} color={colors.text} />
+                <Icons.XCircle size={s.iconSize} color={s.iconColor} />
               </TouchableOpacity>
-              <Text selectable={true} style={[H5, { color: colors.text }]}>
+              <Text selectable={true} style={s.chipText}>
                 {value}
               </Text>
             </View>
@@ -305,25 +258,3 @@ export default function InputPickerWidget({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  dropdown: {
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 6,
-    zIndex: 10,
-  },
-  chipsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    paddingTop: 10,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-});

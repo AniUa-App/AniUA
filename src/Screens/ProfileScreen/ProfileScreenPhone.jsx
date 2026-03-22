@@ -22,9 +22,7 @@ import {
   TABS,
   FILTERS,
   FAVORITES_FILTERS,
-  SCREEN_WIDTH,
 } from "../../Components/Profile";
-import { isTablet } from "../../Styles/Responsive";
 import { useProfileScreenPhoneStyles } from "../../Styles/components/Screens/ProfileScreenPhoneStyles";
 
 export default function ProfileScreen({ navigation }) {
@@ -87,10 +85,7 @@ export default function ProfileScreen({ navigation }) {
           </Text>
           <TouchableOpacity
             onPress={profile.openEditModal}
-            style={[
-              s.editButton,
-              { backgroundColor: colors.subtle, width: 44 },
-            ]}
+            style={[s.editButton, { backgroundColor: colors.subtle }]}
           >
             <Icons.Pencil size={18} color={colors.primary} weight="fill" />
           </TouchableOpacity>
@@ -148,8 +143,8 @@ export default function ProfileScreen({ navigation }) {
               navigation={navigation}
               showAnimeDetails={profile.showAnimeDetails}
               getAnimeFromItem={(item) => item.anime}
-              cardWidth={isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35}
-              numColumns={isTablet() ? 5 : 3}
+              cardWidth={s.cardWidth}
+              numColumns={s.numColumns}
             />
           </View>
 
@@ -170,8 +165,8 @@ export default function ProfileScreen({ navigation }) {
               navigation={navigation}
               showAnimeDetails={profile.showAnimeDetails}
               getAnimeFromItem={(item) => item}
-              cardWidth={isTablet() ? SCREEN_WIDTH * 0.2 : SCREEN_WIDTH * 0.35}
-              numColumns={isTablet() ? 5 : 3}
+              cardWidth={s.cardWidth}
+              numColumns={s.numColumns}
             />
           </View>
         </View>

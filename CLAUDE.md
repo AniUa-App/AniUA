@@ -204,6 +204,6 @@ Changes to userConfig trigger EventBus events that update the UI reactively.
 - The default branch is `Alpha` (not main/master)
 - Uses Expo's new architecture (`newArchEnabled: true`)
 - Phones are locked to portrait, tablets allow rotation
-- Deep linking is configured for `aniua://` and `https://aniua.yuzka.site`
+- Deep linking is configured for `aniua://` and `https://aniua.app`
 - The app requires notification, storage, and media library permissions
 - Patch-package is used for npm package modifications

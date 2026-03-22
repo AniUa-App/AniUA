@@ -18,7 +18,10 @@ import {
 import { useThemeColors } from "../Global/useTheme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { H2, H5, H6 } from "../Styles/Fonts";
-import { sendAuth, decompressFromBase64 } from "../Services/QRAuthTransferService";
+import {
+  sendAuth,
+  decompressFromBase64,
+} from "../Services/QRAuthTransferService";
 import { HikkaAuthService } from "../Services/HikkaAuthService";
 import Logger from "../Logger/Logger";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
@@ -120,8 +123,8 @@ export default function AddDeviceScreen() {
   };
 
   const handleBarCodeScanned = async ({ data }) => {
-    // Підтримка aniua://login/BASE64 та https://aniua.yuzka.site/login/BASE64 форматів
-    const prefixes = ["https://aniua.yuzka.site/login/", "aniua://login/"];
+    // Підтримка aniua://login/BASE64 та https://aniua.app/login/BASE64 форматів
+    const prefixes = ["https://aniua.app/login/", "aniua://login/"];
     const prefix = prefixes.find((p) => data.startsWith(p));
     if (prefix) {
       try {
@@ -140,8 +143,8 @@ export default function AddDeviceScreen() {
     let text = await Clipboard.getString();
     if (!text) return;
     try {
-      // Підтримка aniua://login/BASE64 та https://aniua.yuzka.site/login/BASE64 форматів
-      const prefixes = ["https://aniua.yuzka.site/login/", "aniua://login/"];
+      // Підтримка aniua://login/BASE64 та https://aniua.app/login/BASE64 форматів
+      const prefixes = ["https://aniua.app/login/", "aniua://login/"];
       const prefix = prefixes.find((p) => text.startsWith(p));
       if (prefix) {
         text = decompressFromBase64(text.slice(prefix.length));

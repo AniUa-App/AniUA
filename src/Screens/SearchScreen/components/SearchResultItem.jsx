@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Linking } from "react-native";
-import { useThemeColors } from "../../../Global/useTheme";
 import Icons from "../../../Styles/Icons";
+import { useSearchResultItemStyles } from "../../../Styles/components/Screens/SearchResultItemStyles";
 import AnimePreviewWidget from "../../../Widgets/AnimePreviewWidget";
 import DubComponent from "../../../Components/DubComponent";
 import CharacterComponent from "../../../Components/CharacterComponen";
@@ -13,7 +13,7 @@ export function SearchResultItem({
   onCharacterPress,
   onFocus,
 }) {
-  const themeColors = useThemeColors();
+  const s = useSearchResultItemStyles();
 
   const handleTeamTelegramPress = useCallback(() => {
     Linking.openURL(item?.telegram || item?.tg);
@@ -49,7 +49,7 @@ export function SearchResultItem({
           isPartner={item?.is_verified}
           onBodyClick={handleTeamBodyPress}
           onButtonClick={handleTeamTelegramPress}
-          icon={<Icons.TelegramLogo size={32} color={themeColors.text} />}
+          icon={<Icons.TelegramLogo size={s.iconSize} color={s.teamIconColor} />}
           onFocus={onFocus}
         />
       );

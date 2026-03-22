@@ -1,10 +1,11 @@
 import { View, Text } from "react-native";
-import { H4, H5, H6 } from "../../Styles/Fonts";
-import { useProfileStatsPhoneStyles, useProfileStatsTabletsStyles } from "../../Styles/components/Profile/ProfileStatsStyles";
+import {
+  useProfileStatsPhoneStyles,
+  useProfileStatsTabletsStyles,
+} from "../../Styles/components/Profile/ProfileStatsStyles";
 import { JSX, useMemo } from "react";
 import Icon from "../../Styles/Icons";
 import Svg, { Circle } from "react-native-svg";
-import { stat } from "react-native-fs";
 
 const profileStats = ({
   stats,
@@ -19,9 +20,9 @@ const profileStats = ({
 }): JSX.Element => {
   if (stats && favorites && colors) {
     return type === "phone" ? (
-      <ProfileStatsPhone stats={stats} favorites={favorites} colors={colors} />
+      <ProfileStatsPhone stats={stats} favorites={favorites} />
     ) : type === "tv" ? (
-      <ProfileStatsTV stats={stats} favorites={favorites} colors={colors} />
+      <ProfileStatsTV stats={stats} colors={colors} />
     ) : (
       <ProfileStatsTablet stats={stats} favorites={favorites} colors={colors} />
     );
@@ -30,63 +31,30 @@ const profileStats = ({
 };
 
 export default profileStats;
+
 function ProfileStatsPhone({
   stats,
   favorites,
-  colors,
 }: {
   stats: any;
   favorites: any;
-  colors: any;
 }) {
   const s = useProfileStatsPhoneStyles();
   const userStats = [
-    {
-      value: stats?.planned ?? 0,
-      label: "У планах",
-    },
-    {
-      value: stats?.watching ?? 0,
-      label: "Дивлюсь",
-    },
-    {
-      value: stats?.completed ?? 0,
-      label: "Оглянуто",
-    },
-    {
-      value: favorites?.pagination?.total ?? 0,
-      label: "Обрані",
-    },
+    { value: stats?.planned ?? 0, label: "У планах" },
+    { value: stats?.watching ?? 0, label: "Дивлюсь" },
+    { value: stats?.completed ?? 0, label: "Оглянуто" },
+    { value: favorites?.pagination?.total ?? 0, label: "Обрані" },
   ];
 
   return (
     <View style={s.statsContainer}>
       {userStats.map((stat, index) => (
-        <View
-          key={index}
-          style={[
-            s.statItem,
-            {
-              backgroundColor: colors.accent,
-            },
-          ]}
-        >
-          <Text
-            selectable={true}
-            style={[
-              H4,
-              {
-                color: colors.text,
-                fontWeight: "700",
-              },
-            ]}
-          >
+        <View key={index} style={s.statItem}>
+          <Text selectable={true} style={s.statValue}>
             {String(stat.value)}
           </Text>
-          <Text
-            selectable={true}
-            style={[H6, { color: colors.text, opacity: 0.7 }]}
-          >
+          <Text selectable={true} style={s.statLabel}>
             {stat.label}
           </Text>
         </View>
@@ -94,6 +62,7 @@ function ProfileStatsPhone({
     </View>
   );
 }
+
 function ProfileStatsTablet({
   stats,
   favorites,
@@ -104,6 +73,8 @@ function ProfileStatsTablet({
   colors: any;
 }) {
   const s = useProfileStatsTabletsStyles();
+  const { size, strokeWidth, radius, circumference, center } = s.chart;
+
   const userStats = [
     {
       key: "planned",
@@ -148,6 +119,7 @@ function ProfileStatsTablet({
       color: colors.primary,
     },
   ];
+
   const sortedUserStatsList = useMemo(() => {
     return userStats.sort(
       (a, b) =>
@@ -158,52 +130,24 @@ function ProfileStatsTablet({
     );
   }, [userStats]);
 
-  const total = useMemo(() => {
-    return sortedUserStatsList.reduce((sum, s) => sum + s.value, 0);
-  }, [sortedUserStatsList]);
+  const total = useMemo(
+    () => sortedUserStatsList.reduce((sum, s) => sum + s.value, 0),
+    [sortedUserStatsList],
+  );
 
-  const size = 120;
-  const strokeWidth = 14;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const center = size / 2;
-  const gap = sortedUserStatsList.length > 1 ? 0.02 : 0;
+  const segmentGap = sortedUserStatsList.length > 1 ? 0.02 : 0;
 
   return (
-    <View
-      style={[
-        s.statsContainer,
-        {
-          backgroundColor: colors.accent,
-        },
-      ]}
-    >
+    <View style={s.statsContainer}>
       <View style={s.statsRow}>
         <View style={s.statsList}>
           {sortedUserStatsList.map((stat, index) => (
-            <View key={index} style={[s.statItem]}>
+            <View key={index} style={s.statItem}>
               <stat.icon size={24} color={stat.color} weight="fill" />
-              <Text
-                selectable={true}
-                style={[
-                  H6,
-                  {
-                    color: colors.text,
-                    opacity: 0.7,
-                  },
-                ]}
-              >
+              <Text selectable={true} style={s.statLabel}>
                 {stat.label}
               </Text>
-              <Text
-                selectable={true}
-                style={[
-                  H5,
-                  {
-                    color: colors.text,
-                  },
-                ]}
-              >
+              <Text selectable={true} style={s.statValue}>
                 {String(stat.value)}
               </Text>
             </View>
@@ -224,7 +168,7 @@ function ProfileStatsTablet({
                 return sortedUserStatsList.map((segment, i) => {
                   const fraction = segment.value / total;
                   if (fraction <= 0) return null;
-                  const segmentLength = (fraction - gap) * circumference;
+                  const segmentLength = (fraction - segmentGap) * circumference;
                   const dashOffset = circumference * 0.25 - offset;
                   offset += fraction * circumference;
                   return (
@@ -245,52 +189,17 @@ function ProfileStatsTablet({
               })()}
             </Svg>
             <View style={s.chartCenter}>
-              <Text
-                style={[
-                  H4,
-                  {
-                    color: colors.text,
-                    fontWeight: "700",
-                  },
-                ]}
-              >
+              <Text style={s.chartCenterValue}>
                 {String(favorites?.pagination?.total ?? 0)}
               </Text>
-              <Text
-                style={[
-                  H6,
-                  {
-                    color: colors.text,
-                    opacity: 0.5,
-                  },
-                ]}
-              >
-                Обрані
-              </Text>
+              <Text style={s.chartCenterLabel}>Обрані</Text>
             </View>
             <View style={s.chartStatItem}>
-              <Text
-                selectable={true}
-                style={[
-                  H6,
-                  {
-                    color: colors.text,
-                    opacity: 0.7,
-                  },
-                ]}
-              >
+              <Text selectable={true} style={s.statLabel}>
                 Всього
               </Text>
-              <Text
-                selectable={true}
-                style={[
-                  H5,
-                  {
-                    color: colors.text,
-                  },
-                ]}
-              >
-                {String(total ?? 0)}
+              <Text selectable={true} style={s.statValue}>
+                {String(total)}
               </Text>
             </View>
           </View>
@@ -299,15 +208,8 @@ function ProfileStatsTablet({
     </View>
   );
 }
-function ProfileStatsTV({
-  stats,
-  favorites,
-  colors,
-}: {
-  stats: any;
-  favorites: any;
-  colors: any;
-}) {
+
+function ProfileStatsTV({ stats, colors }: { stats: any; colors: any }) {
   const s = useProfileStatsTabletsStyles();
   const userStats = [
     {
@@ -353,6 +255,7 @@ function ProfileStatsTV({
       color: colors.primary,
     },
   ];
+
   const sortedUserStatsList = useMemo(() => {
     return userStats.sort(
       (a, b) =>
@@ -363,57 +266,15 @@ function ProfileStatsTV({
     );
   }, [userStats]);
 
-  const total = useMemo(() => {
-    return sortedUserStatsList.reduce((sum, s) => sum + s.value, 0);
-  }, [sortedUserStatsList]);
-
-  const size = 120;
-  const strokeWidth = 14;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const center = size / 2;
-  const gap = sortedUserStatsList.length > 1 ? 0.02 : 0;
-
   return (
-    <View
-      focusable={false}
-      style={[
-        s.statsContainer,
-        {
-          backgroundColor: colors.accent,
-        },
-      ]}
-    >
+    <View focusable={false} style={s.statsContainer}>
       <View style={s.statsRow} focusable={false}>
         <View style={s.statsList} focusable={false}>
           {sortedUserStatsList.map((stat, index) => (
-            <View
-              key={index}
-              style={[s.statItem]}
-              focusable={false}
-            >
+            <View key={index} style={s.statItem} focusable={false}>
               <stat.icon size={24} color={stat.color} weight="fill" />
-              <Text
-                style={[
-                  H6,
-                  {
-                    color: colors.text,
-                    opacity: 0.7,
-                  },
-                ]}
-              >
-                {stat.label}
-              </Text>
-              <Text
-                style={[
-                  H5,
-                  {
-                    color: colors.text,
-                  },
-                ]}
-              >
-                {String(stat.value)}
-              </Text>
+              <Text style={s.statLabel}>{stat.label}</Text>
+              <Text style={s.statValue}>{String(stat.value)}</Text>
             </View>
           ))}
         </View>

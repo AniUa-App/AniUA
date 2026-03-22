@@ -261,6 +261,7 @@ export default function AnimePreviewTablet({ route }) {
     handleNewEpisodeSelect,
     handleNewTeamChange,
     handleBuiltInPlayerToggle,
+    effectiveUseBuiltIn,
     keyExtractorSimilar,
   } = useAnimePreview({ route, navigation });
 
@@ -480,174 +481,181 @@ export default function AnimePreviewTablet({ route }) {
           {/* Top section: poster + title + watch button — with background image */}
           <View style={{ overflow: "hidden" }}>
             {/* Background image with gradient fade */}
-            <Image uri={anime.image} style={[StyleSheet.absoluteFill, { opacity: 0.45 }]} />
+            <Image
+              uri={anime.image}
+              style={[StyleSheet.absoluteFill, { opacity: 0.45 }]}
+            />
             <LinearGradient
-              colors={["transparent", themeColors.Background?.(1) ?? themeColors.background]}
+              colors={[
+                "transparent",
+                themeColors.Background?.(1) ?? themeColors.background,
+              ]}
               locations={[0, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
 
-          {/* Poster with bloom effect */}
-          <View
-            style={{
-              position: "relative",
-              width: "100%",
-              alignItems: "center",
-              marginTop: insets.top,
-            }}
-          >
-            <BloomImage
-              uri={anime.image}
-              width={winWidth * 0.28}
-              height={landscapePosterHeight}
-              borderRadius={16}
-              blurRadius={10}
-              glowScale={1}
-              fadePercent={0.15}
-            />
-
-            {/* Back button */}
-            <TouchableOpacity
-              style={[
-                {
-                  position: "absolute",
-                  top: 16,
-                  left: 16,
-                  padding: 4,
-                  width: 44,
-                  height: 44,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: 16,
-                  backgroundColor: themeColors.subtle,
-                },
-              ]}
-              onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate("MainTabs", { screen: "Home" });
-                }
+            {/* Poster with bloom effect */}
+            <View
+              style={{
+                position: "relative",
+                width: "100%",
+                alignItems: "center",
+                marginTop: insets.top,
               }}
             >
-              <Icon.ArrowLeft size={32} color={themeColors.primary} />
-            </TouchableOpacity>
+              <BloomImage
+                uri={anime.image}
+                width={winWidth * 0.28}
+                height={landscapePosterHeight}
+                borderRadius={16}
+                blurRadius={10}
+                glowScale={1}
+                fadePercent={0.15}
+              />
 
-            {/* More button */}
-            <TouchableOpacity
-              style={[
-                {
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  padding: 4,
-                  borderRadius: 16,
-                  backgroundColor: themeColors.subtle,
-                },
-              ]}
-              onPress={() => moreSheetRef.current?.present()}
-            >
-              <Icon.DotsThreeVertical size={32} color={themeColors.primary} />
-            </TouchableOpacity>
-          </View>
-          {/* Title section - Logic transferred from Phone */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              width: "100%",
-              top: -16, // Proximity to poster
-            }}
-          >
-            <View
-              style={[
-                {
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  maxWidth: "95%",
-                },
-                titleContainerWidth && { width: titleContainerWidth },
-              ]}
-            >
-              <Text
-                selectable={true}
-                style={[H3, { color: themeColors.text }]}
-                numberOfLines={2}
-                onTextLayout={handleTitleLayout}
-                onLongPress={() =>
-                  anime.title_ua && Clipboard.setString(anime.title_ua)
-                }
+              {/* Back button */}
+              <TouchableOpacity
+                style={[
+                  {
+                    position: "absolute",
+                    top: 16,
+                    left: 16,
+                    padding: 4,
+                    width: 44,
+                    height: 44,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: 16,
+                    backgroundColor: themeColors.subtle,
+                  },
+                ]}
+                onPress={() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  } else {
+                    navigation.navigate("MainTabs", { screen: "Home" });
+                  }
+                }}
               >
-                {anime.title_ua || anime.title_en || anime.title_ja}
-                {anime.year ? ` (${anime.year})` : ""}
-              </Text>
-              <View style={{ marginTop: 2 }}>
+                <Icon.ArrowLeft size={32} color={themeColors.primary} />
+              </TouchableOpacity>
+
+              {/* More button */}
+              <TouchableOpacity
+                style={[
+                  {
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    padding: 4,
+                    borderRadius: 16,
+                    backgroundColor: themeColors.subtle,
+                  },
+                ]}
+                onPress={() => moreSheetRef.current?.present()}
+              >
+                <Icon.DotsThreeVertical size={32} color={themeColors.primary} />
+              </TouchableOpacity>
+            </View>
+            {/* Title section - Logic transferred from Phone */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                width: "100%",
+                top: -16, // Proximity to poster
+              }}
+            >
+              <View
+                style={[
+                  {
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    maxWidth: "95%",
+                  },
+                  titleContainerWidth && { width: titleContainerWidth },
+                ]}
+              >
                 <Text
                   selectable={true}
-                  style={[
-                    H5,
-                    {
-                      color: themeColors.Text(0.6),
-                    },
-                  ]}
+                  style={[H3, { color: themeColors.text }]}
+                  numberOfLines={2}
+                  onTextLayout={handleTitleLayout}
+                  onLongPress={() =>
+                    anime.title_ua && Clipboard.setString(anime.title_ua)
+                  }
                 >
-                  {anime.title_en || anime.title_ja || ""}
+                  {anime.title_ua || anime.title_en || anime.title_ja}
+                  {anime.year ? ` (${anime.year})` : ""}
                 </Text>
+                <View style={{ marginTop: 2 }}>
+                  <Text
+                    selectable={true}
+                    style={[
+                      H5,
+                      {
+                        color: themeColors.Text(0.6),
+                      },
+                    ]}
+                  >
+                    {anime.title_en || anime.title_ja || ""}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-          {/* Primary action buttons */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 12,
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginHorizontal: 16,
-              flex: 1,
-            }}
-          >
-            <WatchButton
-              label={getWatchButtonText()}
-              style={{ width: "80%" }}
-              onWatchPress={handleWatchPress}
-              onDownloadPress={handleDownloadPress}
-              isDownloadable={Object.keys(episodesList || {}).length > 0}
-              isActive={Object.keys(episodesList || {}).length > 0}
-            />
-
-            {/* Favorite button */}
-            <TouchableOpacity
-              style={[
-                {
-                  width: 44,
-                  height: 44,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: 16,
-                  backgroundColor: themeColors.subtle,
-                },
-              ]}
-              onPress={handleFavoriteToggle}
+            {/* Primary action buttons */}
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 12,
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginHorizontal: 16,
+                flex: 1,
+              }}
             >
-              {(
-                HikkaAuthService.isAuthenticated()
-                  ? isFavoriteHikka
-                  : info?.isFavorite
-              ) ? (
-                <Icon.Heart
-                  size={24}
-                  color={themeColors.primary}
-                  weight="fill"
-                />
-              ) : (
-                <Icon.Heart size={24} color={themeColors.text} />
-              )}
-            </TouchableOpacity>
+              <WatchButton
+                label={getWatchButtonText()}
+                style={{ width: "80%" }}
+                onWatchPress={handleWatchPress}
+                onDownloadPress={handleDownloadPress}
+                isDownloadable={Object.keys(episodesList || {}).length > 0}
+                isActive={Object.keys(episodesList || {}).length > 0}
+              />
+
+              {/* Favorite button */}
+              <TouchableOpacity
+                style={[
+                  {
+                    width: 44,
+                    height: 44,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: 16,
+                    backgroundColor: themeColors.subtle,
+                  },
+                ]}
+                onPress={handleFavoriteToggle}
+              >
+                {(
+                  HikkaAuthService.isAuthenticated()
+                    ? isFavoriteHikka
+                    : info?.isFavorite
+                ) ? (
+                  <Icon.Heart
+                    size={24}
+                    color={themeColors.primary}
+                    weight="fill"
+                  />
+                ) : (
+                  <Icon.Heart size={24} color={themeColors.text} />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-          </View>{/* end top background wrapper */}
+          {/* end top background wrapper */}
 
           {/* Info section */}
           <View
@@ -680,28 +688,25 @@ export default function AnimePreviewTablet({ route }) {
               >
                 <Icon.Hash size={24} color={themeColors.inActiveIcon} />
               </View>
-              {anime.genres?.length > 0 && (
-                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                  {anime.genres.slice(0, 3).map((genre, index) => (
-                    <React.Fragment key={genre.name_ua}>
-                      <Text
-                        selectable={true}
-                        style={[H5, { color: themeColors.primary }]}
-                      >
-                        {genre.name_ua}
-                      </Text>
-                      {index < anime.genres.slice(0, 3).length - 1 && (
-                        <Text
-                          selectable={true}
-                          style={[H5, { color: themeColors.primary }]}
-                        >
-                          ,{"\t"}
-                        </Text>
-                      )}
-                    </React.Fragment>
-                  ))}
+              <View style={{ flex: 1 }}>
+                <View style={{ flexWrap: "wrap", flex: 1, justifyContent: "center" }}>
+                  <Text
+                    selectable
+                    style={[
+                      H5,
+                      {
+                        color: themeColors.primary,
+                        includeFontPadding: false,
+                      },
+                    ]}
+                  >
+                    {anime?.genres
+                      ?.slice(0, 3)
+                      ?.map((g) => g.name_ua)
+                      ?.join(", ")}
+                  </Text>
                 </View>
-              )}
+              </View>
             </View>
 
             <InfoRow
@@ -780,7 +785,7 @@ export default function AnimePreviewTablet({ route }) {
                   anime?.synopsis_ua ||
                   anime?.synopsis_en ||
                   "Опис відсутній"
-                ).replaceAll("hikka.io", "aniua.yuzka.site")}
+                ).replaceAll("hikka.io", "aniua.app")}
               </Markdown>
             </View>
             {/* Rating section */}
@@ -912,7 +917,7 @@ export default function AnimePreviewTablet({ route }) {
             info?.watched_episodes?.[info?.watched_episodes?.length - 1]
           }
           currentTeam={info?.dub_team}
-          useBuiltInPlayer={info?.useBuiltIn ?? false}
+          useBuiltInPlayer={effectiveUseBuiltIn}
           watchedEpisodes={info?.watched_episodes || []}
           onSelectEpisode={handleNewEpisodeSelect}
           onTeamChange={handleNewTeamChange}

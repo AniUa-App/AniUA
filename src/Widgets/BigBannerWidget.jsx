@@ -1,10 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState } from "react";
-import {
-  View,
-  useWindowDimensions,
-  Text,
-  FlatList,
-} from "react-native";
+import { View, useWindowDimensions, Text, FlatList } from "react-native";
 import { TouchableOpacity } from "./Button";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -22,7 +17,6 @@ import Animated, {
 import { useThemeColors } from "../Global/useTheme";
 import Icons from "../Styles/Icons";
 import { useBigBannerStyles } from "../Styles/components/BigBannerStyles";
-
 
 const AnimatedDot = React.memo(({ index, progress, total, onPress }) => {
   const themeColors = useThemeColors();
@@ -184,40 +178,69 @@ const Mobile = React.memo(({ animes }) => {
       return (
         <TouchableOpacity
           onPress={() => handlePress(item)}
-          style={[s.itemContainer, { width: BANNER_WIDTH, height: BANNER_HEIGHT, alignItems: "center", justifyContent: "center" }]}
+          style={[
+            s.itemContainer,
+            {
+              width: BANNER_WIDTH,
+              height: BANNER_HEIGHT,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
         >
           <BloomImage
             uri={item.image}
-            width={BANNER_WIDTH * 0.9}
-            height={BANNER_HEIGHT * 0.9}
-            blurRadius={100}
-            borderRadius={16}
-            blurBorderRadius={0}
-            glowScale={1.15}
+            width={BANNER_WIDTH * s.bloomImage.widthScale}
+            height={BANNER_HEIGHT * s.bloomImage.heightScale}
+            blurRadius={s.bloomImage.blurRadius}
+            borderRadius={s.bloomImage.borderRadius}
+            blurBorderRadius={s.bloomImage.blurBorderRadius}
+            glowScale={s.bloomImage.glowScale}
             resizeMode={FastImage.resizeMode.cover}
-            fadePercent={0.2}
+            fadePercent={s.bloomImage.fadePercent}
           />
+
           <LinearGradient
             colors={s.gradientColors}
             locations={[0, 1]}
-            style={[s.gradientOverlay, { width: BANNER_WIDTH * 0.9, height: BANNER_HEIGHT * 0.9 }]}
+            style={[
+              s.gradientOverlay,
+              {
+                width: BANNER_WIDTH * s.bloomImage.widthScale,
+                height: BANNER_HEIGHT * s.bloomImage.heightScale,
+              },
+            ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
           />
           {score > 0 && (
             <View style={s.ratingBadge}>
-              <Icons.StarFour size={s.mobile.iconSize} color={themeColors.primary} />
-              <Text selectable={true} style={s.ratingText}>{score.toFixed(1)}</Text>
+              <Icons.StarFour
+                size={s.mobile.iconSize}
+                color={themeColors.primary}
+              />
+              <Text selectable={true} style={s.ratingText}>
+                {score.toFixed(1)}
+              </Text>
             </View>
           )}
-          <View style={[s.bottomOverlay, { alignItems: title.length > 20 ? "flex-start" : "center" }]}>
+          <View
+            style={[
+              s.bottomOverlay,
+              { alignItems: title.length > 20 ? "flex-start" : "center" },
+            ]}
+          >
             <View style={s.titleContainer}>
               <Text selectable={true} style={s.title} numberOfLines={2}>
-                {title}{year ? ` (${year})` : ""}
+                {title}
+                {year ? ` (${year})` : ""}
               </Text>
             </View>
             <View style={s.mobile.playButton}>
-              <Icons.PlayCircle size={s.mobile.iconSize} color={themeColors.primary} />
+              <Icons.PlayCircle
+                size={s.mobile.iconSize}
+                color={themeColors.primary}
+              />
             </View>
           </View>
         </TouchableOpacity>
@@ -229,7 +252,16 @@ const Mobile = React.memo(({ animes }) => {
   if (!animes?.length) return null;
 
   return (
-    <View style={[s.container, { height: BANNER_HEIGHT, backgroundColor: "transparent", alignItems: "center" }]}>
+    <View
+      style={[
+        s.container,
+        {
+          height: BANNER_HEIGHT,
+          backgroundColor: "transparent",
+          alignItems: "center",
+        },
+      ]}
+    >
       <FlatList
         ref={flatListRef}
         data={animes}
@@ -249,7 +281,11 @@ const Mobile = React.memo(({ animes }) => {
         snapToAlignment="start"
         scrollEventThrottle={16}
       />
-      <PaginationDots total={animes.length} progress={progress} onPress={onPressPagination} />
+      <PaginationDots
+        total={animes.length}
+        progress={progress}
+        onPress={onPressPagination}
+      />
     </View>
   );
 });
@@ -357,40 +393,65 @@ const Tablet = React.memo(({ animes }) => {
       return (
         <TouchableOpacity
           onPress={() => handlePress(item)}
-          style={[s.itemContainer, { width: BANNER_WIDTH, height: BANNER_HEIGHT, alignItems: "center", justifyContent: "center" }]}
+          style={[
+            s.itemContainer,
+            {
+              width: BANNER_WIDTH,
+              height: BANNER_HEIGHT,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
         >
           <BloomImage
             uri={item.image}
-            width={BANNER_WIDTH * 0.9}
-            height={BANNER_HEIGHT * 0.9}
-            blurRadius={100}
-            borderRadius={16}
-            blurBorderRadius={0}
-            glowScale={1.15}
+            width={BANNER_WIDTH * s.bloomImage.widthScale}
+            height={BANNER_HEIGHT * s.bloomImage.heightScale}
+            blurRadius={s.bloomImage.blurRadius}
+            borderRadius={s.bloomImage.borderRadius}
+            blurBorderRadius={s.bloomImage.blurBorderRadius}
+            glowScale={s.bloomImage.glowScale}
             resizeMode={FastImage.resizeMode.cover}
-            fadePercent={0.2}
+            fadePercent={s.bloomImage.fadePercent}
           />
           <LinearGradient
             colors={s.gradientColors}
             locations={[0, 1]}
-            style={[s.gradientOverlay, { width: BANNER_WIDTH * 0.83, height: BANNER_HEIGHT * 0.85 }]}
+            style={[
+              s.gradientOverlay,
+              { width: BANNER_WIDTH * 0.83, height: BANNER_HEIGHT * 0.85 },
+            ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
           />
           {score > 0 && (
             <View style={s.ratingBadge}>
-              <Icons.StarFour size={s.tablet.iconSize} color={themeColors.primary} />
-              <Text selectable={true} style={s.ratingText}>{score.toFixed(1)}</Text>
+              <Icons.StarFour
+                size={s.tablet.iconSize}
+                color={themeColors.primary}
+              />
+              <Text selectable={true} style={s.ratingText}>
+                {score.toFixed(1)}
+              </Text>
             </View>
           )}
-          <View style={[s.bottomOverlay, { alignItems: title.length > 20 ? "flex-start" : "center" }]}>
+          <View
+            style={[
+              s.bottomOverlay,
+              { alignItems: title.length > 20 ? "flex-start" : "center" },
+            ]}
+          >
             <View style={s.titleContainer}>
               <Text selectable={true} style={s.title} numberOfLines={2}>
-                {title}{year ? ` (${year})` : ""}
+                {title}
+                {year ? ` (${year})` : ""}
               </Text>
             </View>
             <View style={s.tablet.playButton}>
-              <Icons.PlayCircle size={s.tablet.iconSize} color={themeColors.primary} />
+              <Icons.PlayCircle
+                size={s.tablet.iconSize}
+                color={themeColors.primary}
+              />
             </View>
           </View>
         </TouchableOpacity>
@@ -402,7 +463,16 @@ const Tablet = React.memo(({ animes }) => {
   if (!animes?.length) return null;
 
   return (
-    <View style={[s.container, { height: BANNER_HEIGHT, backgroundColor: "transparent", alignItems: "center" }]}>
+    <View
+      style={[
+        s.container,
+        {
+          height: BANNER_HEIGHT,
+          backgroundColor: "transparent",
+          alignItems: "center",
+        },
+      ]}
+    >
       <FlatList
         ref={flatListRef}
         data={animes}
@@ -422,10 +492,13 @@ const Tablet = React.memo(({ animes }) => {
         snapToAlignment="start"
         scrollEventThrottle={16}
       />
-      <PaginationDots total={animes.length} progress={progress} onPress={onPressPagination} />
+      <PaginationDots
+        total={animes.length}
+        progress={progress}
+        onPress={onPressPagination}
+      />
     </View>
   );
 });
 
 export default { Mobile, Tablet };
-

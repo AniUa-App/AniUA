@@ -333,10 +333,7 @@ export function MD3StyleNavBar({ state, navigation, isPreview = false }) {
                 }
               }
             }}
-            style={[
-              isVertical ? s.tabItemVerticalSide : s.tabItemVertical,
-              {},
-            ]}
+            style={[isVertical ? s.tabItemVerticalSide : s.tabItemVertical, {}]}
           >
             <View style={s.iconShadow} pointerEvents="none">
               {(() => {

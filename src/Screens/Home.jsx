@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   StatusBar,
+  BackHandler,
 } from "react-native";
 import Logger from "../Logger/Logger";
 import BigBannerWidget from "../Widgets/BigBannerWidget";
@@ -128,6 +129,17 @@ export default function HomeScreen() {
       StatusBar.setBackgroundColor("transparent");
       hikkaUser?.refetch?.();
     }, [hikkaUser?.refetch]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, []),
   );
 
   // TV - full-width layout, no tab navigator needed (single tab)

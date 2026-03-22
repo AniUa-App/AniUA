@@ -3,13 +3,17 @@ import React, { useEffect, useCallback, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { TouchableOpacity } from "../Widgets/Button";
 import { useFocusEffect } from "@react-navigation/native";
-import { H4, H5, H7 } from "../Styles/Fonts";
-import { useThemeColors } from "../Global/useTheme";
+import { H4 } from "../Styles/Fonts";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import Logger from "../Logger/Logger";
+import {
+  useButtonsStyles,
+  useSegmentedLabelStyles,
+  useSegmentedImageStyles,
+} from "../Styles/components/ButtonsStyles";
 
 export default function ButtonsScreen({ route }) {
-  const colors = useThemeColors();
+  const s = useButtonsStyles();
   const { list, title, buttonStyle } = route.params;
   useEffect(() => {
     Logger.debug("ButtonsScreen", "List changed", { list });
@@ -21,30 +25,11 @@ export default function ButtonsScreen({ route }) {
   );
   return (
     <DefaultScreenWidget>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          flexWrap: "wrap",
-          padding: 20,
-          gap: 10,
-        }}
-      >
+      <View style={s.grid}>
         {list.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={[
-              {
-                minWidth: "20%",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: colors.primary,
-                borderRadius: 8,
-                padding: 10,
-                minHeight: 50,
-              },
-              buttonStyle,
-            ]}
+            style={[s.gridButton, buttonStyle]}
             onPress={item.onPress}
           >
             <Text selectable={true} style={H4}>
@@ -64,7 +49,7 @@ export function SegmentedControlLabelWidget({
   style = {},
   backgroundColor = null,
 }) {
-  const colors = useThemeColors();
+  const s = useSegmentedLabelStyles();
 
   if (!segments || segments.length === 0) {
     return null;
@@ -97,24 +82,12 @@ export function SegmentedControlLabelWidget({
       onChange={(event) =>
         onChangeIndex(event.nativeEvent.selectedSegmentIndex)
       }
-      tintColor={colors.primary}
+      tintColor={s.tintColor}
       backgroundColor={"transparent"}
-      sliderStyle={{
-        borderRadius: 16,
-        paddingHorizontal: 8,
-      }}
-      style={{
-        height: 44,
-      }}
-      fontStyle={{
-        ...H5,
-        color: colors.Text(0.5),
-      }}
-      activeFontStyle={{
-        ...H5,
-        fontWeight: "normal",
-        color: colors.text,
-      }}
+      sliderStyle={s.slider}
+      style={{ height: s.height }}
+      fontStyle={s.fontStyle}
+      activeFontStyle={s.activeFontStyle}
     />
   );
 }
@@ -124,7 +97,7 @@ export function SegmentedControlImageWidget({
   onChange = () => {},
   value = "",
 }) {
-  const colors = useThemeColors();
+  const s = useSegmentedImageStyles();
 
   if (!segments || segments.length === 0) return null;
 
@@ -156,45 +129,20 @@ export function SegmentedControlImageWidget({
   const itemWidthPct = 100 / normalized.length;
 
   return (
-    <View
-      style={{
-        width: "100%",
-        alignSelf: "center",
-        height: 50,
-        borderRadius: 8,
-        overflow: "hidden",
-        backgroundColor: colors.subtle,
-        position: "relative",
-        flexDirection: "row",
-      }}
-    >
+    <View style={s.container}>
       <View
-        style={{
-          position: "absolute",
-          top: 0,
-          bottom: 0,
-          left: `${selectedIndex * itemWidthPct}%`,
-          width: `${itemWidthPct}%`,
-          backgroundColor: colors.primary,
-          opacity: 0.25,
-          borderRadius: 8,
-        }}
+        style={s.activeHighlight(selectedIndex, itemWidthPct)}
         pointerEvents="none"
       />
       {normalized.map((seg, idx) => (
         <TouchableOpacity
           key={seg.value}
           onPress={() => onChangeIndex(idx)}
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            height: 50,
-          }}
+          style={s.segmentButton}
           activeOpacity={0.8}
         >
           {seg.icon ?? (
-            <Text selectable={true} style={{ color: colors.text }}>
+            <Text selectable={true} style={s.segmentText}>
               {String(seg.label)}
             </Text>
           )}

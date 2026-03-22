@@ -32,14 +32,31 @@ export const useAnimeCardStyles = (): AnimeCardStyles => {
 
   return {
     image: { width: "100%", aspectRatio: 0.75, borderRadius: layout.s(21) },
-    imageCompact: { width: "100%", aspectRatio: 0.7, borderRadius: layout.s(21) },
-    container: { borderRadius: layout.radius.xlg, padding: layout.spacing.xs, paddingBottom: layout.spacing.xsm },
+    imageCompact: {
+      width: "100%",
+      aspectRatio: 0.7,
+      borderRadius: layout.s(21),
+    },
+    container: {
+      borderRadius: layout.radius.xlg,
+      padding: layout.spacing.xs,
+      paddingBottom: layout.spacing.xsm,
+    },
     containerPhone: { paddingHorizontal: layout.spacing.sm },
-    details: { marginTop: layout.spacing.xsm, paddingHorizontal: layout.spacing.xxs },
+    details: {
+      marginTop: layout.spacing.xsm,
+      paddingHorizontal: layout.spacing.xxs,
+    },
     title: { ...H7, lineHeight: layout.spacing.lg, color: theme.text },
     infoRow: { flexDirection: "row", gap: layout.s(3) },
     genre: { ...H6, marginTop: layout.spacing.xxs, color: theme.primary },
     episodes: { ...H6, marginTop: layout.spacing.xxs, color: theme.primary },
-    tvFocused: { borderWidth: 1, zIndex: 100, borderColor: theme.primary, backgroundColor: theme.accent, transform: [{ scale: 1.09 }] },
+    tvFocused: {
+      borderWidth: 1,
+      zIndex: 100,
+      borderColor: theme.primary,
+      backgroundColor: theme.accent,
+      transform: [{ scale: 1.09 }],
+    },
   };
 };

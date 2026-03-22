@@ -74,7 +74,7 @@ export default function ProfileScreenTablet({ navigation }) {
 
   return (
     <DefaultScreenWidget isNavBarPadding={true}>
-      <View style={s.container}>
+      <View style={[s.container, {}]}>
         {/* Sidebar */}
         <ScrollView
           style={s.sidebar}
@@ -122,7 +122,7 @@ export default function ProfileScreenTablet({ navigation }) {
             favorites={profile.favorites}
             colors={colors}
           />
-          <View style={{ height: insets.bottom + 64 }} />
+          <View style={s.sidebarSpacer(insets.bottom)} />
         </ScrollView>
 
         {/* Tabs */}
@@ -182,8 +182,8 @@ export default function ProfileScreenTablet({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item.anime}
-                  numColumns={5}
-                  cardWidth={140}
+                  numColumns={s.numColumns}
+                  cardWidth={s.cardWidth}
                 />
               </View>
 
@@ -208,8 +208,8 @@ export default function ProfileScreenTablet({ navigation }) {
                   navigation={navigation}
                   showAnimeDetails={profile.showAnimeDetails}
                   getAnimeFromItem={(item) => item}
-                  numColumns={5}
-                  cardWidth={140}
+                  numColumns={s.numColumns}
+                  cardWidth={s.cardWidth}
                 />
               </View>
             </Animated.View>

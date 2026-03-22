@@ -137,8 +137,8 @@ export default function ProfileScreenTV({ navigation }) {
                 navigation={navigation}
                 showAnimeDetails={profile.showAnimeDetails}
                 getAnimeFromItem={(item) => item.anime}
-                numColumns={3}
-                cardWidth={120}
+                numColumns={s.numColumns}
+                cardWidth={s.cardWidth}
               />
             </View>
           )}
@@ -161,8 +161,8 @@ export default function ProfileScreenTV({ navigation }) {
                 navigation={navigation}
                 showAnimeDetails={profile.showAnimeDetails}
                 getAnimeFromItem={(item) => item}
-                numColumns={3}
-                cardWidth={120}
+                numColumns={s.numColumns}
+                cardWidth={s.cardWidth}
               />
             </View>
           )}

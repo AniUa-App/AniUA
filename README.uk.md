@@ -124,7 +124,7 @@ src/
 
 ## Посилання
 
-- Сайт: <https://aniua.yuzka.site>
+- Сайт: <https://aniua.app>
 - Deep link: `aniua://`
 
 ## Ліцензія

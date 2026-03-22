@@ -1,14 +1,13 @@
-import { View, Text, StatusBar } from "react-native";
+import { View, Text } from "react-native";
 import { TouchableOpacity } from "./Button";
 import { createStackNavigator } from "@react-navigation/stack";
 import Icons from "../Styles/Icons";
 import { useThemeColors } from "../Global/useTheme";
-import { H3 } from "../Styles/Fonts";
 import SettingsStorage from "../Storage/SettingsStorage";
 import { useState, useEffect } from "react";
 import { EventBus } from "../Global/EventBus";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getNavbarWidth, useIsTV } from "../Styles/Responsive";
+import { useHeaderStyles } from "../Styles/components/HeaderWidgetStyles";
 
 const Stack = createStackNavigator();
 
@@ -19,7 +18,7 @@ export default function Header({
   title = "",
 }) {
   const themeColors = useThemeColors();
-  const insets = useSafeAreaInsets?.() || { top: 0 };
+  const s = useHeaderStyles();
   const isTV = useIsTV();
   const [userConfig, setUserConfig] = useState(
     SettingsStorage.getParameter("userConfig"),
@@ -37,45 +36,18 @@ export default function Header({
   }, []);
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        backgroundColor: "transparent",
-        paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) + 10,
-        paddingVertical: 10,
-        paddingLeft: 16,
-      }}
-    >
+    <View style={s.container}>
       {isArrow && (
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={{
-            backgroundColor: themeColors.accent,
-            padding: 6,
-            borderRadius: 16,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={s.backButton}
           hasTVPreferredFocus={isTV}
         >
-          <Icons.ArrowLeft fill={themeColors.primary} size={28} />
+          <Icons.ArrowLeft fill={themeColors.primary} size={s.icon.size} />
         </TouchableOpacity>
       )}
 
-      <Text
-        selectable={true}
-        style={[
-          H3,
-          {
-            color: themeColors.text,
-            paddingLeft: 10,
-            flex: 1,
-          },
-        ]}
-        numberOfLines={1}
-      >
+      <Text selectable={true} style={s.title} numberOfLines={1}>
         {(() => {
           const explicitTitle =
             title != null && String(title).trim() !== "" ? String(title) : null;

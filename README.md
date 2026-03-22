@@ -124,7 +124,7 @@ src/
 
 ## Links
 
-- Website: <https://aniua.yuzka.site>
+- Website: <https://aniua.app>
 - Deep link: `aniua://`
 
 ## License

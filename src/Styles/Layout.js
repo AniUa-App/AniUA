@@ -46,9 +46,9 @@ export const useLayout = () => {
     const cardWidth = isTV()
       ? width * 0.12
       : isTabletLandscape()
-        ? width * 0.12
+        ? width * 0.113
         : isTablet()
-          ? width * 0.2
+          ? width * 0.1
           : width * 0.35;
 
     return {
@@ -90,9 +90,9 @@ export const useLayout = () => {
         sm: s(18),
         xmd: s(28),
         md: s(24),
-        lg: s(32),
-        xl: s(48),
-        xxl: s(64),
+        lg: s(28),
+        xl: s(32),
+        xxl: s(44),
       },
 
       radius: {

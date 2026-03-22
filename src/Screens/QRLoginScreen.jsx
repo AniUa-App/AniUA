@@ -84,7 +84,7 @@ export default function QRLoginScreen() {
       };
 
       const base64 = compressToBase64(JSON.stringify(payload));
-      setQrValue(`https://aniua.yuzka.site/login/${base64}`);
+      setQrValue(`https://aniua.app/login/${base64}`);
       setState("ready");
     } catch (e) {
       Logger.error("QRLoginScreen", "Failed to start receiver", e);
@@ -120,9 +120,7 @@ export default function QRLoginScreen() {
           Вхід по QR-коду
         </Text>
 
-        <Text
-          style={[H6, s.subtitle, { color: themeColors.inActiveText }]}
-        >
+        <Text style={[H6, s.subtitle, { color: themeColors.inActiveText }]}>
           {state === "ready" &&
             "Відскануйте цей QR-код з пристрою, на якому ви вже авторизовані."}
           {state === "generating" && "Підготовка..."}
@@ -140,10 +138,7 @@ export default function QRLoginScreen() {
           {state === "ready" && qrValue && (
             <>
               <View
-                style={[
-                  s.qrWrapper,
-                  { backgroundColor: themeColors.accent },
-                ]}
+                style={[s.qrWrapper, { backgroundColor: themeColors.accent }]}
               >
                 <QRCodeStyled
                   data={qrValue}
@@ -260,9 +255,7 @@ export default function QRLoginScreen() {
 
         {state === "ready" && (
           <>
-            <Text
-              style={[H6, s.hint, { color: themeColors.inActiveText }]}
-            >
+            <Text style={[H6, s.hint, { color: themeColors.inActiveText }]}>
               Налаштування {"\u2192"} Додати пристрій
             </Text>
           </>
@@ -274,4 +267,3 @@ export default function QRLoginScreen() {
     </DefaultScreenWidget>
   );
 }
-

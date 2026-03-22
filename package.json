@@ -109,9 +109,6 @@
     "reactotron-react-native-mmkv": "^0.2.8",
     "typescript": "~5.9"
   },
-  "overrides": {
-    "html-entities": "2.5.3"
-  },
   "expo": {
     "install": {
       "exclude": [

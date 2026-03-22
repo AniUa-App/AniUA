@@ -47,7 +47,7 @@ export default function SearchHeaderComponent({
         onPress={onGoBack}
       >
         <Icons.ArrowLeft
-          size={32}
+          size={s.icon.size}
           color={themeColors.primary}
           weight="regular"
         />
@@ -95,4 +95,3 @@ export default function SearchHeaderComponent({
     </View>
   );
 }
-

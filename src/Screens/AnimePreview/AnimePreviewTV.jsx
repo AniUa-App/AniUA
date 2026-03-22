@@ -211,6 +211,7 @@ export default function AnimePreviewTV({ route }) {
     handleNewEpisodeSelect,
     handleNewTeamChange,
     handleBuiltInPlayerToggle,
+    effectiveUseBuiltIn,
   } = useAnimePreview({ route, navigation });
 
   const newDownloadSheetRef = useRef(null);
@@ -427,163 +428,170 @@ export default function AnimePreviewTV({ route }) {
           {/* Top section: poster + title + watch button — with background image */}
           <View style={{ overflow: "hidden" }} focusable={false}>
             {/* Background image with gradient fade */}
-            <Image uri={anime.image} style={[StyleSheet.absoluteFill, { opacity: 0.45 }]} />
+            <Image
+              uri={anime.image}
+              style={[StyleSheet.absoluteFill, { opacity: 0.45 }]}
+            />
             <LinearGradient
-              colors={["transparent", themeColors.Background?.(1) ?? themeColors.background]}
+              colors={[
+                "transparent",
+                themeColors.Background?.(1) ?? themeColors.background,
+              ]}
               locations={[0, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
 
-          {/* Poster with bloom effect */}
-          <View
-            style={{
-              position: "relative",
-              width: "100%",
-              alignItems: "center",
-              marginTop: 16,
-            }}
-            focusable={false}
-          >
-            <BloomImage
-              uri={anime.image}
-              width={winWidth * 0.2}
-              height={landscapePosterHeight}
-              borderRadius={16}
-              blurRadius={10}
-              glowScale={1}
-              fadePercent={0.15}
-            />
-
-            {/* Back button */}
-            <TVButton
-              innerRef={backButtonRef}
-              nextFocusUp={favBtnHandle}
-              style={{
-                position: "absolute",
-                top: 16,
-                left: 16,
-                padding: 8,
-                width: 38,
-                height: 38,
-                justifyContent: "center",
-                alignItems: "center",
-                borderRadius: 16,
-                backgroundColor: themeColors.subtle,
-              }}
-              onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate("MainTabs", { screen: "Home" });
-                }
-              }}
-              hasTVPreferredFocus={true}
-            >
-              <Icon.ArrowLeft size={24} color={themeColors.primary} />
-            </TVButton>
-          </View>
-
-          {/* Title section */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              width: "100%",
-              top: -16,
-            }}
-            focusable={false}
-          >
+            {/* Poster with bloom effect */}
             <View
-              style={[
-                {
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  maxWidth: "95%",
-                },
-
-                titleContainerWidth && { width: titleContainerWidth },
-              ]}
+              style={{
+                position: "relative",
+                width: "100%",
+                alignItems: "center",
+                marginTop: 16,
+              }}
               focusable={false}
             >
-              <Text
-                style={[H3, { color: themeColors.text }]}
-                numberOfLines={2}
-                onTextLayout={handleTitleLayout}
-                focusable={false}
-                selectable={false}
+              <BloomImage
+                uri={anime.image}
+                width={winWidth * 0.2}
+                height={landscapePosterHeight}
+                borderRadius={16}
+                blurRadius={10}
+                glowScale={1}
+                fadePercent={0.15}
+              />
+
+              {/* Back button */}
+              <TVButton
+                innerRef={backButtonRef}
+                nextFocusUp={favBtnHandle}
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  left: 16,
+                  padding: 8,
+                  width: 38,
+                  height: 38,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 16,
+                  backgroundColor: themeColors.subtle,
+                }}
+                onPress={() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  } else {
+                    navigation.navigate("MainTabs", { screen: "Home" });
+                  }
+                }}
+                hasTVPreferredFocus={true}
               >
-                {anime.title_ua || anime.title_en || anime.title_ja}
-                {anime.year ? ` (${anime.year})` : ""}
-              </Text>
-              <View style={{ marginTop: 2 }} focusable={false}>
+                <Icon.ArrowLeft size={24} color={themeColors.primary} />
+              </TVButton>
+            </View>
+
+            {/* Title section */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                width: "100%",
+                top: -16,
+              }}
+              focusable={false}
+            >
+              <View
+                style={[
+                  {
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    maxWidth: "95%",
+                  },
+
+                  titleContainerWidth && { width: titleContainerWidth },
+                ]}
+                focusable={false}
+              >
                 <Text
-                  style={[
-                    H5,
-                    {
-                      color: themeColors.Text?.(0.6) || themeColors.text,
-                    },
-                  ]}
+                  style={[H3, { color: themeColors.text }]}
+                  numberOfLines={2}
+                  onTextLayout={handleTitleLayout}
                   focusable={false}
                   selectable={false}
                 >
-                  {anime.title_en || anime.title_ja || ""}
+                  {anime.title_ua || anime.title_en || anime.title_ja}
+                  {anime.year ? ` (${anime.year})` : ""}
                 </Text>
+                <View style={{ marginTop: 2 }} focusable={false}>
+                  <Text
+                    style={[
+                      H5,
+                      {
+                        color: themeColors.Text?.(0.6) || themeColors.text,
+                      },
+                    ]}
+                    focusable={false}
+                    selectable={false}
+                  >
+                    {anime.title_en || anime.title_ja || ""}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* Primary action buttons */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 16,
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginHorizontal: 16,
-              flex: 1,
-            }}
-            focusable={false}
-          >
-            <WatchButton
-              label={getWatchButtonText()}
-              style={{ width: "80%", height: 42 }}
-              onWatchPress={() => newEpisodesSheetRef.current?.open()}
-              isDownloadable={false}
-              isActive={Object.keys(episodesList || {}).length > 0}
-            />
-
-            {/* Favorite button */}
-            <TVButton
-              innerRef={favoriteButtonRef}
-              nextFocusDown={backBtnHandle}
+            {/* Primary action buttons */}
+            <View
               style={{
-                width: 42,
-                height: 42,
-                justifyContent: "center",
+                flexDirection: "row",
+                gap: 16,
                 alignItems: "center",
-                borderRadius: 16,
-                backgroundColor: themeColors.subtle,
+                justifyContent: "space-between",
+                marginHorizontal: 16,
+                flex: 1,
               }}
-              onPress={handleFavoriteToggle}
+              focusable={false}
             >
-              {(
-                HikkaAuthService.isAuthenticated()
-                  ? isFavoriteHikka
-                  : info?.isFavorite
-              ) ? (
-                <Icon.Heart
-                  size={24}
-                  color={themeColors.primary}
-                  weight="fill"
-                />
-              ) : (
-                <Icon.Heart size={24} color={themeColors.text} />
-              )}
-            </TVButton>
+              <WatchButton
+                label={getWatchButtonText()}
+                style={{ width: "80%", height: 42 }}
+                onWatchPress={() => newEpisodesSheetRef.current?.open()}
+                isDownloadable={false}
+                isActive={Object.keys(episodesList || {}).length > 0}
+              />
+
+              {/* Favorite button */}
+              <TVButton
+                innerRef={favoriteButtonRef}
+                nextFocusDown={backBtnHandle}
+                style={{
+                  width: 42,
+                  height: 42,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 16,
+                  backgroundColor: themeColors.subtle,
+                }}
+                onPress={handleFavoriteToggle}
+              >
+                {(
+                  HikkaAuthService.isAuthenticated()
+                    ? isFavoriteHikka
+                    : info?.isFavorite
+                ) ? (
+                  <Icon.Heart
+                    size={24}
+                    color={themeColors.primary}
+                    weight="fill"
+                  />
+                ) : (
+                  <Icon.Heart size={24} color={themeColors.text} />
+                )}
+              </TVButton>
+            </View>
           </View>
-          </View>{/* end top background wrapper */}
+          {/* end top background wrapper */}
 
           {/* Info section */}
           <View
@@ -613,22 +621,25 @@ export default function AnimePreviewTV({ route }) {
               >
                 <Icon.Hash size={18} color={themeColors.inActiveIcon} />
               </View>
-              {anime.genres?.length > 0 && (
-                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                  {anime.genres.slice(0, 3).map((genre, index) => (
-                    <React.Fragment key={genre.name_ua}>
-                      <Text style={[H5, { color: themeColors.primary }]}>
-                        {genre.name_ua}
-                      </Text>
-                      {index < anime.genres.slice(0, 3).length - 1 && (
-                        <Text style={[H5, { color: themeColors.primary }]}>
-                          ,{"\t"}
-                        </Text>
-                      )}
-                    </React.Fragment>
-                  ))}
+              <View style={{ flex: 1 }}>
+                <View style={s.genresContainer}>
+                  <Text
+                    selectable
+                    style={[
+                      H5,
+                      {
+                        color: themeColors.primary,
+                        includeFontPadding: false,
+                      },
+                    ]}
+                  >
+                    {anime?.genres
+                      ?.slice(0, 3)
+                      ?.map((g) => g.name_ua)
+                      ?.join(", ")}
+                  </Text>
                 </View>
-              )}
+              </View>
             </View>
 
             <InfoRow
@@ -711,7 +722,7 @@ export default function AnimePreviewTV({ route }) {
                   anime?.synopsis_ua ||
                   anime?.synopsis_en ||
                   "Опис відсутній"
-                ).replaceAll("hikka.io", "aniua.yuzka.site")}
+                ).replaceAll("hikka.io", "aniua.app")}
               </Markdown>
             </View>
 
@@ -823,7 +834,7 @@ export default function AnimePreviewTV({ route }) {
             info?.watched_episodes?.[info?.watched_episodes?.length - 1]
           }
           currentTeam={info?.dub_team}
-          useBuiltInPlayer={info?.useBuiltIn ?? false}
+          useBuiltInPlayer={effectiveUseBuiltIn}
           watchedEpisodes={info?.watched_episodes || []}
           onSelectEpisode={handleNewEpisodeSelect}
           onTeamChange={handleNewTeamChange}

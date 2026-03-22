@@ -49,7 +49,7 @@ export default function QualityWidget({
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={
-        isTV() ? ["30%"] : orientation === "horizontal" ? ["30%"] : ["20%"]
+        isTV() ? ["30%"] : orientation === "horizontal" ? ["40%"] : ["20%"]
       }
       enableDynamicSizing={false}
       enablePanDownToClose={true}

@@ -2,14 +2,14 @@ import { useLayout } from "../../Layout";
 import type { ViewStyle, TextStyle } from "react-native";
 
 type AnimeGridStyles = {
-  /** Контейнер пустого стану */
   emptyState: ViewStyle;
-  /** Текст пустого стану */
   emptyStateText: TextStyle;
-  /** Контейнер сітки аніме */
   animeGridContainer: ViewStyle;
-  /** Один елемент сітки */
-  animeGridItem: ViewStyle;
+  row: ViewStyle;
+  /** flex: 1 — рівний розподіл між картками і заповнювачами */
+  cardWrapper: ViewStyle;
+  /** Кількість колонок по реальній ширині контейнера */
+  numColumns: (containerWidth: number) => number;
 };
 
 export const useAnimeGridStyles = (): AnimeGridStyles => {
@@ -24,19 +24,23 @@ export const useAnimeGridStyles = (): AnimeGridStyles => {
     },
     emptyStateText: {
       textAlign: "center",
-      marginTop: layout.spacing.sm,
     },
     animeGridContainer: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      paddingTop: layout.spacing.md,
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
+      width: "100%",
+      paddingVertical: layout.spacing.xs,
+      gap: layout.spacing.xsm,
       minHeight: "50%",
     },
-    animeGridItem: {
-      justifyContent: "center",
-      alignItems: "center",
+    row: {
+      flexDirection: "row",
     },
+    cardWrapper: {
+      flex: 1,
+    },
+    // Ділимо реальну ширину контейнера на цільову ширину картки
+    numColumns: (containerWidth) =>
+      containerWidth > 0
+        ? Math.max(2, Math.round(containerWidth / layout.cardWidth))
+        : 3,
   };
 };

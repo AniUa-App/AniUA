@@ -1,36 +1,42 @@
 import { useLayout } from "../../Layout";
-import type { ViewStyle } from "react-native";
+import { useThemeColors } from "../../../Global/useTheme";
+import { H4, H5, H6 } from "../../Fonts";
+import type { ViewStyle, TextStyle } from "react-native";
 
 type ProfileStatsPhoneStyles = {
-  /** Контейнер статистики для телефону */
   statsContainer: ViewStyle;
-  /** Елемент статистики */
   statItem: ViewStyle;
+  statValue: TextStyle;
+  statLabel: TextStyle;
 };
 
 type ProfileStatsTabletsStyles = {
-  /** Контейнер статистики для планшету/TV */
   statsContainer: ViewStyle;
-  /** Рядок зі списком та графіком */
   statsRow: ViewStyle;
-  /** Список статистики */
   statsList: ViewStyle;
-  /** Контейнер кругової діаграми */
   chartContainer: ViewStyle;
-  /** Центр кругової діаграми */
   chartCenter: ViewStyle;
-  /** Елемент статистики */
   statItem: ViewStyle;
-  /** Елемент статистики під графіком (з додатковими відступами) */
   chartStatItem: ViewStyle;
-  /** Контейнер іконки */
   iconContainer: ViewStyle;
-  /** Контейнер тексту */
   textContainer: ViewStyle;
+  statLabel: TextStyle;
+  statValue: TextStyle;
+  chartCenterValue: TextStyle;
+  chartCenterLabel: TextStyle;
+  /** Розміри SVG кругової діаграми */
+  chart: {
+    size: number;
+    strokeWidth: number;
+    radius: number;
+    circumference: number;
+    center: number;
+  };
 };
 
 export const useProfileStatsPhoneStyles = (): ProfileStatsPhoneStyles => {
   const layout = useLayout();
+  const theme = useThemeColors();
 
   return {
     statsContainer: {
@@ -48,12 +54,24 @@ export const useProfileStatsPhoneStyles = (): ProfileStatsPhoneStyles => {
       paddingHorizontal: layout.s(14),
       borderRadius: layout.radius.lg,
       gap: layout.spacing.xs,
+      backgroundColor: theme.accent,
+    },
+    statValue: {
+      ...H4,
+      color: theme.text,
+      fontWeight: "700",
+    },
+    statLabel: {
+      ...H6,
+      color: theme.text,
+      opacity: 0.7,
     },
   };
 };
 
 export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
   const layout = useLayout();
+  const theme = useThemeColors();
 
   return {
     statsContainer: {
@@ -62,6 +80,7 @@ export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
       marginTop: layout.spacing.xlg,
       borderRadius: layout.radius.lg,
       padding: layout.spacing.lg,
+      backgroundColor: theme.accent,
     },
     statsRow: {
       flexDirection: "row",
@@ -107,5 +126,36 @@ export const useProfileStatsTabletsStyles = (): ProfileStatsTabletsStyles => {
     textContainer: {
       flex: 1,
     },
+    statLabel: {
+      ...H6,
+      color: theme.text,
+      opacity: 0.7,
+    },
+    statValue: {
+      ...H5,
+      color: theme.text,
+    },
+    chartCenterValue: {
+      ...H4,
+      color: theme.text,
+      fontWeight: "700",
+    },
+    chartCenterLabel: {
+      ...H6,
+      color: theme.text,
+      opacity: 0.5,
+    },
+    chart: (() => {
+      const size = layout.s(120);
+      const strokeWidth = layout.s(14);
+      const radius = (size - strokeWidth) / 2;
+      return {
+        size,
+        strokeWidth,
+        radius,
+        circumference: 2 * Math.PI * radius,
+        center: size / 2,
+      };
+    })(),
   };
 };

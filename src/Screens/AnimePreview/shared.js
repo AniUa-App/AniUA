@@ -353,7 +353,7 @@ export function useAnimePreview({ route, navigation }) {
               let currentInfo = infoRef.current;
               let data = null;
 
-              // Спочатку пробуємо AniuaApi (api-aniua.yuzka.site)
+              // Спочатку пробуємо AniuaApi (api-aniua.app)
               let needFallback = false;
 
               try {
@@ -937,6 +937,9 @@ export function useAnimePreview({ route, navigation }) {
 
   const keyExtractorSimilar = useCallback((item) => item?.slug || "", []);
 
+  const globalUseBuiltIn = !!SettingsStorage.getParameter("useBuiltinPlayer");
+  const effectiveUseBuiltIn = globalUseBuiltIn || (info?.useBuiltIn ?? false);
+
   return {
     // State
     anime,
@@ -953,6 +956,7 @@ export function useAnimePreview({ route, navigation }) {
     userScore,
     info,
     setInfo,
+    effectiveUseBuiltIn,
     isFocused,
     winWidth,
     winHeight,

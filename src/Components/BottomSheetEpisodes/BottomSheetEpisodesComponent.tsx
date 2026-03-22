@@ -98,6 +98,10 @@ const BottomSheetEpisodesComponent = forwardRef<
     );
     const [useBuiltIn, setUseBuiltIn] = useState(initialUseBuiltIn);
 
+    useEffect(() => {
+      setUseBuiltIn(initialUseBuiltIn);
+    }, [initialUseBuiltIn]);
+
     // Focus management for TV
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 

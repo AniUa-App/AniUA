@@ -74,7 +74,7 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
   const handleShare = useCallback(async () => {
     if (!isWatchMode) return;
 
-    const shareUrl = `https://aniua.yuzka.site/anime/${anime?.slug}/watch?episode=${episode.episode}&studio=${encodeURIComponent(episode.team)}&provider=${player}&time=0&build_in=${useBuiltIn}`;
+    const shareUrl = `https://aniua.app/anime/${anime?.slug}/watch?episode=${episode.episode}&studio=${encodeURIComponent(episode.team)}&provider=${player}&time=0&build_in=${useBuiltIn}`;
 
     try {
       await Share.share({
@@ -121,7 +121,11 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
   const renderActionButton = () => {
     if (isWatchMode) {
       return (
-        <TouchableOpacity focusable={false} onPress={handleShare} style={styles.shareButton}>
+        <TouchableOpacity
+          focusable={false}
+          onPress={handleShare}
+          style={styles.shareButton}
+        >
           <Icon.ShareNetwork
             size={24}
             color={isWatched ? themeColors.subtle : themeColors.primary}
@@ -186,7 +190,10 @@ export const EpisodeItem = React.memo((props: EpisodeItemProps) => {
       onPress={handlePress}
       onLongPress={isWatchMode ? handleLongPress : undefined}
     >
-      <View style={styles.episodeContent} importantForAccessibility="no-hide-descendants">
+      <View
+        style={styles.episodeContent}
+        importantForAccessibility="no-hide-descendants"
+      >
         {anime?.image && (
           <Image
             uri={anime.image}

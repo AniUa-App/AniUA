@@ -3,12 +3,12 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 dotenv.config({ path: ".env.local", override: true });
-const CHANNEL = process.env.CHANNEL || "release";
+const CHANNEL = process.env.CHANNEL || "GRelease";
 export default {
   expo: {
-    name: CHANNEL !== "release" ? `AniUA ${CHANNEL}` : "AniUA",
+    name: CHANNEL !== "GRelease" ? `AniUA ${CHANNEL}` : "AniUA",
     slug: "AniUA",
-    version: "0.0.3",
+    version: "0.1.0",
     orientation: "default",
     icon: "./assets/AniUA-Logo-Icon.png",
     userInterfaceStyle: "dark",
@@ -18,14 +18,14 @@ export default {
       url: "https://u.expo.dev/3f3ecbe1-45c1-4952-ae08-3eb5c59781b2",
       enabled: true,
       checkAutomatically: "ON_LOAD",
-      channel: "release",
+      channel: "GRelease",
     },
     ios: {
       infoPlist: {
         EXUpdatesEnabled: false,
       },
     },
-    runtimeVersion: `0.0.3-${CHANNEL}`,
+    runtimeVersion: `0.1.0-${CHANNEL}`,
     extra: {
       hermes: true,
       eas: {
@@ -57,9 +57,9 @@ export default {
       },
     },
     android: {
-      versionCode: 6,
+      versionCode: 1,
       package:
-        CHANNEL === "release"
+        CHANNEL === "GRelease"
           ? "aniua.yuzka.site"
           : `aniua.yuzka.site.${CHANNEL}`,
       googleServicesFile: "./google-services.json",
@@ -102,6 +102,16 @@ export default {
               host: "aniua.yuzka.site",
               pathPattern: "/anime/.*/watch",
             },
+            {
+              scheme: "https",
+              host: "aniua.app",
+              pathPrefix: "/anime",
+            },
+            {
+              scheme: "https",
+              host: "aniua.app",
+              pathPattern: "/anime/.*/watch",
+            },
           ],
           category: ["BROWSABLE", "DEFAULT"],
         },
@@ -114,6 +124,11 @@ export default {
               host: "aniua.yuzka.site",
               pathPrefix: "/characters",
             },
+            {
+              scheme: "https",
+              host: "aniua.app",
+              pathPrefix: "/characters",
+            },
           ],
           category: ["BROWSABLE", "DEFAULT"],
         },
@@ -124,6 +139,11 @@ export default {
             {
               scheme: "https",
               host: "aniua.yuzka.site",
+              pathPrefix: "/login",
+            },
+            {
+              scheme: "https",
+              host: "aniua.app",
               pathPrefix: "/login",
             },
           ],

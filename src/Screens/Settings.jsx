@@ -3,13 +3,13 @@ import {
   ScrollView,
   Linking,
   Text,
-  Switch,
   useWindowDimensions,
 } from "react-native";
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import SettingsItemWidget from "../Widgets/SettingsItemWidget";
 import SettingsSection from "../Widgets/SettingsSectionWidget";
+import { ToggleSettingWidget } from "../Widgets/CustomisationWidgets";
 import Icons from "../Styles/Icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useThemeColors } from "../Global/useTheme";
@@ -129,7 +129,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={true}>
+    <DefaultScreenWidget isCheckInternet={false} isNavBarPadding={false}>
       <RatingWidget
         visible={isRatingVisible}
         onClose={() => setIsRatingVisible(false)}
@@ -148,7 +148,9 @@ export default function SettingsScreen() {
           if (result.success) {
             showSnackbar("Дякуємо за відгук!");
           } else {
-            showSnackbar(result.error?.message || "Помилка при відправці відгуку");
+            showSnackbar(
+              result.error?.message || "Помилка при відправці відгуку",
+            );
           }
         }}
       />
@@ -159,7 +161,7 @@ export default function SettingsScreen() {
           isTv
             ? {
                 alignSelf: "center",
-                width: "90%",
+                width: "95%",
               }
             : useIsTabletLandscape()
               ? {
@@ -171,23 +173,12 @@ export default function SettingsScreen() {
       >
         {/* Загальні налаштування */}
         <SettingsSection title="Загальні">
-          <SettingsItemWidget
+          <ToggleSettingWidget
             title="Вбудований плеєр"
             subtitle="Використовувати вбудований відеоплеєр"
             icon={<Icons.Play />}
-            button={{
-              Icon: (
-                <Switch
-                  value={useBuiltinPlayer}
-                  onValueChange={handleBuiltinPlayerToggle}
-                  thumbColor={themeColors.primary}
-                  trackColor={{
-                    false: themeColors.subtle,
-                    true: themeColors.Background(0.4),
-                  }}
-                />
-              ),
-            }}
+            value={useBuiltinPlayer}
+            onToggle={() => handleBuiltinPlayerToggle(!useBuiltinPlayer)}
           />
           <SettingsItemWidget
             title="Очистити кеш"
