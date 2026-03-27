@@ -33,7 +33,7 @@ export const useTVStatusSelectorStyles = (): TVStatusSelectorStyles => {
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: layout.spacing.md,
-      height: layout.button.heightSm,
+      height: layout.sizing.touch,
       borderRadius: layout.radius.xlg,
     },
     tabContent: {

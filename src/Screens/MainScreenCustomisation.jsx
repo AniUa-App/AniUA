@@ -231,6 +231,8 @@ function PersonalRecList({
   onPressClear = () => {},
 }) {
   const themeColors = useThemeColors();
+  const s = useMainScreenCustomisationStyles();
+
   const [personalRecList, setPersonalRecList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadedAnimeLists, setLoadedAnimeLists] = useState([]);
@@ -331,6 +333,7 @@ export function PersonalRecListFilter({
   value = {},
 }) {
   const themeColors = useThemeColors();
+  const s = useMainScreenCustomisationStyles();
   const [LoadedGenres, setLoadedGenres] = useState([]);
 
   const [status, setStatus] = useState("Анонс");
@@ -529,10 +532,7 @@ export function PersonalRecListFilter({
                   }
                 }
               }}
-              style={[
-                s.actionButton,
-                { backgroundColor: themeColors.primary },
-              ]}
+              style={[s.actionButton, { backgroundColor: themeColors.primary }]}
             >
               {isEditMode ? (
                 hasChanges ? (

@@ -36,7 +36,7 @@ export const useAnimatedTabButtonStyles = (): AnimatedTabButtonStyles => {
         borderTopLeftRadius: layout.radius.lg,
         borderTopRightRadius: layout.radius.lg,
       },
-      size: layout.button.height,
+      size: layout.sizing.touch,
     },
   };
 };

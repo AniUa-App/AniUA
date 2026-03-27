@@ -50,11 +50,33 @@ export const useScreenControllerStyles = (): ScreenControllerStyles => {
       borderRadius: layout.radius.sm,
       overflow: "hidden",
     },
-    tabItem: { flexDirection: "row", alignItems: "center", height: layout.button.heightSm },
-    tabItemVertical: { flexDirection: "column", justifyContent: "center", alignItems: "center", height: layout.s(56), borderRadius: layout.s(14) },
+    tabItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: layout.sizing.touch,
+    },
+    tabItemVertical: {
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      height: layout.s(56),
+      borderRadius: layout.s(14),
+    },
     text: {},
-    textBelow: { fontFamily: "Nunito-SemiBold", fontSize: 12, textAlign: "center" },
+    textBelow: {
+      fontFamily: "Nunito-SemiBold",
+      fontSize: 12,
+      textAlign: "center",
+    },
     iconShadow: {},
-    tabItemVerticalSide: { flexDirection: "column", justifyContent: "center", alignItems: "center", height: layout.sizing.md, width: layout.sizing.md, borderRadius: layout.radius.lg, marginBottom: layout.spacing.sm },
+    tabItemVerticalSide: {
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      height: layout.sizing.md,
+      width: layout.sizing.md,
+      borderRadius: layout.radius.lg,
+      marginBottom: layout.spacing.sm,
+    },
   };
 };

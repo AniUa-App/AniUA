@@ -32,8 +32,8 @@ export const useHeaderStyles = (): HeaderStyles => {
     },
     backButton: {
       backgroundColor: themeColors.accent,
-      width: layout.sizing.touch,
-      height: layout.sizing.touch,
+      width: layout.sizing.touchSm,
+      height: layout.sizing.touchSm,
       justifyContent: "center",
       alignItems: "center",
       borderRadius: layout.radius.lg,

@@ -57,7 +57,7 @@ export default {
       },
     },
     android: {
-      versionCode: 10,
+      versionCode: 11,
       package:
         CHANNEL === "g_release"
           ? "aniua.yuzka.site"
