@@ -799,7 +799,7 @@ export default function ScreenController({ updateInfo }) {
   const hasCompletedOnboarding = SettingsStorage.getParameter(
     "hasCompletedOnboarding",
   );
-  const initialRouteName = hasCompletedOnboarding ? "MainTabs" : "Login";
+  const initialRouteName = "UpdateChecker";
 
   return (
     <View style={{ flex: 1 }}>

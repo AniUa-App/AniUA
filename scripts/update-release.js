@@ -3,7 +3,7 @@ const path = require("path");
 const { execSync } = require("child_process");
 
 const gitignorePath = path.join(__dirname, "..", ".gitignore");
-
+const branch = "release";
 // Lines to temporarily comment out during update
 const linesToComment = ["*.aar", "*.jar", ".env", ".env.*", ".env*.local"];
 
@@ -38,7 +38,7 @@ async function main() {
 
   try {
     console.log("Running eas update...");
-    execSync('npx eas update --branch release -m "Update!"', {
+    execSync(`npx eas update --branch ${branch} -m "Update!"`, {
       stdio: "inherit",
       cwd: path.join(__dirname, ".."),
     });
