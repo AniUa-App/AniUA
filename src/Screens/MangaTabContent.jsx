@@ -11,14 +11,30 @@ import { sendMangaRequest } from "../Sources/MangaCustomSet";
 import { EventBus } from "../Global/EventBus";
 import Logger from "../Logger/Logger";
 import { ActivityIndicator } from "react-native";
-
+import { HikkaSets } from "../Sources/HikkaSets";
+import { useIsTablet, useIsTV, isTV } from "../Styles/Responsive";
 export default function MangaTabContent() {
   const s = useHomeStyles();
   const insets = useSafeAreaInsets();
+  const isTabletDevice = useIsTablet();
 
+  const [bannerAnimes, setBannerAnimes] = useState([]);
+  // Завантаження даних для банера на рівні HomeScreen (для планшетів та TV)
+  useEffect(() => {
+    if (isTabletDevice || isTV()) {
+      HikkaSets.getMostPopularMangaOfTheYear(1, 6)
+        .then(setBannerAnimes)
+        .catch((err) =>
+          Logger.error("Home", "Помилка завантаження банера", err),
+        );
+    }
+  }, [isTabletDevice, isTV]);
   return (
     <DefaultScreenWidget isNavBarPadding={false}>
-      <ScrollView style={s.contentNavigator} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={s.contentNavigator}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={{ marginTop: insets.top + 60 }}>
           <CustomMangaPersonalRecList />
         </View>
@@ -43,7 +59,11 @@ const CustomMangaPersonalRecList = React.memo(() => {
       const data = MangaPersonalRecListStorage.getSettingsList();
       setPersonalRecList(data);
     } catch (error) {
-      Logger.error("MangaTabContent", "Помилка при завантаженні списків манґи", error);
+      Logger.error(
+        "MangaTabContent",
+        "Помилка при завантаженні списків манґи",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +75,11 @@ const CustomMangaPersonalRecList = React.memo(() => {
         const data = MangaPersonalRecListStorage.getSettingsList();
         setPersonalRecList(data);
       } catch (e) {
-        Logger.error("MangaTabContent", "Помилка при оновленні списків манґи", e);
+        Logger.error(
+          "MangaTabContent",
+          "Помилка при оновленні списків манґи",
+          e,
+        );
       }
     });
     return unsubscribe;

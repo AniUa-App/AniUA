@@ -89,7 +89,7 @@ export default function HomeScreen() {
   // Завантаження даних для банера на рівні HomeScreen (для планшетів та TV)
   useEffect(() => {
     if (isTabletDevice || isTV) {
-      HikkaSets.getMostPopularAnime(1, 6, 2025)
+      HikkaSets.getMostPopularAnimeOfTheYear(1, 6)
         .then(setBannerAnimes)
         .catch((err) =>
           Logger.error("Home", "Помилка завантаження банера", err),
@@ -332,7 +332,7 @@ function AnimeTabContent({
     }
     setIsLoading(true);
     try {
-      const yearData = await HikkaSets.getMostPopularAnime(1, 6, 2025);
+      const yearData = await HikkaSets.getMostPopularAnimeOfTheYear(1, 6);
       setAnimeList_popularity_this_year(yearData);
     } catch (error) {
       Logger.error("Home", "Помилка при завантаженні даних", error);

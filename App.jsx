@@ -436,7 +436,7 @@ export const setupNavigationBar = async () => {
   return AndroidHelper.safeExecute(async () => {
     const navBarType = SettingsStorage.getParameter("SystemNavigationBar_type");
 
-    if (navBarType === "hidяden") {
+    if (navBarType === "hidden") {
       SystemNavigationBar.navigationHide();
     } else if (navBarType === "dark" || !navBarType) {
       SystemNavigationBar.navigationShow();

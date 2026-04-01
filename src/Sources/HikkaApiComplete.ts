@@ -2,6 +2,7 @@
 
 import axios, { AxiosInstance } from "axios";
 import Logger from "../Logger/Logger";
+import EpisodesCacheStorage from "../Storage/EpisodesCacheStorage";
 
 // ==================== HIKKA API TYPES ====================
 
@@ -1517,6 +1518,22 @@ export class HikkaApiComplete {
    */
   public static async getEpisodes(slug: string) {
     const cacheKey = `episodes_${slug}`;
+
+    // Спочатку перевіряємо персистентний кеш (10 хв навіть після перезапуску)
+    const persistentCached = EpisodesCacheStorage.get(cacheKey);
+    if (persistentCached) {
+      Logger.debug(
+        "HikkaApiComplete",
+        `Епізоди для ${slug} з персистентного кешу`,
+      );
+      // Оновлюємо in-memory кеш
+      HikkaApiComplete.apiCache[cacheKey] = {
+        data: persistentCached,
+        timestamp: Date.now(),
+      };
+      return persistentCached;
+    }
+
     return HikkaApiComplete.cachedRequest(cacheKey, async () => {
       try {
         Logger.debug(
@@ -1533,7 +1550,12 @@ export class HikkaApiComplete {
 
         const { type, ...rest } = response.data;
 
-        return { data: rest, code: response.status };
+        const result = { data: rest, code: response.status };
+
+        // Зберігаємо в персистентний кеш (10 хв)
+        EpisodesCacheStorage.set(cacheKey, result);
+
+        return result;
       } catch (error: any) {
         Logger.error(
           "HikkaApiComplete",
