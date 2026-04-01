@@ -21,6 +21,7 @@ import { EventBus } from "../Global/EventBus";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Icons from "../Styles/Icons";
 import PersonalRecListStorage from "../Storage/PersonalRecListStorage";
+import MangaPersonalRecListStorage from "../Storage/MangaPersonalRecListStorage";
 import { getGenres } from "../Sources/CustomSet";
 import SliderWidget from "../Widgets/SliderWidget";
 import InputPickerWidget from "../Widgets/InputPickerWidget";
@@ -38,7 +39,14 @@ import {
   getPagesAndSizes,
   sendRequest,
 } from "../Sources/CustomSet";
+import {
+  MangaStatuses,
+  MangaSort,
+  sendMangaRequest,
+  getMangaPagesAndSizes,
+} from "../Sources/MangaCustomSet";
 import { PreviewAnimeListHorizontal } from "../Widgets/AnimeListHorizontalWidget";
+import { PreviewMangaListHorizontal } from "../Widgets/MangaListHorizontalWidget";
 import { useMainScreenCustomisationStyles } from "../Styles/components/Screens/MainScreenCustomisationStyles";
 
 export default function MainScreenCustomisationScreen() {
@@ -46,11 +54,17 @@ export default function MainScreenCustomisationScreen() {
   const themeColors = useThemeColors();
   const [RECOMMENDATIONS, setRecommendations] = useState();
   const [isPersonalRecExpanded, setIsPersonalRecExpanded] = useState(false);
+  const [isMangaRecExpanded, setIsMangaRecExpanded] = useState(false);
 
   const RecListRef = useRef(null);
+  const MangaRecListRef = useRef(null);
 
   const [PerRecList, setPerRecList] = useState([]);
   const [value, setValue] = useState(null);
+
+  // Manga rec lists
+  const [MangaPerRecList, setMangaPerRecList] = useState([]);
+  const [mangaValue, setMangaValue] = useState(null);
 
   function SET_RECOMMENDATIONS(newRecommendations) {
     setRecommendations(newRecommendations);
@@ -89,11 +103,38 @@ export default function MainScreenCustomisationScreen() {
     EventBus.emit("personalRecListUpdated", list);
   }
 
+  // Manga helpers
+  function addMangaList(list) {
+    MangaPersonalRecListStorage.newSettingsList(list);
+    setMangaPerRecList(MangaPersonalRecListStorage.getSettingsList());
+    EventBus.emit("mangaRecListUpdated", list);
+  }
+
+  function editMangaList(name, list) {
+    MangaPersonalRecListStorage.editSettingsList(name, list);
+    setMangaPerRecList(MangaPersonalRecListStorage.getSettingsList());
+    EventBus.emit("mangaRecListUpdated", list);
+  }
+
+  function deleteMangaList(list) {
+    MangaPersonalRecListStorage.deleteSettingsList(list);
+    setMangaPerRecList(MangaPersonalRecListStorage.getSettingsList());
+    EventBus.emit("mangaRecListUpdated", list);
+  }
+
+  function onPressMangaEdit(name) {
+    const found = MangaPerRecList.find((item) => item.name === name);
+    if (found) setMangaValue(found);
+    MangaRecListRef.current?.present();
+  }
+
   useEffect(() => {
     setRecommendations(
       SettingsStorage.getParameter("userConfig.recommendations"),
     );
     setPerRecList(PersonalRecListStorage.getSettingsList());
+    MangaPersonalRecListStorage.initializeDefaultLists();
+    setMangaPerRecList(MangaPersonalRecListStorage.getSettingsList());
   }, []);
 
   function onPressEdit(name) {
@@ -173,6 +214,30 @@ export default function MainScreenCustomisationScreen() {
           )}
         </SettingsSection>
 
+        {/* Персональні рекомендації манґи */}
+        <SettingsSection title="Рекомендації манґи">
+          <ExpandableSection
+            title="Власні списки манґи"
+            icon={<Icons.BookOpen />}
+            expanded={isMangaRecExpanded}
+            onToggle={() => setIsMangaRecExpanded(!isMangaRecExpanded)}
+          >
+            <MangaPersonalRecList
+              list={MangaPerRecList}
+              onPressAdd={() => {
+                setMangaValue(null);
+                MangaRecListRef.current?.present();
+              }}
+              onPressEdit={(name) => onPressMangaEdit(name)}
+              onPressClear={() => {
+                MangaPersonalRecListStorage.clearStorage();
+                setMangaPerRecList([]);
+                EventBus.emit("mangaRecListUpdated");
+              }}
+            />
+          </ExpandableSection>
+        </SettingsSection>
+
         <View style={{ height: 130 }} />
       </ScrollView>
 
@@ -182,19 +247,10 @@ export default function MainScreenCustomisationScreen() {
         onPressOk={(payload) => {
           Logger.debug("MainScreenCustomisation", "onPressOk", { payload });
           RecListRef.current?.close();
-          Logger.debug("MainScreenCustomisation", "Дані для обробки", {
-            valueName: value?.name,
-            payloadName: payload.name,
-          });
           try {
             const existingItem = !!PerRecList.find(
               (item) =>
                 item.name === payload?.name || item.name === value?.name,
-            );
-            Logger.debug(
-              "MainScreenCustomisation",
-              "Перевірка існуючого елемента",
-              { existingItem },
             );
             if (existingItem) {
               editList(value?.name, payload);
@@ -213,11 +269,40 @@ export default function MainScreenCustomisationScreen() {
           RecListRef.current?.close();
         }}
         onPressDelete={() => {
-          Logger.debug("MainScreenCustomisation", "Видалення списку", {
-            name: value.name,
-          });
           deleteList(value);
           RecListRef.current?.close();
+        }}
+      />
+
+      <MangaPersonalRecListFilter
+        sheetRef={MangaRecListRef}
+        value={mangaValue}
+        onPressOk={(payload) => {
+          MangaRecListRef.current?.close();
+          try {
+            const existingItem = !!MangaPerRecList.find(
+              (item) =>
+                item.name === payload?.name || item.name === mangaValue?.name,
+            );
+            if (existingItem) {
+              editMangaList(mangaValue?.name, payload);
+            } else {
+              addMangaList(payload);
+            }
+          } catch (error) {
+            Logger.error(
+              "MainScreenCustomisation",
+              "Помилка при обробці manga onPressOk",
+              error,
+            );
+          }
+        }}
+        onPressCancel={() => {
+          MangaRecListRef.current?.close();
+        }}
+        onPressDelete={() => {
+          deleteMangaList(mangaValue);
+          MangaRecListRef.current?.close();
         }}
       />
     </DefaultScreenWidget>
@@ -640,6 +725,302 @@ export function PersonalRecListFilter({
               onChange={(item) => {
                 setScore(item);
               }}
+            />
+          </View>
+        </View>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
+  );
+}
+
+// ======================== MANGA COMPONENTS ========================
+
+function MangaPersonalRecList({
+  list = [],
+  onPressAdd = () => {},
+  onPressEdit = () => {},
+  onPressClear = () => {},
+}) {
+  const themeColors = useThemeColors();
+  const s = useMainScreenCustomisationStyles();
+
+  const [mangaRecList, setMangaRecList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadedMangaLists, setLoadedMangaLists] = useState([]);
+
+  useLayoutEffect(() => {
+    setMangaRecList(list ?? []);
+  }, [list]);
+
+  useLayoutEffect(() => {
+    if (!mangaRecList || mangaRecList.length === 0) {
+      setLoadedMangaLists([]);
+      return;
+    }
+    setLoading(true);
+    Promise.all(
+      mangaRecList.map(async (item) => {
+        try {
+          const res = await sendMangaRequest(item, "preview");
+          return { name: item.name, mangaList: res };
+        } catch (e) {
+          return { name: item.name, mangaList: [] };
+        }
+      }),
+    )
+      .then(setLoadedMangaLists)
+      .finally(() => setLoading(false));
+  }, [mangaRecList]);
+
+  return (
+    <View style={{ paddingTop: 8 }}>
+      <View style={s.actionButtons}>
+        <SettingsItemWidget
+          title="Очистити всі"
+          subtitle="Видалити всі списки манґи"
+          icon={<Icons.Trash />}
+          iconColor={themeColors.redBookmark}
+          showChevron
+          onPress={onPressClear}
+        />
+        <SettingsItemWidget
+          title="Додати список"
+          subtitle="Створити новий список манґи"
+          icon={<Icons.Plus />}
+          iconColor={themeColors.primary}
+          showChevron
+          onPress={onPressAdd}
+        />
+      </View>
+
+      {loading && (
+        <View style={s.loaderContainer}>
+          <ActivityIndicator size="large" color={themeColors.primary} />
+        </View>
+      )}
+
+      {!loading &&
+        loadedMangaLists?.map((item, index) => (
+          <View key={`${item.name}-${index}`} style={{ marginTop: 16 }}>
+            <PreviewMangaListHorizontal
+              mangaList={item.mangaList}
+              title={item.name}
+              onPress={() => onPressEdit?.(item.name)}
+            />
+          </View>
+        ))}
+
+      {!loading && loadedMangaLists.length === 0 && (
+        <View style={s.emptyState}>
+          <Icons.ListDashes size={48} color={themeColors.inActiveText} />
+          <Text
+            selectable={true}
+            style={[H6, { color: themeColors.inActiveText, marginTop: 8 }]}
+          >
+            Списків ще немає
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function MangaPersonalRecListFilter({
+  onPressOk = () => {},
+  onPressCancel = () => {},
+  onPressDelete = () => {},
+  sheetRef,
+  value = {},
+}) {
+  const themeColors = useThemeColors();
+  const s = useMainScreenCustomisationStyles();
+  const [LoadedGenres, setLoadedGenres] = useState([]);
+
+  const [status, setStatus] = useState("Байдуже");
+  const [years, setYears] = useState([2000, new Date().getFullYear()]);
+  const [score, setScore] = useState(0);
+  const [genres, setGenres] = useState([]);
+  const [mangaListName, setMangaListName] = useState("");
+  const [initialSnapshot, setInitialSnapshot] = useState(null);
+
+  const isEditMode = useMemo(() => value && Object.keys(value || {}).length > 0, [value]);
+
+  const hasChanges = useMemo(() => {
+    if (!isEditMode || !initialSnapshot) return false;
+    const isEqualArray = (a = [], b = []) =>
+      a.length === b.length && a.every((v, i) => v === b[i]);
+    return !(
+      mangaListName === initialSnapshot.name &&
+      status === initialSnapshot.status &&
+      isEqualArray(years, initialSnapshot.years) &&
+      score === initialSnapshot.score &&
+      isEqualArray(genres, initialSnapshot.genres)
+    );
+  }, [isEditMode, initialSnapshot, mangaListName, status, years, score, genres]);
+
+  async function onPressOkey() {
+    if (mangaListName.length === 0) return;
+    const mangaSet = {
+      Genres: genres.map((g) => Genres[g] ?? g),
+      Statuses: status ? MangaStatuses[status] ?? "" : "",
+      Sort: "Загальна оцінка",
+      Years: years,
+      Score: [score, 10],
+    };
+    const { size, pages } = await getMangaPagesAndSizes(mangaSet);
+    const payload = {
+      name: mangaListName,
+      mangaSet,
+      type: "horizontal",
+      pages,
+      size,
+      isArrow: null,
+    };
+    onPressOk(payload);
+  }
+
+  useEffect(() => {
+    getGenres().then(setLoadedGenres);
+    if (value && Object.keys(value || {}).length > 0) {
+      const name = value.name ?? "";
+      const st = Object.keys(MangaStatuses).find(
+        (key) => MangaStatuses[key] === value.mangaSet?.Statuses,
+      ) ?? "Байдуже";
+      const yrs = value.mangaSet?.Years ?? [2000, new Date().getFullYear()];
+      const scr = value.mangaSet?.Score?.[0] ?? 0;
+      const genreNames = (value.mangaSet?.Genres || [])
+        .map((slug) => Object.keys(Genres).find((key) => Genres[key] === slug))
+        .filter(Boolean);
+
+      setMangaListName(name);
+      setStatus(st);
+      setYears(yrs);
+      setScore(scr);
+      setGenres(genreNames);
+      setInitialSnapshot({ name, status: st, years: yrs, score: scr, genres: genreNames });
+    } else {
+      setMangaListName("");
+      setStatus("Байдуже");
+      setYears([2000, new Date().getFullYear()]);
+      setScore(0);
+      setGenres([]);
+      setInitialSnapshot(null);
+    }
+  }, [value]);
+
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={["55%"]}
+      enableDynamicSizing={false}
+      enablePanDownToClose={true}
+      backgroundStyle={{ backgroundColor: themeColors.background }}
+      handleIndicatorStyle={{ backgroundColor: themeColors.accent }}
+      backdropComponent={(props) => (
+        <TouchableOpacity
+          onPress={() => sheetRef.current?.close()}
+          activeOpacity={1}
+          {...props}
+        />
+      )}
+      animationDuration={300}
+      enableContentPanningGesture={false}
+    >
+      <BottomSheetScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ flex: 1, paddingBottom: 100 }}>
+          <View style={s.sheetHeader}>
+            <Text selectable={true} style={[H4, { color: themeColors.text, fontWeight: "bold" }]}>
+              {isEditMode ? "Редагувати список манґи" : "Новий список манґи"}
+            </Text>
+          </View>
+
+          {/* Назва */}
+          <View style={s.inputRow}>
+            <View style={[s.inputContainer, { backgroundColor: themeColors.accent }]}>
+              <Icons.TextT size={20} color={themeColors.inActiveText} />
+              <TextInput
+                value={mangaListName}
+                onChangeText={setMangaListName}
+                placeholder="Назва списку"
+                placeholderTextColor={themeColors.inActiveText}
+                style={[H4, { flex: 1, color: themeColors.text, marginLeft: 12 }]}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                if (isEditMode) {
+                  hasChanges ? onPressOkey() : onPressDelete();
+                } else {
+                  mangaListName.length > 0 ? onPressOkey() : onPressCancel();
+                }
+              }}
+              style={[s.actionButton, { backgroundColor: themeColors.primary }]}
+            >
+              {isEditMode ? (
+                hasChanges ? (
+                  <Icons.Check size={24} color={themeColors.text} />
+                ) : (
+                  <Icons.Trash size={24} color={themeColors.text} />
+                )
+              ) : mangaListName.length > 0 ? (
+                <Icons.Check size={24} color={themeColors.text} />
+              ) : (
+                <Icons.X size={24} color={themeColors.text} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Фільтри */}
+          <View style={s.filtersContainer}>
+            <Text selectable={true} style={[H6, { color: themeColors.inActiveText, marginBottom: 8 }]}>
+              Статус
+            </Text>
+            <SegmentedControlLabelWidget
+              segments={[
+                { label: "Байдуже" },
+                { label: "Онґоінг" },
+                { label: "Завершено" },
+                { label: "Анонс" },
+              ]}
+              value={status}
+              onChange={(item) => setStatus(item?.label ?? item)}
+            />
+
+            <Text
+              selectable={true}
+              style={[H6, { color: themeColors.inActiveText, marginTop: 16, marginBottom: 8 }]}
+            >
+              Жанри
+            </Text>
+            <InputPickerWidget
+              items={LoadedGenres}
+              placeholder="Виберіть жанр/жанри..."
+              selected={genres}
+              onChange={setGenres}
+            />
+
+            <SliderWidget
+              label="Рік від"
+              min={2000}
+              max={2025}
+              value={years[0]}
+              defaultValue={2005}
+              style={{ marginTop: 16 }}
+              onChange={(item) => setYears([item, new Date().getFullYear()])}
+            />
+
+            <SliderWidget
+              label="Мінімальна оцінка"
+              min={0}
+              max={10}
+              value={score}
+              defaultValue={0}
+              style={{ marginTop: 8 }}
+              onChange={setScore}
             />
           </View>
         </View>

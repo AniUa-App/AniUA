@@ -28,6 +28,8 @@ import Animated, {
 import { useThemeColors } from "../../Global/useTheme";
 import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
+import MangaListScreen from "../MangaList";
+import MangaPreviewScreen from "../MangaPreview";
 import AnimeWatchScreen from "../AnimeWatchScreen";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
 import AnimeStorage from "../../Storage/AnimeStorage";
@@ -603,6 +605,16 @@ function HiddenStack() {
         name="AnimeList"
         component={AnimeListScreen}
         options={{ headerShown: true }}
+      />
+      <HiddenStackNav.Screen
+        name="MangaList"
+        component={MangaListScreen}
+        options={{ headerShown: true }}
+      />
+      <HiddenStackNav.Screen
+        name="MangaPreview"
+        component={MangaPreviewScreen}
+        options={{ headerShown: false }}
       />
       <HiddenStackNav.Screen
         name="SearchScreen"

@@ -82,7 +82,7 @@ export default function SearchFilterBottomSheet({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={activeCategory === "anime" ? ["70%"] : ["15%"]}
+      snapPoints={activeCategory === "anime" || activeCategory === "manga" ? ["65%"] : ["15%"]}
       enableDynamicSizing={false}
       enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: themeColors.background }}
@@ -102,7 +102,7 @@ export default function SearchFilterBottomSheet({
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {activeCategory === "anime" ? (
+        {activeCategory === "anime" || activeCategory === "manga" ? (
           <View style={s.content}>
             {/* Заголовок */}
             <View style={s.headerRow}>
@@ -145,7 +145,7 @@ export default function SearchFilterBottomSheet({
               segments={[
                 { label: "Байдуже" },
                 { label: "Анонс" },
-                { label: "Онґоінґ" },
+                { label: activeCategory === "manga" ? "Онґоінг" : "Онґоінґ" },
                 { label: "Завершено" },
               ]}
               value={status}
@@ -154,25 +154,29 @@ export default function SearchFilterBottomSheet({
               }
             />
 
-            {/* Сезон */}
-            <Text selectable={true} style={[H4, s.sectionLabel]}>
-              Сезон
-            </Text>
-            <SegmentedControlLabelWidget
-              segments={[
-                { label: "Байдуже" },
-                { label: "Зима" },
-                { label: "Весна" },
-                { label: "Літо" },
-                { label: "Осінь" },
-              ]}
-              value={seasons}
-              onChange={(item: { label: string } | string) =>
-                setSeasons(
-                  typeof item === "string" ? item : (item?.label ?? "")
-                )
-              }
-            />
+            {/* Сезон — лише для аніме */}
+            {activeCategory === "anime" && (
+              <>
+                <Text selectable={true} style={[H4, s.sectionLabel]}>
+                  Сезон
+                </Text>
+                <SegmentedControlLabelWidget
+                  segments={[
+                    { label: "Байдуже" },
+                    { label: "Зима" },
+                    { label: "Весна" },
+                    { label: "Літо" },
+                    { label: "Осінь" },
+                  ]}
+                  value={seasons}
+                  onChange={(item: { label: string } | string) =>
+                    setSeasons(
+                      typeof item === "string" ? item : (item?.label ?? "")
+                    )
+                  }
+                />
+              </>
+            )}
 
             {/* Жанри */}
             <Text selectable={true} style={[H4, s.sectionLabel]}>

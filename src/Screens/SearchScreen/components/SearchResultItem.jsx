@@ -3,6 +3,7 @@ import { Linking } from "react-native";
 import Icons from "../../../Styles/Icons";
 import { useSearchResultItemStyles } from "../../../Styles/components/Screens/SearchResultItemStyles";
 import AnimePreviewWidget from "../../../Widgets/AnimePreviewWidget";
+import MangaPreviewWidget from "../../../Widgets/MangaPreviewWidget";
 import DubComponent from "../../../Components/DubComponent";
 import CharacterComponent from "../../../Components/CharacterComponen";
 
@@ -36,6 +37,9 @@ export function SearchResultItem({
           onFocus={onFocus}
         />
       );
+
+    case "manga":
+      return <MangaPreviewWidget manga={item} onFocus={onFocus} />;
 
     case "character":
       return <CharacterComponent item={item} onPress={onCharacterPress} onFocus={onFocus} />;

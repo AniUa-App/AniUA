@@ -106,7 +106,15 @@ export default function SearchScreen() {
         onGoBack={handleGoBack}
         onFilterPress={() => filterSheetRef.current?.present()}
         paddingTop={s.headerPaddingTop}
-        placeholder="Пошук аніме..."
+        placeholder={
+        activeCategory === "manga"
+          ? "Пошук манґи..."
+          : activeCategory === "character"
+            ? "Пошук персонажа..."
+            : activeCategory === "team"
+              ? "Пошук команди..."
+              : "Пошук аніме..."
+      }
         autoFocus={true}
         activeCategory={activeCategory}
       />

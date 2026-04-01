@@ -32,7 +32,7 @@ import {
   useIsTV,
 } from "../Styles/Responsive";
 import DoramaScreen from "./DoramaScreen";
-import MangaScreen from "./MangaScreen";
+import MangaTabContent from "./MangaTabContent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContentTypeTab } from "./ScreenController/Navigators";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
@@ -137,7 +137,10 @@ export default function HomeScreen() {
         BackHandler.exitApp();
         return true;
       };
-      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress,
+      );
       return () => subscription.remove();
     }, []),
   );
@@ -179,14 +182,16 @@ export default function HomeScreen() {
               </View>
               {recommendations?.isDefaultBigBanner !== false && (
                 <View style={s.contentNavigator}>
-                  <BigBannerWidget.Tablet animes={bannerAnimes} />
+                  <BigBannerWidget.Tablet content={bannerAnimes} />
                 </View>
               )}
             </>
           )}
         </View>
         {/* Навігатор контенту — єдиний екземпляр, ніколи не перемонтовується */}
-        <View style={showSidebar ? s.contentNavigatorSidebar : s.contentNavigator}>
+        <View
+          style={showSidebar ? s.contentNavigatorSidebar : s.contentNavigator}
+        >
           <ContentTypeTab.Navigator
             initialRouteName="AnimeTab"
             tabBar={(props) => {
@@ -218,7 +223,10 @@ export default function HomeScreen() {
                 />
               )}
             </ContentTypeTab.Screen>
-            <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
+            <ContentTypeTab.Screen
+              name="MangaTab"
+              component={MangaTabContent}
+            />
           </ContentTypeTab.Navigator>
         </View>
       </View>
@@ -343,7 +351,11 @@ function AnimeTabContent({
   // Планшет landscape / TV - тільки контент, банер рендериться в HomeScreen
   if (isTabletMode) {
     const content = (
-      <ScrollView style={s.contentNavigator} showsVerticalScrollIndicator={false} focusable={false}>
+      <ScrollView
+        style={s.contentNavigator}
+        showsVerticalScrollIndicator={false}
+        focusable={false}
+      >
         <View style={s.tabletContent} focusable={false}>
           {animeHistory?.length > 0 && (
             <AnimeListHorizontal
@@ -386,10 +398,13 @@ function AnimeTabContent({
   // Телефон - повний layout з банером
   return (
     <DefaultScreenWidget isNavBarPadding={false}>
-      <ScrollView style={s.contentNavigator} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={s.contentNavigator}
+        showsVerticalScrollIndicator={false}
+      >
         {recommendations?.isDefaultBigBanner !== false && (
           <View style={{ marginTop: insets.top + 24 }}>
-            <BigBannerWidget.Mobile animes={animeList_popularity_this_year} />
+            <BigBannerWidget.Mobile content={animeList_popularity_this_year} />
           </View>
         )}
         {isLoading ? (
@@ -397,7 +412,9 @@ function AnimeTabContent({
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
-          <View style={isTabletPort ? s.contentContainerTablet : s.contentContainer}>
+          <View
+            style={isTabletPort ? s.contentContainerTablet : s.contentContainer}
+          >
             {animeHistory?.length > 0 && (
               <AnimeListHorizontal
                 title="Історія перегляду"
@@ -537,4 +554,3 @@ const CustomPersonalRecList = React.memo(() => {
     </>
   );
 });
-

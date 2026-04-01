@@ -64,6 +64,7 @@ const NotificationCard = memo(function NotificationCard({
     animeDetails?.title_ua ||
     animeDetails?.title_en ||
     animeDetails?.title_ja ||
+    animeDetails?.title_original ||
     item.title;
 
   const handlePress = () => {
@@ -179,10 +180,7 @@ const NotificationCard = memo(function NotificationCard({
           {/* Індикатор непрочитаного */}
           {!item.read && (
             <View
-              style={[
-                s.unreadDot,
-                { backgroundColor: themeColors.primary },
-              ]}
+              style={[s.unreadDot, { backgroundColor: themeColors.primary }]}
             />
           )}
         </TouchableOpacity>
@@ -190,6 +188,5 @@ const NotificationCard = memo(function NotificationCard({
     </Swipeable>
   );
 });
-
 
 export default NotificationCard;

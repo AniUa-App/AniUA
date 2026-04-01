@@ -71,10 +71,7 @@ export default function MangaScreen() {
             {/* Опис */}
             <Text
               selectable={true}
-              style={[
-                s.description,
-                { color: themeColors.text, opacity: 0.7 },
-              ]}
+              style={[s.description, { color: themeColors.text, opacity: 0.7 }]}
             >
               Для запуску розділу манґи нам потрібно оновити сервер. Як тільки
               збір буде закрито — розпочнеться активна розробка!
@@ -82,21 +79,14 @@ export default function MangaScreen() {
 
             {/* Кнопка донату */}
             <TouchableOpacity
-              style={[
-                s.donateButton,
-                { backgroundColor: themeColors.primary },
-              ]}
+              style={[s.donateButton, { backgroundColor: themeColors.primary }]}
               onPress={handleDonate}
               activeOpacity={0.8}
             >
               <HeartStraight size={22} color={themeColors.text} weight="fill" />
               <Text
                 selectable={true}
-                style={[
-                  H4,
-                  s.donateButtonText,
-                  { color: themeColors.text },
-                ]}
+                style={[H4, s.donateButtonText, { color: themeColors.text }]}
               >
                 Підтримати проєкт
               </Text>
@@ -105,10 +95,7 @@ export default function MangaScreen() {
             {/* Додаткова інформація */}
             <Text
               selectable={true}
-              style={[
-                s.footnote,
-                { color: themeColors.text, opacity: 0.5 },
-              ]}
+              style={[s.footnote, { color: themeColors.text, opacity: 0.5 }]}
             >
               Кожен донат наближає запуск розділу манґи
             </Text>

@@ -7,6 +7,7 @@ import {
   Genres,
   getGenres,
 } from "../../../Sources/CustomSet";
+import { MangaStatuses } from "../../../Sources/MangaCustomSet";
 import Logger from "../../../Logger/Logger";
 import {
   INITIAL_RESULTS,
@@ -113,11 +114,29 @@ export function useSearch() {
             break;
 
           case "manga":
-            const mangaResponse = await HikkaApiComplete.searchManga({
+            const mangaSearchParams = {
               query,
+              genres: activeFilters.genres
+                .map((g) => Genres[g])
+                .filter(Boolean),
               page: 1,
               size: 30,
-            });
+            };
+
+            if (activeFilters.status && activeFilters.status !== "Байдуже") {
+              const mangaStatusVal = MangaStatuses[activeFilters.status];
+              if (mangaStatusVal) mangaSearchParams.status = [mangaStatusVal];
+            }
+
+            if (activeFilters.years) {
+              mangaSearchParams.years = activeFilters.years;
+            }
+
+            if (activeFilters.score > 0) {
+              mangaSearchParams.score = [activeFilters.score, 10];
+            }
+
+            const mangaResponse = await HikkaApiComplete.searchManga(mangaSearchParams);
             searchResults = mangaResponse?.list || [];
             break;
 

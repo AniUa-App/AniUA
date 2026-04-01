@@ -18,7 +18,6 @@ const TABS = [
   { key: "manga", label: "Манґа" },
 ];
 
-
 export default function TopNavigationComponent({
   activeTab = "anime",
   onTabChange,
@@ -141,9 +140,11 @@ export default function TopNavigationComponent({
 
       {/* Right - Search Icon */}
       <TouchableOpacity style={s.iconButton} onPress={handleSearchPress}>
-        <Icons.MagnifyingGlass size={s.iconSize} color={s.activeFontStyle.color} />
+        <Icons.MagnifyingGlass
+          size={s.iconSize}
+          color={s.activeFontStyle.color}
+        />
       </TouchableOpacity>
     </View>
   );
 }
-

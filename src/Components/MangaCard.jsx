@@ -1,21 +1,21 @@
 import { View, Text, Pressable } from "react-native";
-import { memo, useEffect, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "../Widgets/LoadersWidgets";
 import { prefetchBloomImage } from "../Widgets/BloomImage";
-import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useIsTV } from "../Styles/Responsive";
 import { useAnimeCardStyles } from "../Styles/components/AnimeCardStyles";
+import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 
 /**
- * Компонент картки аніме з підвантаженням деталей
- * @param {Object} anime - Об'єкт аніме
+ * Компонент картки манґи для горизонтальних списків
+ * @param {Object} manga - Об'єкт манґи
  * @param {number} width - Ширина картки
- * @param {boolean} showDetails - Показувати деталі (назва, жанри, епізоди)
+ * @param {boolean} showDetails - Показувати деталі
  * @param {function} onPress - Callback при натисканні (опціонально)
  */
-const AnimeCard = memo(function AnimeCard({
-  anime,
+const MangaCard = memo(function MangaCard({
+  manga,
   width,
   showDetails = true,
   onPress,
@@ -23,26 +23,20 @@ const AnimeCard = memo(function AnimeCard({
 }) {
   const navigation = propNavigation || useNavigation();
   const s = useAnimeCardStyles();
-  const [details, setDetails] = useState(null);
   const isTV = useIsTV();
+  const [details, setDetails] = useState(null);
 
   // Підвантажуємо деталі якщо немає жанрів
   useEffect(() => {
-    if (showDetails && !anime.genres && anime.slug) {
-      HikkaApiComplete.getAnimeDetails(anime.slug).then((data) => {
+    if (showDetails && !manga.genres && manga.slug) {
+      HikkaApiComplete.getMangaDetails(manga.slug).then((data) => {
         if (data) setDetails(data);
       });
     }
-  }, [anime.slug, anime.genres, showDetails]);
+  }, [manga.slug, manga.genres, showDetails]);
 
-  const animeData = details || anime;
+  const mangaData = details || manga;
 
-  // Отримуємо жанри
-  const genres = animeData.genres?.[0]
-    ? (animeData.genres[0].name_ua || animeData.genres[0].name_en) + ","
-    : null;
-
-  // Кількість епізодів або статус
   const getStatusText = (status) => {
     switch (status) {
       case "ongoing":
@@ -56,20 +50,22 @@ const AnimeCard = memo(function AnimeCard({
     }
   };
 
-  const episodes = animeData.episodes_total
-    ? `${animeData.episodes_released || 0}/${animeData.episodes_total} еп.`
-    : animeData.episodes_released
-      ? `${animeData.episodes_released}`
-      : getStatusText(animeData.status);
+  const genres = mangaData.genres?.[0]
+    ? (mangaData.genres[0].name_ua || mangaData.genres[0].name_en) + ","
+    : null;
+
+  const chaptersText = mangaData.chapters
+    ? `${mangaData.chapters} розд.`
+    : getStatusText(mangaData.status);
 
   const handlePress = () => {
     if (onPress) {
-      onPress(anime);
+      onPress(manga);
     } else {
-      prefetchBloomImage(anime.image);
+      prefetchBloomImage(manga.image);
       navigation.navigate("HiddenStack", {
-        screen: "AnimePreview",
-        params: { slug: anime.slug, _fromTap: true },
+        screen: "MangaPreview",
+        params: { slug: manga.slug, _fromTap: true },
       });
     }
   };
@@ -79,19 +75,16 @@ const AnimeCard = memo(function AnimeCard({
       style={({ focused }) => [
         s.container,
         { width },
-        isTV &&
-          focused && {
-            ...s.tvFocused,
-          },
+        isTV && focused && { ...s.tvFocused },
         !isTV && s.containerPhone,
       ]}
       onPress={handlePress}
     >
-      <Image uri={anime.image} style={showDetails ? s.image : s.imageCompact} />
+      <Image uri={manga.image} style={showDetails ? s.image : s.imageCompact} />
       {showDetails && (
         <View style={s.details}>
           <Text selectable={false} style={s.title} numberOfLines={2}>
-            {anime.title_ua || anime.title_en || anime.title_original}
+            {mangaData.title_ua || mangaData.title_en || mangaData.title_original}
           </Text>
           <View style={s.infoRow}>
             {genres && (
@@ -99,13 +92,13 @@ const AnimeCard = memo(function AnimeCard({
                 {genres}
               </Text>
             )}
-            {episodes && (
+            {chaptersText && (
               <Text selectable={false} style={s.episodes}>
                 {genres?.length > 15
                   ? null
                   : genres?.length > 9
-                    ? episodes.slice(0, 5)
-                    : episodes}
+                    ? chaptersText.slice(0, 5)
+                    : chaptersText}
               </Text>
             )}
           </View>
@@ -115,4 +108,4 @@ const AnimeCard = memo(function AnimeCard({
   );
 });
 
-export default AnimeCard;
+export default MangaCard;

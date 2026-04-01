@@ -32,3 +32,16 @@ export function navigateToAnime(slug) {
     });
   }
 }
+
+/**
+ * Навігація до екрану MangaPreview за slug
+ * @param {string} slug - Slug манґи
+ */
+export function navigateToManga(slug) {
+  if (navigationRef.isReady() && slug) {
+    navigationRef.navigate("HiddenStack", {
+      screen: "MangaPreview",
+      params: { slug },
+    });
+  }
+}
