@@ -70,13 +70,14 @@ export class HikkaSets extends HikkaApiComplete {
     return HikkaSets.fetchAnime(`popular_year_${page}_${size}`, page, size, {
       years: [HikkaApiComplete.currentYear, HikkaApiComplete.currentYear + 1],
       score: [8, 10],
-      sort: ["start_date:desc"],
+      sort: ["score:desc"],
     });
   }
 
   public static getMostPopularAnime(page = 1, size = 1, year = 2020) {
     return HikkaSets.fetchAnime(`popular_${page}_${size}`, page, size, {
       years: [year, HikkaApiComplete.currentYear],
+      sort: ["score:desc"],
       include_multiseason: false,
       only_translated: true,
     });
@@ -213,7 +214,7 @@ export class HikkaSets extends HikkaApiComplete {
       size,
       {
         years: [HikkaApiComplete.currentYear, HikkaApiComplete.currentYear + 1],
-        sort: ["start_date:desc"],
+        sort: ["score:desc"],
       },
     );
   }
@@ -221,7 +222,8 @@ export class HikkaSets extends HikkaApiComplete {
   public static getMostPopularManga(page = 1, size = 1, year = 2020) {
     return HikkaSets.fetchManga(`manga_popular_${page}_${size}`, page, size, {
       years: [year, HikkaApiComplete.currentYear],
-      only_translated: true,
+      sort: ["score:desc"],
+      only_translated: false,
     });
   }
 

@@ -75,7 +75,8 @@ const PaginationDots = React.memo(({ total, progress, onPress }) => {
   );
 });
 
-const Mobile = React.memo(({ content }) => {
+const Mobile = React.memo(({ content, variant = "anime" }) => {
+  const isAnime = variant === "anime";
   const { width: PAGE_WIDTH, height: PAGE_HEIGHT } = useWindowDimensions();
   const BANNER_WIDTH = Math.round(PAGE_WIDTH);
   const BANNER_HEIGHT = Math.round(Math.max(200, PAGE_HEIGHT / 1.4));
@@ -89,11 +90,11 @@ const Mobile = React.memo(({ content }) => {
   const isTouchingRef = useRef(false);
 
   useEffect(() => {
-    if (content?.length > 0) {
+    if (isAnime && content?.length > 0) {
       const slugs = content.map((a) => a.slug).filter(Boolean);
       AniuaApi.prefetchMultipleEpisodes(slugs, 3);
     }
-  }, [content]);
+  }, [content, isAnime]);
 
   // AutoPlay
   useEffect(() => {
@@ -130,11 +131,11 @@ const Mobile = React.memo(({ content }) => {
     (item) => {
       prefetchBloomImage(item.image);
       navigation.navigate("HiddenStack", {
-        screen: "AnimePreview",
-        params: { anime: item },
+        screen: isAnime ? "AnimePreview" : "MangaPreview",
+        params: isAnime ? { anime: item } : { slug: item.slug, _fromTap: true },
       });
     },
-    [navigation],
+    [navigation, isAnime],
   );
 
   const onPressPagination = useCallback((index) => {
@@ -171,7 +172,8 @@ const Mobile = React.memo(({ content }) => {
 
   const renderItem = useCallback(
     ({ item }) => {
-      const title = item.title_ua || item.title_en || item.title_ja || "";
+      const title =
+        item.title_ua || item.title_en || item.title_ja || item.title_original || "";
       const year = item.year;
       const score = item.score;
 
@@ -237,16 +239,23 @@ const Mobile = React.memo(({ content }) => {
               </Text>
             </View>
             <View style={s.mobile.playButton}>
-              <Icons.PlayCircle
-                size={s.mobile.iconSize}
-                color={themeColors.primary}
-              />
+              {isAnime ? (
+                <Icons.PlayCircle
+                  size={s.mobile.iconSize}
+                  color={themeColors.primary}
+                />
+              ) : (
+                <Icons.BookOpen
+                  size={s.mobile.iconSize}
+                  color={themeColors.primary}
+                />
+              )}
             </View>
           </View>
         </TouchableOpacity>
       );
     },
-    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT],
+    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT, isAnime],
   );
 
   if (!content?.length) return null;
@@ -290,7 +299,8 @@ const Mobile = React.memo(({ content }) => {
   );
 });
 
-const Tablet = React.memo(({ content }) => {
+const Tablet = React.memo(({ content, variant = "anime" }) => {
+  const isAnime = variant === "anime";
   const { width: PAGE_WIDTH, height: PAGE_HEIGHT } = useWindowDimensions();
   const BANNER_WIDTH = Math.round(PAGE_WIDTH * 0.4);
   const BANNER_HEIGHT = Math.round(PAGE_HEIGHT * 0.85);
@@ -304,11 +314,11 @@ const Tablet = React.memo(({ content }) => {
   const isTouchingRef = useRef(false);
 
   useEffect(() => {
-    if (content?.length > 0) {
+    if (isAnime && content?.length > 0) {
       const slugs = content.map((a) => a.slug).filter(Boolean);
       AniuaApi.prefetchMultipleEpisodes(slugs, 3);
     }
-  }, [content]);
+  }, [content, isAnime]);
 
   // AutoPlay
   useEffect(() => {
@@ -345,11 +355,11 @@ const Tablet = React.memo(({ content }) => {
     (item) => {
       prefetchBloomImage(item.image);
       navigation.navigate("HiddenStack", {
-        screen: "AnimePreview",
-        params: { anime: item },
+        screen: isAnime ? "AnimePreview" : "MangaPreview",
+        params: isAnime ? { anime: item } : { slug: item.slug, _fromTap: true },
       });
     },
-    [navigation],
+    [navigation, isAnime],
   );
 
   const onPressPagination = useCallback((index) => {
@@ -386,7 +396,8 @@ const Tablet = React.memo(({ content }) => {
 
   const renderItem = useCallback(
     ({ item }) => {
-      const title = item.title_ua || item.title_en || item.title_ja || "";
+      const title =
+        item.title_ua || item.title_en || item.title_ja || item.title_original || "";
       const year = item.year;
       const score = item.score;
 
@@ -448,16 +459,23 @@ const Tablet = React.memo(({ content }) => {
               </Text>
             </View>
             <View style={s.tablet.playButton}>
-              <Icons.PlayCircle
-                size={s.tablet.iconSize}
-                color={themeColors.primary}
-              />
+              {isAnime ? (
+                <Icons.PlayCircle
+                  size={s.tablet.iconSize}
+                  color={themeColors.primary}
+                />
+              ) : (
+                <Icons.BookOpen
+                  size={s.tablet.iconSize}
+                  color={themeColors.primary}
+                />
+              )}
             </View>
           </View>
         </TouchableOpacity>
       );
     },
-    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT],
+    [handlePress, themeColors, s, BANNER_WIDTH, BANNER_HEIGHT, isAnime],
   );
 
   if (!content?.length) return null;

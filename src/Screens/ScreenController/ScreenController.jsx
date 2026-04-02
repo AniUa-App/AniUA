@@ -30,6 +30,7 @@ import Header from "../../Widgets/HeaderWidget";
 import AnimePreviewScreen from "../AnimePreview";
 import MangaListScreen from "../MangaList";
 import MangaPreviewScreen from "../MangaPreview";
+import MangaReaderScreen from "../MangaReader";
 import AnimeWatchScreen from "../AnimeWatchScreen";
 import WebVideoPlayerScreen from "../WebVideoPlayer";
 import AnimeStorage from "../../Storage/AnimeStorage";
@@ -614,6 +615,11 @@ function HiddenStack() {
       <HiddenStackNav.Screen
         name="MangaPreview"
         component={MangaPreviewScreen}
+        options={{ headerShown: false }}
+      />
+      <HiddenStackNav.Screen
+        name="MangaReader"
+        component={MangaReaderScreen}
         options={{ headerShown: false }}
       />
       <HiddenStackNav.Screen

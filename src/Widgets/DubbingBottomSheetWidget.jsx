@@ -61,7 +61,7 @@ export const sortDubbingsByPartnerStudios = (dubbingsList) => {
 
       return (
         lowerName.includes(lowerDubbing) ||
-        altNames.some((alt) => alt.includes(lowerDubbing))
+        altNames?.some((alt) => alt.includes(lowerDubbing))
       );
     });
 
@@ -109,7 +109,9 @@ export const getPartnerTeamByDubbingName = (dubbingName) => {
 
     if (Array.isArray(team.alt_names)) {
       if (
-        team.alt_names.some((altName) => altName.toLowerCase() === lowerDubbing)
+        team.alt_names?.some(
+          (altName) => altName.toLowerCase() === lowerDubbing,
+        )
       ) {
         return team;
       }
@@ -191,8 +193,8 @@ function PlayerContent({ playerType, dubbings, data, changeDubbing }) {
                     Logger.error(
                       "DubbingBottomSheet",
                       "Failed to open URL",
-                      err
-                    )
+                      err,
+                    ),
                   );
                 }
               }}
@@ -244,7 +246,7 @@ export function getFullDubbersListOfQueues(episodesList) {
         firstEpisode.translation_type ??
           firstEpisode.translationType ??
           firstEpisode.type ??
-          ""
+          "",
       ).toLowerCase();
       if (t === "sub" || t === "subs" || t === "subtitle") return true;
       if (typeof firstEpisode.is_sub === "boolean") return firstEpisode.is_sub;
@@ -267,8 +269,8 @@ export function getFullDubbersListOfQueues(episodesList) {
       if (
         lowerName.includes(lowerDubbing) ||
         lowerDubbing.includes(lowerName) ||
-        altNames.some(
-          (alt) => alt.includes(lowerDubbing) || lowerDubbing.includes(alt)
+        altNames?.some(
+          (alt) => alt.includes(lowerDubbing) || lowerDubbing.includes(alt),
         )
       ) {
         return team.name; // Повертаємо офіційне ім'я команди
@@ -286,7 +288,7 @@ export function getFullDubbersListOfQueues(episodesList) {
       Logger.warn(
         "DubbingBottomSheet",
         `Player ${player} episodes is not valid`,
-        { playerEpisodes }
+        { playerEpisodes },
       );
       continue;
     }
@@ -298,7 +300,7 @@ export function getFullDubbersListOfQueues(episodesList) {
         Logger.warn(
           "DubbingBottomSheet",
           `Dubber ${dubber} episodes is not an array`,
-          { dubberEpisodes }
+          { dubberEpisodes },
         );
         continue;
       }

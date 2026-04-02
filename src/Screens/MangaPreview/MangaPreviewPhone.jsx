@@ -20,6 +20,7 @@ import { H3, H4, H5 } from "../../Styles/Fonts";
 import { useThemeColors } from "../../Global/useTheme";
 import { HikkaAuthService } from "../../Services/HikkaAuthService";
 import { HikkaApiComplete } from "../../Sources/HikkaApiComplete";
+import AniuaApi from "../../Api/AniuaApi";
 import CharacterCard from "../../Components/CharacterCard";
 import MangaCard from "../../Components/MangaCard";
 import CommentsSection from "../../Components/CommentsSection";
@@ -27,6 +28,7 @@ import { useAnimePreviewPhoneStyles } from "../../Styles/components/Screens/Anim
 import { ErrorScreen } from "../ErrorScreen";
 import Logger from "../../Logger/Logger";
 import MangaMoreBottomSheet from "../../Widgets/MangaMoreBottomSheetWidget";
+import WatchButton, { WatchButtonState } from "../../Components/WatchButton";
 
 // ==================== Sub-components ====================
 
@@ -148,6 +150,8 @@ function useMangaPreview({ route }) {
   const [errorCode, setErrorCode] = useState(null);
   const [charactersList, setCharactersList] = useState([]);
   const [similarList, setSimilarList] = useState([]);
+  const [chapters, setChapters] = useState([]);
+  const [isChaptersLoading, setIsChaptersLoading] = useState(false);
   const [readStatus, setReadStatus] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userScore, setUserScore] = useState(0);
@@ -174,6 +178,18 @@ function useMangaPreview({ route }) {
     };
 
     load();
+  }, [slug]);
+
+  // Завантаження розділів для читання
+  useEffect(() => {
+    if (!slug) return;
+    setIsChaptersLoading(true);
+    AniuaApi.getMangaChapters(slug)
+      .then((data) => setChapters(data || []))
+      .catch((err) =>
+        Logger.error("MangaPreview", "Помилка завантаження розділів", err),
+      )
+      .finally(() => setIsChaptersLoading(false));
   }, [slug]);
 
   // Завантаження персонажів
@@ -276,6 +292,8 @@ function useMangaPreview({ route }) {
     slug,
     handleFavoriteToggle,
     handleRateManga,
+    chapters,
+    isChaptersLoading,
   };
 }
 
@@ -302,6 +320,8 @@ export default function MangaPreviewPhone({ route }) {
     slug,
     handleFavoriteToggle,
     handleRateManga,
+    chapters,
+    isChaptersLoading,
   } = useMangaPreview({ route });
 
   const getAgeRating = (rating) => {
@@ -335,6 +355,27 @@ export default function MangaPreviewPhone({ route }) {
   useEffect(() => {
     setTitleContainerWidth(null);
   }, [manga?.slug]);
+
+  const hasChapters = chapters?.length > 0;
+  const isReadActive = hasChapters && !isChaptersLoading;
+
+  const getReadButtonLabel = useCallback(() => {
+    if (isChaptersLoading) return WatchButtonState.LOADING;
+    if (!hasChapters) return WatchButtonState.NO_TRANSLATION;
+    return "Читати";
+  }, [hasChapters, isChaptersLoading]);
+
+  const handleReadPress = useCallback(() => {
+    if (!hasChapters) return;
+    navigation.navigate("HiddenStack", {
+      screen: "MangaReader",
+      params: {
+        slug: manga?.slug || slug,
+        title: manga?.title_ua || manga?.title_en || manga?.title_original,
+        chapters,
+      },
+    });
+  }, [chapters, hasChapters, manga?.slug, manga?.title_en, manga?.title_original, manga?.title_ua, navigation, slug]);
 
   const handleTitleLayout = useCallback((e) => {
     const lines = e.nativeEvent.lines;
@@ -532,6 +573,13 @@ export default function MangaPreviewPhone({ route }) {
 
             {/* Favorite button */}
             <View style={s.primaryActionsRow}>
+              <WatchButton
+                label={getReadButtonLabel()}
+                style={{ width: "70%" }}
+                onWatchPress={handleReadPress}
+                isDownloadable={false}
+                isActive={isReadActive}
+              />
               <TouchableOpacity
                 style={[s.iconButton, { backgroundColor: themeColors.subtle }]}
                 onPress={handleFavoriteToggle}

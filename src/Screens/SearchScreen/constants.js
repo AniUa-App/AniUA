@@ -1,6 +1,6 @@
 export const SEARCH_CATEGORIES = [
   { id: "anime", label: "Аніме", icon: "MonitorPlay" },
-  { id: "manga", label: "Манґа", icon: "BookOpen" },
+  // { id: "manga", label: "Манґа", icon: "BookOpen" },
   { id: "character", label: "Персонаж", icon: "User" },
   { id: "team", label: "Команда", icon: "Microphone" },
   //  { id: "user", label: "Люди", icon: "UserCircle" },

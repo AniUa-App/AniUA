@@ -32,11 +32,11 @@ import {
   useIsTV,
 } from "../Styles/Responsive";
 import DoramaScreen from "./DoramaScreen";
-import MangaTabContent from "./MangaTabContent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContentTypeTab } from "./ScreenController/Navigators";
 import { useHikkaUser } from "../Hooks/useHikkaUser";
 import { useHomeStyles } from "../Styles/components/HomeStyles";
+import MangaScreen from "./MangaScreen";
 
 /**
  * Кастомний TabBar для ContentTypeTab навігатора
@@ -223,10 +223,7 @@ export default function HomeScreen() {
                 />
               )}
             </ContentTypeTab.Screen>
-            <ContentTypeTab.Screen
-              name="MangaTab"
-              component={MangaTabContent}
-            />
+            <ContentTypeTab.Screen name="MangaTab" component={MangaScreen} />
           </ContentTypeTab.Navigator>
         </View>
       </View>

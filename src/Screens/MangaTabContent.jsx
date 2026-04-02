@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, ScrollView } from "react-native";
 import DefaultScreenWidget from "../Widgets/DefaultScreenWidget";
 import { MangaListHorizontal } from "../Widgets/MangaListHorizontalWidget";
@@ -12,32 +12,111 @@ import { EventBus } from "../Global/EventBus";
 import Logger from "../Logger/Logger";
 import { ActivityIndicator } from "react-native";
 import { HikkaSets } from "../Sources/HikkaSets";
-import { useIsTablet, useIsTV, isTV } from "../Styles/Responsive";
+import {
+  useIsTablet,
+  useIsTV,
+  useIsTabletPortrait,
+} from "../Styles/Responsive";
+import BigBannerWidget from "../Widgets/BigBannerWidget";
+
 export default function MangaTabContent() {
   const s = useHomeStyles();
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const isTabletDevice = useIsTablet();
+  const isTVDevice = useIsTV();
+  const isTabletPort = useIsTabletPortrait();
+  const [bannerManga, setBannerManga] = useState([]);
+  const [isBannerLoading, setIsBannerLoading] = useState(true);
 
-  const [bannerAnimes, setBannerAnimes] = useState([]);
-  // Завантаження даних для банера на рівні HomeScreen (для планшетів та TV)
   useEffect(() => {
-    if (isTabletDevice || isTV()) {
-      HikkaSets.getMostPopularMangaOfTheYear(1, 6)
-        .then(setBannerAnimes)
-        .catch((err) =>
-          Logger.error("Home", "Помилка завантаження банера", err),
-        );
+    setIsBannerLoading(true);
+    HikkaSets.getMostPopularManga(1, 6, 2025)
+      .then(setBannerManga)
+      .catch((err) =>
+        Logger.error("MangaTabContent", "Помилка завантаження банера", err),
+      )
+      .finally(() => setIsBannerLoading(false));
+  }, []);
+
+  const renderBanner = useMemo(() => {
+    if (isBannerLoading) {
+      return (
+        <View style={s.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
     }
-  }, [isTabletDevice, isTV]);
+    if (!bannerManga?.length) return null;
+    if (isTabletDevice || isTVDevice) {
+      return <BigBannerWidget.Tablet content={bannerManga} variant="manga" />;
+    }
+    return <BigBannerWidget.Mobile content={bannerManga} variant="manga" />;
+  }, [
+    bannerManga,
+    colors.primary,
+    isBannerLoading,
+    isTabletDevice,
+    isTVDevice,
+    s.loaderContainer,
+  ]);
+
+  const listsContent = (
+    <View
+      style={
+        isTabletDevice || isTVDevice
+          ? s.tabletContent
+          : isTabletPort
+            ? s.contentContainerTablet
+            : s.contentContainer
+      }
+    >
+      <CustomMangaPersonalRecList />
+    </View>
+  );
+
+  // TV — ширший банер та планшетний макет
+  if (isTVDevice) {
+    return (
+      <DefaultScreenWidget isNavBarPadding={true}>
+        <ScrollView
+          style={s.contentNavigator}
+          showsVerticalScrollIndicator={false}
+          focusable={false}
+        >
+          <View style={{ marginTop: insets.top + 24 }}>{renderBanner}</View>
+          {listsContent}
+          <View style={s.spacer} />
+        </ScrollView>
+      </DefaultScreenWidget>
+    );
+  }
+
+  // Планшет — банер + списки у ширшому макеті
+  if (isTabletDevice) {
+    return (
+      <DefaultScreenWidget isNavBarPadding={false}>
+        <ScrollView
+          style={s.contentNavigator}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ marginTop: insets.top + 24 }}>{renderBanner}</View>
+          {listsContent}
+          <View style={s.spacer} />
+        </ScrollView>
+      </DefaultScreenWidget>
+    );
+  }
+
+  // Телефон — мобільний банер та компактні списки
   return (
     <DefaultScreenWidget isNavBarPadding={false}>
       <ScrollView
         style={s.contentNavigator}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ marginTop: insets.top + 60 }}>
-          <CustomMangaPersonalRecList />
-        </View>
+        <View style={{ marginTop: insets.top + 24 }}>{renderBanner}</View>
+        {listsContent}
         <View style={s.spacer} />
       </ScrollView>
     </DefaultScreenWidget>

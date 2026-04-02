@@ -140,6 +140,19 @@ export interface PaginatedTeamsResult {
 }
 
 /**
+ * Розділ манґи (для публічного рідера)
+ */
+export interface MangaChapter {
+  /** Унікальний ідентифікатор/slug розділу */
+  reference?: string;
+  /** Номер або назва розділу */
+  title?: string;
+  number?: number | string;
+  /** Посилання на сторінки/зображення */
+  pages: string[];
+}
+
+/**
  * Статистика по командах
  */
 export interface TeamsStatistics {
@@ -1068,6 +1081,8 @@ export class AniuaApi {
     name: string,
     exact: boolean = false,
   ): Promise<Team | null> {
+    const safeAltNames = (team: Team) =>
+      Array.isArray(team.alt_names) ? team.alt_names : [];
     const cacheKey = `${name}_${exact}`;
     const cached = AniuaApi.cache.byName.get(cacheKey);
 
@@ -1080,15 +1095,16 @@ export class AniuaApi {
 
     const team =
       teams.find((t) => {
+        const altNames = safeAltNames(t);
         if (exact) {
           return (
             t.name.toLowerCase() === lowerName ||
-            t.alt_names.some((alt) => alt.toLowerCase() === lowerName)
+            altNames.some((alt) => alt.toLowerCase() === lowerName)
           );
         }
         return (
           t.name.toLowerCase().includes(lowerName) ||
-          t.alt_names.some((alt) => alt.toLowerCase().includes(lowerName))
+          altNames.some((alt) => alt.toLowerCase().includes(lowerName))
         );
       }) || null;
 
@@ -1120,9 +1136,13 @@ export class AniuaApi {
     }
 
     return teams.filter(
-      (team) =>
-        team.name.toLowerCase().includes(lowerQuery) ||
-        team.alt_names.some((alt) => alt.toLowerCase().includes(lowerQuery)),
+      (team) => {
+        const altNames = Array.isArray(team.alt_names) ? team.alt_names : [];
+        return (
+          team.name.toLowerCase().includes(lowerQuery) ||
+          altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
+        );
+      },
     );
   }
 
@@ -1168,9 +1188,15 @@ export class AniuaApi {
     if (query) {
       const lowerQuery = query.toLowerCase().trim();
       teams = teams.filter(
-        (team) =>
-          team.name.toLowerCase().includes(lowerQuery) ||
-          team.alt_names.some((alt) => alt.toLowerCase().includes(lowerQuery)),
+        (team) => {
+          const altNames = Array.isArray(team.alt_names)
+            ? team.alt_names
+            : [];
+          return (
+            team.name.toLowerCase().includes(lowerQuery) ||
+            altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
+          );
+        },
       );
     }
 
@@ -1870,6 +1896,56 @@ export class AniuaApi {
         );
       }
     });
+  }
+
+  /**
+   * Отримує розділи манґи для читання (публічний ендпоінт)
+   * @param slug Slug манґи
+   */
+  public static async getMangaChapters(slug: string): Promise<MangaChapter[]> {
+    return AniuaApi.deduplicatedRequest(
+      `manga_chapters_${slug}`,
+      async () => {
+        AniuaApi.ensureNotBlocked();
+        try {
+          const response = await AniuaApi.axiosInstance.get<{
+            chapters?: MangaChapter[] | Record<string, any>[];
+          }>(`${AniuaApi.baseUrl}/v1/public/manga/chapters`, {
+            params: { slug },
+          });
+
+          const raw = (response.data as any)?.chapters;
+          const chaptersArray = Array.isArray(raw)
+            ? raw
+            : Array.isArray(response.data)
+              ? (response.data as any)
+              : [];
+
+          return chaptersArray
+            .map((ch: any, idx: number) => {
+              const pages = Array.isArray(ch?.pages)
+                ? ch.pages.filter(Boolean)
+                : [];
+              return {
+                reference: ch?.reference || ch?.id || `${slug}-${idx}`,
+                title:
+                  ch?.title ||
+                  ch?.name ||
+                  `Розділ ${ch?.number ?? idx + 1}`,
+                number: ch?.number ?? idx + 1,
+                pages,
+              } as MangaChapter;
+            })
+            .filter((ch) => ch.pages.length > 0);
+        } catch (error: any) {
+          Logger.error("AniuaApi", "Помилка завантаження розділів манґи", {
+            slug,
+            error,
+          });
+          return [];
+        }
+      },
+    );
   }
 
   /**

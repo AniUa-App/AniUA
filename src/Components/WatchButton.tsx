@@ -24,7 +24,7 @@ interface WatchButtonProps {
   onWatchPress?: () => void;
   onDownloadPress?: () => void;
   style?: ViewStyle;
-  label?: WatchButtonState;
+  label?: WatchButtonState | string;
   isDownloadable?: boolean;
   isActive: boolean;
 }
@@ -80,4 +80,3 @@ export default function WatchButton({
     </View>
   );
 }
-

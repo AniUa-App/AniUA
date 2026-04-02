@@ -5,6 +5,7 @@ import {
   TextInput,
   ActivityIndicator,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import { useAddDeviceScreenStyles } from "../Styles/components/Screens/AddDeviceScreenStyles";
 import Clipboard from "@react-native-clipboard/clipboard";
