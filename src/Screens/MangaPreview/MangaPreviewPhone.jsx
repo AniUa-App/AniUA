@@ -28,6 +28,7 @@ import { useAnimePreviewPhoneStyles } from "../../Styles/components/Screens/Anim
 import { ErrorScreen } from "../ErrorScreen";
 import Logger from "../../Logger/Logger";
 import MangaMoreBottomSheet from "../../Widgets/MangaMoreBottomSheetWidget";
+import BottomSheetContentContent from "../../Components/BottomSheetContent/BottomSheetContentContent";
 import WatchButton, { WatchButtonState } from "../../Components/WatchButton";
 
 // ==================== Sub-components ====================
@@ -305,6 +306,11 @@ export default function MangaPreviewPhone({ route }) {
   const themeColors = useThemeColors();
   const [titleContainerWidth, setTitleContainerWidth] = useState(null);
   const moreSheetRef = useRef(null);
+  const providersSheetRef = useRef(null);
+  const [providers, setProviders] = useState([]);
+  const [isProvidersLoading, setIsProvidersLoading] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [selectedTranslation, setSelectedTranslation] = useState(null);
 
   const {
     manga,
@@ -323,6 +329,49 @@ export default function MangaPreviewPhone({ route }) {
     chapters,
     isChaptersLoading,
   } = useMangaPreview({ route });
+  const groupedChapters = React.useMemo(() => {
+    const grouped = {};
+    (chapters || []).forEach((ch) => {
+      const provider = ch.provider_slug || ch.provider_name || "aniua";
+      const translation =
+        ch.translation || ch.team || ch.language || "Переклад";
+      if (!grouped[provider]) grouped[provider] = {};
+      if (!grouped[provider][translation]) grouped[provider][translation] = [];
+      grouped[provider][translation].push(ch);
+    });
+
+    Object.values(grouped).forEach((translations) => {
+      Object.values(translations).forEach((list) => {
+        list.sort((a, b) => Number(a.number) - Number(b.number));
+      });
+    });
+    return grouped;
+  }, [chapters]);
+
+  const availableProviders = React.useMemo(
+    () => Object.keys(groupedChapters || {}),
+    [groupedChapters],
+  );
+
+  useEffect(() => {
+    const firstProvider = availableProviders[0] || null;
+    setSelectedProvider((prev) => prev || firstProvider);
+  }, [availableProviders]);
+
+  useEffect(() => {
+    if (!selectedProvider) return;
+    const translations = Object.keys(groupedChapters[selectedProvider] || {});
+    const firstTranslation = translations[0] || null;
+    setSelectedTranslation((prev) =>
+      prev && translations.includes(prev) ? prev : firstTranslation,
+    );
+  }, [groupedChapters, selectedProvider]);
+
+  useEffect(() => {
+    if (selectedProvider && selectedTranslation) {
+      handleProviderSelection(selectedProvider, selectedTranslation);
+    }
+  }, [selectedProvider, selectedTranslation, handleProviderSelection]);
 
   const getAgeRating = (rating) => {
     switch (rating) {
@@ -356,7 +405,12 @@ export default function MangaPreviewPhone({ route }) {
     setTitleContainerWidth(null);
   }, [manga?.slug]);
 
-  const hasChapters = chapters?.length > 0;
+  const currentChapters =
+    (selectedProvider &&
+      selectedTranslation &&
+      groupedChapters[selectedProvider]?.[selectedTranslation]) ||
+    [];
+  const hasChapters = currentChapters.length > 0;
   const isReadActive = hasChapters && !isChaptersLoading;
 
   const getReadButtonLabel = useCallback(() => {
@@ -372,10 +426,19 @@ export default function MangaPreviewPhone({ route }) {
       params: {
         slug: manga?.slug || slug,
         title: manga?.title_ua || manga?.title_en || manga?.title_original,
-        chapters,
+        chapters: currentChapters,
       },
     });
-  }, [chapters, hasChapters, manga?.slug, manga?.title_en, manga?.title_original, manga?.title_ua, navigation, slug]);
+  }, [
+    currentChapters,
+    hasChapters,
+    manga?.slug,
+    manga?.title_en,
+    manga?.title_original,
+    manga?.title_ua,
+    navigation,
+    slug,
+  ]);
 
   const handleTitleLayout = useCallback((e) => {
     const lines = e.nativeEvent.lines;
@@ -412,6 +475,41 @@ export default function MangaPreviewPhone({ route }) {
     ),
     [navigation, winWidth],
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadProviders = async () => {
+      setIsProvidersLoading(true);
+      try {
+        const data = await AniuaApi.getProviders();
+        if (isMounted) {
+          setProviders(data || []);
+        }
+      } catch (error) {
+        Logger.error(
+          "MangaPreview",
+          "Не вдалося завантажити провайдерів",
+          error,
+        );
+      } finally {
+        if (isMounted) setIsProvidersLoading(false);
+      }
+    };
+
+    loadProviders();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleProvidersPress = useCallback(() => {
+    providersSheetRef.current?.open?.();
+  }, []);
+
+  const handleProviderSelection = useCallback((provider, translation) => {
+    setSelectedProvider(provider);
+    setSelectedTranslation(translation);
+  }, []);
 
   // --- Error states ---
   if (!route?.params) {
@@ -580,6 +678,13 @@ export default function MangaPreviewPhone({ route }) {
                 isDownloadable={false}
                 isActive={isReadActive}
               />
+              <TouchableOpacity
+                style={[s.iconButton, { backgroundColor: themeColors.subtle }]}
+                onPress={handleProvidersPress}
+                disabled={isProvidersLoading}
+              >
+                <Icon.Browsers size={24} color={themeColors.primary} />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[s.iconButton, { backgroundColor: themeColors.subtle }]}
                 onPress={handleFavoriteToggle}
@@ -758,7 +863,9 @@ export default function MangaPreviewPhone({ route }) {
                 manga?.slug && {
                   key: "comments",
                   label: "Коментарі",
-                  content: <CommentsSection slug={manga.slug} contentType="manga" />,
+                  content: (
+                    <CommentsSection slug={manga.slug} contentType="manga" />
+                  ),
                 },
               ]}
               defaultTab={
@@ -775,6 +882,24 @@ export default function MangaPreviewPhone({ route }) {
       </ScrollView>
 
       {manga && <MangaMoreBottomSheet sheetRef={moreSheetRef} manga={manga} />}
+      <BottomSheetContentContent
+        ref={providersSheetRef}
+        item={manga}
+        contentType="manga"
+        currentTeam={selectedTranslation}
+        currentPlayer={selectedProvider}
+        onTeamChange={(team) => setSelectedTranslation(team)}
+        onPlayerChange={(p) => setSelectedProvider(p)}
+        watchedContent={chapters.map((ch) => Number(ch.number))}
+        prefetchedChapters={chapters}
+        onSelectChapters={(chs) => {
+          // оновлюємо вибір для кнопки читання
+          if (chs?.length) {
+            setSelectedTranslation(chs[0].team || chs[0].translation || selectedTranslation);
+            setSelectedProvider(chs[0].player || selectedProvider);
+          }
+        }}
+      />
     </DefaultScreenWidget>
   );
 }

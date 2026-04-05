@@ -1,4 +1,5 @@
 import { HikkaApiComplete } from "./HikkaApiComplete";
+import Logger from "../Logger/Logger";
 
 export class HikkaSets extends HikkaApiComplete {
   protected static GENRES = {
@@ -190,6 +191,11 @@ export class HikkaSets extends HikkaApiComplete {
     },
   ) {
     return HikkaSets.cachedRequest(cacheKey, async () => {
+      Logger.debug("HikkaSets", `Запит манґи: ${cacheKey}`, {
+        page,
+        size,
+        params,
+      });
       const response = await this.axiosInstance.post(
         `${HikkaApiComplete.apiUrl}manga?page=${page}&size=${size}`,
         {
@@ -203,8 +209,15 @@ export class HikkaSets extends HikkaApiComplete {
           sort: params.sort || [],
         },
       );
-      return response.data.list;
-    }).catch(() => []);
+      const list = response.data.list ?? [];
+      Logger.info("HikkaSets", `Отримано манґу: ${cacheKey}`, {
+        count: list.length,
+      });
+      return list;
+    }).catch((error) => {
+      Logger.error("HikkaSets", `Помилка запиту манґи: ${cacheKey}`, error);
+      return [];
+    });
   }
 
   public static getMostPopularMangaOfTheYear(page = 1, size = 1) {

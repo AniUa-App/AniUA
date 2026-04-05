@@ -6,6 +6,7 @@ import { prefetchBloomImage } from "../Widgets/BloomImage";
 import { useIsTV } from "../Styles/Responsive";
 import { useAnimeCardStyles } from "../Styles/components/AnimeCardStyles";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
+import Icons from "../Styles/Icons";
 
 /**
  * Компонент картки манґи для горизонтальних списків
@@ -80,11 +81,21 @@ const MangaCard = memo(function MangaCard({
       ]}
       onPress={handlePress}
     >
-      <Image uri={manga.image} style={showDetails ? s.image : s.imageCompact} />
+      <View>
+        <Image
+          uri={manga.image}
+          style={showDetails ? s.image : s.imageCompact}
+        />
+        <View style={s.iconContainer}>
+          <Icons.Book style={s.icon} size={s.icon.fontSize} />
+        </View>
+      </View>
       {showDetails && (
         <View style={s.details}>
           <Text selectable={false} style={s.title} numberOfLines={2}>
-            {mangaData.title_ua || mangaData.title_en || mangaData.title_original}
+            {mangaData.title_ua ||
+              mangaData.title_en ||
+              mangaData.title_original}
           </Text>
           <View style={s.infoRow}>
             {genres && (

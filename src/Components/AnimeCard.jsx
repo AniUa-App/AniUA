@@ -6,6 +6,8 @@ import { prefetchBloomImage } from "../Widgets/BloomImage";
 import { HikkaApiComplete } from "../Sources/HikkaApiComplete";
 import { useIsTV } from "../Styles/Responsive";
 import { useAnimeCardStyles } from "../Styles/components/AnimeCardStyles";
+import { Icon } from "../Styles/Colors";
+import Icons from "../Styles/Icons";
 
 /**
  * Компонент картки аніме з підвантаженням деталей
@@ -87,7 +89,16 @@ const AnimeCard = memo(function AnimeCard({
       ]}
       onPress={handlePress}
     >
-      <Image uri={anime.image} style={showDetails ? s.image : s.imageCompact} />
+      <View>
+        <Image
+          uri={anime.image}
+          style={showDetails ? s.image : s.imageCompact}
+        />
+        <View style={s.iconContainer}>
+          <Icons.MonitorPlay style={s.icon} size={s.icon.fontSize} />
+        </View>
+      </View>
+
       {showDetails && (
         <View style={s.details}>
           <Text selectable={false} style={s.title} numberOfLines={2}>

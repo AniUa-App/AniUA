@@ -31,8 +31,15 @@ export default function MangaTabContent() {
 
   useEffect(() => {
     setIsBannerLoading(true);
+    Logger.debug("MangaTabContent", "Старт завантаження банера манґи");
     HikkaSets.getMostPopularManga(1, 6, 2025)
       .then(setBannerManga)
+      .then((data) =>
+        Logger.info(
+          "MangaTabContent",
+          `Банер манґи завантажено, елементів: ${data?.length || 0}`,
+        ),
+      )
       .catch((err) =>
         Logger.error("MangaTabContent", "Помилка завантаження банера", err),
       )
@@ -136,6 +143,10 @@ const CustomMangaPersonalRecList = React.memo(() => {
       setIsLoading(true);
       MangaPersonalRecListStorage.initializeDefaultLists();
       const data = MangaPersonalRecListStorage.getSettingsList();
+      Logger.debug(
+        "MangaTabContent",
+        `Завантаження кастомних списків манґи, знайдено: ${data?.length || 0}`,
+      );
       setPersonalRecList(data);
     } catch (error) {
       Logger.error(
@@ -166,22 +177,42 @@ const CustomMangaPersonalRecList = React.memo(() => {
 
   useEffect(() => {
     if (!personalRecList || personalRecList.length === 0) {
+      Logger.debug("MangaTabContent", "Списки манґи відсутні, очищаю контент");
       setLoadedMangaLists([]);
       return;
     }
+    Logger.debug(
+      "MangaTabContent",
+      `Старт завантаження даних списків манґи: ${personalRecList.length}`,
+    );
     setIsLoading(true);
     Promise.all(
       personalRecList.map(async (item) => {
         try {
           const res = await sendMangaRequest(item, "preview");
+          Logger.debug(
+            "MangaTabContent",
+            `Список "${item.name}" завантажено, елементів: ${res?.length || 0}`,
+          );
           return { name: item.name, mangaList: res };
         } catch (e) {
+          Logger.warn(
+            "MangaTabContent",
+            `Не вдалося завантажити список "${item.name}"`,
+            e,
+          );
           return { name: item.name, mangaList: [] };
         }
       }),
     )
       .then((results) => {
         setLoadedMangaLists(results);
+        Logger.info(
+          "MangaTabContent",
+          `Списки манґи завантажено, успішних: ${
+            results.filter((r) => r.mangaList?.length).length
+          }/${results.length}`,
+        );
       })
       .finally(() => setIsLoading(false));
   }, [personalRecList]);

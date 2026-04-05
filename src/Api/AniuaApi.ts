@@ -150,6 +150,25 @@ export interface MangaChapter {
   number?: number | string;
   /** Посилання на сторінки/зображення */
   pages: string[];
+  /** Джерело/провайдер */
+  provider_slug?: string | null;
+  provider_name?: string | null;
+  /** Переклад/команда */
+  translation?: string | null;
+  team?: string | null;
+  language?: string | null;
+}
+
+/**
+ * Провайдер контенту (манґа/аніме/дорама)
+ */
+export interface Provider {
+  slug: string;
+  name: string;
+  logo_url?: string;
+  type_activity: string[];
+  telegram_url?: string;
+  website_url?: string;
 }
 
 /**
@@ -400,10 +419,14 @@ export class AniuaApi {
     teams: { data: Team[] | null; timestamp: number };
     byName: Map<string, { data: Team | null; timestamp: number }>;
     episodes: Map<string, { data: Episode[]; timestamp: number }>;
+    mangaChapters: Map<string, { data: MangaChapter[]; timestamp: number }>;
+    providers: { data: Provider[] | null; timestamp: number };
   } = {
     teams: { data: null, timestamp: 0 },
     byName: new Map(),
     episodes: new Map(),
+    mangaChapters: new Map(),
+    providers: { data: null, timestamp: 0 },
   };
 
   // Дедуплікація запитів - якщо запит вже виконується, повертаємо той самий Promise
@@ -587,6 +610,8 @@ export class AniuaApi {
       teams: { data: null, timestamp: 0 },
       byName: new Map(),
       episodes: new Map(),
+      mangaChapters: new Map(),
+      providers: { data: null, timestamp: 0 },
     };
     Logger.debug("AniuaApi", "Кеш очищено");
   }
@@ -1135,15 +1160,13 @@ export class AniuaApi {
       return teams;
     }
 
-    return teams.filter(
-      (team) => {
-        const altNames = Array.isArray(team.alt_names) ? team.alt_names : [];
-        return (
-          team.name.toLowerCase().includes(lowerQuery) ||
-          altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
-        );
-      },
-    );
+    return teams.filter((team) => {
+      const altNames = Array.isArray(team.alt_names) ? team.alt_names : [];
+      return (
+        team.name.toLowerCase().includes(lowerQuery) ||
+        altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
+      );
+    });
   }
 
   // ==================== FILTERED QUERIES ====================
@@ -1187,17 +1210,13 @@ export class AniuaApi {
     // Фільтрація по запиту
     if (query) {
       const lowerQuery = query.toLowerCase().trim();
-      teams = teams.filter(
-        (team) => {
-          const altNames = Array.isArray(team.alt_names)
-            ? team.alt_names
-            : [];
-          return (
-            team.name.toLowerCase().includes(lowerQuery) ||
-            altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
-          );
-        },
-      );
+      teams = teams.filter((team) => {
+        const altNames = Array.isArray(team.alt_names) ? team.alt_names : [];
+        return (
+          team.name.toLowerCase().includes(lowerQuery) ||
+          altNames.some((alt) => alt.toLowerCase().includes(lowerQuery))
+        );
+      });
     }
 
     // Фільтрація по верифікації
@@ -1903,49 +1922,105 @@ export class AniuaApi {
    * @param slug Slug манґи
    */
   public static async getMangaChapters(slug: string): Promise<MangaChapter[]> {
-    return AniuaApi.deduplicatedRequest(
-      `manga_chapters_${slug}`,
-      async () => {
-        AniuaApi.ensureNotBlocked();
-        try {
-          const response = await AniuaApi.axiosInstance.get<{
-            chapters?: MangaChapter[] | Record<string, any>[];
-          }>(`${AniuaApi.baseUrl}/v1/public/manga/chapters`, {
-            params: { slug },
-          });
+    const cached = AniuaApi.cache.mangaChapters.get(slug);
+    if (cached && AniuaApi.isCacheValid(cached.timestamp)) {
+      Logger.debug("AniuaApi", `Використовуємо кеш розділів манґи для ${slug}`);
+      return cached.data;
+    }
 
-          const raw = (response.data as any)?.chapters;
-          const chaptersArray = Array.isArray(raw)
-            ? raw
-            : Array.isArray(response.data)
-              ? (response.data as any)
+    return AniuaApi.deduplicatedRequest(`manga_chapters_${slug}`, async () => {
+      AniuaApi.ensureNotBlocked();
+      try {
+        Logger.debug("AniuaApi", `Завантаження розділів манґи для ${slug}`);
+        const response = await AniuaApi.axiosInstance.get<{
+          chapters?: MangaChapter[] | Record<string, any>[];
+        }>(`${AniuaApi.baseUrl}/v1/public/manga/chapters`, {
+          params: { slug },
+        });
+
+        const raw = (response.data as any)?.chapters;
+        const chaptersArray = Array.isArray(raw)
+          ? raw
+          : Array.isArray(response.data)
+            ? (response.data as any)
+            : [];
+
+        const normalizedChapters = chaptersArray
+          .map((ch: any, idx: number) => {
+            const pages = Array.isArray(ch?.pages)
+              ? ch.pages.filter(Boolean)
               : [];
+            const providerSlug = ch?.provider_slug || ch?.provider || null;
+            const providerName =
+              ch?.provider_name || ch?.provider || ch?.source || null;
+            const translation =
+              ch?.translation ||
+              ch?.team ||
+              ch?.language ||
+              ch?.translator ||
+              null;
+            return {
+              reference: ch?.reference || ch?.id || `${slug}-${idx}`,
+              title: ch?.title || ch?.name || `Розділ ${ch?.number ?? idx + 1}`,
+              number: ch?.number ?? idx + 1,
+              pages,
+              provider_slug: providerSlug,
+              provider_name: providerName,
+              translation: translation,
+              team: ch?.team ?? null,
+              language: ch?.language ?? null,
+            } as MangaChapter;
+          })
+          .filter((ch) => ch.pages.length > 0);
 
-          return chaptersArray
-            .map((ch: any, idx: number) => {
-              const pages = Array.isArray(ch?.pages)
-                ? ch.pages.filter(Boolean)
-                : [];
-              return {
-                reference: ch?.reference || ch?.id || `${slug}-${idx}`,
-                title:
-                  ch?.title ||
-                  ch?.name ||
-                  `Розділ ${ch?.number ?? idx + 1}`,
-                number: ch?.number ?? idx + 1,
-                pages,
-              } as MangaChapter;
-            })
-            .filter((ch) => ch.pages.length > 0);
-        } catch (error: any) {
-          Logger.error("AniuaApi", "Помилка завантаження розділів манґи", {
-            slug,
-            error,
-          });
-          return [];
-        }
-      },
-    );
+        AniuaApi.cache.mangaChapters.set(slug, {
+          data: normalizedChapters,
+          timestamp: Date.now(),
+        });
+
+        Logger.debug(
+          "AniuaApi",
+          `Завантажено ${normalizedChapters.length} розділів для ${slug}`,
+        );
+
+        return normalizedChapters;
+      } catch (error: any) {
+        Logger.error("AniuaApi", "Помилка завантаження розділів манґи", {
+          slug,
+          error,
+        });
+        return [];
+      }
+    });
+  }
+
+  /**
+   * Отримує список провайдерів контенту (аніме/манґа/дорама)
+   */
+  public static async getProviders(): Promise<Provider[]> {
+    if (
+      AniuaApi.cache.providers.data &&
+      AniuaApi.isCacheValid(AniuaApi.cache.providers.timestamp)
+    ) {
+      Logger.debug("AniuaApi", "Використовуємо кеш провайдерів");
+      return AniuaApi.cache.providers.data;
+    }
+
+    return AniuaApi.deduplicatedRequest("providers", async () => {
+      try {
+        Logger.debug("AniuaApi", "Завантаження списку провайдерів");
+        const response = await AniuaApi.axiosInstance.get<Provider[]>(
+          `${AniuaApi.baseUrl}/v1/public/providers`,
+        );
+        const providers = Array.isArray(response.data) ? response.data : [];
+        AniuaApi.cache.providers = { data: providers, timestamp: Date.now() };
+        Logger.info("AniuaApi", `Завантажено провайдерів: ${providers.length}`);
+        return providers;
+      } catch (error: any) {
+        Logger.error("AniuaApi", "Помилка завантаження провайдерів", error);
+        return [];
+      }
+    });
   }
 
   /**
@@ -2088,6 +2163,51 @@ export class AniuaApi {
     };
 
     // Розбиваємо на пачки і запускаємо
+    for (let i = 0; i < toFetch.length; i += concurrency) {
+      const batch = toFetch.slice(i, i + concurrency);
+      fetchBatch(batch);
+    }
+  }
+
+  /**
+   * Перевіряє чи розділи манґи вже в кеші і валідні
+   */
+  public static hasMangaChaptersCached(slug: string): boolean {
+    const cached = AniuaApi.cache.mangaChapters.get(slug);
+    return !!cached && AniuaApi.isCacheValid(cached.timestamp);
+  }
+
+  /**
+   * Попередньо завантажує розділи манґи в кеш (без очікування)
+   */
+  public static prefetchMangaChapters(slug: string): void {
+    if (AniuaApi.hasMangaChaptersCached(slug)) return;
+
+    AniuaApi.getMangaChapters(slug).catch((error) => {
+      Logger.debug("AniuaApi", `Prefetch chapters failed for ${slug}:`, error);
+    });
+  }
+
+  /**
+   * Попередньо завантажує розділи для масиву манґи
+   * @param slugs - Масив slug манґи
+   * @param concurrency - Кількість паралельних запитів (default: 3)
+   */
+  public static prefetchMultipleMangaChapters(
+    slugs: string[],
+    concurrency: number = 3,
+  ): void {
+    const toFetch = slugs.filter(
+      (slug) => !AniuaApi.hasMangaChaptersCached(slug),
+    );
+    if (toFetch.length === 0) return;
+
+    const fetchBatch = async (batch: string[]) => {
+      await Promise.allSettled(
+        batch.map((slug) => AniuaApi.getMangaChapters(slug)),
+      );
+    };
+
     for (let i = 0; i < toFetch.length; i += concurrency) {
       const batch = toFetch.slice(i, i + concurrency);
       fetchBatch(batch);

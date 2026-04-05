@@ -24,6 +24,8 @@ type AnimeCardStyles = {
   episodes: TextStyle;
   /** Стиль при фокусі на TV */
   tvFocused: ViewStyle;
+  icon: TextStyle;
+  iconContainer: ViewStyle;
 };
 
 export const useAnimeCardStyles = (): AnimeCardStyles => {
@@ -57,6 +59,21 @@ export const useAnimeCardStyles = (): AnimeCardStyles => {
       borderColor: theme.primary,
       backgroundColor: theme.accent,
       transform: [{ scale: 1.09 }],
+    },
+    icon: {
+      color: theme.primary,
+      fontSize: 22,
+    },
+    iconContainer: {
+      height: 34,
+      width: 34,
+      backgroundColor: theme.background,
+      bottom: 0,
+      right: 0,
+      position: "absolute",
+      justifyContent: "center",
+      alignItems: "center",
+      borderTopLeftRadius: layout.radius.md,
     },
   };
 };

@@ -4,8 +4,9 @@ import { FlatList as GHFlatList } from "react-native-gesture-handler";
 import { isTV as checkIsTV } from "../Styles/Responsive";
 import { useAnimeListHStyles } from "../Styles/components/AnimeListHStyles";
 import Icon from "../Styles/Icons";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import MangaCard from "../Components/MangaCard";
+import { AniuaApi } from "../Api/AniuaApi";
 
 const FlatList = checkIsTV() ? RNFlatList : GHFlatList;
 
@@ -22,6 +23,23 @@ export function MangaListHorizontal({
   navigation,
 }) {
   const s = useAnimeListHStyles();
+  const prefetchedSlugs = useRef(new Set());
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 20,
+    minimumViewTime: 100,
+  }).current;
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+    const newSlugs = viewableItems
+      .map((item) => item.item?.slug)
+      .filter((slug) => slug && !prefetchedSlugs.current.has(slug));
+
+    if (newSlugs.length > 0) {
+      newSlugs.forEach((slug) => prefetchedSlugs.current.add(slug));
+      AniuaApi.prefetchMultipleMangaChapters(newSlugs, 3);
+    }
+  }, []);
 
   const renderItem = useCallback(
     ({ item: manga, index }) => (
@@ -62,6 +80,8 @@ export function MangaListHorizontal({
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         initialNumToRender={4}
         maxToRenderPerBatch={3}
         windowSize={5}

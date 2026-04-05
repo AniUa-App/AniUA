@@ -40,6 +40,7 @@ import {
   MoreBottomSheet,
   NewEpisodesBottomSheet,
 } from "./shared";
+import { useAnimePreviewTVStyles } from "../../Styles/components/Screens/AnimePreviewTVStyles";
 import { ErrorScreen } from "../ErrorScreen";
 import { center } from "@shopify/react-native-skia";
 
@@ -49,45 +50,28 @@ const MoreBottomSheetMemo = React.memo(MoreBottomSheet);
 const NewEpisodesBottomSheetMemo = React.memo(NewEpisodesBottomSheet);
 
 // Info row component
-const InfoRow = ({ icon, label, value, themeColors }) => (
-  <View
-    style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
-    focusable={false}
-  >
-    <View
-      style={{
-        padding: 4,
-        backgroundColor: themeColors.primary,
-        borderRadius: 16,
-        marginRight: 8,
-      }}
-    >
-      {icon}
+const InfoRow = ({ icon, label, value, themeColors }) => {
+  const s = useAnimePreviewTVStyles();
+  return (
+    <View style={s.infoRow} focusable={false}>
+      <View style={[s.infoIconContainer, { backgroundColor: themeColors.primary }]}>
+        {icon}
+      </View>
+      <Text style={[H5, { color: themeColors.text, marginRight: 6 }]}>
+        {label}:
+      </Text>
+      <Text style={[H5, { color: themeColors.primary, flex: 1 }]}>{value}</Text>
     </View>
-    <Text style={[H5, { color: themeColors.text, marginRight: 6 }]}>
-      {label}:
-    </Text>
-    <Text style={[H5, { color: themeColors.primary, flex: 1 }]}>{value}</Text>
-  </View>
-);
+  );
+};
 
 // Star rating component for TV
 const StarRating = ({ rating = 0, onRate, themeColors }) => {
+  const s = useAnimePreviewTVStyles();
   const stars = [...Array(10).keys()].map((i) => i + 1);
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        backgroundColor: themeColors.subtle,
-        padding: 12,
-        borderRadius: 16,
-        flex: 1,
-        gap: 10,
-        justifyContent: "space-between",
-        width: "100%",
-      }}
-    >
+    <View style={[s.starsContainer, { backgroundColor: themeColors.subtle }]}>
       {stars.map((star) => (
         <TVButton key={star} onPress={() => onRate && onRate(star)}>
           <Icon.Star
@@ -105,6 +89,7 @@ const StarRating = ({ rating = 0, onRate, themeColors }) => {
 
 // Section tabs component for TV
 const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
+  const s = useAnimePreviewTVStyles();
   const filteredTabs = tabs.filter(Boolean);
   const [activeTab, setActiveTab] = useState(null);
 
@@ -130,38 +115,20 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
   if (filteredTabs.length === 0) return null;
 
   return (
-    <View style={{ marginTop: 16 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 16,
-          marginBottom: 16,
-        }}
-      >
+    <View style={s.sectionTabsWrapper}>
+      <View style={s.sectionTabsRow}>
         {filteredTabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <TVButton
               key={tab.key}
-              style={{
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 16,
-                backgroundColor: isActive
-                  ? themeColors.activeIcon
-                  : themeColors.subtle,
-              }}
+              style={[
+                s.sectionTab,
+                { backgroundColor: isActive ? themeColors.activeIcon : themeColors.subtle },
+              ]}
               onPress={() => handleTabChange(tab.key)}
             >
-              <Text
-                style={[
-                  H5,
-                  {
-                    color: themeColors.text,
-                  },
-                ]}
-              >
+              <Text style={[H5, { color: themeColors.text }]}>
                 {tab.label}
               </Text>
             </TVButton>
@@ -176,6 +143,7 @@ const SectionTabs = ({ tabs, defaultTab, onTabChange, themeColors }) => {
 export default function AnimePreviewTV({ route }) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
+  const s = useAnimePreviewTVStyles();
   const [firstTabs, setFirstTabs] = useState([]);
   const [titleContainerWidth, setTitleContainerWidth] = useState(null);
 
@@ -340,7 +308,7 @@ export default function AnimePreviewTV({ route }) {
     return (
       <DefaultScreenWidget>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={s.centered}
         >
           <Text style={[H3, { color: themeColors.text }]}>
             Помилка: неправильні параметри навігації
@@ -354,7 +322,7 @@ export default function AnimePreviewTV({ route }) {
     return (
       <DefaultScreenWidget>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={s.centered}
         >
           <Text style={[H3, { color: themeColors.text }]}>
             Помилка: відсутні необхідні параметри
@@ -368,7 +336,7 @@ export default function AnimePreviewTV({ route }) {
     return (
       <DefaultScreenWidget>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={s.centered}
         >
           <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
@@ -390,7 +358,7 @@ export default function AnimePreviewTV({ route }) {
     return (
       <DefaultScreenWidget>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={s.centered}
         >
           <Text style={[H3, { color: themeColors.text }]}>
             Аніме не знайдено
@@ -414,23 +382,20 @@ export default function AnimePreviewTV({ route }) {
 
   return (
     <DefaultScreenWidget isConnection={setIsConnection} isNavBarPadding={false}>
-      <TVFocusGuideView
-        style={{ flex: 1, flexDirection: "row", paddingHorizontal: 8 }}
-        autoFocus
-      >
+      <TVFocusGuideView style={s.focusGuide} autoFocus>
         {/* --- LEFT PANEL --- */}
         <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1 }}
+          style={s.leftPanel}
+          contentContainerStyle={s.leftPanelContent}
           showsVerticalScrollIndicator={false}
           focusable={false}
         >
           {/* Top section: poster + title + watch button — with background image */}
-          <View style={{ overflow: "hidden" }} focusable={false}>
+          <View style={s.topSection} focusable={false}>
             {/* Background image with gradient fade */}
             <Image
               uri={anime.image}
-              style={[StyleSheet.absoluteFill, { opacity: 0.45 }]}
+              style={[StyleSheet.absoluteFill, s.backgroundImage]}
             />
             <LinearGradient
               colors={[
@@ -444,15 +409,7 @@ export default function AnimePreviewTV({ route }) {
             />
 
             {/* Poster with bloom effect */}
-            <View
-              style={{
-                position: "relative",
-                width: "100%",
-                alignItems: "center",
-                marginTop: 16,
-              }}
-              focusable={false}
-            >
+            <View style={s.posterWrapper} focusable={false}>
               <BloomImage
                 uri={anime.image}
                 width={winWidth * 0.2}
@@ -467,18 +424,7 @@ export default function AnimePreviewTV({ route }) {
               <TVButton
                 innerRef={backButtonRef}
                 nextFocusUp={favBtnHandle}
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  left: 16,
-                  padding: 8,
-                  width: 38,
-                  height: 38,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: 16,
-                  backgroundColor: themeColors.subtle,
-                }}
+                style={[s.backButton, { backgroundColor: themeColors.subtle }]}
                 onPress={() => {
                   if (navigation.canGoBack()) {
                     navigation.goBack();
@@ -493,25 +439,9 @@ export default function AnimePreviewTV({ route }) {
             </View>
 
             {/* Title section */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                width: "100%",
-                top: -16,
-              }}
-              focusable={false}
-            >
+            <View style={s.titleRow} focusable={false}>
               <View
-                style={[
-                  {
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    maxWidth: "95%",
-                  },
-
-                  titleContainerWidth && { width: titleContainerWidth },
-                ]}
+                style={[s.titleSection, titleContainerWidth && { width: titleContainerWidth }]}
                 focusable={false}
               >
                 <Text
@@ -524,7 +454,7 @@ export default function AnimePreviewTV({ route }) {
                   {anime.title_ua || anime.title_en || anime.title_ja}
                   {anime.year ? ` (${anime.year})` : ""}
                 </Text>
-                <View style={{ marginTop: 2 }} focusable={false}>
+                <View style={s.subtitleWrapper} focusable={false}>
                   <Text
                     style={[
                       H5,
@@ -542,20 +472,10 @@ export default function AnimePreviewTV({ route }) {
             </View>
 
             {/* Primary action buttons */}
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 16,
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginHorizontal: 16,
-                flex: 1,
-              }}
-              focusable={false}
-            >
+            <View style={s.primaryActionsRow} focusable={false}>
               <WatchButton
                 label={getWatchButtonText()}
-                style={{ width: "80%", height: 42 }}
+                style={s.watchButton}
                 onWatchPress={() => newEpisodesSheetRef.current?.open()}
                 isDownloadable={false}
                 isActive={Object.keys(episodesList || {}).length > 0}
@@ -565,14 +485,7 @@ export default function AnimePreviewTV({ route }) {
               <TVButton
                 innerRef={favoriteButtonRef}
                 nextFocusDown={backBtnHandle}
-                style={{
-                  width: 42,
-                  height: 42,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: 16,
-                  backgroundColor: themeColors.subtle,
-                }}
+                style={[s.favoriteButton, { backgroundColor: themeColors.subtle }]}
                 onPress={handleFavoriteToggle}
               >
                 {(
@@ -595,33 +508,15 @@ export default function AnimePreviewTV({ route }) {
 
           {/* Info section */}
           <View
-            style={{
-              backgroundColor: themeColors.subtle,
-              padding: 16,
-              margin: 16,
-              borderRadius: 16,
-            }}
+            style={[s.infoSection, { backgroundColor: themeColors.subtle }]}
             focusable={false}
           >
             {/* Genre tags */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <View
-                style={{
-                  padding: 4,
-                  backgroundColor: themeColors.primary,
-                  borderRadius: 16,
-                  marginRight: 8,
-                }}
-              >
+            <View style={s.genreRow}>
+              <View style={[s.genreIconContainer, { backgroundColor: themeColors.primary }]}>
                 <Icon.Hash size={18} color={themeColors.inActiveIcon} />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={s.genreTextContainer}>
                 <View style={s.genresContainer}>
                   <Text
                     selectable
@@ -691,9 +586,9 @@ export default function AnimePreviewTV({ route }) {
         </ScrollView>
 
         {/* --- RIGHT PANEL --- */}
-        <View style={{ width: "60%", padding: 24 }} focusable={false}>
+        <View style={s.rightPanel} focusable={false}>
           <ScrollView
-            style={{ flex: 1 }}
+            style={s.leftPanel}
             showsVerticalScrollIndicator={false}
             focusable={false}
           >
@@ -705,7 +600,7 @@ export default function AnimePreviewTV({ route }) {
             />
 
             {/* Description */}
-            <View style={{ marginVertical: 16 }} focusable={false}>
+            <View style={s.descriptionSection} focusable={false}>
               <Markdown
                 style={{
                   body: [H5, { color: themeColors.text, lineHeight: 26 }],
@@ -727,21 +622,8 @@ export default function AnimePreviewTV({ route }) {
             </View>
 
             {/* Rating section */}
-            <View
-              style={{ width: "100%", alignItems: "center" }}
-              focusable={false}
-            >
-              <Text
-                style={[
-                  H4,
-                  {
-                    color: themeColors.primary,
-                    marginBottom: 14,
-                    width: "100%",
-                    textAlign: "left",
-                  },
-                ]}
-              >
+            <View style={s.ratingSection} focusable={false}>
+              <Text style={[H4, s.ratingSectionTitle, { color: themeColors.primary }]}>
                 Оцінити аніме
               </Text>
               <StarRating
